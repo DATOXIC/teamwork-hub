@@ -1,16 +1,105 @@
-﻿:root {
-    --primary-color: #0d6efd;
-    --bg-light: #f8f9fa;
+/* ==========================================================================
+   TeamWork Hub — Main Stylesheet
+   Lấy cảm hứng từ Basecamp 4 & Notion & Trello Modern UI
+   ========================================================================== */
+
+:root {
+    --brand-primary: #4f46e5;
+    --brand-primary-hover: #4338ca;
+    --brand-accent: #38bdf8;
+    --brand-dark: #0f172a;
+    --brand-navy: #1e293b;
+    --brand-surface: #ffffff;
+    --brand-bg: #f8fafc;
+    --brand-border: #e2e8f0;
+    --brand-text-main: #1e293b;
+    --brand-text-muted: #64748b;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-light);
-    color: #333;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--brand-text-main);
+    background-color: var(--brand-bg);
+    -webkit-font-smoothing: antialiased;
 }
 
-.hero-section {
-    padding: 80px 0;
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    color: white;
+/* Typography & Font Sizes */
+.fs-7 { font-size: 0.875rem !important; }
+.fs-8 { font-size: 0.775rem !important; }
+
+/* Navbar Styling */
+.bg-dark-navy {
+    background-color: var(--brand-navy) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #4f46e5 0%, #38bdf8 100%);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 1.1rem;
+}
+
+.text-primary-accent {
+    color: var(--brand-accent) !important;
+}
+
+.bg-navy-subtle {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.hover-light:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #ffffff !important;
+}
+
+/* Buttons */
+.btn-primary-custom {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: #ffffff;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary-custom:hover {
+    background-color: var(--brand-primary-hover);
+    border-color: var(--brand-primary-hover);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+/* Avatars */
+.avatar-sm {
+    width: 28px;
+    height: 28px;
+}
+
+.avatar-md {
+    width: 40px;
+    height: 40px;
+}
+
+/* Auth Cards (Basecamp / Notion Style) */
+.auth-card {
+    border-radius: 16px;
+    border: 1px solid var(--brand-border);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.15);
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--brand-primary);
+    color: #ffffff !important;
+}
+
+.nav-pills .nav-link {
+    color: var(--brand-text-muted);
+    font-weight: 600;
 }

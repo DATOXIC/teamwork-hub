@@ -1,18 +1,30 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
-<web-app version="3.1"
-    xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
-        http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                             https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
 
     <display-name>TeamWork Hub</display-name>
 
+    <!-- Cấu hình thời gian Session sống trong 30 phút -->
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>
 
+    <!-- Khai báo AuthServlet và Map tới đường dẫn /auth -->
+    <servlet>
+        <servlet-name>AuthServlet</servlet-name>
+        <servlet-class>com.teamwork.controllers.AuthServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AuthServlet</servlet-name>
+        <url-pattern>/auth</url-pattern>
+    </servlet-mapping>
+
+    <!-- Trang mặc định khi truy cập root URL -->
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>login.jsp</welcome-file>
     </welcome-file-list>
 
 </web-app>
