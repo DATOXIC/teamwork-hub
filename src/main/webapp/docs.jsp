@@ -114,8 +114,6 @@
             <div class="card border-0 bg-white shadow-sm rounded-4 p-4 p-lg-5 h-100">
                 
                 <c:choose>
-                    
-                    <!-- TRƯỜNG HỢP 1: CÓ BÀI VIẾT ĐANG ĐƯỢC CHỌN ĐỂ ĐỌC -->
                     <c:when test="${not empty selectedDoc}">
                         
                         <!-- Đầu bài viết: Tiêu đề + Nút Sửa/Xóa -->
@@ -159,8 +157,6 @@
                         </div>
 
                     </c:when>
-
-                    <!-- TRƯỜNG HỢP 2: CHƯA CÓ BÀI NÀO ĐƯỢC CHỌN -->
                     <c:otherwise>
                         <div class="text-center text-muted py-5 my-auto">
                             <i class="bi bi-journal-richtext display-3 d-block mb-3 text-primary opacity-50"></i>
