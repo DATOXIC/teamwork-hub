@@ -17,16 +17,30 @@
                title="Quay về danh sách dự án">
                 <i class="bi bi-arrow-left me-1"></i> Dashboard
             </a>
-            <div class="border-start ps-3">
-                <div class="d-flex align-items-center gap-2">
-                    <h3 class="fw-extrabold text-dark mb-0 tracking-tight">${project.name}</h3>
-                    <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fs-8">
-                        <i class="bi bi-clock-history me-1"></i> Tạo lúc: ${project.createdAt}
-                    </span>
+            <div class="border-start ps-3 d-flex align-items-center gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h4 class="fw-extrabold text-dark mb-0 tracking-tight">${project.name}</h4>
+                        <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 fs-8">
+                            <i class="bi bi-clock-history me-1"></i> ${project.createdAt}
+                        </span>
+                    </div>
+                    <c:if test="${not empty project.description}">
+                        <p class="text-muted fs-8 mb-0 mt-1">${project.description}</p>
+                    </c:if>
                 </div>
-                <c:if test="${not empty project.description}">
-                    <p class="text-muted fs-7 mb-0 mt-1">${project.description}</p>
-                </c:if>
+
+                <!-- 3 Nút chuyển phân hệ nhanh: Kanban / Docs / Chat -->
+                <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
+                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
+                       class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8">
+                        <i class="bi bi-kanban me-1"></i> Kanban
+                    </a>
+                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
+                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
+                        <i class="bi bi-journal-text me-1"></i> Tài liệu
+                    </a>
+                </div>
             </div>
         </div>
 

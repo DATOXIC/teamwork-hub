@@ -52,6 +52,16 @@
         <url-pattern>/task</url-pattern>
     </servlet-mapping>
 
+    <!-- 4. DocServlet Mapping (/doc) -->
+    <servlet>
+        <servlet-name>DocServlet</servlet-name>
+        <servlet-class>com.teamwork.controllers.DocServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DocServlet</servlet-name>
+        <url-pattern>/doc</url-pattern>
+    </servlet-mapping>
+
     <!-- Trang mặc định khi truy cập root URL -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
