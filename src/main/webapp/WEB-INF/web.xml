@@ -12,7 +12,7 @@
         <session-timeout>30</session-timeout>
     </session-config>
 
-    <!-- Khai báo AuthServlet và Map tới đường dẫn /auth -->
+    <!-- 1. AuthServlet Mapping (/auth) -->
     <servlet>
         <servlet-name>AuthServlet</servlet-name>
         <servlet-class>com.teamwork.controllers.AuthServlet</servlet-class>
@@ -22,21 +22,29 @@
         <url-pattern>/auth</url-pattern>
     </servlet-mapping>
 
-    <!-- Khai báo ProjectServlet -->
+    <!-- 2. ProjectServlet Mapping (/project) -->
     <servlet>
         <servlet-name>ProjectServlet</servlet-name>
         <servlet-class>com.teamwork.controllers.ProjectServlet</servlet-class>
     </servlet>
-    <!-- Ánh xạ URL /project tới ProjectServlet -->
     <servlet-mapping>
         <servlet-name>ProjectServlet</servlet-name>
         <url-pattern>/project</url-pattern>
     </servlet-mapping>
 
+    <!-- 3. TaskServlet Mapping (/task) -->
+    <servlet>
+        <servlet-name>TaskServlet</servlet-name>
+        <servlet-class>com.teamwork.controllers.TaskServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TaskServlet</servlet-name>
+        <url-pattern>/task</url-pattern>
+    </servlet-mapping>
 
     <!-- Trang mặc định khi truy cập root URL -->
     <welcome-file-list>
-        <welcome-file>login.jsp</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
 </web-app>
