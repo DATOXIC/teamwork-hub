@@ -71,7 +71,13 @@ public class ProjectServlet extends HttpServlet
 
         // Kiểm tra đăng nhập
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = new User();
+        if( session != null)
+        {
+            currentUser = (User) session.getAttribute("currentUser");
+        }
+        else currentUser = null;
+        
         if (currentUser == null) 
         {
             response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
