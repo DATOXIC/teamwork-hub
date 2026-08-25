@@ -1,11 +1,13 @@
 package com.teamwork.controllers;
 
 import com.teamwork.business.Doc;
+import com.teamwork.business.Message;
 import com.teamwork.business.Project;
 import com.teamwork.business.Task;
 import com.teamwork.business.TaskDoc;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
+import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
@@ -120,25 +122,37 @@ public class TaskServlet extends HttpServlet {
         // 5. Gom toàn bộ danh sách tài liệu đính kèm cho từng Task vào một Map (taskId -> List<TaskDoc>)
         Map<Integer, List<TaskDoc>> taskDocsMap = new HashMap<>();
 
-        // Nạp liên kết cho cột TODO
+        // 6. Gom toàn bộ danh sách bình luận riêng cho từng Task vào một Map (taskId -> List<Message>)
+        Map<Integer, List<Message>> taskCommentsMap = new HashMap<>();
+
+        // Nạp liên kết tài liệu và bình luận cho cột TODO
         for (Task t : todoTasks) {
             List<TaskDoc> attachedDocs = TaskDocDB.selectByTaskId(t.getId());
             taskDocsMap.put(t.getId(), attachedDocs);
+
+            List<Message> comments = MessageDB.selectByTaskId(t.getId());
+            taskCommentsMap.put(t.getId(), comments);
         }
 
-        // Nạp liên kết cho cột IN_PROGRESS
+        // Nạp liên kết tài liệu và bình luận cho cột IN_PROGRESS
         for (Task t : inProgressTasks) {
             List<TaskDoc> attachedDocs = TaskDocDB.selectByTaskId(t.getId());
             taskDocsMap.put(t.getId(), attachedDocs);
+
+            List<Message> comments = MessageDB.selectByTaskId(t.getId());
+            taskCommentsMap.put(t.getId(), comments);
         }
 
-        // Nạp liên kết cho cột DONE
+        // Nạp liên kết tài liệu và bình luận cho cột DONE
         for (Task t : doneTasks) {
             List<TaskDoc> attachedDocs = TaskDocDB.selectByTaskId(t.getId());
             taskDocsMap.put(t.getId(), attachedDocs);
+
+            List<Message> comments = MessageDB.selectByTaskId(t.getId());
+            taskCommentsMap.put(t.getId(), comments);
         }
 
-        // 6. Đóng gói dữ liệu gửi sang tasks.jsp
+        // 7. Đóng gói dữ liệu gửi sang tasks.jsp
         request.setAttribute("project", project);
         request.setAttribute("todoTasks", todoTasks);
         request.setAttribute("inProgressTasks", inProgressTasks);
@@ -146,6 +160,7 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("userList", userList);
         request.setAttribute("docList", docList);
         request.setAttribute("taskDocsMap", taskDocsMap);
+        request.setAttribute("taskCommentsMap", taskCommentsMap);
         request.setAttribute("activeNav", "projects");
 
         // 7. Forward sang giao diện tasks.jsp

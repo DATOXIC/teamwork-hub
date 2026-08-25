@@ -88,7 +88,10 @@
                         <div class="card kanban-card border-0 bg-white shadow-sm p-3 rounded-3 cursor-grab"
                              id="task-${task.id}"
                              draggable="true" 
-                             data-task-id="${task.id}">
+                             data-task-id="${task.id}"
+                             data-bs-toggle="modal" 
+                             data-bs-target="#taskDetailModal-${task.id}"
+                             style="cursor: pointer;">
                             
                             <!-- Hàng 1: Badge mức độ ưu tiên & Nút xóa -->
                             <div class="d-flex align-items-center justify-content-between mb-2">
@@ -96,10 +99,10 @@
                                     ${task.priorityLabel}
                                 </span>
                                 
-                                <!-- Link xóa task -->
+                                <!-- Link xóa task (Dùng stopPropagation để không kích hoạt Modal) -->
                                 <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
                                    class="text-muted text-hover-danger text-decoration-none p-1"
-                                   onclick="return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
+                                   onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
                                    title="Xóa công việc">
                                     <i class="bi bi-trash3"></i>
                                 </a>
@@ -113,19 +116,19 @@
                                 <p class="text-muted fs-7 mb-2 text-truncate-2">${task.description}</p>
                             </c:if>
 
-                            <!-- Hàng 3.5: Huy hiệu các tài liệu hướng dẫn đính kèm (TaskDoc) -->
-                            <c:if test="${not empty taskDocsMap[task.id]}">
-                                <div class="d-flex flex-wrap gap-1 mb-2">
-                                    <c:forEach items="${taskDocsMap[task.id]}" var="td">
-                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}" 
-                                           class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1"
-                                           title="Đọc tài liệu hướng dẫn: ${td.docTitle}">
-                                            <i class="bi bi-journal-bookmark"></i>
-                                            <span class="text-truncate" style="max-width: 150px;">${td.docTitle}</span>
-                                        </a>
-                                    </c:forEach>
-                                </div>
-                            </c:if>
+                            <!-- Hàng 3.5: Huy hiệu Tài liệu đính kèm & Bình luận -->
+                            <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
+                                <c:if test="${not empty taskDocsMap[task.id]}">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="${taskDocsMap[task.id].size()} tài liệu đính kèm">
+                                        <i class="bi bi-journal-text"></i> ${taskDocsMap[task.id].size()} doc
+                                    </span>
+                                </c:if>
+                                <c:if test="${not empty taskCommentsMap[task.id]}">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="${taskCommentsMap[task.id].size()} thảo luận">
+                                        <i class="bi bi-chat-dots"></i> ${taskCommentsMap[task.id].size()}
+                                    </span>
+                                </c:if>
+                            </div>
 
                             <!-- Hàng 4: Người phụ trách & Hạn chót -->
                             <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top fs-8 text-secondary">
@@ -142,7 +145,7 @@
                             </div>
 
                             <!-- Hàng 5: Nút chuyển cột nhanh sang Đang làm -->
-                            <div class="mt-2 pt-1 text-end">
+                            <div class="mt-2 pt-1 text-end" onclick="event.stopPropagation();">
                                 <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
                                     <input type="hidden" name="action" value="updateStatus">
                                     <input type="hidden" name="projectId" value="${project.id}">
@@ -196,7 +199,10 @@
                         <div class="card kanban-card border-0 bg-white shadow-sm p-3 rounded-3 cursor-grab"
                              id="task-${task.id}"
                              draggable="true" 
-                             data-task-id="${task.id}">
+                             data-task-id="${task.id}"
+                             data-bs-toggle="modal" 
+                             data-bs-target="#taskDetailModal-${task.id}"
+                             style="cursor: pointer;">
                             
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-1 fs-8 fw-semibold">
@@ -205,7 +211,7 @@
                                 
                                 <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
                                    class="text-muted text-hover-danger text-decoration-none p-1"
-                                   onclick="return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
+                                   onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
                                    title="Xóa công việc">
                                     <i class="bi bi-trash3"></i>
                                 </a>
@@ -217,19 +223,19 @@
                                 <p class="text-muted fs-7 mb-2 text-truncate-2">${task.description}</p>
                             </c:if>
 
-                            <!-- Huy hiệu các tài liệu hướng dẫn đính kèm (TaskDoc) -->
-                            <c:if test="${not empty taskDocsMap[task.id]}">
-                                <div class="d-flex flex-wrap gap-1 mb-2">
-                                    <c:forEach items="${taskDocsMap[task.id]}" var="td">
-                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}" 
-                                           class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1"
-                                           title="Đọc tài liệu hướng dẫn: ${td.docTitle}">
-                                            <i class="bi bi-journal-bookmark"></i>
-                                            <span class="text-truncate" style="max-width: 150px;">${td.docTitle}</span>
-                                        </a>
-                                    </c:forEach>
-                                </div>
-                            </c:if>
+                            <!-- Huy hiệu Tài liệu đính kèm & Bình luận -->
+                            <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
+                                <c:if test="${not empty taskDocsMap[task.id]}">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="${taskDocsMap[task.id].size()} tài liệu đính kèm">
+                                        <i class="bi bi-journal-text"></i> ${taskDocsMap[task.id].size()} doc
+                                    </span>
+                                </c:if>
+                                <c:if test="${not empty taskCommentsMap[task.id]}">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="${taskCommentsMap[task.id].size()} thảo luận">
+                                        <i class="bi bi-chat-dots"></i> ${taskCommentsMap[task.id].size()}
+                                    </span>
+                                </c:if>
+                            </div>
 
                             <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top fs-8 text-secondary">
                                 <div class="d-flex align-items-center gap-1" title="Người thực hiện">
@@ -245,7 +251,7 @@
                             </div>
 
                             <!-- 2 nút chuyển cột nhanh: Sang Cần làm hoặc Sang Đã xong -->
-                            <div class="d-flex align-items-center justify-content-between mt-2 pt-1">
+                            <div class="d-flex align-items-center justify-content-between mt-2 pt-1" onclick="event.stopPropagation();">
                                 <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
                                     <input type="hidden" name="action" value="updateStatus">
                                     <input type="hidden" name="projectId" value="${project.id}">
@@ -308,7 +314,10 @@
                         <div class="card kanban-card border-0 bg-white shadow-sm p-3 rounded-3 cursor-grab opacity-75"
                              id="task-${task.id}"
                              draggable="true" 
-                             data-task-id="${task.id}">
+                             data-task-id="${task.id}"
+                             data-bs-toggle="modal" 
+                             data-bs-target="#taskDetailModal-${task.id}"
+                             style="cursor: pointer;">
                             
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 fs-8 fw-semibold">
@@ -317,7 +326,7 @@
                                 
                                 <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
                                    class="text-muted text-hover-danger text-decoration-none p-1"
-                                   onclick="return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
+                                   onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
                                    title="Xóa công việc">
                                     <i class="bi bi-trash3"></i>
                                 </a>
@@ -329,19 +338,19 @@
                                 <p class="text-muted fs-7 mb-2 text-truncate-2">${task.description}</p>
                             </c:if>
 
-                            <!-- Huy hiệu các tài liệu hướng dẫn đính kèm (TaskDoc) -->
-                            <c:if test="${not empty taskDocsMap[task.id]}">
-                                <div class="d-flex flex-wrap gap-1 mb-2">
-                                    <c:forEach items="${taskDocsMap[task.id]}" var="td">
-                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}" 
-                                           class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1"
-                                           title="Đọc tài liệu hướng dẫn: ${td.docTitle}">
-                                            <i class="bi bi-journal-bookmark"></i>
-                                            <span class="text-truncate" style="max-width: 150px;">${td.docTitle}</span>
-                                        </a>
-                                    </c:forEach>
-                                </div>
-                            </c:if>
+                            <!-- Huy hiệu Tài liệu đính kèm & Bình luận -->
+                            <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
+                                <c:if test="${not empty taskDocsMap[task.id]}">
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="${taskDocsMap[task.id].size()} tài liệu đính kèm">
+                                        <i class="bi bi-journal-text"></i> ${taskDocsMap[task.id].size()} doc
+                                    </span>
+                                </c:if>
+                                <c:if test="${not empty taskCommentsMap[task.id]}">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="${taskCommentsMap[task.id].size()} thảo luận">
+                                        <i class="bi bi-chat-dots"></i> ${taskCommentsMap[task.id].size()}
+                                    </span>
+                                </c:if>
+                            </div>
 
                             <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top fs-8 text-secondary">
                                 <div class="d-flex align-items-center gap-1" title="Người thực hiện">
@@ -357,7 +366,7 @@
                             </div>
 
                             <!-- Nút mở lại công việc sang Đang làm -->
-                            <div class="mt-2 pt-1 text-start">
+                            <div class="mt-2 pt-1 text-start" onclick="event.stopPropagation();">
                                 <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
                                     <input type="hidden" name="action" value="updateStatus">
                                     <input type="hidden" name="projectId" value="${project.id}">
@@ -386,8 +395,22 @@
     </div>
 </div>
 
+<!-- ========================================================
+     4. MODAL CHI TIẾT TASK 2 CỘT (TASK MINI-HUB - TRỤ CỘT 1)
+     Được render trước cho tất cả các task trong 3 cột
+     ======================================================== -->
+<c:forEach items="${todoTasks}" var="task">
+    <jsp:include page="/includes/task_modal_detail.jsp" />
+</c:forEach>
+<c:forEach items="${inProgressTasks}" var="task">
+    <jsp:include page="/includes/task_modal_detail.jsp" />
+</c:forEach>
+<c:forEach items="${doneTasks}" var="task">
+    <jsp:include page="/includes/task_modal_detail.jsp" />
+</c:forEach>
+
 <!-- ==========================================
-     4. MODAL POPUP: FORM "+ THÊM CÔNG VIỆC MỚI" (UC05)
+     5. MODAL POPUP: FORM "+ THÊM CÔNG VIỆC MỚI" (UC05)
      ========================================== -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -512,8 +535,8 @@
     </div>
 </div>
 
-<!-- 5. NẠP FILE JAVASCRIPT KÉO THẢ CHUỘT (HTML5 DRAG & DROP) -->
+<!-- 6. NẠP FILE JAVASCRIPT KÉO THẢ CHUỘT (HTML5 DRAG & DROP) -->
 <script src="${pageContext.request.contextPath}/js/tasks.js"></script>
 
-<!-- 6. NẠP FOOTER CHUNG -->
+<!-- 7. NẠP FOOTER CHUNG -->
 <jsp:include page="/includes/footer.jsp" />
