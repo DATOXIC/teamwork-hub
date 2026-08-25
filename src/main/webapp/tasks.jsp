@@ -31,7 +31,7 @@
                     </c:if>
                 </div>
 
-                <!-- 3 Nút chuyển phân hệ nhanh: Kanban / Docs -->
+                <!-- 3 Nút chuyển phân hệ nhanh: Kanban / Docs / Chat -->
                 <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
                     <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
                        class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8">
@@ -40,6 +40,10 @@
                     <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
                        class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
                         <i class="bi bi-journal-text me-1"></i> Tài liệu
+                    </a>
+                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
+                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
+                        <i class="bi bi-chat-dots me-1"></i> Thảo luận
                     </a>
                 </div>
             </div>

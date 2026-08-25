@@ -62,6 +62,16 @@
         <url-pattern>/doc</url-pattern>
     </servlet-mapping>
 
+    <!-- 5. ChatServlet Mapping (/chat) -->
+    <servlet>
+        <servlet-name>ChatServlet</servlet-name>
+        <servlet-class>com.teamwork.controllers.ChatServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChatServlet</servlet-name>
+        <url-pattern>/chat</url-pattern>
+    </servlet-mapping>
+
     <!-- Trang mặc định khi truy cập root URL -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
