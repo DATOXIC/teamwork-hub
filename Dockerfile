@@ -20,7 +20,7 @@ FROM tomcat:10.1-jdk21-temurin
 RUN rm -rf /usr/local/tomcat/webapps/*
 
 # Đổi tên thành ROOT.war để chạy ngay tại root URL https://your-domain.onrender.com/
-COPY --from=build /app/target/teamwork-hub.war /usr/local/tomcat/webapps/ROOT.war
+COPY --from=build /app/target/teamwork-hub-1.0-SNAPSHOT.war /usr/local/tomcat/webapps/ROOT.war
 
 EXPOSE 8080
 
