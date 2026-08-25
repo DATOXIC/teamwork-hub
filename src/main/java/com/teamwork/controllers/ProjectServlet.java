@@ -23,32 +23,14 @@ public class ProjectServlet extends HttpServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException 
     {
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
-
-        HttpSession session = request.getSession(false);
-        User currentUser = new User();
-        if( session != null)
-        {
-            currentUser = (User) session.getAttribute("currentUser");
-        }
-        else currentUser = null;
-
-        if(session == null)
-        {
-            // Chưa đăng nhập -> Chuyển hướng về trang đăng nhập
-            response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
-            return;
-        }
-
-        // 2. Đọc action từ URL
+        // 1. Đọc action từ URL (AuthFilter đã đảm bảo người dùng đã đăng nhập)
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) 
         {
             action = "list";
         }
 
-        // 3. Điều phối xử lý GET
+        // 2. Điều phối xử lý GET
         switch (action) 
         {
             case "list":
@@ -66,29 +48,19 @@ public class ProjectServlet extends HttpServlet
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        response.setContentType("text/html;charset=UTF-8");
 
-        // Kiểm tra đăng nhập
+        // 1. Lấy thông tin User đang đăng nhập từ Session để gán làm chủ dự án (ownerId)
         HttpSession session = request.getSession(false);
-        User currentUser = new User();
-        if( session != null)
-        {
-            currentUser = (User) session.getAttribute("currentUser");
-        }
-        else currentUser = null;
+        User currentUser = (User) session.getAttribute("currentUser");
         
-        if (currentUser == null) 
-        {
-            response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
-            return;
-        }
+        // 2. Đọc action từ form submit
         String action = request.getParameter("action");
-        if (action == null)
+        if (action == null || action.trim().isEmpty())
         {
             action = "create";
         }
-        // Điều phối xử lý POST
+
+        // 3. Điều phối xử lý POST
         switch (action) 
         {
             case "create":

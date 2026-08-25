@@ -52,6 +52,16 @@ public class UserDB {
         return null; // Không khớp -> Trả về null
     }
 
+    public static User selectById(int id) 
+    {
+        for ( User u: users)
+        {
+            if(u.getId() == id)
+                return u;
+        }
+        return null;
+    }
+
     /**
      * Hàm 2: Kiểm tra sự tồn tại (Dùng khi người dùng ĐĂNG KÝ)
      * Đảm bảo không cho phép đăng ký tài khoản trùng tên.
@@ -68,7 +78,8 @@ public class UserDB {
     /**
      * Hàm 3: Thêm người dùng mới (Dùng khi ĐĂNG KÝ thành công)
      */
-    public static int insert(User user) {
+    public static int insert(User user) 
+    {
         user.setId(nextId++); // Gán ID tự tăng tự động
         users.add(user);      // Thêm vào danh sách RAM
         return user.getId();  // Trả về ID vừa tạo

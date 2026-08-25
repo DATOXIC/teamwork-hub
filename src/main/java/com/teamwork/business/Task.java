@@ -45,7 +45,8 @@ public class Task implements Serializable {
      */
     public Task(int id, int projectId, String title, String description,
                 String status, String priority, String dueDate,
-                int assigneeId, String assigneeName) {
+                int assigneeId, String assigneeName) 
+    {
         this.id = id;
         this.projectId = projectId;
         this.title = title;

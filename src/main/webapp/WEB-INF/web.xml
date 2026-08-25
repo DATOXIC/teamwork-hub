@@ -12,6 +12,16 @@
         <session-timeout>30</session-timeout>
     </session-config>
 
+    <!-- CẤU HÌNH FILTER BẢO MẬT TẬP TRUNG -->
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>com.teamwork.filters.AuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- 1. AuthServlet Mapping (/auth) -->
     <servlet>
         <servlet-name>AuthServlet</servlet-name>
