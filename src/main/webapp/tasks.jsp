@@ -422,7 +422,7 @@
 </div>
 
 <!-- 5. NẠP FILE JAVASCRIPT KÉO THẢ CHUỘT (HTML5 DRAG & DROP) -->
-<script src="${pageContext.request.contextPath}/js/kanban.js"></script>
+<script src="${pageContext.request.contextPath}/js/tasks.js"></script>
 
 <!-- 6. NẠP FOOTER CHUNG -->
 <jsp:include page="/includes/footer.jsp" />

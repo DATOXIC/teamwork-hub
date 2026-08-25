@@ -90,7 +90,7 @@ public class TaskServlet extends HttpServlet
     }
 
      /**
-     * Nghiệp vụ 1: Lấy toàn bộ dữ liệu 3 cột Kanban và chuyển sang giao diện kanban.jsp
+     * Nghiệp vụ 1: Lấy toàn bộ dữ liệu 3 cột Kanban và chuyển sang giao diện tasks.jsp
      */
     private void handleShowKanban(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws ServletException, IOException 
@@ -122,7 +122,7 @@ public class TaskServlet extends HttpServlet
                 request.setAttribute("activeNav", "projects");
 
                 // GỦI CHO JSP
-                request.getRequestDispatcher("/kanban.jsp").forward(request, response);
+                request.getRequestDispatcher("/tasks.jsp").forward(request, response);
         }
 
             /**

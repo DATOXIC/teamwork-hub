@@ -72,7 +72,7 @@ public class ProjectServlet extends HttpServlet
         }
     }
         /**
-     * Nghiệp vụ 1: Lấy danh sách dự án và chuyển sang View (dashboard.jsp)
+     * Nghiệp vụ 1: Lấy danh sách dự án và chuyển sang View (projects.jsp)
      */
     private void showProjectList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException 
@@ -87,8 +87,8 @@ public class ProjectServlet extends HttpServlet
         request.setAttribute("activeNav", "dashboard"); 
 
         // DÒNG 4: CHUYỂN GIAO CHO GIAO DIỆN HIỂN THỊ
-        request.getRequestDispatcher("/dashboard.jsp").forward(request, response);
-        }
+        request.getRequestDispatcher("/projects.jsp").forward(request, response);
+    }
 
     /**
      * Nghiệp vụ 2: Tạo dự án mới từ dữ liệu form Modal
