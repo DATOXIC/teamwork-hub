@@ -10,13 +10,14 @@
     <!-- 2. THANH TIÊU ĐỀ DỰ ÁN & CÁC NÚT ĐIỀU HƯỚNG TRÊN CÙNG -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom bg-white p-3 rounded-4 shadow-sm">
         
-        <!-- Cụm bên trái: Nút quay lại + Tên dự án + Mô tả -->
+        <!-- Cụm bên trái: Nút quay lại + Tên dự án + Chuyển Tab -->
         <div class="d-flex align-items-center gap-3">
             <a href="${pageContext.request.contextPath}/project?action=list" 
                class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none" 
                title="Quay về danh sách dự án">
                 <i class="bi bi-arrow-left me-1"></i> Dashboard
             </a>
+            
             <div class="border-start ps-3 d-flex align-items-center gap-3">
                 <div>
                     <div class="d-flex align-items-center gap-2">
@@ -30,7 +31,7 @@
                     </c:if>
                 </div>
 
-                <!-- 3 Nút chuyển phân hệ nhanh: Kanban / Docs / Chat -->
+                <!-- 3 Nút chuyển phân hệ nhanh: Kanban / Docs -->
                 <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
                     <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
                        class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8">
@@ -91,7 +92,7 @@
                                     ${task.priorityLabel}
                                 </span>
                                 
-                                <!-- Link xóa task (Dùng GET action=delete) -->
+                                <!-- Link xóa task -->
                                 <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
                                    class="text-muted text-hover-danger text-decoration-none p-1"
                                    onclick="return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
@@ -108,6 +109,20 @@
                                 <p class="text-muted fs-7 mb-2 text-truncate-2">${task.description}</p>
                             </c:if>
 
+                            <!-- Hàng 3.5: Huy hiệu các tài liệu hướng dẫn đính kèm (TaskDoc) -->
+                            <c:if test="${not empty taskDocsMap[task.id]}">
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    <c:forEach items="${taskDocsMap[task.id]}" var="td">
+                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}" 
+                                           class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1"
+                                           title="Đọc tài liệu hướng dẫn: ${td.docTitle}">
+                                            <i class="bi bi-journal-bookmark"></i>
+                                            <span class="text-truncate" style="max-width: 150px;">${td.docTitle}</span>
+                                        </a>
+                                    </c:forEach>
+                                </div>
+                            </c:if>
+
                             <!-- Hàng 4: Người phụ trách & Hạn chót -->
                             <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top fs-8 text-secondary">
                                 <div class="d-flex align-items-center gap-1" title="Người thực hiện">
@@ -122,7 +137,7 @@
                                 </c:if>
                             </div>
 
-                            <!-- Hàng 5: Nút chuyển cột nhanh sang Đang làm (Dành cho thiết bị không kéo chuột được) -->
+                            <!-- Hàng 5: Nút chuyển cột nhanh sang Đang làm -->
                             <div class="mt-2 pt-1 text-end">
                                 <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
                                     <input type="hidden" name="action" value="updateStatus">
@@ -198,6 +213,20 @@
                                 <p class="text-muted fs-7 mb-2 text-truncate-2">${task.description}</p>
                             </c:if>
 
+                            <!-- Huy hiệu các tài liệu hướng dẫn đính kèm (TaskDoc) -->
+                            <c:if test="${not empty taskDocsMap[task.id]}">
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    <c:forEach items="${taskDocsMap[task.id]}" var="td">
+                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}" 
+                                           class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1"
+                                           title="Đọc tài liệu hướng dẫn: ${td.docTitle}">
+                                            <i class="bi bi-journal-bookmark"></i>
+                                            <span class="text-truncate" style="max-width: 150px;">${td.docTitle}</span>
+                                        </a>
+                                    </c:forEach>
+                                </div>
+                            </c:if>
+
                             <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top fs-8 text-secondary">
                                 <div class="d-flex align-items-center gap-1" title="Người thực hiện">
                                     <i class="bi bi-person-circle text-primary"></i>
@@ -211,8 +240,8 @@
                                 </c:if>
                             </div>
 
-                            <!-- Nút chuyển nhanh: Lùi về Cần làm HOẶC Tiến tới Đã xong -->
-                            <div class="mt-2 pt-1 d-flex justify-content-between">
+                            <!-- 2 nút chuyển cột nhanh: Sang Cần làm hoặc Sang Đã xong -->
+                            <div class="d-flex align-items-center justify-content-between mt-2 pt-1">
                                 <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
                                     <input type="hidden" name="action" value="updateStatus">
                                     <input type="hidden" name="projectId" value="${project.id}">
@@ -239,7 +268,7 @@
 
                     <c:if test="${empty inProgressTasks}">
                         <div class="empty-column-placeholder text-center text-muted py-4 border border-dashed rounded-3">
-                            <i class="bi bi-inbox fs-4 d-block mb-1 opacity-50"></i>
+                            <i class="bi bi-hourglass fs-4 d-block mb-1 opacity-50"></i>
                             <span class="fs-8">Không có việc đang làm</span>
                         </div>
                     </c:if>
@@ -249,7 +278,7 @@
         </div>
 
         <!-- ==========================================
-             CỘT 3: ĐÃ HOÀN THÀNH (DONE)
+             CỘT 3: ĐÃ XONG (DONE)
              ========================================== -->
         <div class="col-12 col-md-6 col-lg-4">
             <div class="kanban-column bg-light-subtle p-3 rounded-4 border shadow-2xs h-100 d-flex flex-column">
@@ -258,7 +287,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-3 px-1">
                     <div class="d-flex align-items-center gap-2">
                         <span class="p-2 bg-success-subtle text-success rounded-3">
-                            <i class="bi bi-check2-circle"></i>
+                            <i class="bi bi-check-circle"></i>
                         </span>
                         <h6 class="fw-bold mb-0 text-dark">Đã xong (Done)</h6>
                     </div>
@@ -272,14 +301,14 @@
                     
                     <!-- Lặp qua từng task trong danh sách doneTasks -->
                     <c:forEach items="${doneTasks}" var="task">
-                        <div class="card kanban-card border-0 bg-white shadow-sm p-3 rounded-3 cursor-grab opacity-85"
+                        <div class="card kanban-card border-0 bg-white shadow-sm p-3 rounded-3 cursor-grab opacity-75"
                              id="task-${task.id}"
                              draggable="true" 
                              data-task-id="${task.id}">
                             
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-1 fs-8 fw-semibold">
-                                    ${task.priorityLabel}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 fs-8 fw-semibold">
+                                    <i class="bi bi-check2"></i> Đã hoàn thành
                                 </span>
                                 
                                 <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
@@ -290,27 +319,40 @@
                                 </a>
                             </div>
 
-                            <!-- Tiêu đề có gạch ngang biểu thị đã hoàn thành -->
-                            <h6 class="fw-bold text-dark mb-1 fs-6 text-decoration-line-through text-muted">${task.title}</h6>
+                            <h6 class="fw-bold text-dark mb-1 fs-6 text-decoration-line-through">${task.title}</h6>
 
                             <c:if test="${not empty task.description}">
                                 <p class="text-muted fs-7 mb-2 text-truncate-2">${task.description}</p>
                             </c:if>
 
+                            <!-- Huy hiệu các tài liệu hướng dẫn đính kèm (TaskDoc) -->
+                            <c:if test="${not empty taskDocsMap[task.id]}">
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    <c:forEach items="${taskDocsMap[task.id]}" var="td">
+                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}" 
+                                           class="badge bg-primary-subtle text-primary text-decoration-none border border-primary-subtle rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1"
+                                           title="Đọc tài liệu hướng dẫn: ${td.docTitle}">
+                                            <i class="bi bi-journal-bookmark"></i>
+                                            <span class="text-truncate" style="max-width: 150px;">${td.docTitle}</span>
+                                        </a>
+                                    </c:forEach>
+                                </div>
+                            </c:if>
+
                             <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top fs-8 text-secondary">
                                 <div class="d-flex align-items-center gap-1" title="Người thực hiện">
-                                    <i class="bi bi-person-check text-success"></i>
+                                    <i class="bi bi-person-circle text-primary"></i>
                                     <span class="fw-medium text-dark">${task.assigneeName}</span>
                                 </div>
                                 <c:if test="${not empty task.dueDate}">
                                     <div class="d-flex align-items-center gap-1" title="Hạn hoàn thành">
-                                        <i class="bi bi-calendar-check text-success"></i>
+                                        <i class="bi bi-calendar-event"></i>
                                         <span>${task.dueDate}</span>
                                     </div>
                                 </c:if>
                             </div>
 
-                            <!-- Nút chuyển ngược lại sang Đang làm nếu cần mở lại công việc -->
+                            <!-- Nút mở lại công việc sang Đang làm -->
                             <div class="mt-2 pt-1 text-start">
                                 <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
                                     <input type="hidden" name="action" value="updateStatus">
@@ -344,7 +386,7 @@
      4. MODAL POPUP: FORM "+ THÊM CÔNG VIỆC MỚI" (UC05)
      ========================================== -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             
             <!-- Đầu Modal -->
@@ -358,11 +400,10 @@
             <!-- Form gửi dữ liệu lên TaskServlet (doPost) -->
             <form method="post" action="${pageContext.request.contextPath}/task">
                 
-                <!-- 2 thẻ ẩn chứa action và projectId -->
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="projectId" value="${project.id}">
 
-                <div class="modal-body px-4 py-3">
+                <div class="modal-body px-4 py-4">
                     
                     <!-- Ô 1: Tiêu đề công việc -->
                     <div class="mb-3">
@@ -409,15 +450,47 @@
                         </div>
                     </div>
 
-                    <!-- Ô 3: Người thực hiện (Đổ danh sách từ userList) -->
-                    <div class="mb-2">
-                        <label for="taskAssignee" class="form-label fw-semibold text-dark fs-7">Giao cho thành viên</label>
-                        <select class="form-select rounded-3 py-2 px-3 fs-7" id="taskAssignee" name="assigneeId">
-                            <option value="0">-- Chưa phân công --</option>
-                            <c:forEach items="${userList}" var="u">
-                                <option value="${u.id}">${u.fullName} (${u.role})</option>
-                            </c:forEach>
-                        </select>
+                    <!-- Hàng đôi: Người thực hiện & Đính kèm tài liệu -->
+                    <div class="row g-3 mb-2">
+                        
+                        <!-- Ô 3: Người thực hiện (Đổ danh sách từ userList) -->
+                        <div class="col-12 col-md-6">
+                            <label for="taskAssignee" class="form-label fw-semibold text-dark fs-7">Giao cho thành viên</label>
+                            <select class="form-select rounded-3 py-2 px-3 fs-7" id="taskAssignee" name="assigneeId">
+                                <option value="0">-- Chưa phân công --</option>
+                                <c:forEach items="${userList}" var="u">
+                                    <option value="${u.id}">${u.fullName} (${u.role})</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+
+                        <!-- Ô 4: ĐÍNH KÈM TÀI LIỆU HƯỚNG DẪN (TaskDoc - Multi Select) -->
+                        <div class="col-12 col-md-6">
+                            <label for="taskDocSelect" class="form-label fw-semibold text-dark fs-7">
+                                <i class="bi bi-paperclip me-1 text-primary"></i> Đính kèm tài liệu Wiki
+                            </label>
+                            <c:choose>
+                                <c:when test="${not empty docList}">
+                                    <select class="form-select rounded-3 py-1 px-3 fs-8" 
+                                            id="taskDocSelect" 
+                                            name="docIds" 
+                                            multiple 
+                                            size="3" 
+                                            title="Giữ Ctrl hoặc Cmd để chọn nhiều tài liệu">
+                                        <c:forEach items="${docList}" var="docItem">
+                                            <option value="${docItem.id}">📄 ${docItem.title}</option>
+                                        </c:forEach>
+                                    </select>
+                                    <div class="form-text fs-9 text-muted mt-1">Giữ phím <kbd>Ctrl</kbd> để chọn nhiều tài liệu cùng lúc.</div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="p-2 bg-light rounded-3 text-muted fs-8 border">
+                                        Chưa có tài liệu nào trong dự án.
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+
                     </div>
 
                 </div>
