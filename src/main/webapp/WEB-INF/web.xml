@@ -22,6 +22,18 @@
         <url-pattern>/auth</url-pattern>
     </servlet-mapping>
 
+    <!-- Khai báo ProjectServlet -->
+    <servlet>
+        <servlet-name>ProjectServlet</servlet-name>
+        <servlet-class>com.teamwork.controllers.ProjectServlet</servlet-class>
+    </servlet>
+    <!-- Ánh xạ URL /project tới ProjectServlet -->
+    <servlet-mapping>
+        <servlet-name>ProjectServlet</servlet-name>
+        <url-pattern>/project</url-pattern>
+    </servlet-mapping>
+
+
     <!-- Trang mặc định khi truy cập root URL -->
     <welcome-file-list>
         <welcome-file>login.jsp</welcome-file>
