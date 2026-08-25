@@ -152,8 +152,49 @@
                         </div>
 
                         <!-- Thân nội dung bài viết (Giữ nguyên định dạng xuống dòng với white-space: pre-line) -->
-                        <div class="doc-content fs-6 text-dark lh-lg" style="white-space: pre-line; word-break: break-word;">
+                        <div class="doc-content fs-6 text-dark lh-lg mb-4" style="white-space: pre-line; word-break: break-word;">
                             <c:out value="${selectedDoc.content}" />
+                        </div>
+
+                        <!-- Khung: Các công việc đang tham chiếu tài liệu này (TaskDoc) -->
+                        <div class="mt-5 pt-4 border-top">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-pin-angle-fill text-primary fs-5"></i>
+                                    <h6 class="fw-bold mb-0 text-dark">Các công việc đang áp dụng tài liệu này</h6>
+                                </div>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fs-8">
+                                    ${relatedTasks.size()} công việc
+                                </span>
+                            </div>
+
+                            <c:if test="${not empty relatedTasks}">
+                                <div class="d-flex flex-column gap-2">
+                                    <c:forEach items="${relatedTasks}" var="rt">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between p-3 bg-light rounded-3 border gap-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="badge ${rt.priorityBadgeClass} rounded-pill px-2 py-1 fs-9">
+                                                    ${rt.priorityLabel}
+                                                </span>
+                                                <span class="fw-semibold text-dark fs-7">${rt.title}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-3 fs-8 text-secondary">
+                                                <span><i class="bi bi-person me-1"></i>${rt.assigneeName}</span>
+                                                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
+                                                   class="btn btn-outline-primary btn-xs rounded-pill px-3 py-1 fs-8">
+                                                    Xem trên Kanban <i class="bi bi-arrow-right ms-1"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:if>
+
+                            <c:if test="${empty relatedTasks}">
+                                <div class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center">
+                                    Chưa có công việc nào gắn kèm tài liệu hướng dẫn này. Bạn có thể đính kèm khi tạo việc trên <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" class="text-primary fw-medium text-decoration-none">Bảng Kanban</a>.
+                                </div>
+                            </c:if>
                         </div>
 
                     </c:when>

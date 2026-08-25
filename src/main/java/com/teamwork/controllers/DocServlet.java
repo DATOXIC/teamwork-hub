@@ -2,9 +2,12 @@ package com.teamwork.controllers;
 
 import com.teamwork.business.Doc;
 import com.teamwork.business.Project;
+import com.teamwork.business.Task;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.ProjectDB;
+import com.teamwork.data.TaskDB;
+import com.teamwork.data.TaskDocDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,14 +16,15 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Controller phụ trách Quản lý Tài liệu & Ghi chú Wiki nhóm:
- * - Xem danh mục bài viết & Đọc chi tiết bài (GET /doc?action=list hoặc action=view)
+ * - Xem danh mục bài viết, đọc chi tiết bài và danh sách các Task đang áp dụng bài viết này (GET /doc?action=list hoặc action=view)
  * - Tạo bài viết mới (POST /doc?action=create)
  * - Chỉnh sửa cập nhật bài viết (POST /doc?action=update)
- * - Xóa bài viết (GET /doc?action=delete)
+ * - Xóa bài viết và tự động dọn dẹp các liên kết TaskDoc (GET /doc?action=delete)
  */
 public class DocServlet extends HttpServlet {
 
@@ -111,7 +115,8 @@ public class DocServlet extends HttpServlet {
     // ========================================================
 
     /**
-     * Nghiệp vụ 1: Lấy danh mục bài viết (bên trái) và bài viết đang đọc (bên phải) đưa sang docs.jsp
+     * Nghiệp vụ 1: Lấy danh mục bài viết (bên trái), bài viết đang đọc (bên phải) 
+     * VÀ danh sách các Công việc đang áp dụng tài liệu này (relatedTasks) đưa sang docs.jsp
      */
     private void handleShowDocs(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws ServletException, IOException {
@@ -145,18 +150,31 @@ public class DocServlet extends HttpServlet {
             selectedDoc = docs.get(0);
         }
 
-        // 4. Đóng gói dữ liệu vào Request Attribute
+        // 4. LẤY DANH SÁCH CÁC TASK ĐANG THAM CHIẾU TÀI LIỆU NÀY (TaskDoc)
+        List<Task> relatedTasks = new ArrayList<>();
+        if (selectedDoc != null) {
+            List<Integer> relatedTaskIds = TaskDocDB.selectTaskIdsByDocId(selectedDoc.getId());
+            for (Integer taskId : relatedTaskIds) {
+                Task t = TaskDB.selectById(taskId);
+                if (t != null) {
+                    relatedTasks.add(t);
+                }
+            }
+        }
+
+        // 5. Đóng gói dữ liệu vào Request Attribute
         request.setAttribute("project", project);
         request.setAttribute("docs", docs);
         request.setAttribute("selectedDoc", selectedDoc);
+        request.setAttribute("relatedTasks", relatedTasks); // Danh sách task liên quan
         request.setAttribute("activeNav", "docs"); // Bật sáng menu Tài liệu
 
-        // 5. Chuyển giao cho giao diện docs.jsp hiển thị
+        // 6. Chuyển giao cho giao diện docs.jsp hiển thị
         request.getRequestDispatcher("/docs.jsp").forward(request, response);
     }
 
     /**
-     * Nghiệp vụ 2: Xóa một bài viết tài liệu theo docId
+     * Nghiệp vụ 2: Xóa một bài viết tài liệu theo docId kèm dọn dẹp các liên kết TaskDoc
      */
     private void handleDeleteDoc(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws IOException {
@@ -165,7 +183,12 @@ public class DocServlet extends HttpServlet {
         if (docIdParam != null && !docIdParam.trim().isEmpty()) {
             try {
                 int docId = Integer.parseInt(docIdParam.trim());
-                DocDB.delete(docId); // Xóa khỏi danh sách trên RAM
+
+                // 1. Dọn dẹp liên kết Task-Doc trong TaskDocDB trước (Cascade delete)
+                TaskDocDB.deleteByDocId(docId);
+
+                // 2. Xóa bài viết trong DocDB
+                DocDB.delete(docId);
             } catch (NumberFormatException e) {
                 // Bỏ qua nếu docId không hợp lệ
             }
@@ -222,7 +245,7 @@ public class DocServlet extends HttpServlet {
 
         int newDocId = DocDB.insert(newDoc);
 
-        // 6. Trải nghiệm người dùng cao cấp: Mở thẳng vào bài viết vừa tạo xong!
+        // 6. Mở thẳng vào bài viết vừa tạo xong!
         response.sendRedirect(request.getContextPath() + "/doc?action=view&projectId=" + projectId + "&docId=" + newDocId);
     }
 
