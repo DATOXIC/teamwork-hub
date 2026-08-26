@@ -30,10 +30,10 @@ import java.util.Map;
  * - Hiển thị 3 cột công việc TODO, IN_PROGRESS, DONE kèm Tài liệu, Bình luận, Việc con & % Tiến độ (GET /task?action=list)
  * - Thêm công việc lớn (Task Cha) kèm đính kèm tài liệu (POST /task?action=add)
  * - Cập nhật trạng thái công việc khi kéo thả HTML5 (POST /task?action=updateStatus)
- * - Xóa công việc lớn kèm dọn dẹp sạch liên kết TaskDoc, SubTask, Comment (GET /task?action=delete)
- * - Thêm việc con và phân công cho thành viên (POST /task?action=addSubTask)
- * - Tick chọn hoàn thành việc con [☑] kèm cơ chế ĐÓNG GÓP TIẾN ĐỘ & THÔNG BÁO TỰ ĐỘNG (POST /task?action=toggleSubTask)
- * - Xóa việc con (POST /task?action=deleteSubTask)
+ * - Xóa công việc lớn có kiểm soát thẩm quyền Task Lead / PM (GET /task?action=delete)
+ * - Thêm việc con có kiểm soát thẩm quyền Task Lead / PM (POST /task?action=addSubTask)
+ * - Tick chọn hoàn thành việc con [☑] có kiểm soát thẩm quyền 3 bên (POST /task?action=toggleSubTask)
+ * - Xóa việc con có kiểm soát thẩm quyền Task Lead / PM (POST /task?action=deleteSubTask)
  */
 public class TaskServlet extends HttpServlet {
 
@@ -193,7 +193,7 @@ public class TaskServlet extends HttpServlet {
     }
 
     /**
-     * Nghiệp vụ 2: Xóa một task khỏi dự án theo taskId (kèm dọn dẹp sạch liên kết TaskDoc và SubTasks)
+     * Nghiệp vụ 2: Xóa một task lớn khỏi dự án theo taskId (BẢO VỆ PHÂN QUYỀN TASK LEAD / PM)
      */
     private void handleDeleteTask(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws IOException {
@@ -202,18 +202,26 @@ public class TaskServlet extends HttpServlet {
         if (taskIdParam != null && !taskIdParam.trim().isEmpty()) {
             try {
                 int taskId = Integer.parseInt(taskIdParam.trim());
+                User currentUser = (User) request.getSession().getAttribute("currentUser");
+                Task task = TaskDB.selectById(taskId);
+                Project project = ProjectDB.selectById(projectId);
 
-                // 1. Dọn dẹp các liên kết Task-Doc trên RAM
-                TaskDocDB.deleteByTaskId(taskId);
+                if (currentUser != null && task != null && project != null) {
+                    // Kiểm tra thẩm quyền: Chỉ Task Lead của chính Task này HOẶC Trưởng Dự Án mới được xóa
+                    if (currentUser.getId() == task.getAssigneeId() || currentUser.getId() == project.getOwnerId()) {
+                        // 1. Dọn dẹp các liên kết Task-Doc trên RAM
+                        TaskDocDB.deleteByTaskId(taskId);
 
-                // 2. Dọn dẹp các việc con thuộc Task này trên RAM
-                SubTaskDB.deleteByTaskId(taskId);
+                        // 2. Dọn dẹp các việc con thuộc Task này trên RAM
+                        SubTaskDB.deleteByTaskId(taskId);
 
-                // 3. Dọn dẹp các bình luận của Task này trên RAM
-                MessageDB.deleteByTaskId(taskId);
+                        // 3. Dọn dẹp các bình luận của Task này trên RAM
+                        MessageDB.deleteByTaskId(taskId);
 
-                // 4. Xóa Task trong TaskDB
-                TaskDB.delete(taskId);
+                        // 4. Xóa Task trong TaskDB
+                        TaskDB.delete(taskId);
+                    }
+                }
             } catch (NumberFormatException e) {
                 // Bỏ qua nếu taskId không hợp lệ
             }
@@ -238,24 +246,19 @@ public class TaskServlet extends HttpServlet {
         String[] selectedDocIds = request.getParameterValues("docIds");
 
         int projectId = 0;
-        try 
-        {
+        try {
             projectId = Integer.parseInt(projectIdParam.trim());
-        } 
-        catch (Exception e) 
-        {
+        } catch (Exception e) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
 
-        if (title == null || title.trim().isEmpty()) 
-        {
+        if (title == null || title.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
 
-        if (priority == null || priority.trim().isEmpty()) 
-        {
+        if (priority == null || priority.trim().isEmpty()) {
             priority = "MEDIUM";
         }
 
@@ -336,7 +339,7 @@ public class TaskServlet extends HttpServlet {
     }
 
     /**
-     * Nghiệp vụ 5: Thêm Việc Con (Sub-task) mới và phân công cho thành viên
+     * Nghiệp vụ 5: Thêm Việc Con (Sub-task) mới và phân công cho thành viên (BẢO VỆ PHÂN QUYỀN TASK LEAD / PM)
      */
     private void handleAddSubTask(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -351,30 +354,33 @@ public class TaskServlet extends HttpServlet {
         int assigneeId = 0;
         String assigneeName = "Chưa phân công";
 
-        try 
-        {
+        try {
             projectId = Integer.parseInt(projectIdParam.trim());
             taskId = Integer.parseInt(taskIdParam.trim());
-            if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) 
-            {
+            if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
                 assigneeId = Integer.parseInt(assigneeIdParam.trim());
                 User u = UserDB.selectById(assigneeId);
                 if (u != null) {
                     assigneeName = u.getFullName();
                 }
             }
-        } 
-        catch (Exception e) 
-        {
+        } catch (Exception e) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
 
-        // Tạo việc con mới và lưu vào RAM
-        if (title != null && !title.trim().isEmpty() && taskId > 0) 
-        {
-            SubTask newSubTask = new SubTask(0, taskId, title.trim(), assigneeId, assigneeName, false);
-            SubTaskDB.insert(newSubTask);
+        User currentUser = (User) request.getSession().getAttribute("currentUser");
+        Task parentTask = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        // KIỂM SOÁT THẨM QUYỀN: Chỉ Task Lead của chính Task này HOẶC Trưởng Dự Án mới được thêm việc con
+        if (currentUser != null && parentTask != null && project != null) {
+            if (currentUser.getId() == parentTask.getAssigneeId() || currentUser.getId() == project.getOwnerId()) {
+                if (title != null && !title.trim().isEmpty() && taskId > 0) {
+                    SubTask newSubTask = new SubTask(0, taskId, title.trim(), assigneeId, assigneeName, false);
+                    SubTaskDB.insert(newSubTask);
+                }
+            }
         }
 
         // Áp dụng PRG: Redirect về lại bảng Kanban
@@ -382,14 +388,8 @@ public class TaskServlet extends HttpServlet {
     }
 
     /**
-     * Nghiệp vụ 6: Đổi trạng thái hoàn thành [☑] của Việc Con (SubTask)
-     * KÈM CƠ CHẾ DOMINO TỰ ĐỘNG:
-     * 1. Tích lũy % tiến độ từ dưới lên
-     * 2. Tự động chuyển CỘT KANBAN cho Task lớn:
-     *    - Nếu tiến độ == 100% -> Tự động chuyển sang DONE (Đã xong) kèm cúp vinh danh 🏆
-     *    - Nếu 0% < tiến độ < 100% và Task đang ở TODO -> Tự động chuyển sang IN_PROGRESS (Đang làm) 🚀
-     *    - Nếu tiến độ < 100% và Task đang ở DONE -> Tự động mở lại về IN_PROGRESS ⚠️
-     * 3. Tự động phát thông báo chúc mừng vào luồng hội thoại
+     * Nghiệp vụ 6: Đổi trạng thái hoàn thành [☑] của Việc Con (SubTask) (BẢO VỆ PHÂN QUYỀN 3 BÊN)
+     * KÈM CƠ CHẾ DOMINO TỰ ĐỘNG CHUYỂN CỘT KANBAN VÀ THÔNG BÁO VINH DANH
      */
     private void handleToggleSubTask(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -411,44 +411,52 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
+        User currentUser = (User) request.getSession().getAttribute("currentUser");
         SubTask st = SubTaskDB.selectById(subTaskId);
-        if (st != null) {
-            // 1. Cập nhật trạng thái hoàn thành [☑] trong kho SubTaskDB
-            SubTaskDB.updateStatus(subTaskId, isCompleted);
 
-            int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            String now = LocalDateTime.now().format(formatter);
+        if (st != null && currentUser != null) {
             Task parentTask = TaskDB.selectById(st.getTaskId());
+            Project project = ProjectDB.selectById(projectId);
 
-            // 2. CƠ CHẾ TỰ ĐỘNG CHUYỂN CỘT KANBAN CHO TASK LỚN:
-            if (parentTask != null) {
-                if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) {
-                    // Xong 100% -> Task lớn tự động bay sang cột ĐÃ XONG!
-                    TaskDB.updateStatus(parentTask.getId(), "DONE");
+            if (parentTask != null && project != null) {
+                // KIỂM SOÁT THẨM QUYỀN 3 BÊN:
+                // 1. Phải là Người thực hiện việc con này
+                // 2. HOẶC là Task Lead của Task cha này
+                // 3. HOẶC là Trưởng Dự Án (PM)
+                boolean isAssignee = (currentUser.getId() == st.getAssigneeId());
+                boolean isTaskLead = (currentUser.getId() == parentTask.getAssigneeId());
+                boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
 
-                    String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
-                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
-                } else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
-                    // Đã bắt đầu có việc con xong -> Task lớn tự động chuyển sang ĐANG LÀM!
-                    TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                if (isAssignee || isTaskLead || isProjectOwner) {
+                    // 1. Cập nhật trạng thái hoàn thành [☑] trong kho SubTaskDB
+                    SubTaskDB.updateStatus(subTaskId, isCompleted);
 
-                    String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
-                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
-                } else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) {
-                    // Bỏ tick làm tụt tiến độ -> Task lớn tự động mở lại sang ĐANG LÀM!
-                    TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                    int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                    String now = LocalDateTime.now().format(formatter);
 
-                    String reopenText = "⚠️ CẬP NHẬT: Còn việc con chưa xong (" + newProgress + "%). Task [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
-                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));
+                    // 2. CƠ CHẾ TỰ ĐỘNG CHUYỂN CỘT KANBAN CHO TASK LỚN:
+                    if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) {
+                        TaskDB.updateStatus(parentTask.getId(), "DONE");
+                        String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
+                    } else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
+                        TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                        String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
+                    } else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) {
+                        TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                        String reopenText = "⚠️ CẬP NHẬT: Còn việc con chưa xong (" + newProgress + "%). Task [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));
+                    }
+
+                    // 3. Thông báo ghi nhận cá nhân vừa hoàn thành việc con
+                    if (isCompleted) {
+                        String notificationText = "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
+                        Message systemMessage = new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", notificationText, now);
+                        MessageDB.insert(systemMessage);
+                    }
                 }
-            }
-
-            // 3. Thông báo ghi nhận cá nhân vừa hoàn thành việc con
-            if (isCompleted) {
-                String notificationText = "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
-                Message systemMessage = new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", notificationText, now);
-                MessageDB.insert(systemMessage);
             }
         }
 
@@ -457,7 +465,7 @@ public class TaskServlet extends HttpServlet {
     }
 
     /**
-     * Nghiệp vụ 7: Xóa một việc con
+     * Nghiệp vụ 7: Xóa một việc con (BẢO VỆ PHÂN QUYỀN TASK LEAD / PM)
      */
     private void handleDeleteSubTask(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -471,9 +479,24 @@ public class TaskServlet extends HttpServlet {
         try {
             projectId = Integer.parseInt(projectIdParam.trim());
             subTaskId = Integer.parseInt(subTaskIdParam.trim());
-            SubTaskDB.delete(subTaskId);
         } catch (Exception e) {
-            // Bỏ qua nếu lỗi
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        User currentUser = (User) request.getSession().getAttribute("currentUser");
+        SubTask st = SubTaskDB.selectById(subTaskId);
+
+        if (st != null && currentUser != null) {
+            Task parentTask = TaskDB.selectById(st.getTaskId());
+            Project project = ProjectDB.selectById(projectId);
+
+            if (parentTask != null && project != null) {
+                // KIỂM SOÁT THẨM QUYỀN: Chỉ Task Lead của chính Task này HOẶC Trưởng Dự Án mới được xóa việc con
+                if (currentUser.getId() == parentTask.getAssigneeId() || currentUser.getId() == project.getOwnerId()) {
+                    SubTaskDB.delete(subTaskId);
+                }
+            }
         }
 
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);

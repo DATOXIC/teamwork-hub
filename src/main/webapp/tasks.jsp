@@ -99,13 +99,15 @@
                                     ${task.priorityLabel}
                                 </span>
                                 
-                                <!-- Link xóa task -->
-                                <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
-                                   class="text-muted text-hover-danger text-decoration-none p-1"
-                                   onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
-                                   title="Xóa công việc">
-                                    <i class="bi bi-trash3"></i>
-                                </a>
+                                <!-- Link xóa task (Chỉ Task Lead hoặc PM mới thấy) -->
+                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
+                                       class="text-muted text-hover-danger text-decoration-none p-1"
+                                       onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
+                                       title="Xóa công việc">
+                                        <i class="bi bi-trash3"></i>
+                                    </a>
+                                </c:if>
                             </div>
 
                             <!-- Hàng 2: Tiêu đề công việc -->
@@ -149,18 +151,20 @@
                                 </c:if>
                             </div>
 
-                            <!-- Hàng 5: Nút chuyển cột nhanh sang Đang làm -->
-                            <div class="mt-2 pt-1 text-end" onclick="event.stopPropagation();">
-                                <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
-                                    <input type="hidden" name="action" value="updateStatus">
-                                    <input type="hidden" name="projectId" value="${project.id}">
-                                    <input type="hidden" name="taskId" value="${task.id}">
-                                    <input type="hidden" name="newStatus" value="IN_PROGRESS">
-                                    <button type="submit" class="btn btn-outline-primary btn-xs py-1 px-2 rounded-2 fs-8" title="Chuyển sang Đang làm">
-                                        Đang làm <i class="bi bi-arrow-right ms-1"></i>
-                                    </button>
-                                </form>
-                            </div>
+                            <!-- Hàng 5: Nút chuyển cột nhanh sang Đang làm (Chỉ Task Lead hoặc PM được bấm) -->
+                            <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <div class="mt-2 pt-1 text-end" onclick="event.stopPropagation();">
+                                    <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
+                                        <input type="hidden" name="action" value="updateStatus">
+                                        <input type="hidden" name="projectId" value="${project.id}">
+                                        <input type="hidden" name="taskId" value="${task.id}">
+                                        <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                        <button type="submit" class="btn btn-outline-primary btn-xs py-1 px-2 rounded-2 fs-8" title="Chuyển sang Đang làm">
+                                            Đang làm <i class="bi bi-arrow-right ms-1"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </c:if>
 
                         </div>
                     </c:forEach>
@@ -214,12 +218,14 @@
                                     ${task.priorityLabel}
                                 </span>
                                 
-                                <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
-                                   class="text-muted text-hover-danger text-decoration-none p-1"
-                                   onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
-                                   title="Xóa công việc">
-                                    <i class="bi bi-trash3"></i>
-                                </a>
+                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
+                                       class="text-muted text-hover-danger text-decoration-none p-1"
+                                       onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
+                                       title="Xóa công việc">
+                                        <i class="bi bi-trash3"></i>
+                                    </a>
+                                </c:if>
                             </div>
 
                             <h6 class="fw-bold text-dark mb-1 fs-6">${task.title}</h6>
@@ -260,28 +266,30 @@
                                 </c:if>
                             </div>
 
-                            <!-- 2 nút chuyển cột nhanh: Sang Cần làm hoặc Sang Đã xong -->
-                            <div class="d-flex align-items-center justify-content-between mt-2 pt-1" onclick="event.stopPropagation();">
-                                <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
-                                    <input type="hidden" name="action" value="updateStatus">
-                                    <input type="hidden" name="projectId" value="${project.id}">
-                                    <input type="hidden" name="taskId" value="${task.id}">
-                                    <input type="hidden" name="newStatus" value="TODO">
-                                    <button type="submit" class="btn btn-outline-secondary btn-xs py-1 px-2 rounded-2 fs-8" title="Chuyển về Cần làm">
-                                        <i class="bi bi-arrow-left me-1"></i> Cần làm
-                                    </button>
-                                </form>
+                            <!-- 2 nút chuyển cột nhanh: Sang Cần làm hoặc Sang Đã xong (Chỉ Task Lead hoặc PM được bấm) -->
+                            <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <div class="d-flex align-items-center justify-content-between mt-2 pt-1" onclick="event.stopPropagation();">
+                                    <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
+                                        <input type="hidden" name="action" value="updateStatus">
+                                        <input type="hidden" name="projectId" value="${project.id}">
+                                        <input type="hidden" name="taskId" value="${task.id}">
+                                        <input type="hidden" name="newStatus" value="TODO">
+                                        <button type="submit" class="btn btn-outline-secondary btn-xs py-1 px-2 rounded-2 fs-8" title="Chuyển về Cần làm">
+                                            <i class="bi bi-arrow-left me-1"></i> Cần làm
+                                        </button>
+                                    </form>
 
-                                <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
-                                    <input type="hidden" name="action" value="updateStatus">
-                                    <input type="hidden" name="projectId" value="${project.id}">
-                                    <input type="hidden" name="taskId" value="${task.id}">
-                                    <input type="hidden" name="newStatus" value="DONE">
-                                    <button type="submit" class="btn btn-outline-success btn-xs py-1 px-2 rounded-2 fs-8" title="Chuyển sang Đã xong">
-                                        Xong <i class="bi bi-check2 ms-1"></i>
-                                    </button>
-                                </form>
-                            </div>
+                                    <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
+                                        <input type="hidden" name="action" value="updateStatus">
+                                        <input type="hidden" name="projectId" value="${project.id}">
+                                        <input type="hidden" name="taskId" value="${task.id}">
+                                        <input type="hidden" name="newStatus" value="DONE">
+                                        <button type="submit" class="btn btn-outline-success btn-xs py-1 px-2 rounded-2 fs-8" title="Chuyển sang Đã xong">
+                                            Xong <i class="bi bi-check2 ms-1"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </c:if>
 
                         </div>
                     </c:forEach>
@@ -334,12 +342,14 @@
                                     <i class="bi bi-check2"></i> Đã hoàn thành
                                 </span>
                                 
-                                <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
-                                   class="text-muted text-hover-danger text-decoration-none p-1"
-                                   onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
-                                   title="Xóa công việc">
-                                    <i class="bi bi-trash3"></i>
-                                </a>
+                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}" 
+                                       class="text-muted text-hover-danger text-decoration-none p-1"
+                                       onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
+                                       title="Xóa công việc">
+                                        <i class="bi bi-trash3"></i>
+                                    </a>
+                                </c:if>
                             </div>
 
                             <h6 class="fw-bold text-dark mb-1 fs-6 text-decoration-line-through">${task.title}</h6>
@@ -380,18 +390,20 @@
                                 </c:if>
                             </div>
 
-                            <!-- Nút mở lại công việc sang Đang làm -->
-                            <div class="mt-2 pt-1 text-start" onclick="event.stopPropagation();">
-                                <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
-                                    <input type="hidden" name="action" value="updateStatus">
-                                    <input type="hidden" name="projectId" value="${project.id}">
-                                    <input type="hidden" name="taskId" value="${task.id}">
-                                    <input type="hidden" name="newStatus" value="IN_PROGRESS">
-                                    <button type="submit" class="btn btn-outline-secondary btn-xs py-1 px-2 rounded-2 fs-8" title="Mở lại công việc sang Đang làm">
-                                        <i class="bi bi-arrow-left me-1"></i> Làm lại
-                                    </button>
-                                </form>
-                            </div>
+                            <!-- Nút mở lại công việc sang Đang làm (Chỉ Task Lead hoặc PM được bấm) -->
+                            <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <div class="mt-2 pt-1 text-start" onclick="event.stopPropagation();">
+                                    <form method="post" action="${pageContext.request.contextPath}/task" class="d-inline">
+                                        <input type="hidden" name="action" value="updateStatus">
+                                        <input type="hidden" name="projectId" value="${project.id}">
+                                        <input type="hidden" name="taskId" value="${task.id}">
+                                        <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                        <button type="submit" class="btn btn-outline-secondary btn-xs py-1 px-2 rounded-2 fs-8" title="Mở lại công việc sang Đang làm">
+                                            <i class="bi bi-arrow-left me-1"></i> Làm lại
+                                        </button>
+                                    </form>
+                                </div>
+                            </c:if>
 
                         </div>
                     </c:forEach>
@@ -415,7 +427,7 @@
      Được nhúng trực tiếp để quản lý Cây việc con và Hội thoại
      ======================================================== -->
 
-<!-- HÀM TEMPLATE RENDER MODAL DÙNG CHUNG CHO TỪNG TASK -->
+<!-- MODAL CHO CỘT CẦN LÀM (TODO) -->
 <c:set var="allTasksToRender" value="${todoTasks}" />
 <c:forEach items="${allTasksToRender}" var="task">
     <div class="modal fade" id="taskDetailModal-${task.id}" tabindex="-1" aria-labelledby="taskDetailModalLabel-${task.id}" aria-hidden="true">
@@ -515,18 +527,33 @@
                                             <div class="d-flex align-items-center justify-content-between p-2 px-3 bg-light rounded-3 border ${st.completed ? 'opacity-75' : ''}">
                                                 <div class="d-flex align-items-center gap-2 flex-grow-1">
                                                     
-                                                    <!-- Checkbox toggle hoàn thành việc con -->
-                                                    <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-flex align-items-center">
-                                                        <input type="hidden" name="action" value="toggleSubTask">
-                                                        <input type="hidden" name="projectId" value="${project.id}">
-                                                        <input type="hidden" name="subTaskId" value="${st.id}">
-                                                        <input type="hidden" name="completed" value="${!st.completed}">
-                                                        <input class="form-check-input mt-0 cursor-pointer" 
-                                                               type="checkbox" 
-                                                               ${st.completed ? 'checked' : ''} 
-                                                               onchange="this.form.submit()" 
-                                                               title="${st.completed ? 'Bấm để đánh dấu chưa xong' : 'Bấm để hoàn thành và đóng góp tiến độ'}">
-                                                    </form>
+                                                    <!-- KIỂM SOÁT THẨM QUYỀN BẢO MẬT: Người làm việc, Task Lead hoặc PM mới được tick -->
+                                                    <c:set var="canToggleSubTask" value="${st.assigneeId == sessionScope.currentUser.id || task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}" />
+
+                                                    <c:choose>
+                                                        <c:when test="${canToggleSubTask}">
+                                                            <!-- Được phép: Checkbox bấm được -->
+                                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-flex align-items-center">
+                                                                <input type="hidden" name="action" value="toggleSubTask">
+                                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                                <input type="hidden" name="subTaskId" value="${st.id}">
+                                                                <input type="hidden" name="completed" value="${!st.completed}">
+                                                                <input class="form-check-input mt-0 cursor-pointer" 
+                                                                       type="checkbox" 
+                                                                       ${st.completed ? 'checked' : ''} 
+                                                                       onchange="this.form.submit()" 
+                                                                       title="${st.completed ? 'Bấm để đánh dấu chưa xong' : 'Bấm để hoàn thành và đóng góp tiến độ'}">
+                                                            </form>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <!-- Bị khóa: Checkbox disabled để bảo vệ dữ liệu -->
+                                                            <input class="form-check-input mt-0 opacity-50" 
+                                                                   type="checkbox" 
+                                                                   ${st.completed ? 'checked' : ''} 
+                                                                   disabled 
+                                                                   title="Chỉ ${st.assigneeName} hoặc Task Lead (${task.assigneeName}) mới có quyền tick hoàn thành việc này">
+                                                        </c:otherwise>
+                                                    </c:choose>
 
                                                     <!-- Tên việc con -->
                                                     <span class="fs-8 text-dark ${st.completed ? 'text-decoration-line-through text-muted' : 'fw-medium'}">
@@ -800,17 +827,33 @@
                                         <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                             <div class="d-flex align-items-center justify-content-between p-2 px-3 bg-light rounded-3 border ${st.completed ? 'opacity-75' : ''}">
                                                 <div class="d-flex align-items-center gap-2 flex-grow-1">
-                                                    <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-flex align-items-center">
-                                                        <input type="hidden" name="action" value="toggleSubTask">
-                                                        <input type="hidden" name="projectId" value="${project.id}">
-                                                        <input type="hidden" name="subTaskId" value="${st.id}">
-                                                        <input type="hidden" name="completed" value="${!st.completed}">
-                                                        <input class="form-check-input mt-0 cursor-pointer" 
-                                                               type="checkbox" 
-                                                               ${st.completed ? 'checked' : ''} 
-                                                               onchange="this.form.submit()" 
-                                                               title="${st.completed ? 'Bấm để đánh dấu chưa xong' : 'Bấm để hoàn thành và đóng góp tiến độ'}">
-                                                    </form>
+                                                    
+                                                    <!-- KIỂM SOÁT THẨM QUYỀN BẢO MẬT: Người làm việc, Task Lead hoặc PM mới được tick -->
+                                                    <c:set var="canToggleSubTask" value="${st.assigneeId == sessionScope.currentUser.id || task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}" />
+
+                                                    <c:choose>
+                                                        <c:when test="${canToggleSubTask}">
+                                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-flex align-items-center">
+                                                                <input type="hidden" name="action" value="toggleSubTask">
+                                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                                <input type="hidden" name="subTaskId" value="${st.id}">
+                                                                <input type="hidden" name="completed" value="${!st.completed}">
+                                                                <input class="form-check-input mt-0 cursor-pointer" 
+                                                                       type="checkbox" 
+                                                                       ${st.completed ? 'checked' : ''} 
+                                                                       onchange="this.form.submit()" 
+                                                                       title="${st.completed ? 'Bấm để đánh dấu chưa xong' : 'Bấm để hoàn thành và đóng góp tiến độ'}">
+                                                            </form>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <input class="form-check-input mt-0 opacity-50" 
+                                                                   type="checkbox" 
+                                                                   ${st.completed ? 'checked' : ''} 
+                                                                   disabled 
+                                                                   title="Chỉ ${st.assigneeName} hoặc Task Lead (${task.assigneeName}) mới có quyền tick hoàn thành việc này">
+                                                        </c:otherwise>
+                                                    </c:choose>
+
                                                     <span class="fs-8 text-dark ${st.completed ? 'text-decoration-line-through text-muted' : 'fw-medium'}">
                                                         ${st.title}
                                                     </span>
@@ -1069,17 +1112,33 @@
                                         <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                             <div class="d-flex align-items-center justify-content-between p-2 px-3 bg-light rounded-3 border ${st.completed ? 'opacity-75' : ''}">
                                                 <div class="d-flex align-items-center gap-2 flex-grow-1">
-                                                    <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-flex align-items-center">
-                                                        <input type="hidden" name="action" value="toggleSubTask">
-                                                        <input type="hidden" name="projectId" value="${project.id}">
-                                                        <input type="hidden" name="subTaskId" value="${st.id}">
-                                                        <input type="hidden" name="completed" value="${!st.completed}">
-                                                        <input class="form-check-input mt-0 cursor-pointer" 
-                                                               type="checkbox" 
-                                                               ${st.completed ? 'checked' : ''} 
-                                                               onchange="this.form.submit()" 
-                                                               title="${st.completed ? 'Bấm để đánh dấu chưa xong' : 'Bấm để hoàn thành và đóng góp tiến độ'}">
-                                                    </form>
+                                                    
+                                                    <!-- KIỂM SOÁT THẨM QUYỀN BẢO MẬT: Người làm việc, Task Lead hoặc PM mới được tick -->
+                                                    <c:set var="canToggleSubTask" value="${st.assigneeId == sessionScope.currentUser.id || task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}" />
+
+                                                    <c:choose>
+                                                        <c:when test="${canToggleSubTask}">
+                                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-flex align-items-center">
+                                                                <input type="hidden" name="action" value="toggleSubTask">
+                                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                                <input type="hidden" name="subTaskId" value="${st.id}">
+                                                                <input type="hidden" name="completed" value="${!st.completed}">
+                                                                <input class="form-check-input mt-0 cursor-pointer" 
+                                                                       type="checkbox" 
+                                                                       ${st.completed ? 'checked' : ''} 
+                                                                       onchange="this.form.submit()" 
+                                                                       title="${st.completed ? 'Bấm để đánh dấu chưa xong' : 'Bấm để hoàn thành và đóng góp tiến độ'}">
+                                                            </form>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <input class="form-check-input mt-0 opacity-50" 
+                                                                   type="checkbox" 
+                                                                   ${st.completed ? 'checked' : ''} 
+                                                                   disabled 
+                                                                   title="Chỉ ${st.assigneeName} hoặc Task Lead (${task.assigneeName}) mới có quyền tick hoàn thành việc này">
+                                                        </c:otherwise>
+                                                    </c:choose>
+
                                                     <span class="fs-8 text-dark ${st.completed ? 'text-decoration-line-through text-muted' : 'fw-medium'}">
                                                         ${st.title}
                                                     </span>
