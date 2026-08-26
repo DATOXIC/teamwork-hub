@@ -238,19 +238,24 @@ public class TaskServlet extends HttpServlet {
         String[] selectedDocIds = request.getParameterValues("docIds");
 
         int projectId = 0;
-        try {
+        try 
+        {
             projectId = Integer.parseInt(projectIdParam.trim());
-        } catch (Exception e) {
+        } 
+        catch (Exception e) 
+        {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
 
-        if (title == null || title.trim().isEmpty()) {
+        if (title == null || title.trim().isEmpty()) 
+        {
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
 
-        if (priority == null || priority.trim().isEmpty()) {
+        if (priority == null || priority.trim().isEmpty()) 
+        {
             priority = "MEDIUM";
         }
 
@@ -346,23 +351,28 @@ public class TaskServlet extends HttpServlet {
         int assigneeId = 0;
         String assigneeName = "Chưa phân công";
 
-        try {
+        try 
+        {
             projectId = Integer.parseInt(projectIdParam.trim());
             taskId = Integer.parseInt(taskIdParam.trim());
-            if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
+            if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) 
+            {
                 assigneeId = Integer.parseInt(assigneeIdParam.trim());
                 User u = UserDB.selectById(assigneeId);
                 if (u != null) {
                     assigneeName = u.getFullName();
                 }
             }
-        } catch (Exception e) {
+        } 
+        catch (Exception e) 
+        {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
 
         // Tạo việc con mới và lưu vào RAM
-        if (title != null && !title.trim().isEmpty() && taskId > 0) {
+        if (title != null && !title.trim().isEmpty() && taskId > 0) 
+        {
             SubTask newSubTask = new SubTask(0, taskId, title.trim(), assigneeId, assigneeName, false);
             SubTaskDB.insert(newSubTask);
         }
