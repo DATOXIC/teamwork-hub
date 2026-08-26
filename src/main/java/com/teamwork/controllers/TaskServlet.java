@@ -3,12 +3,14 @@ package com.teamwork.controllers;
 import com.teamwork.business.Doc;
 import com.teamwork.business.Message;
 import com.teamwork.business.Project;
+import com.teamwork.business.SubTask;
 import com.teamwork.business.Task;
 import com.teamwork.business.TaskDoc;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
+import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
@@ -17,16 +19,21 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Controller phụ trách Bảng công việc Kanban (Tasks Module):
- * - Hiển thị 3 cột công việc TODO, IN_PROGRESS, DONE và danh sách tài liệu đính kèm (GET /task?action=list)
- * - Thêm công việc mới kèm đính kèm nhiều tài liệu hướng dẫn (POST /task?action=add)
+ * Controller phụ trách Bảng công việc Kanban (Tasks Module) & Cây Phân Cấp Việc Con (Sub-tasks):
+ * - Hiển thị 3 cột công việc TODO, IN_PROGRESS, DONE kèm Tài liệu, Bình luận, Việc con & % Tiến độ (GET /task?action=list)
+ * - Thêm công việc lớn (Task Cha) kèm đính kèm tài liệu (POST /task?action=add)
  * - Cập nhật trạng thái công việc khi kéo thả HTML5 (POST /task?action=updateStatus)
- * - Xóa công việc và tự động dọn dẹp liên kết tài liệu (GET /task?action=delete)
+ * - Xóa công việc lớn kèm dọn dẹp sạch liên kết TaskDoc, SubTask, Comment (GET /task?action=delete)
+ * - Thêm việc con và phân công cho thành viên (POST /task?action=addSubTask)
+ * - Tick chọn hoàn thành việc con [☑] kèm cơ chế ĐÓNG GÓP TIẾN ĐỘ & THÔNG BÁO TỰ ĐỘNG (POST /task?action=toggleSubTask)
+ * - Xóa việc con (POST /task?action=deleteSubTask)
  */
 public class TaskServlet extends HttpServlet {
 
@@ -89,6 +96,18 @@ public class TaskServlet extends HttpServlet {
                 handleUpdateTaskStatus(request, response);
                 break;
 
+            case "addSubTask":
+                handleAddSubTask(request, response);
+                break;
+
+            case "toggleSubTask":
+                handleToggleSubTask(request, response);
+                break;
+
+            case "deleteSubTask":
+                handleDeleteSubTask(request, response);
+                break;
+
             default:
                 response.sendRedirect(request.getContextPath() + "/project?action=list");
                 break;
@@ -96,7 +115,8 @@ public class TaskServlet extends HttpServlet {
     }
 
     /**
-     * Nghiệp vụ 1: Lấy toàn bộ dữ liệu 3 cột Kanban, danh sách tài liệu dự án và map liên kết TaskDoc
+     * Nghiệp vụ 1: Lấy toàn bộ dữ liệu 3 cột Kanban, danh sách tài liệu dự án,
+     * map liên kết TaskDoc, map bình luận TaskComments, map Việc Con SubTasks và % Tiến độ
      */
     private void handleShowKanban(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws ServletException, IOException {
@@ -116,7 +136,7 @@ public class TaskServlet extends HttpServlet {
         // 3. Lấy danh sách thành viên để gán người phụ trách
         List<User> userList = UserDB.selectAll();
 
-        // 4. Lấy danh sách toàn bộ tài liệu Wiki của dự án này (để đổ vào dropdown đính kèm)
+        // 4. Lấy danh sách toàn bộ tài liệu Wiki của dự án này
         List<Doc> docList = DocDB.selectByProjectId(projectId);
 
         // 5. Gom toàn bộ danh sách tài liệu đính kèm cho từng Task vào một Map (taskId -> List<TaskDoc>)
@@ -125,34 +145,37 @@ public class TaskServlet extends HttpServlet {
         // 6. Gom toàn bộ danh sách bình luận riêng cho từng Task vào một Map (taskId -> List<Message>)
         Map<Integer, List<Message>> taskCommentsMap = new HashMap<>();
 
-        // Nạp liên kết tài liệu và bình luận cho cột TODO
+        // 7. Gom toàn bộ danh sách việc con cho từng Task vào một Map (taskId -> List<SubTask>)
+        Map<Integer, List<SubTask>> taskSubTasksMap = new HashMap<>();
+
+        // 8. Gom % tiến độ tự động cho từng Task vào một Map (taskId -> Integer progress)
+        Map<Integer, Integer> taskProgressMap = new HashMap<>();
+
+        // Nạp dữ liệu đa tầng cho cột TODO
         for (Task t : todoTasks) {
-            List<TaskDoc> attachedDocs = TaskDocDB.selectByTaskId(t.getId());
-            taskDocsMap.put(t.getId(), attachedDocs);
-
-            List<Message> comments = MessageDB.selectByTaskId(t.getId());
-            taskCommentsMap.put(t.getId(), comments);
+            taskDocsMap.put(t.getId(), TaskDocDB.selectByTaskId(t.getId()));
+            taskCommentsMap.put(t.getId(), MessageDB.selectByTaskId(t.getId()));
+            taskSubTasksMap.put(t.getId(), SubTaskDB.selectByTaskId(t.getId()));
+            taskProgressMap.put(t.getId(), SubTaskDB.calculateProgress(t.getId()));
         }
 
-        // Nạp liên kết tài liệu và bình luận cho cột IN_PROGRESS
+        // Nạp dữ liệu đa tầng cho cột IN_PROGRESS
         for (Task t : inProgressTasks) {
-            List<TaskDoc> attachedDocs = TaskDocDB.selectByTaskId(t.getId());
-            taskDocsMap.put(t.getId(), attachedDocs);
-
-            List<Message> comments = MessageDB.selectByTaskId(t.getId());
-            taskCommentsMap.put(t.getId(), comments);
+            taskDocsMap.put(t.getId(), TaskDocDB.selectByTaskId(t.getId()));
+            taskCommentsMap.put(t.getId(), MessageDB.selectByTaskId(t.getId()));
+            taskSubTasksMap.put(t.getId(), SubTaskDB.selectByTaskId(t.getId()));
+            taskProgressMap.put(t.getId(), SubTaskDB.calculateProgress(t.getId()));
         }
 
-        // Nạp liên kết tài liệu và bình luận cho cột DONE
+        // Nạp dữ liệu đa tầng cho cột DONE
         for (Task t : doneTasks) {
-            List<TaskDoc> attachedDocs = TaskDocDB.selectByTaskId(t.getId());
-            taskDocsMap.put(t.getId(), attachedDocs);
-
-            List<Message> comments = MessageDB.selectByTaskId(t.getId());
-            taskCommentsMap.put(t.getId(), comments);
+            taskDocsMap.put(t.getId(), TaskDocDB.selectByTaskId(t.getId()));
+            taskCommentsMap.put(t.getId(), MessageDB.selectByTaskId(t.getId()));
+            taskSubTasksMap.put(t.getId(), SubTaskDB.selectByTaskId(t.getId()));
+            taskProgressMap.put(t.getId(), SubTaskDB.calculateProgress(t.getId()));
         }
 
-        // 7. Đóng gói dữ liệu gửi sang tasks.jsp
+        // 9. Đóng gói dữ liệu gửi sang tasks.jsp
         request.setAttribute("project", project);
         request.setAttribute("todoTasks", todoTasks);
         request.setAttribute("inProgressTasks", inProgressTasks);
@@ -161,14 +184,16 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("docList", docList);
         request.setAttribute("taskDocsMap", taskDocsMap);
         request.setAttribute("taskCommentsMap", taskCommentsMap);
+        request.setAttribute("taskSubTasksMap", taskSubTasksMap);
+        request.setAttribute("taskProgressMap", taskProgressMap);
         request.setAttribute("activeNav", "projects");
 
-        // 7. Forward sang giao diện tasks.jsp
+        // 10. Forward sang giao diện tasks.jsp
         request.getRequestDispatcher("/tasks.jsp").forward(request, response);
     }
 
     /**
-     * Nghiệp vụ 2: Xóa một task khỏi dự án theo taskId (kèm dọn dẹp sạch liên kết TaskDoc)
+     * Nghiệp vụ 2: Xóa một task khỏi dự án theo taskId (kèm dọn dẹp sạch liên kết TaskDoc và SubTasks)
      */
     private void handleDeleteTask(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws IOException {
@@ -178,10 +203,16 @@ public class TaskServlet extends HttpServlet {
             try {
                 int taskId = Integer.parseInt(taskIdParam.trim());
 
-                // 1. Dọn dẹp các liên kết Task-Doc trên RAM trước
+                // 1. Dọn dẹp các liên kết Task-Doc trên RAM
                 TaskDocDB.deleteByTaskId(taskId);
 
-                // 2. Xóa Task trong TaskDB
+                // 2. Dọn dẹp các việc con thuộc Task này trên RAM
+                SubTaskDB.deleteByTaskId(taskId);
+
+                // 3. Dọn dẹp các bình luận của Task này trên RAM
+                MessageDB.deleteByTaskId(taskId);
+
+                // 4. Xóa Task trong TaskDB
                 TaskDB.delete(taskId);
             } catch (NumberFormatException e) {
                 // Bỏ qua nếu taskId không hợp lệ
@@ -198,16 +229,14 @@ public class TaskServlet extends HttpServlet {
     private void handleAddTask(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Bắt các tham số từ Form
         String projectIdParam = request.getParameter("projectId");
         String title = request.getParameter("title");
         String description = request.getParameter("description");
         String priority = request.getParameter("priority");
         String dueDate = request.getParameter("dueDate");
         String assigneeIdParam = request.getParameter("assigneeId");
-        String[] selectedDocIds = request.getParameterValues("docIds"); // Mảng các ID tài liệu được chọn
+        String[] selectedDocIds = request.getParameterValues("docIds");
 
-        // Ép kiểu projectId an toàn
         int projectId = 0;
         try {
             projectId = Integer.parseInt(projectIdParam.trim());
@@ -216,7 +245,6 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
-        // Validation tiêu đề bắt buộc
         if (title == null || title.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
@@ -226,7 +254,6 @@ public class TaskServlet extends HttpServlet {
             priority = "MEDIUM";
         }
 
-        // Tìm thông tin người phụ trách
         int assigneeId = 0;
         String assigneeName = "Chưa phân công";
         if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
@@ -241,39 +268,34 @@ public class TaskServlet extends HttpServlet {
             }
         }
 
-        // 2. Tạo đối tượng Task mới
         Task newTask = new Task(
             0,
             projectId,
             title.trim(),
             (description != null ? description.trim() : ""),
-            "TODO", // Mặc định cột TODO
+            "TODO",
             priority,
             (dueDate != null ? dueDate.trim() : ""),
             assigneeId,
             assigneeName
         );
 
-        // Lưu vào TaskDB và nhận lại ID vừa được cấp
         int newTaskId = TaskDB.insert(newTask);
 
-        // 3. Lưu các tài liệu hướng dẫn đính kèm vào TaskDocDB
         if (selectedDocIds != null && selectedDocIds.length > 0) {
             for (String docIdStr : selectedDocIds) {
                 try {
                     int docId = Integer.parseInt(docIdStr.trim());
                     Doc doc = DocDB.selectById(docId);
                     if (doc != null) {
-                        // Thêm liên kết vào TaskDocDB
                         TaskDocDB.insert(newTaskId, docId, doc.getTitle());
                     }
                 } catch (NumberFormatException e) {
-                    // Bỏ qua nếu docId không hợp lệ
+                    // Bỏ qua
                 }
             }
         }
 
-        // 4. Áp dụng PRG pattern: Redirect về lại bảng Kanban
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
     }
 
@@ -305,7 +327,126 @@ public class TaskServlet extends HttpServlet {
             // Xử lý lỗi an toàn
         }
 
-        // Redirect về lại bảng Kanban
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 5: Thêm Việc Con (Sub-task) mới và phân công cho thành viên
+     */
+    private void handleAddSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String taskIdParam = request.getParameter("taskId");
+        String title = request.getParameter("title");
+        String assigneeIdParam = request.getParameter("assigneeId");
+
+        int projectId = 0;
+        int taskId = 0;
+        int assigneeId = 0;
+        String assigneeName = "Chưa phân công";
+
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            taskId = Integer.parseInt(taskIdParam.trim());
+            if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
+                assigneeId = Integer.parseInt(assigneeIdParam.trim());
+                User u = UserDB.selectById(assigneeId);
+                if (u != null) {
+                    assigneeName = u.getFullName();
+                }
+            }
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // Tạo việc con mới và lưu vào RAM
+        if (title != null && !title.trim().isEmpty() && taskId > 0) {
+            SubTask newSubTask = new SubTask(0, taskId, title.trim(), assigneeId, assigneeName, false);
+            SubTaskDB.insert(newSubTask);
+        }
+
+        // Áp dụng PRG: Redirect về lại bảng Kanban
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 6: Đổi trạng thái hoàn thành [☑] của Việc Con (SubTask)
+     * KÈM CƠ CHẾ: TÍCH LŨY TIẾN ĐỘ TỪ DƯỚI LÊN VÀ TỰ ĐỘNG PHÁT THÔNG BÁO ĂN MỪNG VÀO LUỒNG HỘI THOẠI
+     */
+    private void handleToggleSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String subTaskIdParam = request.getParameter("subTaskId");
+        String completedParam = request.getParameter("completed");
+
+        int projectId = 0;
+        int subTaskId = 0;
+        boolean isCompleted = false;
+
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            subTaskId = Integer.parseInt(subTaskIdParam.trim());
+            isCompleted = Boolean.parseBoolean(completedParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        SubTask st = SubTaskDB.selectById(subTaskId);
+        if (st != null) {
+            // 1. Cập nhật trạng thái hoàn thành [☑] trong kho SubTaskDB
+            SubTaskDB.updateStatus(subTaskId, isCompleted);
+
+            // 2. CƠ CHẾ TÍCH LŨY TIẾN ĐỘ & PHÁT THÔNG BÁO ĂN MỪNG:
+            // Khi thành viên vừa đánh dấu hoàn thành việc con
+            if (isCompleted) {
+                int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                String now = LocalDateTime.now().format(formatter);
+
+                String notificationText = "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
+
+                // Tự động phát thông báo vào luồng hội thoại của Task cha
+                Message systemMessage = new Message(
+                    0,
+                    projectId,
+                    st.getTaskId(), // Luồng hội thoại của Task này
+                    0,
+                    "Hệ Thống",
+                    notificationText,
+                    now
+                );
+                MessageDB.insert(systemMessage);
+            }
+        }
+
+        // Áp dụng PRG: Redirect về lại bảng Kanban
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 7: Xóa một việc con
+     */
+    private void handleDeleteSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String subTaskIdParam = request.getParameter("subTaskId");
+
+        int projectId = 0;
+        int subTaskId = 0;
+
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            subTaskId = Integer.parseInt(subTaskIdParam.trim());
+            SubTaskDB.delete(subTaskId);
+        } catch (Exception e) {
+            // Bỏ qua nếu lỗi
+        }
+
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
     }
 }
