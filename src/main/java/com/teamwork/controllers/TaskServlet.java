@@ -21,9 +21,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.teamwork.business.UserWorkload;
 
 /**
  * Controller phụ trách Bảng công việc Kanban (Tasks Module) & Cây Phân Cấp Việc Con (Sub-tasks):
@@ -123,7 +125,8 @@ public class TaskServlet extends HttpServlet {
 
         // 1. Kiểm tra dự án tồn tại
         Project project = ProjectDB.selectById(projectId);
-        if (project == null) {
+        if (project == null) 
+        {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -175,6 +178,13 @@ public class TaskServlet extends HttpServlet {
             taskProgressMap.put(t.getId(), SubTaskDB.calculateProgress(t.getId()));
         }
 
+        // 8.5. Tính toán khối lượng công việc của từng thành viên (UserWorkload DTO) cho Dải Avatar B.3
+        List<Task> allTasks = new ArrayList<>();
+        allTasks.addAll(todoTasks);
+        allTasks.addAll(inProgressTasks);
+        allTasks.addAll(doneTasks);
+        List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks);
+
         // 9. Đóng gói dữ liệu gửi sang tasks.jsp
         request.setAttribute("project", project);
         request.setAttribute("todoTasks", todoTasks);
@@ -186,6 +196,7 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("taskCommentsMap", taskCommentsMap);
         request.setAttribute("taskSubTasksMap", taskSubTasksMap);
         request.setAttribute("taskProgressMap", taskProgressMap);
+        request.setAttribute("userWorkloadList", userWorkloadList);
         request.setAttribute("activeNav", "projects");
 
         // 10. Forward sang giao diện tasks.jsp
@@ -500,5 +511,52 @@ public class TaskServlet extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Thuật toán tổng hợp Khối Lượng Công Việc (Workload Engine) cho từng thành viên:
+     * 1. Đếm số Task lớn làm Lead & gom danh sách chi tiết các Task đó (leadTasks)
+     * 2. Đếm số Việc Con được giao & số Việc Con đã xong [☑]
+     * 3. Thu thập mảng relatedTaskIds để JavaScript lọc Kanban trong 0.01 giây
+     */
+    private List<UserWorkload> computeUserWorkloads(List<User> userList, List<Task> allTasks) {
+        List<UserWorkload> workloadList = new ArrayList<>();
+        // 1. Duyệt qua từng thành viên trong hệ thống
+        for (User u : userList) {
+            int leadTaskCount = 0;
+            int subTaskCount = 0;
+            int completedSubTaskCount = 0;
+            List<Integer> relatedTaskIds = new ArrayList<>();
+            List<Task> leadTasks = new ArrayList<>();
+
+            // 2. Quét qua tất cả các Task của dự án
+            for (Task t : allTasks) {
+                // a. Nếu người này là Task Lead của Task lớn
+                if (t.getAssigneeId() == u.getId()) {
+                    leadTaskCount++;
+                    leadTasks.add(t);
+                    if (!relatedTaskIds.contains(t.getId())) {
+                        relatedTaskIds.add(t.getId());
+                    }
+                }
+                // b. Quét các Việc Con bên trong Task lớn này
+                List<SubTask> subTasks = SubTaskDB.selectByTaskId(t.getId());
+                for (SubTask st : subTasks) {
+                    if (st.getAssigneeId() == u.getId()) {
+                        subTaskCount++;
+                        if (st.isCompleted()) {
+                            completedSubTaskCount++;
+                        }
+                        if (!relatedTaskIds.contains(t.getId())) {
+                            relatedTaskIds.add(t.getId());
+                        }
+                    }
+                }
+            }
+            // 3. Đóng gói vào đối tượng UserWorkload
+            UserWorkload uw = new UserWorkload(u, leadTaskCount, subTaskCount, completedSubTaskCount, relatedTaskIds, leadTasks);
+            workloadList.add(uw);
+        }
+        return workloadList;
     }
 }
