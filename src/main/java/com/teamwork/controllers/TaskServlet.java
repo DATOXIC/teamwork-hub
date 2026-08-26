@@ -383,7 +383,13 @@ public class TaskServlet extends HttpServlet {
 
     /**
      * Nghiệp vụ 6: Đổi trạng thái hoàn thành [☑] của Việc Con (SubTask)
-     * KÈM CƠ CHẾ: TÍCH LŨY TIẾN ĐỘ TỪ DƯỚI LÊN VÀ TỰ ĐỘNG PHÁT THÔNG BÁO ĂN MỪNG VÀO LUỒNG HỘI THOẠI
+     * KÈM CƠ CHẾ DOMINO TỰ ĐỘNG:
+     * 1. Tích lũy % tiến độ từ dưới lên
+     * 2. Tự động chuyển CỘT KANBAN cho Task lớn:
+     *    - Nếu tiến độ == 100% -> Tự động chuyển sang DONE (Đã xong) kèm cúp vinh danh 🏆
+     *    - Nếu 0% < tiến độ < 100% và Task đang ở TODO -> Tự động chuyển sang IN_PROGRESS (Đang làm) 🚀
+     *    - Nếu tiến độ < 100% và Task đang ở DONE -> Tự động mở lại về IN_PROGRESS ⚠️
+     * 3. Tự động phát thông báo chúc mừng vào luồng hội thoại
      */
     private void handleToggleSubTask(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -410,25 +416,38 @@ public class TaskServlet extends HttpServlet {
             // 1. Cập nhật trạng thái hoàn thành [☑] trong kho SubTaskDB
             SubTaskDB.updateStatus(subTaskId, isCompleted);
 
-            // 2. CƠ CHẾ TÍCH LŨY TIẾN ĐỘ & PHÁT THÔNG BÁO ĂN MỪNG:
-            // Khi thành viên vừa đánh dấu hoàn thành việc con
+            int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String now = LocalDateTime.now().format(formatter);
+            Task parentTask = TaskDB.selectById(st.getTaskId());
+
+            // 2. CƠ CHẾ TỰ ĐỘNG CHUYỂN CỘT KANBAN CHO TASK LỚN:
+            if (parentTask != null) {
+                if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) {
+                    // Xong 100% -> Task lớn tự động bay sang cột ĐÃ XONG!
+                    TaskDB.updateStatus(parentTask.getId(), "DONE");
+
+                    String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
+                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
+                } else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
+                    // Đã bắt đầu có việc con xong -> Task lớn tự động chuyển sang ĐANG LÀM!
+                    TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+
+                    String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
+                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
+                } else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) {
+                    // Bỏ tick làm tụt tiến độ -> Task lớn tự động mở lại sang ĐANG LÀM!
+                    TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+
+                    String reopenText = "⚠️ CẬP NHẬT: Còn việc con chưa xong (" + newProgress + "%). Task [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
+                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));
+                }
+            }
+
+            // 3. Thông báo ghi nhận cá nhân vừa hoàn thành việc con
             if (isCompleted) {
-                int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-                String now = LocalDateTime.now().format(formatter);
-
                 String notificationText = "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
-
-                // Tự động phát thông báo vào luồng hội thoại của Task cha
-                Message systemMessage = new Message(
-                    0,
-                    projectId,
-                    st.getTaskId(), // Luồng hội thoại của Task này
-                    0,
-                    "Hệ Thống",
-                    notificationText,
-                    now
-                );
+                Message systemMessage = new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", notificationText, now);
                 MessageDB.insert(systemMessage);
             }
         }
