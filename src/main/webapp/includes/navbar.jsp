@@ -151,6 +151,13 @@
                             <div class="text-muted fs-8">@${sessionScope.currentUser.username} &bull; ${sessionScope.currentUser.email}</div>
                         </li>
                         <li>
+                            <a class="dropdown-item py-2 d-flex align-items-center gap-2 fw-medium text-dark" 
+                               href="${pageContext.request.contextPath}/profile">
+                                <i class="bi bi-person-badge text-primary"></i> Hồ sơ chuyên môn của tôi
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
                             <a class="dropdown-item py-2 text-danger d-flex align-items-center gap-2 fw-medium" 
                                href="${pageContext.request.contextPath}/auth?action=logout">
                                 <i class="bi bi-box-arrow-right"></i> Đăng xuất

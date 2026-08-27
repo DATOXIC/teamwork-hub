@@ -7,6 +7,7 @@ import java.util.List;
 /**
  * Tầng Data Layer: Quản lý Kho Người Dùng (In-Memory Database trên RAM)
  * - Quản lý tài khoản đăng nhập, đăng ký và tìm kiếm người dùng theo username/email
+ * - Cung cấp hàm update(User) để lưu lại thay đổi hồ sơ cá nhân
  */
 public class UserDB {
     
@@ -14,7 +15,7 @@ public class UserDB {
     private static List<User> users = new ArrayList<>();
     private static int nextId = 1;
 
-    // 2. Khối khởi tạo tĩnh: Tạo sẵn các tài khoản mẫu đồng bộ với hệ thống
+    // 2. Khối khởi tạo tĩnh: Tạo sẵn 4 tài khoản mẫu kèm hồ sơ chuyên môn
     static {
         // Tài khoản 1: Trưởng nhóm (ADMIN)
         users.add(new User(
@@ -24,7 +25,11 @@ public class UserDB {
             "Trưởng Nhóm Admin", 
             "admin@teamwork.com", 
             "Project Manager", 
-            "images/default_avatar.png"
+            "images/default_avatar.png",
+            "Trưởng dự án, chuyên gia quản lý tiến độ, phân quyền kiến trúc hệ thống và điều phối nhóm.",
+            "Project Management, Agile, Scrum, Java, Architecture",
+            "https://github.com",
+            "https://linkedin.com"
         ));
 
         // Tài khoản 2: Thành viên Nguyễn Văn An
@@ -34,8 +39,12 @@ public class UserDB {
             "pass123", 
             "Nguyễn Văn An", 
             "an@teamwork.com", 
-            "Developer", 
-            "images/default_avatar.png"
+            "Senior Backend Developer", 
+            "images/default_avatar.png",
+            "Đam mê kiến trúc Clean Architecture, tối ưu hóa Jakarta Servlet & Cơ sở dữ liệu quan hệ.",
+            "Java, Jakarta EE, MySQL, Docker, RESTful API",
+            "https://github.com",
+            "https://linkedin.com"
         ));
 
         // Tài khoản 3: Thành viên Trần Thị Bình
@@ -45,8 +54,12 @@ public class UserDB {
             "pass123", 
             "Trần Thị Bình", 
             "binh@teamwork.com", 
-            "Designer", 
-            "images/default_avatar.png"
+            "UI/UX Designer & Frontend", 
+            "images/default_avatar.png",
+            "Chuyên gia thiết kế trải nghiệm người dùng, Design System và xây dựng giao diện hiện đại.",
+            "UI/UX, Figma, HTML/CSS, Bootstrap, JavaScript",
+            "https://github.com",
+            "https://linkedin.com"
         ));
 
         // Tài khoản 4: Thành viên Lê Văn Chi
@@ -56,8 +69,12 @@ public class UserDB {
             "pass123", 
             "Lê Văn Chi", 
             "chi@teamwork.com", 
-            "Tester", 
-            "images/default_avatar.png"
+            "QA Engineer & Tester", 
+            "images/default_avatar.png",
+            "Kỹ sư kiểm thử phần mềm, đảm bảo chất lượng, bảo mật luồng nghiệp vụ và tính đúng đắn dữ liệu.",
+            "Software Testing, QA, JUnit, Test Automation, Git",
+            "https://github.com",
+            "https://linkedin.com"
         ));
     }
 
@@ -99,7 +116,6 @@ public class UserDB {
 
     /**
      * Hàm 4: Tìm kiếm người dùng theo Username HOẶC Email
-     * Phục vụ Ràng buộc 3 của Luồng Mời Thành Viên
      */
     public static User selectByUsernameOrEmail(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
@@ -124,7 +140,30 @@ public class UserDB {
     }
 
     /**
-     * Hàm 6: Lấy danh sách toàn bộ người dùng
+     * Hàm 6: Cập nhật thông tin Hồ Sơ Cá Nhân của Người Dùng
+     */
+    public static boolean update(User updatedUser) {
+        if (updatedUser == null) {
+            return false;
+        }
+        for (int i = 0; i < users.size(); i++) {
+            User u = users.get(i);
+            if (u.getId() == updatedUser.getId()) {
+                u.setFullName(updatedUser.getFullName());
+                u.setRole(updatedUser.getRole());
+                u.setAvatar(updatedUser.getAvatar());
+                u.setBio(updatedUser.getBio());
+                u.setSkills(updatedUser.getSkills());
+                u.setGithubUrl(updatedUser.getGithubUrl());
+                u.setLinkedinUrl(updatedUser.getLinkedinUrl());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Hàm 7: Lấy danh sách toàn bộ người dùng
      */
     public static List<User> selectAll() {
         return new ArrayList<>(users);
