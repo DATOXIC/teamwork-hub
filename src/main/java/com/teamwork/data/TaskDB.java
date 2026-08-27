@@ -19,21 +19,17 @@ public class TaskDB {
     static {
         // --- CÁC TASK MẪU CHO DỰ ÁN 1 (projectId = 1) ---
         
-        // Task 1: 🟡 ĐANG CHỜ PM DUYỆT (Task Lead An đã nộp báo cáo tổng kết)
+        // Task 1: 🚀 ĐANG LÀM (Task Lead An đang đôn đốc đội ngũ hoàn thiện 3 việc con)
         tasks.add(new Task(
             nextId++,
             1, // projectId = 1
             "Thiết kế CSDL quan hệ & Model JavaBean",
             "Xây dựng toàn bộ sơ đồ ERD, các bảng quan hệ và các lớp JavaBean Model chuẩn Serializable.",
-            "SUBMITTED",
+            "IN_PROGRESS",
             "HIGH",
             "2026-08-30",
             2, // assigneeId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An",
-            "Đã hoàn thành 100% các việc con thiết kế CSDL, viết xong Model User, Task, SubTask. Kính gửi PM nghiệm thu!",
-            "",
-            "27/08/2026 20:00",
-            ""
+            "Nguyễn Văn An"
         ));
 
         // Task 2: 🔵 PM YÊU CẦU CÂN CHỈNH (Màu Xanh Dương)

@@ -105,3 +105,77 @@ body {
     color: var(--brand-text-muted);
     font-weight: 600;
 }
+
+/* ==========================================================================
+   Kanban Board Styles — Trello Modern (Header Strip + Tinted Column BG)
+   ========================================================================== */
+
+/* 1. Container cột — bỏ padding, dùng overflow-hidden để header tràn đầy mép */
+.kanban-col-todo {
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1 !important;
+}
+
+.kanban-col-in-progress {
+    background-color: #eff6ff !important;  /* blue-50: nền xanh dương nhạt rõ rệt */
+    border: 1px solid #93c5fd !important;  /* blue-300 */
+}
+
+.kanban-col-done {
+    background-color: #f0fdf4 !important;  /* green-50: nền xanh lá nhạt rõ rệt */
+    border: 1px solid #6ee7b7 !important;  /* emerald-300 */
+}
+
+/* 2. Thanh tiêu đề (Header Strip) — Tông Pastel dịu mắt, chữ đậm tương phản */
+.kanban-header-todo {
+    background-color: #e2e8f0; /* Xám bạc pastel */
+    border-bottom: 1px solid #cbd5e1;
+    padding: 0.85rem 1rem;
+    border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0; /* khớp rounded-4 bên ngoài */
+}
+
+.kanban-header-in-progress {
+    background-color: #dbeafe; /* Xanh dương pastel dịu mắt */
+    border-bottom: 1px solid #bfdbfe;
+    padding: 0.85rem 1rem;
+    border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
+}
+
+.kanban-header-done {
+    background-color: #d1fae5; /* Xanh mint pastel tươi mát */
+    border-bottom: 1px solid #a7f3d0;
+    padding: 0.85rem 1rem;
+    border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
+}
+
+/* 3. Vùng thẻ task — padding riêng */
+.kanban-task-area {
+    padding: 0.85rem;
+}
+
+/* 4. Thẻ công việc trong cột In Progress (Tâm điểm thị giác) */
+.kanban-card-inprogress {
+    border-left: 4px solid #3b82f6 !important;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kanban-card-inprogress:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.18), 0 2px 5px rgba(0, 0, 0, 0.07) !important;
+}
+
+/* 5. Thẻ công việc trong cột Done (Làm dịu thị giác) */
+.kanban-card-done {
+    background-color: #FAFAFA !important;
+    opacity: 0.85 !important;
+    border: 1px solid #d1fae5 !important;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.kanban-card-done:hover {
+    opacity: 1 !important;
+    transform: translateY(-1px);
+}
+
+
