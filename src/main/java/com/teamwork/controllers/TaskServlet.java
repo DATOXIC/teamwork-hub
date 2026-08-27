@@ -558,5 +558,6 @@ public class TaskServlet extends HttpServlet {
             workloadList.add(uw);
         }
         return workloadList;
-    }
+
+}
 }
