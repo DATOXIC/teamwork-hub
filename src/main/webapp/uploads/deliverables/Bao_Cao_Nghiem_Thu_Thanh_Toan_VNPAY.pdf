@@ -1,0 +1,32 @@
+﻿=============================================================================
+CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+Độc lập - Tự do - Hạnh phúc
+-----------------------------------------------------------------------------
+HỒ SƠ BÀN GIAO & BIÊN BẢN NGHIỆM THU KỸ THUẬT SỐ
+Dự án: Nền Tảng Quản Lý Dự Án Teamwork Hub
+Hạng mục Task: Tích Hợp Cổng Thanh Toán Trực Tuyến VNPAY (TaskId = 2)
+
+I. THÔNG TIN BÀN GIAO:
+- Người bàn giao (Task Lead): Nguyễn Văn An (member1)
+- Người thụ hưởng / Thẩm định (PM): Trưởng Nhóm Admin (admin)
+- Thời gian nộp hồ sơ: 27/08/2026 21:00
+
+II. MA TRẬN PHÂN RÃ CÔNG VIỆC CON (SUB-TASKS DECOMPOSITION):
+1. Thiết kế giao diện Form thanh toán VNPAY Responsive -> 🟢 ĐÃ NGHIỆM THU (Trần Thị Bình)
+2. Viết Servlet xử lý IPN Callback & Checksum SHA-256 -> 🟢 ĐÃ NGHIỆM THU (Lê Văn Chi)
+3. Kiểm thử tự động 10 ca thanh toán Sandbox VNPAY -> 🟢 ĐÃ NGHIỆM THU (Nguyễn Văn An)
+=> TIẾN ĐỘ THỰC HIỆN: 100% (3/3 việc con đã đạt chuẩn)
+
+III. BẰNG CHỨNG SẢN PHẨM & MÃ NGUỒN:
+- Demo Sandbox: https://demo.teamworkhub.vn/payment-vnpay
+- Pull Request GitHub: https://github.com/teamwork-hub/teamwork-platform/pull/24
+- Kết quả Test: 10/10 ca giao dịch thành công (Pass rate 100%).
+
+IV. KẾT LUẬN & ĐỀ NGHỊ:
+Kính trình Trưởng Dự Án (PM) xem xét, thẩm định danh mục tiêu chí DoD và phê duyệt đóng Task.
+
+                                          Hà Nội, Ngày 27 Tháng 08 Năm 2026
+                                                    TASK LEAD
+                                                  (Đã Ký Duyệt)
+                                                  Nguyễn Văn An
+=============================================================================

@@ -23,6 +23,10 @@ public class Task implements Serializable {
     private String pmFeedback;          // Nhận xét đánh giá / dặn dò chỉnh sửa của Trưởng Dự Án (PM)
     private String submittedAt;         // Thời điểm Task Lead nộp bàn giao
     private String reviewedAt;          // Thời điểm PM phê duyệt hoặc phản hồi
+    private String deliverableFile;     // Tên tệp đính kèm báo cáo / biên bản nghiệm thu chính thức
+    private int qualityRating;          // Đánh giá chất lượng của PM (1 - 5 sao ⭐)
+    private String planningNote;        // Ghi chú kế hoạch phân rã Task Lead gửi PM thẩm định (Cổng 1)
+    private String planningReviewedAt;  // Thời điểm PM phê duyệt & khóa kế hoạch phân rã
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
 
@@ -40,6 +44,10 @@ public class Task implements Serializable {
         this.pmFeedback = "";
         this.submittedAt = "";
         this.reviewedAt = "";
+        this.deliverableFile = "";
+        this.qualityRating = 5;
+        this.planningNote = "";
+        this.planningReviewedAt = "";
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
@@ -48,7 +56,9 @@ public class Task implements Serializable {
                 String status, String priority, String dueDate,
                 int assigneeId, String assigneeName,
                 String finalDeliverableNote, String pmFeedback,
-                String submittedAt, String reviewedAt) 
+                String submittedAt, String reviewedAt,
+                String deliverableFile, int qualityRating,
+                String planningNote, String planningReviewedAt) 
     {
         this.id = id;
         this.projectId = projectId;
@@ -63,6 +73,31 @@ public class Task implements Serializable {
         this.pmFeedback = (pmFeedback != null) ? pmFeedback.trim() : "";
         this.submittedAt = (submittedAt != null) ? submittedAt.trim() : "";
         this.reviewedAt = (reviewedAt != null) ? reviewedAt.trim() : "";
+        this.deliverableFile = (deliverableFile != null) ? deliverableFile.trim() : "";
+        this.qualityRating = qualityRating > 0 ? qualityRating : 5;
+        this.planningNote = (planningNote != null) ? planningNote.trim() : "";
+        this.planningReviewedAt = (planningReviewedAt != null) ? planningReviewedAt.trim() : "";
+    }
+
+    // Constructor tương thích phiên bản có deliverableFile & qualityRating
+    public Task(int id, int projectId, String title, String description,
+                String status, String priority, String dueDate,
+                int assigneeId, String assigneeName,
+                String finalDeliverableNote, String pmFeedback,
+                String submittedAt, String reviewedAt,
+                String deliverableFile, int qualityRating) 
+    {
+        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, finalDeliverableNote, pmFeedback, submittedAt, reviewedAt, deliverableFile, qualityRating, "", "");
+    }
+
+    // Constructor tương thích phiên bản trước
+    public Task(int id, int projectId, String title, String description,
+                String status, String priority, String dueDate,
+                int assigneeId, String assigneeName,
+                String finalDeliverableNote, String pmFeedback,
+                String submittedAt, String reviewedAt) 
+    {
+        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, finalDeliverableNote, pmFeedback, submittedAt, reviewedAt, "", 5, "", "");
     }
 
     // Constructor tương thích ngược
@@ -70,7 +105,7 @@ public class Task implements Serializable {
                 String status, String priority, String dueDate,
                 int assigneeId, String assigneeName) 
     {
-        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, "", "", "", "");
+        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, "", "", "", "", "", 5, "", "");
     }
 
     // ===================== HÀM TIỆN ÍCH PHỤC VỤ GIAO DIỆN =====================
@@ -102,26 +137,28 @@ public class Task implements Serializable {
     }
 
     /**
-     * Trả về lớp màu CSS Bootstrap tương ứng với 5 trạng thái nghiệm thu của Task Lớn
+     * Trả về lớp màu CSS Bootstrap tương ứng với các trạng thái của Task Lớn
      */
     public String getStatusBadgeClass() {
-        if ("SUBMITTED".equalsIgnoreCase(status)) return "bg-warning text-dark"; // 🟡 Vàng Cam: Chờ PM duyệt
+        if ("PLANNING".equalsIgnoreCase(status)) return "bg-primary-subtle text-primary border border-primary-subtle"; // 🟣 Đang chờ PM duyệt kế hoạch
+        if ("SUBMITTED".equalsIgnoreCase(status)) return "bg-warning text-dark"; // 🟡 Vàng Cam: Chờ PM duyệt nghiệm thu
         if ("REVISE".equalsIgnoreCase(status)) return "bg-primary text-white";   // 🔵 Xanh Dương: PM cần cân chỉnh
         if ("REJECTED".equalsIgnoreCase(status)) return "bg-danger text-white";   // 🔴 Màu Đỏ: Chưa đạt yêu cầu
         if ("DONE".equalsIgnoreCase(status) || "APPROVED".equalsIgnoreCase(status)) return "bg-success text-white"; // 🟢 Xanh Lá: Đã nghiệm thu
-        if ("IN_PROGRESS".equalsIgnoreCase(status)) return "bg-info-subtle text-info-emphasis border border-info-subtle"; // 🚀 Đang làm
-        return "bg-light text-secondary border"; // ⚪ TODO: Cần làm
+        if ("IN_PROGRESS".equalsIgnoreCase(status)) return "bg-info-subtle text-info-emphasis border border-info-subtle"; // 🚀 Đang làm (Đã khóa kế hoạch)
+        return "bg-light text-secondary border"; // ⚪ TODO: Cần làm (Đang lập kế hoạch)
     }
 
     /**
      * Trả về tên nhãn hiển thị tiếng Việt kèm icon cho Task Lớn
      */
     public String getStatusLabel() {
-        if ("SUBMITTED".equalsIgnoreCase(status)) return "🟡 Chờ PM duyệt";
+        if ("PLANNING".equalsIgnoreCase(status)) return "🟣 Chờ PM duyệt kế hoạch";
+        if ("SUBMITTED".equalsIgnoreCase(status)) return "🟡 Chờ PM duyệt nghiệm thu";
         if ("REVISE".equalsIgnoreCase(status)) return "🔵 Cần cân chỉnh";
         if ("REJECTED".equalsIgnoreCase(status)) return "🔴 Chưa đạt yêu cầu";
         if ("DONE".equalsIgnoreCase(status) || "APPROVED".equalsIgnoreCase(status)) return "🟢 Đã nghiệm thu";
-        if ("IN_PROGRESS".equalsIgnoreCase(status)) return "🚀 Đang làm";
+        if ("IN_PROGRESS".equalsIgnoreCase(status)) return "🚀 Đang làm (Đã khóa)";
         return "⚪ Cần làm";
     }
 
@@ -216,5 +253,33 @@ public class Task implements Serializable {
     }
     public void setReviewedAt(String reviewedAt) {
         this.reviewedAt = reviewedAt;
+    }
+
+    public String getDeliverableFile() {
+        return this.deliverableFile;
+    }
+    public void setDeliverableFile(String deliverableFile) {
+        this.deliverableFile = (deliverableFile != null) ? deliverableFile.trim() : "";
+    }
+
+    public int getQualityRating() {
+        return this.qualityRating;
+    }
+    public void setQualityRating(int qualityRating) {
+        this.qualityRating = qualityRating > 0 ? qualityRating : 5;
+    }
+
+    public String getPlanningNote() {
+        return this.planningNote;
+    }
+    public void setPlanningNote(String planningNote) {
+        this.planningNote = (planningNote != null) ? planningNote.trim() : "";
+    }
+
+    public String getPlanningReviewedAt() {
+        return this.planningReviewedAt;
+    }
+    public void setPlanningReviewedAt(String planningReviewedAt) {
+        this.planningReviewedAt = (planningReviewedAt != null) ? planningReviewedAt.trim() : "";
     }
 }

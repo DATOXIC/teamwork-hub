@@ -22,67 +22,24 @@ public class SubTaskDB {
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các việc con mẫu đa dạng 5 trạng thái
     static {
-        // --- CÁC VIỆC CON CỦA TASK 1: "Thiết kế Cơ sở Dữ liệu & Model JavaBean" ---
-        // Việc 1: 🟢 ĐÃ NGHIỆM THU
+        // --- CÁC VIỆC CON CỦA TASK 1: "Thiết kế Cơ sở Dữ liệu & Model JavaBean" (Trạng thái PLANNING - Đang trình PM duyệt kế hoạch) ---
         subTasks.add(new SubTask(
             nextId++,
             1, // taskId = 1
             "Thiết kế sơ đồ quan hệ ERD và các bảng User, Task, Doc, Message",
             1, // assigneeId = 1 (Trưởng Nhóm Admin)
             "Trưởng Nhóm Admin",
-            "APPROVED",
-            "Đã vẽ xong sơ đồ trên draw.io và export file PNG",
-            "Rất tốt, sơ đồ chuẩn quan hệ 1-N và N-N",
-            "27/08/2026 18:00",
-            "27/08/2026 18:30"
+            "TODO",
+            "",
+            "",
+            "",
+            ""
         ));
 
-        // Việc 2: 🟡 ĐANG CHỜ DUYỆT (Nguyễn Văn An vừa nộp bài)
         subTasks.add(new SubTask(
             nextId++,
             1,
             "Viết các JavaBean Model kế thừa Serializable và đầy đủ getter/setter",
-            2, // assigneeId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An",
-            "SUBMITTED",
-            "Đã hoàn thành toàn bộ các Model User, Task, SubTask, ProjectMember chuẩn JavaBean",
-            "",
-            "27/08/2026 19:30",
-            ""
-        ));
-
-        // Việc 3: 🔵 CẦN CÂN CHỈNH (Task Lead dặn dò chỉnh thêm vài chi tiết nhỏ)
-        subTasks.add(new SubTask(
-            nextId++,
-            1,
-            "Xây dựng kho dữ liệu RAM Data Layer với các hàm truy vấn CRUD",
-            2, // assigneeId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An",
-            "REVISE",
-            "Đã viết xong các hàm select, insert, update",
-            "Cơ bản đã rất tốt, em bổ sung thêm chú thích tiếng Việt cho hàm calculateProgress nhé!",
-            "27/08/2026 19:40",
-            "27/08/2026 19:50"
-        ));
-
-        // --- CÁC VIỆC CON CỦA TASK 3: "Triển khai ứng dụng lên Cloud Render.com" ---
-        subTasks.add(new SubTask(
-            nextId++,
-            3, // taskId = 3
-            "Viết cấu hình Dockerfile multi-stage build và tối ưu file WAR",
-            1, // assigneeId = 1 (Trưởng Nhóm Admin)
-            "Trưởng Nhóm Admin",
-            "APPROVED",
-            "Build Docker image chạy thành công trên máy ảo",
-            "Đạt chuẩn",
-            "27/08/2026 18:00",
-            "27/08/2026 18:15"
-        ));
-
-        subTasks.add(new SubTask(
-            nextId++,
-            3,
-            "Cấu hình Web Service và thiết lập biến môi trường trên Render.com",
             2, // assigneeId = 2 (Nguyễn Văn An)
             "Nguyễn Văn An",
             "TODO",
@@ -90,6 +47,86 @@ public class SubTaskDB {
             "",
             "",
             ""
+        ));
+
+        subTasks.add(new SubTask(
+            nextId++,
+            1,
+            "Xây dựng kho dữ liệu RAM Data Layer với các hàm truy vấn CRUD",
+            2, // assigneeId = 2 (Nguyễn Văn An)
+            "Nguyễn Văn An",
+            "TODO",
+            "",
+            "",
+            "",
+            ""
+        ));
+
+        // --- CÁC VIỆC CON CỦA TASK 2: "Tích hợp cổng thanh toán trực tuyến" (Tiến độ: 100% - SUBMITTED ĐÃ BÀN GIAO CHO PM) ---
+        subTasks.add(new SubTask(
+            nextId++,
+            2, // taskId = 2
+            "Thiết kế giao diện Form thanh toán VNPAY Responsive",
+            2, // assigneeId = 2 (Nguyễn Văn An)
+            "Nguyễn Văn An",
+            "APPROVED",
+            "Đã hoàn thiện giao diện chọn cổng thanh toán và quét mã QR VNPAY",
+            "Giao diện chuẩn UI Bootstrap, màu sắc hài hòa",
+            "27/08/2026 14:00",
+            "27/08/2026 14:30"
+        ));
+
+        subTasks.add(new SubTask(
+            nextId++,
+            2,
+            "Viết Servlet xử lý IPN Callback và mã hóa Checksum SHA-256",
+            2,
+            "Nguyễn Văn An",
+            "APPROVED",
+            "Đã viết Servlet kiểm tra chữ ký số SHA-256 và cập nhật đơn hàng",
+            "Mã nguồn bảo mật tốt, xử lý bắt ngoại lệ đầy đủ",
+            "27/08/2026 16:30",
+            "27/08/2026 17:00"
+        ));
+
+        subTasks.add(new SubTask(
+            nextId++,
+            2,
+            "Kiểm thử tự động 10 ca thanh toán trên môi trường Sandbox VNPAY",
+            2,
+            "Nguyễn Văn An",
+            "APPROVED",
+            "Đã chạy thử 10/10 ca test thẻ test, quét QR thành công 100%",
+            "Nghiệm thu đạt 100%, sẵn sàng bàn giao cho PM",
+            "27/08/2026 18:00",
+            "27/08/2026 18:30"
+        ));
+
+        // --- CÁC VIỆC CON CỦA TASK 4: "Xây dựng giao diện Landing Page với Bootstrap 5" (Tiến độ: 100% - DONE ĐÃ DUYỆT 5 SAO) ---
+        subTasks.add(new SubTask(
+            nextId++,
+            4, // taskId = 4
+            "Thiết kế Hero Section và Navigation Bar",
+            2,
+            "Nguyễn Văn An",
+            "APPROVED",
+            "Đã hoàn thành header cố định và banner động",
+            "Đạt chuẩn",
+            "20/08/2026 14:00",
+            "20/08/2026 14:30"
+        ));
+
+        subTasks.add(new SubTask(
+            nextId++,
+            4,
+            "Xây dựng phần Bảng Giá & Chân Trang Footer",
+            2,
+            "Nguyễn Văn An",
+            "APPROVED",
+            "Đã hoàn thành bảng giá 3 gói dịch vụ và footer bản quyền",
+            "Đạt chuẩn",
+            "20/08/2026 15:00",
+            "20/08/2026 15:30"
         ));
     }
 
