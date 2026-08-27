@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import com.teamwork.business.ProjectInvite;
 import com.teamwork.business.ProjectMember;
+import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.http.HttpSession;
@@ -109,6 +110,38 @@ public class TaskServlet extends HttpServlet {
 
             case "toggleSubTask":
                 handleToggleSubTask(request, response);
+                break;
+
+            case "submitSubTask":
+                handleSubmitSubTask(request, response);
+                break;
+
+            case "approveSubTask":
+                handleApproveSubTask(request, response);
+                break;
+
+            case "reviseSubTask":
+                handleReviseSubTask(request, response);
+                break;
+
+            case "rejectSubTask":
+                handleRejectSubTask(request, response);
+                break;
+
+            case "submitParentTask":
+                handleSubmitParentTask(request, response);
+                break;
+
+            case "pmApproveTask":
+                handlePmApproveTask(request, response);
+                break;
+
+            case "pmReviseTask":
+                handlePmReviseTask(request, response);
+                break;
+
+            case "pmRejectTask":
+                handlePmRejectTask(request, response);
                 break;
 
             case "deleteSubTask":
@@ -535,6 +568,483 @@ public class TaskServlet extends HttpServlet {
                 if (currentUser.getId() == parentTask.getAssigneeId() || currentUser.getId() == project.getOwnerId()) {
                     SubTaskDB.delete(subTaskId);
                 }
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 8: Thành viên Nộp Báo Cáo / Kết Quả Việc Con (Chuyển sang 🟡 SUBMITTED)
+     * KÈM BẮN THÔNG BÁO CHO TASK LEAD
+     */
+    private void handleSubmitSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String subTaskIdParam = request.getParameter("subTaskId");
+        String submissionNote = request.getParameter("submissionNote");
+
+        int projectId = 0;
+        int subTaskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            subTaskId = Integer.parseInt(subTaskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        SubTask st = SubTaskDB.selectById(subTaskId);
+
+        if (st != null && currentUser != null) {
+            Task parentTask = TaskDB.selectById(st.getTaskId());
+            Project project = ProjectDB.selectById(projectId);
+
+            if (parentTask != null && project != null) {
+                // KIỂM SOÁT THẨM QUYỀN: Người được giao việc, Task Lead hoặc PM
+                boolean isAssignee = (currentUser.getId() == st.getAssigneeId());
+                boolean isTaskLead = (currentUser.getId() == parentTask.getAssigneeId());
+                boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+
+                if (isAssignee || isTaskLead || isProjectOwner) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                    String now = LocalDateTime.now().format(formatter);
+
+                    SubTaskDB.submitDeliverable(subTaskId, submissionNote, now);
+
+                    // Bắn thông báo thời gian thực 🔔 cho Task Lead (nếu Task Lead không phải chính mình)
+                    int leadId = parentTask.getAssigneeId();
+                    if (leadId > 0 && leadId != currentUser.getId()) {
+                        NotificationDB.send(
+                            leadId,
+                            "🟡 Báo cáo nộp việc con",
+                            currentUser.getFullName() + " vừa nộp kết quả việc con [" + st.getTitle() + "], mời bạn nghiệm thu!",
+                            "/task?action=list&projectId=" + projectId,
+                            "bi-hourglass-split text-warning"
+                        );
+                    }
+
+                    // Thông báo lên Luồng Thảo luận
+                    String msgContent = "📤 " + currentUser.getFullName() + " vừa nộp kết quả việc con: [" + st.getTitle() + "] — Ghi chú: \"" + (submissionNote != null && !submissionNote.trim().isEmpty() ? submissionNote : "Đã hoàn tất công việc") + "\"";
+                    MessageDB.insert(new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", msgContent, now));
+
+                    session.setAttribute("toastSuccess", "Đã nộp báo cáo kết quả việc con thành công! Đang chờ Task Lead duyệt.");
+                } else {
+                    session.setAttribute("toastError", "Bạn không có quyền nộp bài cho việc con của người khác!");
+                }
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 9: Task Lead Duyệt Nghiệm Thu ĐẠT (Chuyển sang 🟢 APPROVED)
+     * KÈM CƠ CHẾ DOMINO TỰ ĐỘNG NÂNG % TIẾN ĐỘ VÀ BAY SANG CỘT DONE
+     */
+    private void handleApproveSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String subTaskIdParam = request.getParameter("subTaskId");
+
+        int projectId = 0;
+        int subTaskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            subTaskId = Integer.parseInt(subTaskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        SubTask st = SubTaskDB.selectById(subTaskId);
+
+        if (st != null && currentUser != null) {
+            Task parentTask = TaskDB.selectById(st.getTaskId());
+            Project project = ProjectDB.selectById(projectId);
+
+            if (parentTask != null && project != null) {
+                // KIỂM SOÁT BẢO MẬT: Chỉ Task Lead của Task lớn hoặc PM mới có quyền DUYỆT ĐẠT
+                boolean isTaskLead = (currentUser.getId() == parentTask.getAssigneeId());
+                boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+
+                if (isTaskLead || isProjectOwner) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                    String now = LocalDateTime.now().format(formatter);
+
+                    SubTaskDB.approveDeliverable(subTaskId, now);
+
+                    int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
+
+                    // CƠ CHẾ DOMINO TỰ ĐỘNG CHUYỂN CỘT KANBAN:
+                    if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) {
+                        TaskDB.updateStatus(parentTask.getId(), "DONE");
+                        String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã được duyệt nghiệm thu ĐẠT (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
+                    } else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
+                        TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                        String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã nghiệm thu " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] chuyển sang ĐANG LÀM!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
+                    }
+
+                    // Bắn thông báo thời gian thực 🔔 cho Người phụ trách việc con
+                    if (st.getAssigneeId() > 0 && st.getAssigneeId() != currentUser.getId()) {
+                        NotificationDB.send(
+                            st.getAssigneeId(),
+                            "🟢 Nghiệm thu ĐẠT",
+                            "Việc con [" + st.getTitle() + "] của bạn đã được Leader duyệt đạt 100%!",
+                            "/task?action=list&projectId=" + projectId,
+                            "bi-check-circle-fill text-success"
+                        );
+                    }
+
+                    session.setAttribute("toastSuccess", "Đã duyệt nghiệm thu ĐẠT cho việc con!");
+                } else {
+                    session.setAttribute("toastError", "Chỉ Task Lead hoặc Trưởng Dự Án mới có quyền duyệt nghiệm thu!");
+                }
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 10: Task Lead Yêu Cầu Cân Chỉnh Nhỏ (Chuyển sang 🔵 REVISE - Màu Xanh Dương)
+     */
+    private void handleReviseSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String subTaskIdParam = request.getParameter("subTaskId");
+        String feedbackNote = request.getParameter("feedbackNote");
+
+        int projectId = 0;
+        int subTaskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            subTaskId = Integer.parseInt(subTaskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        SubTask st = SubTaskDB.selectById(subTaskId);
+
+        if (st != null && currentUser != null) {
+            Task parentTask = TaskDB.selectById(st.getTaskId());
+            Project project = ProjectDB.selectById(projectId);
+
+            if (parentTask != null && project != null) {
+                boolean isTaskLead = (currentUser.getId() == parentTask.getAssigneeId());
+                boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+
+                if (isTaskLead || isProjectOwner) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                    String now = LocalDateTime.now().format(formatter);
+
+                    SubTaskDB.reviseDeliverable(subTaskId, feedbackNote, now);
+
+                    // Bắn thông báo thời gian thực 🔔 cho Thành viên phụ trách
+                    if (st.getAssigneeId() > 0 && st.getAssigneeId() != currentUser.getId()) {
+                        NotificationDB.send(
+                            st.getAssigneeId(),
+                            "🔵 Yêu cầu cân chỉnh việc con",
+                            "Leader dặn dò: \"" + (feedbackNote != null ? feedbackNote : "Cần cân chỉnh một số chi tiết") + "\" đối với việc con [" + st.getTitle() + "]",
+                            "/task?action=list&projectId=" + projectId,
+                            "bi-pencil-square text-primary"
+                        );
+                    }
+
+                    session.setAttribute("toastSuccess", "Đã gửi yêu cầu cân chỉnh nhỏ (🔵 Xanh Dương) tới thành viên!");
+                } else {
+                    session.setAttribute("toastError", "Chỉ Task Lead hoặc Trưởng Dự Án mới có quyền yêu cầu cân chỉnh!");
+                }
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 11: Task Lead Trả Về Do Chưa Đạt Yêu Cầu (Chuyển sang 🔴 REJECTED - Màu Đỏ)
+     */
+    private void handleRejectSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String subTaskIdParam = request.getParameter("subTaskId");
+        String feedbackNote = request.getParameter("feedbackNote");
+
+        int projectId = 0;
+        int subTaskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            subTaskId = Integer.parseInt(subTaskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        SubTask st = SubTaskDB.selectById(subTaskId);
+
+        if (st != null && currentUser != null) {
+            Task parentTask = TaskDB.selectById(st.getTaskId());
+            Project project = ProjectDB.selectById(projectId);
+
+            if (parentTask != null && project != null) {
+                boolean isTaskLead = (currentUser.getId() == parentTask.getAssigneeId());
+                boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+
+                if (isTaskLead || isProjectOwner) {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                    String now = LocalDateTime.now().format(formatter);
+
+                    SubTaskDB.rejectDeliverable(subTaskId, feedbackNote, now);
+
+                    // Bắn thông báo thời gian thực 🔔 cho Thành viên phụ trách
+                    if (st.getAssigneeId() > 0 && st.getAssigneeId() != currentUser.getId()) {
+                        NotificationDB.send(
+                            st.getAssigneeId(),
+                            "🔴 Việc con chưa đạt yêu cầu",
+                            "Leader phản hồi lỗi: \"" + (feedbackNote != null ? feedbackNote : "Chưa đạt yêu cầu đề ra") + "\" đối với việc con [" + st.getTitle() + "]",
+                            "/task?action=list&projectId=" + projectId,
+                            "bi-exclamation-triangle-fill text-danger"
+                        );
+                    }
+
+                    session.setAttribute("toastSuccess", "Đã trả về việc con và gửi phản hồi (🔴 Màu Đỏ) cho thành viên!");
+                } else {
+                    session.setAttribute("toastError", "Chỉ Task Lead hoặc Trưởng Dự Án mới có quyền đánh giá chưa đạt!");
+                }
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 12: Task Lead Bàn Giao & Nộp Báo Cáo Task Lớn Lên Cho PM (Chuyển sang 🟡 SUBMITTED)
+     */
+    private void handleSubmitParentTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String taskIdParam = request.getParameter("taskId");
+        String deliverableNote = request.getParameter("deliverableNote");
+
+        int projectId = 0;
+        int taskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            taskId = Integer.parseInt(taskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        Task task = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (task != null && project != null && currentUser != null) {
+            // KIỂM SOÁT THẨM QUYỀN: Chỉ Task Lead của Task này hoặc PM mới được nộp bàn giao
+            boolean isTaskLead = (currentUser.getId() == task.getAssigneeId());
+            boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+
+            if (isTaskLead || isProjectOwner) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                String now = LocalDateTime.now().format(formatter);
+
+                TaskDB.submitTaskDeliverable(taskId, deliverableNote, now);
+
+                // Bắn thông báo thời gian thực 🔔 cho Trưởng Dự Án (PM)
+                if (project.getOwnerId() > 0 && project.getOwnerId() != currentUser.getId()) {
+                    NotificationDB.send(
+                        project.getOwnerId(),
+                        "🟡 Bàn giao Task lớn",
+                        currentUser.getFullName() + " vừa nộp báo cáo bàn giao Task [" + task.getTitle() + "], kính mời PM nghiệm thu!",
+                        "/task?action=list&projectId=" + projectId,
+                        "bi-box-seam-fill text-warning"
+                    );
+                }
+
+                // Thông báo lên Luồng Thảo luận
+                String msgContent = "📦 [BÀN GIAO TASK]: " + currentUser.getFullName() + " đã nộp báo cáo tổng kết Task [" + task.getTitle() + "] lên Trưởng Dự Án (PM)! Báo cáo: \"" + (deliverableNote != null ? deliverableNote : "Đã hoàn thành toàn bộ công việc") + "\"";
+                MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
+
+                session.setAttribute("toastSuccess", "Đã nộp báo cáo bàn giao Task lớn thành công! Đang chờ PM phê duyệt.");
+            } else {
+                session.setAttribute("toastError", "Bạn không phải là Task Lead của thẻ công việc này!");
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 13: Trưởng Dự Án (PM) Phê Duyệt Nghiệm Thu Task Lớn ĐẠT (Chuyển sang 🟢 DONE)
+     */
+    private void handlePmApproveTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String taskIdParam = request.getParameter("taskId");
+        String feedback = request.getParameter("feedback");
+
+        int projectId = 0;
+        int taskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            taskId = Integer.parseInt(taskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        Task task = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (task != null && project != null && currentUser != null) {
+            // KIỂM SOÁT BẢO MẬT: Chỉ DUY NHẤT Trưởng Dự Án (PM) mới có quyền PHÊ DUYỆT TỐI CAO
+            if (currentUser.getId() == project.getOwnerId()) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                String now = LocalDateTime.now().format(formatter);
+
+                TaskDB.pmApproveTask(taskId, feedback, now);
+
+                // Bắn thông báo thời gian thực 🔔 cho Task Lead
+                if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
+                    NotificationDB.send(
+                        task.getAssigneeId(),
+                        "🏆 PM Phê Duyệt Nghiệm Thu",
+                        "Trưởng Dự Án đã chính thức ký duyệt nghiệm thu hoàn tất 100% cho Task [" + task.getTitle() + "]!",
+                        "/task?action=list&projectId=" + projectId,
+                        "bi-trophy-fill text-warning"
+                    );
+                }
+
+                // Thông báo cúp vàng lên Thảo luận
+                String msgContent = "🏆 [PM KÝ DUYỆT ĐÓNG TASK]: Trưởng Dự Án đã nghiệm thu hoàn thành 100% cho Task [" + task.getTitle() + "]! Lời nhận xét: \"" + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Đạt chất lượng xuất sắc!") + "\"";
+                MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
+
+                session.setAttribute("toastSuccess", "Trưởng Dự Án đã phê duyệt nghiệm thu thành công! Task đã hoàn tất 100%.");
+            } else {
+                session.setAttribute("toastError", "Chỉ Trưởng Dự Án (PM) mới có thẩm quyền phê duyệt nghiệm thu tối cao!");
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 14: Trưởng Dự Án (PM) Yêu Cầu Cân Chỉnh Nhỏ (Chuyển sang 🔵 REVISE - Màu Xanh Dương)
+     */
+    private void handlePmReviseTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String taskIdParam = request.getParameter("taskId");
+        String feedback = request.getParameter("feedback");
+
+        int projectId = 0;
+        int taskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            taskId = Integer.parseInt(taskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        Task task = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (task != null && project != null && currentUser != null) {
+            if (currentUser.getId() == project.getOwnerId()) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                String now = LocalDateTime.now().format(formatter);
+
+                TaskDB.pmReviseTask(taskId, feedback, now);
+
+                if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
+                    NotificationDB.send(
+                        task.getAssigneeId(),
+                        "🔵 PM Yêu Cầu Cân Chỉnh",
+                        "Trưởng Dự Án dặn dò: \"" + (feedback != null ? feedback : "Cần cân chỉnh thêm một số chi tiết") + "\" đối với Task [" + task.getTitle() + "]",
+                        "/task?action=list&projectId=" + projectId,
+                        "bi-pencil-square text-primary"
+                    );
+                }
+
+                session.setAttribute("toastSuccess", "Đã gửi yêu cầu cân chỉnh nhỏ (🔵 Xanh Dương) tới Task Lead!");
+            } else {
+                session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có quyền đưa ra quyết định này!");
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 15: Trưởng Dự Án (PM) Trả Về Do Chưa Đạt (Chuyển sang 🔴 REJECTED - Màu Đỏ)
+     */
+    private void handlePmRejectTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        String projectIdParam = request.getParameter("projectId");
+        String taskIdParam = request.getParameter("taskId");
+        String feedback = request.getParameter("feedback");
+
+        int projectId = 0;
+        int taskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            taskId = Integer.parseInt(taskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        HttpSession session = request.getSession();
+        User currentUser = (User) session.getAttribute("currentUser");
+        Task task = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (task != null && project != null && currentUser != null) {
+            if (currentUser.getId() == project.getOwnerId()) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                String now = LocalDateTime.now().format(formatter);
+
+                TaskDB.pmRejectTask(taskId, feedback, now);
+
+                if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
+                    NotificationDB.send(
+                        task.getAssigneeId(),
+                        "🔴 PM Chưa Đạt Yêu Cầu",
+                        "Trưởng Dự Án phản hồi lỗi: \"" + (feedback != null ? feedback : "Chưa đạt chuẩn đề ra") + "\" đối với Task [" + task.getTitle() + "]",
+                        "/task?action=list&projectId=" + projectId,
+                        "bi-exclamation-triangle-fill text-danger"
+                    );
+                }
+
+                session.setAttribute("toastSuccess", "Đã trả về Task lớn và gửi phản hồi (🔴 Màu Đỏ) cho Task Lead!");
+            } else {
+                session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có quyền đưa ra quyết định này!");
             }
         }
 

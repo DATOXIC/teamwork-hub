@@ -6,46 +6,54 @@ import java.util.List;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu Thẻ công việc (In-Memory Task Database trên RAM)
- * Cung cấp đầy đủ các thao tác CRUD: Tạo mới, Lấy danh sách theo 3 cột, Cập nhật trạng thái và Xóa task.
+ * - Quản lý 5 trạng thái: TODO, IN_PROGRESS, SUBMITTED (🟡), REVISE (🔵), REJECTED (🔴), DONE (🟢)
+ * - Cung cấp các thao tác Bàn giao của Task Lead và Phê duyệt Nghiệm thu của Trưởng Dự Án (PM)
  */
-public class TaskDB 
-{
+public class TaskDB {
 
     // 1. Danh sách tĩnh lưu toàn bộ task trong hệ thống
     private static List<Task> tasks = new ArrayList<>();
     private static int nextId = 1; // Biến tự tăng cấp ID cho thẻ task mới
 
-    // 2. Khối khởi tạo tĩnh (Static Initializer): Chạy 1 lần duy nhất khi Server nạp class này
-    // Tạo sẵn các task mẫu cho Dự án 1 (Website E-Commerce) và Dự án 2 (Mobile App)
+    // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các task mẫu cho Dự án 1 và Dự án 2
     static {
         // --- CÁC TASK MẪU CHO DỰ ÁN 1 (projectId = 1) ---
         
-        // Cột 1: CẦN LÀM (TODO)
+        // Task 1: 🟡 ĐANG CHỜ PM DUYỆT (Task Lead An đã nộp báo cáo tổng kết)
         tasks.add(new Task(
             nextId++,
             1, // projectId = 1
-            "Thiết kế CSDL quan hệ cho Giỏ hàng & Đơn hàng",
-            "Xây dựng lược đồ bảng Cart, CartItem, Order, OrderDetail và ràng buộc khóa ngoại.",
-            "TODO",
+            "Thiết kế CSDL quan hệ & Model JavaBean",
+            "Xây dựng toàn bộ sơ đồ ERD, các bảng quan hệ và các lớp JavaBean Model chuẩn Serializable.",
+            "SUBMITTED",
             "HIGH",
             "2026-08-30",
             2, // assigneeId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An"
+            "Nguyễn Văn An",
+            "Đã hoàn thành 100% các việc con thiết kế CSDL, viết xong Model User, Task, SubTask. Kính gửi PM nghiệm thu!",
+            "",
+            "27/08/2026 20:00",
+            ""
         ));
 
+        // Task 2: 🔵 PM YÊU CẦU CÂN CHỈNH (Màu Xanh Dương)
         tasks.add(new Task(
             nextId++,
             1,
             "Tích hợp cổng thanh toán trực tuyến",
             "Nghiên cứu tài liệu Sandbox và viết Servlet xử lý callback thanh toán.",
-            "TODO",
+            "REVISE",
             "MEDIUM",
             "2026-09-05",
             2,
-            "Nguyễn Văn An"
+            "Nguyễn Văn An",
+            "Đã viết xong Servlet tích hợp sandbox VNPAY",
+            "Giao diện thanh toán rất đẹp, em bổ sung thêm log ghi vết mã giao dịch vào console nhé!",
+            "27/08/2026 19:00",
+            "27/08/2026 19:30"
         ));
 
-        // Cột 2: ĐANG LÀM (IN_PROGRESS)
+        // Task 3: 🚀 ĐANG LÀM
         tasks.add(new Task(
             nextId++,
             1,
@@ -58,7 +66,7 @@ public class TaskDB
             "Trưởng Nhóm Admin"
         ));
 
-        // Cột 3: ĐÃ HOÀN THÀNH (DONE)
+        // Task 4: 🟢 ĐÃ HOÀN THÀNH (DONE)
         tasks.add(new Task(
             nextId++,
             1,
@@ -68,44 +76,24 @@ public class TaskDB
             "LOW",
             "2026-08-20",
             2,
-            "Nguyễn Văn An"
+            "Nguyễn Văn An",
+            "Đã hoàn thành trang chủ chuẩn UX/UI Basecamp",
+            "PM phê duyệt: Giao diện đạt chuẩn, chạy mượt mà trên mobile!",
+            "20/08/2026 15:00",
+            "20/08/2026 16:30"
         ));
 
+        // Task 5: ⚪ CẦN LÀM (TODO)
         tasks.add(new Task(
             nextId++,
             1,
-            "Khởi tạo cấu trúc dự án Maven & MVC Model 2",
-            "Cấu hình file pom.xml, web.xml và tổ chức các package chuẩn.",
-            "DONE",
-            "MEDIUM",
-            "2026-08-15",
-            1,
-            "Trưởng Nhóm Admin"
-        ));
-
-        // --- CÁC TASK MẪU CHO DỰ ÁN 2 (projectId = 2) ---
-        tasks.add(new Task(
-            nextId++,
-            2, // projectId = 2
-            "Phác thảo Wireframe giao diện Mobile App",
-            "Thiết kế bố cục màn hình Kanban và màn hình Chat trên Figma.",
+            "Viết tài liệu Hướng dẫn sử dụng & Báo cáo đồ án",
+            "Soạn thảo tài liệu PDF và slide thuyết trình bảo vệ đồ án.",
             "TODO",
-            "HIGH",
-            "2026-09-01",
+            "MEDIUM",
+            "2026-09-10",
             1,
             "Trưởng Nhóm Admin"
-        ));
-
-        tasks.add(new Task(
-            nextId++,
-            2,
-            "Cấu hình môi trường Flutter & SDK 21",
-            "Cài đặt Flutter framework và kiểm tra máy ảo Android Emulator.",
-            "DONE",
-            "LOW",
-            "2026-08-18",
-            2,
-            "Nguyễn Văn An"
         ));
     }
 
@@ -118,7 +106,6 @@ public class TaskDB
 
     /**
      * HÀM 2: Lấy danh sách tất cả các task thuộc về MỘT DỰ ÁN cụ thể
-     * Dùng khi muốn tính tổng số lượng việc của dự án đó.
      */
     public static List<Task> selectByProjectId(int projectId) {
         List<Task> resultList = new ArrayList<>();
@@ -131,20 +118,30 @@ public class TaskDB
     }
 
     /**
-     * HÀM 3: Lấy danh sách task của một dự án ĐƯỢC LỌC THEO CỘT TRẠNG THÁI (TODO, IN_PROGRESS, DONE)
-     * Đây là hàm quan trọng nhất phục vụ việc hiển thị 3 cột của Bảng Kanban.
+     * HÀM 3: Lấy danh sách task của một dự án ĐƯỢC LỌC THEO 3 CỘT KANBAN:
+     * - TODO: Task có trạng thái TODO
+     * - IN_PROGRESS: Task có trạng thái IN_PROGRESS, SUBMITTED (🟡), REVISE (🔵), REJECTED (🔴)
+     * - DONE: Task có trạng thái DONE hoặc APPROVED (🟢)
      */
-    public static List<Task> selectByProjectAndStatus(int projectId, String status) 
-    {
+    public static List<Task> selectByProjectAndStatus(int projectId, String status) {
         List<Task> resultList = new ArrayList<>();
-        for (Task t : tasks) 
-        {
-            // Kiểm tra khớp cả projectId và status (không phân biệt chữ hoa/thường)
-            if (t.getProjectId() == projectId) 
-            {
-                if (t.getStatus() != null && t.getStatus().equalsIgnoreCase(status)) 
-                {
+        if (status == null) return resultList;
+
+        for (Task t : tasks) {
+            if (t.getProjectId() == projectId) {
+                if ("TODO".equalsIgnoreCase(status) && "TODO".equalsIgnoreCase(t.getStatus())) {
                     resultList.add(t);
+                } else if ("IN_PROGRESS".equalsIgnoreCase(status)) {
+                    if ("IN_PROGRESS".equalsIgnoreCase(t.getStatus()) ||
+                        "SUBMITTED".equalsIgnoreCase(t.getStatus()) ||
+                        "REVISE".equalsIgnoreCase(t.getStatus()) ||
+                        "REJECTED".equalsIgnoreCase(t.getStatus())) {
+                        resultList.add(t);
+                    }
+                } else if ("DONE".equalsIgnoreCase(status)) {
+                    if ("DONE".equalsIgnoreCase(t.getStatus()) || "APPROVED".equalsIgnoreCase(t.getStatus())) {
+                        resultList.add(t);
+                    }
                 }
             }
         }
@@ -152,96 +149,112 @@ public class TaskDB
     }
 
     /**
-     * HÀM 4: Tìm một thẻ task duy nhất theo ID của nó
+     * HÀM 4: Tìm task theo ID
      */
-    public static Task selectById(int id) 
-    {
-        for (Task t : tasks) 
-        {
-            if (t.getId() == id) 
-            {
+    public static Task selectById(int id) {
+        for (Task t : tasks) {
+            if (t.getId() == id) {
                 return t;
             }
         }
-        return null; // Không tìm thấy
+        return null;
     }
 
     /**
-     * HÀM 5: Thêm một thẻ công việc mới vào dự án
-     * Dùng khi người dùng submit form "+ Thêm công việc" (UC05)
+     * HÀM 5: Thêm task mới
      */
-    public static int insert(Task task) 
-    {
-        task.setId(nextId++); // Cấp ID tự động tăng
-        tasks.add(task);      // Cất vào danh sách trên RAM
+    public static int insert(Task task) {
+        task.setId(nextId++);
+        tasks.add(task);
         return task.getId();
     }
 
     /**
-     * HÀM 6: Cập nhật trạng thái của Task (Ví dụ: Chuyển từ TODO sang IN_PROGRESS hoặc DONE)
-     * Dùng khi người dùng KÉO THẢ chuột trên bảng Kanban (UC06)
+     * HÀM 6: Cập nhật trạng thái Task (kéo thả HTML5)
      */
-    public static boolean updateStatus(int taskId, String newStatus) 
-    {
-        for (Task t : tasks) 
-        {
-            if (t.getId() == taskId) 
-            {
-                t.setStatus(newStatus); // Cập nhật trạng thái mới
-                return true;            // Cập nhật thành công
-            }
+    public static boolean updateStatus(int id, String newStatus) {
+        Task t = selectById(id);
+        if (t != null && newStatus != null) {
+            t.setStatus(newStatus.trim().toUpperCase());
+            return true;
         }
-        return false; // Không tìm thấy task với id tương ứng
+        return false;
     }
 
     /**
-     * HÀM 7: Xóa một thẻ công việc khỏi dự án
-     * Dùng khi người dùng bấm biểu tượng thùng rác (UC07)
+     * HÀM 7: Task Lead Bàn Giao & Nộp Báo Cáo Task Lớn ➔ Chuyển sang 🟡 SUBMITTED
      */
-    public static boolean delete(int taskId) 
-    {
-        for (int i = 0; i < tasks.size(); i++) 
-        {
-            Task t = tasks.get(i);
-            if (t.getId() == taskId) 
-            {
-                tasks.remove(i); // Xóa khỏi danh sách
-                return true;     // Xóa thành công
-            }
+    public static boolean submitTaskDeliverable(int taskId, String note, String submittedAt) {
+        Task t = selectById(taskId);
+        if (t != null) {
+            t.setStatus("SUBMITTED");
+            t.setFinalDeliverableNote(note != null ? note.trim() : "");
+            t.setSubmittedAt(submittedAt);
+            return true;
         }
-        return false; // Không tìm thấy để xóa
+        return false;
     }
 
     /**
-     * HÀM 8: Đếm tổng số task của một dự án
+     * HÀM 8: Trưởng Dự Án (PM) Phê Duyệt Nghiệm Thu ĐẠT ➔ Chuyển sang 🟢 DONE (100%)
      */
-    public static int countTotalTasks(int projectId) 
-    {
-        int count = 0;
-        for (Task t : tasks) {
-            if (t.getProjectId() == projectId) 
-            {
-                count = count + 1;
-            }
+    public static boolean pmApproveTask(int taskId, String feedback, String reviewedAt) {
+        Task t = selectById(taskId);
+        if (t != null) {
+            t.setStatus("DONE");
+            t.setPmFeedback(feedback != null ? feedback.trim() : "PM đã phê duyệt nghiệm thu xuất sắc!");
+            t.setReviewedAt(reviewedAt);
+            return true;
         }
-        return count;
+        return false;
     }
 
     /**
-     * HÀM 9: Đếm số task ĐÃ XONG (DONE) của một dự án
+     * HÀM 9: Trưởng Dự Án (PM) Yêu Cầu Cân Chỉnh Nhỏ ➔ Chuyển sang 🔵 REVISE (Màu Xanh Dương)
      */
-    public static int countDoneTasks(int projectId) 
-    {
-        int count = 0;
-        for (Task t : tasks) {
-            if (t.getProjectId() == projectId) 
-            {
-                if (t.getStatus() != null && t.getStatus().equalsIgnoreCase("DONE")) 
-                {
-                    count = count + 1;
-                }
+    public static boolean pmReviseTask(int taskId, String feedback, String reviewedAt) {
+        Task t = selectById(taskId);
+        if (t != null) {
+            t.setStatus("REVISE");
+            t.setPmFeedback(feedback != null ? feedback.trim() : "");
+            t.setReviewedAt(reviewedAt);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * HÀM 10: Trưởng Dự Án (PM) Trả Về Do Chưa Đạt ➔ Chuyển sang 🔴 REJECTED (Màu Đỏ)
+     */
+    public static boolean pmRejectTask(int taskId, String feedback, String reviewedAt) {
+        Task t = selectById(taskId);
+        if (t != null) {
+            t.setStatus("REJECTED");
+            t.setPmFeedback(feedback != null ? feedback.trim() : "");
+            t.setReviewedAt(reviewedAt);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * HÀM 11: Cập nhật thông tin toàn diện của Task
+     */
+    public static boolean update(Task updatedTask) {
+        if (updatedTask == null) return false;
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).getId() == updatedTask.getId()) {
+                tasks.set(i, updatedTask);
+                return true;
             }
         }
-        return count;
+        return false;
+    }
+
+    /**
+     * HÀM 12: Xóa task theo ID
+     */
+    public static boolean delete(int id) {
+        return tasks.removeIf(t -> t.getId() == id);
     }
 }
