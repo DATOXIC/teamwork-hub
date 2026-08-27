@@ -6,6 +6,7 @@ import java.util.List;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu Dự án (In-Memory Database trên RAM)
+ * - Cung cấp hàm tìm kiếm theo Mã Dự Án (selectByCode) phục vụ luồng Xin Gia Nhập (Chiều 2)
  */
 public class ProjectDB {
 
@@ -14,12 +15,11 @@ public class ProjectDB {
     private static int nextId = 1; // Biến tự tăng để cấp ID cho dự án mới
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Chạy 1 lần duy nhất khi nạp Class
-    // Tạo sẵn 2 dự án mẫu để kiểm thử ngay tiến độ % hoàn thành
-    static 
-    {
-        // Dự án mẫu 1: Đã làm được 5/8 tasks (~63%)
+    static {
+        // Dự án mẫu 1: Mã "TW-HUB-01"
         projects.add(new Project(
             nextId++,
+            "TW-HUB-01",
             "Website E-Commerce TeamWork",
             "Nền tảng mua sắm trực tuyến tích hợp thanh toán và quản lý đơn hàng.",
             1,            // ownerId = 1 (Trưởng nhóm Admin)
@@ -28,9 +28,10 @@ public class ProjectDB {
             5             // doneTasks (Đã xong: 5 việc)
         ));
 
-        // Dự án mẫu 2: Đã làm được 1/5 tasks (20%)
+        // Dự án mẫu 2: Mã "ECOMMERCE-99"
         projects.add(new Project(
             nextId++,
+            "ECOMMERCE-99",
             "Mobile App Quản Lý Công Việc",
             "Ứng dụng di động đa nền tảng Flutter kết nối RESTful API.",
             1,            // ownerId = 1
@@ -42,35 +43,49 @@ public class ProjectDB {
 
     /**
      * Hàm 1: Lấy toàn bộ danh sách dự án
-     * Dùng khi mở trang Dashboard (UC02)
      */
-    public static List<Project> selectAll()
-    {
-        // Trả về bản sao ArrayList để đảm bảo an toàn dữ liệu
+    public static List<Project> selectAll() {
         return new ArrayList<>(projects);
     }
 
     /**
      * Hàm 2: Tìm dự án theo ID duy nhất
-     * Dùng khi bấm vào xem chi tiết một dự án để vào bảng Kanban (UC04)
      */
-    public static Project selectById(int id) 
-    {
-        for (Project p : projects) 
-        {
-            if (p.getId() == id) return p;
+    public static Project selectById(int id) {
+        for (Project p : projects) {
+            if (p.getId() == id) {
+                return p;
+            }
         }
-        return null; // Không tìm thấy
+        return null;
     }
 
     /**
-     * Hàm 3: Thêm dự án mới
-     * Dùng khi người dùng bấm "+ Tạo dự án mới" (UC03)
+     * Hàm 3: Tìm dự án theo Mã Dự Án (projectCode)
+     * Phục vụ Chiều 2: Thành viên nhập mã dự án để gửi yêu cầu Xin Gia Nhập
      */
-    public static int insert(Project project) 
-    {
-        project.setId(nextId++); // Cấp ID tự động tăng
-        projects.add(project);   // Cất vào danh sách trên RAM
-        return project.getId();  // Trả về ID vừa tạo
+    public static Project selectByCode(String code) {
+        if (code == null || code.trim().isEmpty()) {
+            return null;
+        }
+        String cleanCode = code.trim().toUpperCase();
+        for (Project p : projects) {
+            if (p.getProjectCode() != null && p.getProjectCode().equalsIgnoreCase(cleanCode)) {
+                return p;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Hàm 4: Thêm dự án mới (Tự động cấp ID và tự động sinh Mã Dự Án nếu chưa có)
+     */
+    public static int insert(Project project) {
+        project.setId(nextId++);
+        if (project.getProjectCode() == null || project.getProjectCode().trim().isEmpty()) {
+            project.setProjectCode("PRJ-" + String.format("%03d", project.getId()));
+        }
+        projects.add(project);
+        return project.getId();
     }
 }

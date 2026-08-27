@@ -18,24 +18,113 @@
                 Chào mừng trở lại, <strong>${sessionScope.currentUser.fullName}</strong>! Hãy chọn một dự án để bắt đầu làm việc.
             </p>
         </div>
-        <div>
-            <!-- Nút kích hoạt Modal Pop-up của Bootstrap -->
-            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm d-flex align-items-center gap-2" 
+        <div class="d-flex align-items-center gap-2">
+            <!-- Nút mở Modal Xin Gia Nhập Bằng Mã -->
+            <button type="button" class="btn btn-outline-primary px-3 py-2 rounded-pill fw-semibold shadow-sm fs-7 d-flex align-items-center gap-2" 
+                    data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
+                <i class="bi bi-key-fill"></i> Nhập Mã Xin Vào
+            </button>
+            
+            <!-- Nút kích hoạt Modal Tạo Dự Án Mới -->
+            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm fs-7 d-flex align-items-center gap-2" 
                     data-bs-toggle="modal" data-bs-target="#createProjectModal">
                 <i class="bi bi-plus-circle-fill"></i> Tạo dự án mới
             </button>
         </div>
     </div>
 
-    <!-- 3. Thông báo lỗi (nếu người dùng để trống tên dự án khi tạo) -->
+    <!-- 3. Thông báo Flash (Toast Messages Thành công / Thất bại) -->
+    <c:if test="${not empty toastSuccess}">
+        <div class="alert alert-success alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-6"></i>
+            <div class="flex-grow-1">${toastSuccess}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
+    <c:if test="${not empty toastError}">
+        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+            <div class="flex-grow-1">${toastError}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
     <c:if test="${not empty errorMessage}">
-        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>${errorMessage}
+        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+            <div class="flex-grow-1">${errorMessage}</div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     </c:if>
 
-    <!-- 4. Project Grid: Lưới hiển thị danh sách Card dự án (Phong cách Basecamp) -->
+    <!-- =========================================================================
+         4. HỘP THƯ LỜI MỜI / YÊU CẦU XIN GIA NHẬP ĐANG CHỜ PHẢN HỒI (PENDING INVITES)
+         ========================================================================= -->
+    <c:if test="${not empty pendingInvites}">
+        <div class="card border-0 bg-primary-subtle rounded-4 p-4 mb-4 shadow-sm">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-envelope-paper-heart-fill text-primary fs-5"></i>
+                    <h5 class="fw-bold text-dark mb-0">Hộp Thư Yêu Cầu & Lời Mời Tham Gia Dự Án (${pendingInvites.size()})</h5>
+                </div>
+                <span class="badge bg-primary rounded-pill px-3 py-1 fs-9">Đang chờ bạn phản hồi</span>
+            </div>
+
+            <div class="row g-3">
+                <c:forEach items="${pendingInvites}" var="inv">
+                    <div class="col-12 col-lg-6">
+                        <div class="bg-white rounded-3 p-3 border shadow-sm h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="badge bg-dark-navy text-white rounded-pill px-2 py-1 fs-9">
+                                        <i class="bi bi-hash"></i> ${inv.projectCode}
+                                    </span>
+                                    <span class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-1 fs-9">
+                                        ${inv.statusLabel}
+                                    </span>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1">${inv.projectName}</h6>
+                                <p class="text-secondary fs-8 mb-2">
+                                    <c:choose>
+                                        <c:when test="${inv.type == 'INVITATION'}">
+                                            <i class="bi bi-person-fill text-primary me-1"></i> Trưởng nhóm <strong>${inv.senderName}</strong> đã gửi lời mời bạn vào dự án này.
+                                        </c:when>
+                                        <c:otherwise>
+                                            <i class="bi bi-person-plus-fill text-warning me-1"></i> Thành viên <strong>${inv.senderName}</strong> gửi đơn xin gia nhập dự án của bạn.
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
+                                <div class="fs-9 text-muted mb-3">
+                                    <i class="bi bi-clock-history me-1"></i> Hạn phản hồi: <strong class="text-danger">${inv.expiredAt}</strong> (Còn hiệu lực)
+                                </div>
+                            </div>
+
+                            <!-- Nút bấm Duyệt / Từ chối -->
+                            <div class="d-flex align-items-center gap-2 pt-2 border-top">
+                                <form method="post" action="${pageContext.request.contextPath}/invite" class="m-0 flex-grow-1">
+                                    <input type="hidden" name="action" value="accept">
+                                    <input type="hidden" name="inviteId" value="${inv.id}">
+                                    <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill fw-semibold fs-8 py-1 shadow-sm">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Đồng ý gia nhập
+                                    </button>
+                                </form>
+                                <form method="post" action="${pageContext.request.contextPath}/invite" class="m-0 flex-grow-1" onsubmit="return confirm('Bạn có chắc chắn muốn từ chối yêu cầu này?');">
+                                    <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="inviteId" value="${inv.id}">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-semibold fs-8 py-1">
+                                        <i class="bi bi-x-circle me-1"></i> Từ chối
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
+        </div>
+    </c:if>
+
+    <!-- =========================================================================
+         5. PROJECT GRID: LƯỚI HIỂN THỊ DANH SÁCH CARD DỰ ÁN
+         ========================================================================= -->
     <div class="row g-4">
         <%-- VÒNG LẶP JSTL DUYỆT QUA DANH SÁCH DỰ ÁN --%>
         <c:forEach items="${projects}" var="p">
@@ -45,11 +134,16 @@
                     <!-- Phần thân trên của Card -->
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fs-8">
-                                <i class="bi bi-folder2-open me-1"></i> ID: #${p.id}
-                            </span>
-                            <span class="text-muted fs-8">
-                                <i class="bi bi-calendar3 me-1"></i>${p.createdAt}
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fs-8">
+                                    <i class="bi bi-folder2-open me-1"></i> ID: #${p.id}
+                                </span>
+                                <span class="badge bg-dark-navy text-white rounded-pill px-2 py-1 fs-9" title="Mã chia sẻ dự án">
+                                    <i class="bi bi-hash"></i> ${p.projectCode}
+                                </span>
+                            </div>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9" title="Số lượng thành viên hiện tại">
+                                <i class="bi bi-people-fill text-primary me-1"></i> ${memberCountMap[p.id]}/10
                             </span>
                         </div>
 
@@ -90,16 +184,65 @@
             <div class="col-12 text-center py-5">
                 <div class="text-muted fs-1 mb-2"><i class="bi bi-inbox"></i></div>
                 <h5 class="text-dark fw-bold">Chưa có dự án nào</h5>
-                <p class="text-muted fs-7">Hãy bấm nút "Tạo dự án mới" ở trên để khởi tạo dự án đầu tiên của nhóm!</p>
+                <p class="text-muted fs-7">Hãy bấm nút "Tạo dự án mới" hoặc "Nhập Mã Xin Vào" để bắt đầu tham gia làm việc nhóm!</p>
             </div>
         </c:if>
     </div>
 </div>
 
-<!-- ================= 5. MODAL: CỬA SỔ POP-UP TẠO DỰ ÁN MỚI ================= -->
+<!-- =========================================================================
+     6. MODAL 1: CỬA SỔ POP-UP XIN GIA NHẬP BẰNG MÃ DỰ ÁN (PROJECT CODE)
+     ========================================================================= -->
+<div class="modal fade" id="joinByCodeModal" tabindex="-1" aria-labelledby="joinByCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 p-2">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="joinByCodeModalLabel">
+                    <i class="bi bi-key-fill text-primary me-2"></i>Xin gia nhập dự án bằng Mã
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form action="${pageContext.request.contextPath}/invite" method="post">
+                <input type="hidden" name="action" value="requestJoin">
+
+                <div class="modal-body py-3">
+                    <p class="text-muted fs-8 mb-3">
+                        Nhập <strong>Mã Dự Án (Project Code)</strong> do Trưởng nhóm cung cấp (ví dụ: <code>TW-HUB-01</code>) để gửi yêu cầu xin gia nhập.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="inputProjectCode" class="form-label fw-semibold fs-7 text-dark">
+                            Mã dự án <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 fs-7 text-muted">
+                                <i class="bi bi-hash"></i>
+                            </span>
+                            <input type="text" class="form-control text-uppercase fw-bold fs-7 rounded-end-3" 
+                                   id="inputProjectCode" name="projectCode" 
+                                   placeholder="Ví dụ: TW-HUB-01" required autofocus>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary-custom rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                        <i class="bi bi-send-fill me-1"></i> Gửi yêu cầu xin vào
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     7. MODAL 2: CỬA SỔ POP-UP TẠO DỰ ÁN MỚI (CÓ THÊM Ô MÃ DỰ ÁN TÙY CHỌN)
+     ========================================================================= -->
 <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4 p-2">
+        <div class="modal-content border-0 shadow-lg rounded-4 p-2">
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title fw-bold text-dark" id="createProjectModalLabel">
                     <i class="bi bi-plus-circle text-primary me-2"></i>Tạo dự án mới
@@ -116,15 +259,24 @@
                         <label for="proj-name" class="form-label fw-semibold fs-7 text-dark">
                             Tên dự án <span class="text-danger">*</span>
                         </label>
-                        <input type="text" class="form-control" id="proj-name" name="name" 
+                        <input type="text" class="form-control rounded-3 fs-7" id="proj-name" name="name" 
                                placeholder="Ví dụ: Nâng cấp Website E-Commerce" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="proj-code" class="form-label fw-semibold fs-7 text-dark d-flex align-items-center justify-content-between">
+                            <span>Mã dự án (Tùy chọn)</span>
+                            <span class="text-muted fs-9 fw-normal">Tự động tạo nếu để trống</span>
+                        </label>
+                        <input type="text" class="form-control text-uppercase rounded-3 fs-7" id="proj-code" name="projectCode" 
+                               placeholder="Ví dụ: TW-HUB-01">
                     </div>
 
                     <div class="mb-3">
                         <label for="proj-desc" class="form-label fw-semibold fs-7 text-dark">
                             Mô tả mục tiêu dự án
                         </label>
-                        <textarea class="form-control" id="proj-desc" name="description" rows="3" 
+                        <textarea class="form-control rounded-3 fs-7" id="proj-desc" name="description" rows="3" 
                                   placeholder="Mô tả ngắn gọn phạm vi và mục tiêu của dự án..."></textarea>
                     </div>
                 </div>
@@ -140,5 +292,4 @@
     </div>
 </div>
 
-<%-- 6. Nhúng Footer --%>
 <jsp:include page="/includes/footer.jsp" />

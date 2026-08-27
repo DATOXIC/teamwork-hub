@@ -1,7 +1,12 @@
 package com.teamwork.controllers;
+
 import com.teamwork.business.Project;
+import com.teamwork.business.ProjectInvite;
+import com.teamwork.business.ProjectMember;
 import com.teamwork.business.User;
 import com.teamwork.data.ProjectDB;
+import com.teamwork.data.ProjectInviteDB;
+import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,29 +15,28 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 /**
  * Controller phụ trách Quản lý Dự án:
  * - Xem danh sách dự án (GET /project?action=list)
  * - Tạo dự án mới (POST /project?action=create)
- * - Xem chi tiết dự án (GET /project?action=detail)
+ * - Nạp danh sách Lời Mời đang chờ (pendingInvites) cho Dashboard
  */
-public class ProjectServlet extends HttpServlet
-{
+public class ProjectServlet extends HttpServlet {
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException 
-    {
-        // 1. Đọc action từ URL (AuthFilter đã đảm bảo người dùng đã đăng nhập)
+            throws ServletException, IOException {
+
         String action = request.getParameter("action");
-        if (action == null || action.trim().isEmpty()) 
-        {
+        if (action == null || action.trim().isEmpty()) {
             action = "list";
         }
 
-        // 2. Điều phối xử lý GET
-        switch (action) 
-        {
+        switch (action) {
             case "list":
                 showProjectList(request, response);
                 break;
@@ -49,20 +53,19 @@ public class ProjectServlet extends HttpServlet
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Lấy thông tin User đang đăng nhập từ Session để gán làm chủ dự án (ownerId)
         HttpSession session = request.getSession(false);
-        User currentUser = (User) session.getAttribute("currentUser");
-        
-        // 2. Đọc action từ form submit
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+
         String action = request.getParameter("action");
-        if (action == null || action.trim().isEmpty())
-        {
+        if (action == null || action.trim().isEmpty()) {
             action = "create";
         }
 
-        // 3. Điều phối xử lý POST
-        switch (action) 
-        {
+        switch (action) {
             case "create":
                 createProject(request, response, currentUser);
                 break;
@@ -71,81 +74,117 @@ public class ProjectServlet extends HttpServlet
                 break;
         }
     }
-        /**
-     * Nghiệp vụ 1: Lấy danh sách dự án và chuyển sang View (projects.jsp)
+
+    /**
+     * Nghiệp vụ 1: Lấy danh sách dự án, lời mời chờ duyệt và chuyển sang View (projects.jsp)
      */
     private void showProjectList(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException 
-    {
-        // DÒNG 1: LẤY DỮ LIỆU TỪ KHO
-        List<Project> projects = ProjectDB.selectAll();
+            throws ServletException, IOException {
 
-        // DÒNG 2: ĐÓNG GÓI DANH SÁCH VÀO HỘP
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+
+        // 1. LẤY DỮ LIỆU DỰ ÁN TỪ KHO
+        List<Project> projects = ProjectDB.selectAll();
         request.setAttribute("projects", projects);
 
-        // DÒNG 3: BẬT ĐÈN BÁO TRÊN THANH MENU
-        request.setAttribute("activeNav", "dashboard"); 
+        // 2. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
+        Map<Integer, Integer> memberCountMap = new HashMap<>();
+        for (Project p : projects) {
+            memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
+        }
+        request.setAttribute("memberCountMap", memberCountMap);
 
-        // DÒNG 4: CHUYỂN GIAO CHO GIAO DIỆN HIỂN THỊ
+        // 3. LẤY DANH SÁCH LỜI MỜI / YÊU CẦU ĐANG CHỜ NGƯỜI DÙNG DUYỆT (Hộp thư Dashboard)
+        if (currentUser != null) {
+            List<ProjectInvite> pendingInvites = ProjectInviteDB.selectPendingByReceiverId(currentUser.getId());
+            request.setAttribute("pendingInvites", pendingInvites);
+        }
+
+        // 4. XỬ LÝ THÔNG BÁO FLASH (Toast Messages)
+        if (session != null) {
+            String toastSuccess = (String) session.getAttribute("toastSuccess");
+            if (toastSuccess != null) {
+                request.setAttribute("toastSuccess", toastSuccess);
+                session.removeAttribute("toastSuccess");
+            }
+            String toastError = (String) session.getAttribute("toastError");
+            if (toastError != null) {
+                request.setAttribute("toastError", toastError);
+                session.removeAttribute("toastError");
+            }
+        }
+
+        request.setAttribute("activeNav", "dashboard");
         request.getRequestDispatcher("/projects.jsp").forward(request, response);
     }
 
     /**
-     * Nghiệp vụ 2: Tạo dự án mới từ dữ liệu form Modal
+     * Nghiệp vụ 2: Tạo dự án mới và tự động đăng ký Người tạo làm OWNER
      */
     private void createProject(HttpServletRequest request, HttpServletResponse response, User currentUser)
             throws ServletException, IOException {
+
         String name = request.getParameter("name");
         String description = request.getParameter("description");
-        // Validation kiểm tra rỗng
+        String projectCode = request.getParameter("projectCode");
+
         if (name == null || name.trim().isEmpty()) {
             request.setAttribute("errorMessage", "Tên dự án không được để trống!");
             showProjectList(request, response);
             return;
         }
-        // Lấy thời gian realtime hiện tại (Định dạng: dd/MM/yyyy HH:mm)
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         String createdAt = LocalDateTime.now().format(formatter);
-        // Tạo đối tượng Project mới (ownerId là ID của User đang đăng nhập)
+
         Project newProject = new Project(
             0,
+            (projectCode != null && !projectCode.trim().isEmpty()) ? projectCode.trim().toUpperCase() : "",
             name.trim(),
             (description != null ? description.trim() : ""),
             currentUser.getId(),
             createdAt,
-            0, // totalTasks ban đầu = 0
-            0  // doneTasks ban đầu = 0
+            0,
+            0
         );
-        // Lưu vào kho dữ liệu
-        ProjectDB.insert(newProject);
-        // Chuyển hướng (Redirect) về danh sách dự án (Mô hình PRG tránh lặp form)
+
+        int newProjectId = ProjectDB.insert(newProject);
+
+        // TỰ ĐỘNG ĐĂNG KÝ NGƯỜI TẠO LÀM OWNER TRONG PROJECTMEMBERDB
+        ProjectMember ownerMember = new ProjectMember(
+            newProjectId,
+            currentUser.getId(),
+            currentUser.getFullName(),
+            currentUser.getEmail(),
+            currentUser.getRole(),
+            "OWNER",
+            createdAt
+        );
+        ProjectMemberDB.insert(ownerMember);
+
+        HttpSession session = request.getSession();
+        session.setAttribute("toastSuccess", "Đã khởi tạo dự án [" + newProject.getName() + " (" + newProject.getProjectCode() + ")] thành công!");
         response.sendRedirect(request.getContextPath() + "/project?action=list");
     }
 
-
     /**
-     * Nghiệp vụ 3: Xem chi tiết dự án (Chuẩn bị cho Sprint 3: Bảng Kanban)
+     * Nghiệp vụ 3: Xem chi tiết dự án (chuyển sang Bảng Kanban)
      */
     private void showProjectDetail(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException 
-    {
+            throws ServletException, IOException {
+
         String projectIdStr = request.getParameter("projectId");
-        try 
-        {
+        try {
             int projectId = Integer.parseInt(projectIdStr);
             Project project = ProjectDB.selectById(projectId);
-            if (project != null) 
-            {
-                // Điều hướng sang phân hệ Task / Kanban của dự án đó (Sprint 3)
+            if (project != null) {
                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                 return;
             }
-        } 
-        catch (NumberFormatException e) 
-        {
-            // ID không hợp lệ
+        } catch (NumberFormatException e) {
+            // Không làm gì, để rơi xuống redirect
         }
-        // Nếu không tìm thấy dự án, quay về Dashboard
         response.sendRedirect(request.getContextPath() + "/project?action=list");
     }
 }

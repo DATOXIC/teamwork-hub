@@ -8,11 +8,11 @@
     --brand-primary-hover: #4338ca;
     --brand-accent: #38bdf8;
     --brand-dark: #0f172a;
-    --brand-navy: #1e293b;
+    --brand-navy: #0f172a;
     --brand-surface: #ffffff;
     --brand-bg: #f8fafc;
     --brand-border: #e2e8f0;
-    --brand-text-main: #1e293b;
+    --brand-text-main: #0f172a;
     --brand-text-muted: #64748b;
 }
 
@@ -26,17 +26,18 @@ body {
 /* Typography & Font Sizes */
 .fs-7 { font-size: 0.875rem !important; }
 .fs-8 { font-size: 0.775rem !important; }
+.fs-9 { font-size: 0.700rem !important; }
 
-/* Navbar Styling */
+/* Navbar Styling - Tương phản mạnh */
 .bg-dark-navy {
-    background-color: var(--brand-navy) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: #0f172a !important;
+    border-bottom: 1px solid #1e293b !important;
 }
 
 .brand-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #4f46e5 0%, #38bdf8 100%);
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
     border-radius: 8px;
     color: #ffffff;
     font-size: 1.1rem;
@@ -47,11 +48,12 @@ body {
 }
 
 .bg-navy-subtle {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
 }
 
 .hover-light:hover {
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.12) !important;
     color: #ffffff !important;
 }
 

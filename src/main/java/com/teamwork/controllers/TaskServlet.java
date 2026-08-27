@@ -25,6 +25,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.teamwork.business.ProjectInvite;
+import com.teamwork.business.ProjectMember;
+import com.teamwork.data.ProjectInviteDB;
+import com.teamwork.data.ProjectMemberDB;
+import jakarta.servlet.http.HttpSession;
 import com.teamwork.business.UserWorkload;
 
 /**
@@ -185,6 +190,26 @@ public class TaskServlet extends HttpServlet {
         allTasks.addAll(doneTasks);
         List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks);
 
+        // 8.6. Lấy danh sách thành viên và lời mời của dự án (Chặng C.3)
+        List<ProjectMember> projectMemberList = ProjectMemberDB.selectByProjectId(projectId);
+        List<ProjectInvite> projectInviteList = ProjectInviteDB.selectByProjectId(projectId);
+        int memberCount = ProjectMemberDB.countMembers(projectId);
+
+        // 8.7. Xử lý Flash Message (Toast)
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            String toastSuccess = (String) session.getAttribute("toastSuccess");
+            if (toastSuccess != null) {
+                request.setAttribute("toastSuccess", toastSuccess);
+                session.removeAttribute("toastSuccess");
+            }
+            String toastError = (String) session.getAttribute("toastError");
+            if (toastError != null) {
+                request.setAttribute("toastError", toastError);
+                session.removeAttribute("toastError");
+            }
+        }
+
         // 9. Đóng gói dữ liệu gửi sang tasks.jsp
         request.setAttribute("project", project);
         request.setAttribute("todoTasks", todoTasks);
@@ -197,6 +222,9 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("taskSubTasksMap", taskSubTasksMap);
         request.setAttribute("taskProgressMap", taskProgressMap);
         request.setAttribute("userWorkloadList", userWorkloadList);
+        request.setAttribute("projectMemberList", projectMemberList);
+        request.setAttribute("projectInviteList", projectInviteList);
+        request.setAttribute("memberCount", memberCount);
         request.setAttribute("activeNav", "projects");
 
         // 10. Forward sang giao diện tasks.jsp

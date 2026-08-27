@@ -22,6 +22,9 @@
                 <div>
                     <div class="d-flex align-items-center gap-2">
                         <h4 class="fw-extrabold text-dark mb-0 tracking-tight">${project.name}</h4>
+                        <span class="badge bg-dark-navy text-white rounded-pill px-2 py-1 fs-9" title="Mã chia sẻ dự án">
+                            <i class="bi bi-hash"></i> ${project.projectCode}
+                        </span>
                         <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 fs-8">
                             <i class="bi bi-clock-history me-1"></i> ${project.createdAt}
                         </span>
@@ -49,14 +52,45 @@
             </div>
         </div>
 
-        <!-- Cụm bên phải: Nút bật Modal thêm công việc mới -->
-        <div>
-            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm"
+        <!-- Cụm bên phải: Nút Đội ngũ + Mời thành viên + Thêm công việc -->
+        <div class="d-flex align-items-center gap-2">
+            <!-- Nút Xem Đội Ngũ Dự Án (Quota X/10) -->
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-1"
+                    data-bs-toggle="modal" data-bs-target="#projectTeamModal" title="Xem danh sách đội ngũ và lời mời">
+                <i class="bi bi-people-fill"></i> Đội ngũ (${memberCount}/10)
+            </button>
+
+            <!-- Nút Mời Thành Viên (Dành riêng cho PM) -->
+            <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+                <button type="button" class="btn btn-success btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-1"
+                        data-bs-toggle="modal" data-bs-target="#inviteMemberModal" title="Mời thành viên mới vào dự án">
+                    <i class="bi bi-person-plus-fill"></i> + Mời Đồng Đội
+                </button>
+            </c:if>
+
+            <!-- Nút Thêm công việc lớn -->
+            <button type="button" class="btn btn-primary-custom btn-sm px-3 py-2 rounded-pill fw-semibold shadow-sm fs-8 d-flex align-items-center gap-1"
                     data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                <i class="bi bi-plus-circle me-1"></i> Thêm công việc
+                <i class="bi bi-plus-circle"></i> Thêm công việc
             </button>
         </div>
     </div>
+
+    <!-- Thông báo Flash (Toast Messages) -->
+    <c:if test="${not empty toastSuccess}">
+        <div class="alert alert-success alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-6"></i>
+            <div class="flex-grow-1">${toastSuccess}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
+    <c:if test="${not empty toastError}">
+        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+            <div class="flex-grow-1">${toastError}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </c:if>
 
     <!-- =========================================================================
          2.5. THANH DẢI AVATAR LỌC VIỆC & THẺ HỒ SƠ ĐỒNG ĐỘI (PHẦN B.3.3)
@@ -1598,6 +1632,176 @@
         </div>
     </div>
 </div>
+
+<!-- =========================================================================
+     7. MODAL: XEM & QUẢN LÝ ĐỘI NGŨ DỰ ÁN (X/10 THÀNH VIÊN)
+     ========================================================================= -->
+<div class="modal fade" id="projectTeamModal" tabindex="-1" aria-labelledby="projectTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            
+            <div class="modal-header bg-dark-navy text-white px-4 py-3 border-0">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-people-fill text-warning fs-5"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0" id="projectTeamModalLabel">Đội Ngũ Dự Án & Lời Mời</h5>
+                        <span class="fs-9 text-white-50">Hạn ngạch: <strong>${memberCount}/10</strong> thành viên</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                
+                <!-- PHẦN 1: DANH SÁCH THÀNH VIÊN ĐANG THAM GIA -->
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                            <i class="bi bi-person-check-fill text-success me-1"></i> Thành viên chính thức (${projectMemberList.size()}):
+                        </h6>
+                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0 fs-9">Đang hoạt động</span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2">
+                        <c:forEach items="${projectMemberList}" var="pm">
+                            <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-sm rounded-circle ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-primary text-white'} d-flex align-items-center justify-content-center fw-bold fs-7" style="width: 36px; height: 36px;">
+                                        <c:choose>
+                                            <c:when test="${pm.projectRole == 'OWNER'}"><i class="bi bi-star-fill"></i></c:when>
+                                            <c:otherwise><i class="bi bi-person-fill"></i></c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-bold text-dark fs-7">${pm.userName}</span>
+                                            <span class="badge ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-secondary'} rounded-pill px-2 py-0 fs-9">
+                                                ${pm.projectRole == 'OWNER' ? 'Trưởng Dự Án (PM)' : 'Thành viên'}
+                                            </span>
+                                        </div>
+                                        <div class="text-muted fs-8">
+                                            ${pm.userEmail} &bull; <span class="text-primary">${pm.userRole}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="fs-9 text-muted d-block">Gia nhập:</span>
+                                    <span class="fs-9 fw-semibold text-secondary">${pm.joinedAt}</span>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+
+                <!-- PHẦN 2: LỜI MỜI / YÊU CẦU ĐANG CHỜ PHẢN HỒI (PENDING) -->
+                <c:if test="${not empty projectInviteList}">
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                                <i class="bi bi-hourglass-split text-warning me-1"></i> Lời mời & Yêu cầu đang chờ (${projectInviteList.size()}):
+                            </h6>
+                            <span class="badge bg-warning-subtle text-dark rounded-pill px-2 py-0 fs-9">PENDING</span>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <c:forEach items="${projectInviteList}" var="inv">
+                                <div class="p-2 px-3 bg-white rounded-3 border d-flex align-items-center justify-content-between shadow-2xs">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${inv.statusLabel}</span>
+                                            <span class="fs-8 fw-bold text-dark">${inv.type == 'INVITATION' ? inv.receiverName : inv.senderName}</span>
+                                            <span class="fs-9 text-muted">(${inv.type == 'INVITATION' ? 'Được PM mời' : 'Gửi đơn xin vào'})</span>
+                                        </div>
+                                        <span class="fs-9 text-danger d-block mt-1">
+                                            <i class="bi bi-clock me-1"></i> Hạn: ${inv.expiredAt}
+                                        </span>
+                                    </div>
+
+                                    <!-- Nút PM Thu hồi lời mời nếu còn PENDING -->
+                                    <c:if test="${project.ownerId == sessionScope.currentUser.id && inv.status == 'PENDING'}">
+                                        <form method="post" action="${pageContext.request.contextPath}/invite" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn thu hồi lời mời này?');">
+                                            <input type="hidden" name="action" value="revoke">
+                                            <input type="hidden" name="inviteId" value="${inv.id}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fs-9 py-1 px-3" title="Thu hồi lời mời">
+                                                <i class="bi bi-x-circle me-1"></i> Thu hồi
+                                            </button>
+                                        </form>
+                                    </c:if>
+                                </div>
+                            </c:forEach>
+                        </div>
+                    </div>
+                </c:if>
+
+            </div>
+
+            <div class="modal-footer px-4 py-3 bg-light border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4 fs-8 fw-semibold" data-bs-dismiss="modal">Đóng</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
+     8. MODAL: FORM MỜI THÀNH VIÊN VÀO DỰ ÁN (DÀNH RIÊNG CHO PM)
+     ========================================================================= -->
+<c:if test="${project.ownerId == sessionScope.currentUser.id}">
+    <div class="modal fade" id="inviteMemberModal" tabindex="-1" aria-labelledby="inviteMemberModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 p-2">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark" id="inviteMemberModalLabel">
+                        <i class="bi bi-person-plus-fill text-success me-2"></i>Mời thành viên mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+
+                <form action="${pageContext.request.contextPath}/invite" method="post">
+                    <input type="hidden" name="action" value="sendInvite">
+                    <input type="hidden" name="projectId" value="${project.id}">
+
+                    <div class="modal-body py-3">
+                        <p class="text-muted fs-8 mb-3">
+                            Nhập <strong>Username hoặc Email</strong> của tài khoản bạn muốn mời vào dự án <strong>[${project.name}]</strong>. Lời mời sẽ có hiệu lực trong vòng <strong>7 ngày</strong>.
+                        </p>
+
+                        <div class="mb-3">
+                            <label for="inputUsernameOrEmail" class="form-label fw-semibold fs-7 text-dark">
+                                Username hoặc Email <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 fs-7 text-muted">
+                                    <i class="bi bi-person-badge"></i>
+                                </span>
+                                <input type="text" class="form-control fs-7 rounded-end-3" 
+                                       id="inputUsernameOrEmail" name="usernameOrEmail" 
+                                       placeholder="Ví dụ: chi hoặc chi@teamwork.com" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-light rounded-3 border">
+                            <div class="d-flex align-items-center justify-content-between fs-9 text-muted mb-1">
+                                <span>Hạn ngạch thành viên:</span>
+                                <strong class="text-dark">${memberCount}/10 người</strong>
+                            </div>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: ${memberCount * 10}%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                            <i class="bi bi-send-fill me-1"></i> Gửi lời mời (7 ngày)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</c:if>
 
 <!-- 7. NẠP FILE JAVASCRIPT KÉO THẢ & LỌC TỨC THÌ (0.01 GIÂY) -->
 <script src="${pageContext.request.contextPath}/js/tasks.js"></script>
