@@ -11,22 +11,23 @@
     <!-- 2. Header Section: Tiêu đề trang & Nút Tạo dự án mới -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
         <div>
-            <h2 class="fw-extrabold text-dark mb-1">
-                <i class="bi bi-grid-1x2-fill text-primary me-2"></i>Dự án của bạn
-            </h2>
-            <p class="text-muted fs-7 mb-0">
-                Chào mừng trở lại, <strong>${sessionScope.currentUser.fullName}</strong>! Hãy chọn một dự án để bắt đầu làm việc.
+            <h3 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-grid-1x2-fill text-primary"></i>
+                <span>Không Gian Làm Việc</span>
+            </h3>
+            <p class="text-muted fs-8 mb-0">
+                Chào mừng trở lại, <strong>${sessionScope.currentUser.fullName}</strong>! Bạn đang tham gia <strong>${myProjects.size()} dự án</strong>.
             </p>
         </div>
         <div class="d-flex align-items-center gap-2">
             <!-- Nút mở Modal Xin Gia Nhập Bằng Mã -->
-            <button type="button" class="btn btn-outline-primary px-3 py-2 rounded-pill fw-semibold shadow-sm fs-7 d-flex align-items-center gap-2" 
+            <button type="button" class="btn btn-outline-secondary px-3 py-1-5 rounded-pill fw-semibold shadow-2xs fs-8 d-flex align-items-center gap-2" 
                     data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
-                <i class="bi bi-key-fill"></i> Nhập Mã Xin Vào
+                <i class="bi bi-key-fill text-primary"></i> Nhập Mã Xin Vào
             </button>
             
             <!-- Nút kích hoạt Modal Tạo Dự Án Mới -->
-            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm fs-7 d-flex align-items-center gap-2" 
+            <button type="button" class="btn btn-primary-custom px-3-5 py-1-5 rounded-pill fw-semibold shadow-2xs fs-8 d-flex align-items-center gap-2 text-white" 
                     data-bs-toggle="modal" data-bs-target="#createProjectModal">
                 <i class="bi bi-plus-circle-fill"></i> Tạo dự án mới
             </button>
@@ -35,22 +36,22 @@
 
     <!-- 3. Thông báo Flash (Toast Messages Thành công / Thất bại) -->
     <c:if test="${not empty toastSuccess}">
-        <div class="alert alert-success alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-check-circle-fill me-2 fs-6"></i>
+        <div class="alert alert-success alert-dismissible fade show fs-8 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-6 text-success"></i>
             <div class="flex-grow-1">${toastSuccess}</div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     </c:if>
     <c:if test="${not empty toastError}">
-        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+        <div class="alert alert-danger alert-dismissible fade show fs-8 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-6 text-danger"></i>
             <div class="flex-grow-1">${toastError}</div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     </c:if>
     <c:if test="${not empty errorMessage}">
-        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
+        <div class="alert alert-danger alert-dismissible fade show fs-8 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-6 text-danger"></i>
             <div class="flex-grow-1">${errorMessage}</div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -60,29 +61,34 @@
          4. HỘP THƯ LỜI MỜI / YÊU CẦU XIN GIA NHẬP ĐANG CHỜ PHẢN HỒI (PENDING INVITES)
          ========================================================================= -->
     <c:if test="${not empty pendingInvites}">
-        <div class="card border-0 bg-primary-subtle rounded-4 p-4 mb-4 shadow-sm">
+        <div class="mb-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-envelope-paper-heart-fill text-primary fs-5"></i>
-                    <h5 class="fw-bold text-dark mb-0">Hộp Thư Yêu Cầu & Lời Mời Tham Gia Dự Án (${pendingInvites.size()})</h5>
+                    <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1">
+                        <i class="bi bi-envelope-paper-heart-fill fs-7"></i>
+                    </span>
+                    <h6 class="fw-bold text-dark fs-7 mb-0">Hộp Thư Yêu Cầu & Lời Mời (${pendingInvites.size()})</h6>
                 </div>
-                <span class="badge bg-primary rounded-pill px-3 py-1 fs-9">Đang chờ bạn phản hồi</span>
+                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                    Đang chờ bạn phản hồi
+                </span>
             </div>
 
             <div class="row g-3">
                 <c:forEach items="${pendingInvites}" var="inv">
                     <div class="col-12 col-lg-6">
-                        <div class="bg-white rounded-3 p-3 border shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <div class="pending-invite-card h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <span class="badge bg-dark-navy text-white rounded-pill px-2 py-1 fs-9">
-                                        <i class="bi bi-hash"></i> ${inv.projectCode}
+                                    <span class="project-code-badge" onclick="copyProjectCode('${inv.projectCode}')" title="Bấm để sao chép mã">
+                                        <i class="bi bi-hash"></i>${inv.projectCode}
+                                        <i class="bi bi-copy text-primary fs-9 ms-1"></i>
                                     </span>
-                                    <span class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-1 fs-9">
+                                    <span class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
                                         ${inv.statusLabel}
                                     </span>
                                 </div>
-                                <h6 class="fw-bold text-dark mb-1">${inv.projectName}</h6>
+                                <h6 class="fw-bold text-dark mb-1 fs-7">${inv.projectName}</h6>
                                 <p class="text-secondary fs-8 mb-2">
                                     <c:choose>
                                         <c:when test="${inv.type == 'INVITATION'}">
@@ -93,7 +99,7 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </p>
-                                <div class="fs-9 text-muted mb-3">
+                                <div class="fs-9 text-muted mb-2">
                                     <i class="bi bi-clock-history me-1"></i> Hạn phản hồi: <strong class="text-danger">${inv.expiredAt}</strong> (Còn hiệu lực)
                                 </div>
                             </div>
@@ -103,7 +109,7 @@
                                 <form method="post" action="${pageContext.request.contextPath}/invite" class="m-0 flex-grow-1">
                                     <input type="hidden" name="action" value="accept">
                                     <input type="hidden" name="inviteId" value="${inv.id}">
-                                    <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill fw-semibold fs-8 py-1 shadow-sm">
+                                    <button type="submit" class="btn btn-success btn-sm w-100 rounded-pill fw-semibold fs-8 py-1 shadow-2xs">
                                         <i class="bi bi-check-circle-fill me-1"></i> Đồng ý gia nhập
                                     </button>
                                 </form>
@@ -126,42 +132,50 @@
          5. PROJECT GRID: LƯỚI HIỂN THỊ DANH SÁCH CARD DỰ ÁN
          ========================================================================= -->
     <!-- LƯỚI 1: DỰ ÁN CỦA TÔI -->
-    <h5 class="fw-bold text-dark mb-3 mt-2"><i class="bi bi-star-fill text-warning me-2"></i>Dự án của tôi</h5>
-    <div class="row g-4 mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3 mt-2">
+        <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-star-fill text-warning"></i>
+            <span>Dự án của tôi (${myProjects.size()})</span>
+        </h6>
+        <span class="fs-9 text-muted">Không gian đang hoạt động</span>
+    </div>
+
+    <div class="row g-3 mb-5">
         <c:forEach items="${myProjects}" var="p">
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="card h-100 border-0 bg-white shadow-sm rounded-4 p-4 d-flex flex-column justify-content-between transition hover-shadow">
+                <div class="project-card">
                     <div>
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fs-8">
-                                    <i class="bi bi-folder2-open me-1"></i> ID: #${p.id}
-                                </span>
-                                <span class="badge bg-dark-navy text-white rounded-pill px-2 py-1 fs-9" title="Mã chia sẻ dự án">
-                                    <i class="bi bi-hash"></i> ${p.projectCode}
-                                </span>
-                            </div>
-                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9" title="Số lượng thành viên hiện tại">
+                        <!-- Header thẻ: Mã dự án 1-click copy + Số lượng thành viên -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="project-code-badge" onclick="copyProjectCode('${p.projectCode}')" title="Bấm để sao chép mã dự án">
+                                <i class="bi bi-hash"></i>${p.projectCode}
+                                <i class="bi bi-copy text-primary fs-9 ms-1" id="copy-icon-${p.projectCode}"></i>
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9" title="Số lượng thành viên hiện tại">
                                 <i class="bi bi-people-fill text-primary me-1"></i> ${memberCountMap[p.id]}/10
                             </span>
                         </div>
-                        <h5 class="fw-bold text-dark mb-2">${p.name}</h5>
-                        <p class="text-secondary fs-7 mb-4 line-clamp-2">
+
+                        <!-- Tên dự án -->
+                        <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm">${p.name}</h5>
+
+                        <!-- Mô tả dự án -->
+                        <p class="text-secondary fs-8 mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4rem;">
                             ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
                         </p>
                     </div>
+
+                    <!-- Footer thẻ: Tiến độ hoàn thành + Nút Vào dự án -->
                     <div class="pt-3 border-top">
                         <div class="d-flex justify-content-between align-items-center fs-8 text-muted mb-1">
-                            <span>Tiến độ hoàn thành</span>
-                            <span class="fw-bold text-dark">${p.progressPercentage}%</span>
+                            <span>Tiến độ: <strong class="text-dark">${p.doneTasks}/${p.totalTasks} việc</strong></span>
+                            <span class="fw-bold text-primary">${p.progressPercentage}%</span>
                         </div>
-                        <div class="progress rounded-pill mb-3" style="height: 8px;">
-                            <div class="progress-bar bg-primary" role="progressbar" 
-                                 style="width: ${p.progressPercentage}%;" 
-                                 aria-valuenow="${p.progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="project-progress-container mb-3">
+                            <div class="project-progress-bar" style="width: ${p.progressPercentage}%;"></div>
                         </div>
                         <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
-                           class="btn btn-outline-primary w-100 rounded-pill py-2 fs-7 fw-semibold d-flex align-items-center justify-content-center gap-2">
+                           class="btn btn-primary-custom w-100 rounded-pill py-1-5 fs-8 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-2xs text-white">
                             <span>Vào không gian dự án</span>
                             <i class="bi bi-arrow-right"></i>
                         </a>
@@ -170,38 +184,56 @@
             </div>
         </c:forEach>
         <c:if test="${empty myProjects}">
-            <div class="col-12 text-center py-4">
-                <div class="text-muted fs-2 mb-2"><i class="bi bi-inbox"></i></div>
-                <h6 class="text-dark fw-bold">Chưa tham gia dự án nào</h6>
-                <p class="text-muted fs-8">Hãy bấm nút "Tạo dự án mới" hoặc "Nhập Mã Xin Vào" để bắt đầu làm việc nhóm!</p>
+            <div class="col-12 text-center py-5 bg-white rounded-4 border">
+                <div class="text-muted fs-1 mb-2 opacity-50"><i class="bi bi-inbox"></i></div>
+                <h6 class="text-dark fw-bold fs-7">Chưa tham gia dự án nào</h6>
+                <p class="text-muted fs-8 mb-3">Hãy bấm nút "Tạo dự án mới" hoặc "Nhập Mã Xin Vào" để bắt đầu làm việc nhóm!</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-8" 
+                            data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
+                        <i class="bi bi-key-fill me-1"></i> Nhập Mã Xin Vào
+                    </button>
+                    <button type="button" class="btn btn-primary-custom btn-sm rounded-pill px-3 fs-8 text-white" 
+                            data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Tạo dự án mới
+                    </button>
+                </div>
             </div>
         </c:if>
     </div>
 
     <!-- LƯỚI 2: CÁC DỰ ÁN KHÁC (CÓ THỂ XIN VÀO) -->
-    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-globe me-2"></i>Dự án khác trong hệ thống</h5>
-    <div class="row g-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-globe text-secondary"></i>
+            <span>Dự án khác trong hệ thống (${otherProjects.size()})</span>
+        </h6>
+        <span class="fs-9 text-muted">Có thể gửi yêu cầu xin gia nhập</span>
+    </div>
+
+    <div class="row g-3">
         <c:forEach items="${otherProjects}" var="p">
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="card h-100 border-0 bg-light shadow-sm rounded-4 p-4 d-flex flex-column justify-content-between">
+                <div class="project-card-other">
                     <div>
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 fs-8">
-                                <i class="bi bi-folder2-open me-1"></i> ID: #${p.id}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="project-code-badge" onclick="copyProjectCode('${p.projectCode}')" title="Bấm để sao chép mã dự án">
+                                <i class="bi bi-hash"></i>${p.projectCode}
+                                <i class="bi bi-copy text-secondary fs-9 ms-1"></i>
                             </span>
-                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9">
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9">
                                 <i class="bi bi-people-fill me-1"></i> ${memberCountMap[p.id]}/10
                             </span>
                         </div>
-                        <h5 class="fw-bold text-dark mb-2">${p.name}</h5>
-                        <p class="text-secondary fs-7 mb-4 line-clamp-2">
+                        <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm">${p.name}</h5>
+                        <p class="text-secondary fs-8 mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4rem;">
                             ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
                         </p>
                     </div>
                     <div class="pt-3 border-top text-center">
-                        <button type="button" class="btn btn-outline-secondary w-100 rounded-pill py-2 fs-7 fw-semibold"
-                                onclick="document.getElementById('projectCodeInput').value='${p.projectCode}'; new bootstrap.Modal(document.getElementById('joinByCodeModal')).show();">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Xin gia nhập
+                        <button type="button" class="btn btn-outline-secondary w-100 rounded-pill py-1-5 fs-8 fw-semibold"
+                                onclick="document.getElementById('inputProjectCode').value='${p.projectCode}'; new bootstrap.Modal(document.getElementById('joinByCodeModal')).show();">
+                            <i class="bi bi-box-arrow-in-right me-1 text-primary"></i> Xin gia nhập
                         </button>
                     </div>
                 </div>
@@ -209,7 +241,7 @@
         </c:forEach>
         <c:if test="${empty otherProjects}">
             <div class="col-12 text-center py-4">
-                <span class="text-muted fs-8">Không có dự án nào khác.</span>
+                <span class="text-muted fs-8">Không có dự án nào khác trên hệ thống.</span>
             </div>
         </c:if>
     </div>
@@ -316,5 +348,53 @@
         </div>
     </div>
 </div>
+
+<!-- Toast thông báo Sao chép mã thành công -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="copyToast" class="toast align-items-center text-bg-dark border-0 rounded-3 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-8 py-2 d-flex align-items-center gap-2">
+                <i class="bi bi-check2-circle text-success fs-6"></i>
+                <span>Đã sao chép mã dự án: <strong id="copiedCodeText" class="text-info"></strong></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyProjectCode(code) {
+    if (!code) return;
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(showToast).catch(fallback);
+    } else {
+        fallback();
+    }
+
+    function fallback() {
+        var temp = document.createElement('textarea');
+        temp.value = code;
+        document.body.appendChild(temp);
+        temp.select();
+        try {
+            document.execCommand('copy');
+            showToast();
+        } catch (err) {
+            console.error('Không thể copy', err);
+        }
+        document.body.removeChild(temp);
+    }
+
+    function showToast() {
+        var textEl = document.getElementById('copiedCodeText');
+        if (textEl) textEl.textContent = code;
+        var toastEl = document.getElementById('copyToast');
+        if (toastEl) {
+            var toast = new bootstrap.Toast(toastEl, { delay: 2500 });
+            toast.show();
+        }
+    }
+}
+</script>
 
 <jsp:include page="/includes/footer.jsp" />

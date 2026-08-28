@@ -46,50 +46,55 @@
         <div>
             <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm"
                     data-bs-toggle="modal" data-bs-target="#createDocModal">
-                <i class="bi bi-pencil-square me-1"></i> Viết tài liệu mới
-            </button>
-        </div>
-    </div>
-
-    <!-- 3. BỐ CỤC 2 CỘT NOTION WIKI (DANH MỤC TRÁI + NỘI DUNG PHẢI) -->
+                <i class="bi bi-pencil-square me-1"></i> Viết     <!-- 3. BỐ CỤC 2 CỘT NOTION WIKI (DANH MỤC TRÁI 25% + NỘI DUNG PHẢI 75%) -->
     <div class="row g-4">
 
         <!-- ==========================================
-             CỘT BÊN TRÁI (COL-12 COL-LG-4): DANH MỤC BÀI VIẾT
+             CỘT BÊN TRÁI (COL-12 COL-LG-4 COL-XL-3): DANH MỤC BÀI VIẾT
              ========================================== -->
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-4 col-xl-3">
             <div class="card border-0 bg-white shadow-sm rounded-4 p-3 h-100">
                 
                 <!-- Tiêu đề danh mục & Tổng số bài -->
-                <div class="d-flex align-items-center justify-content-between mb-3 px-2 pb-2 border-bottom">
+                <div class="d-flex align-items-center justify-content-between mb-2 px-1 pb-2 border-bottom">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-folder2-open text-primary fs-5"></i>
-                        <h6 class="fw-bold mb-0 text-dark">Danh mục tài liệu</h6>
+                        <i class="bi bi-folder2-open text-primary fs-6"></i>
+                        <h6 class="fw-bold mb-0 text-dark fs-7">Danh mục tài liệu</h6>
                     </div>
-                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-1 fs-8">
-                        ${docs.size()} bài viết
+                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                        ${docs.size()} bài
                     </span>
                 </div>
 
+                <!-- Ô tìm kiếm tài liệu nhanh (Instant search) -->
+                <div class="mb-2">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control bg-light border-start-0 fs-9 rounded-end-pill" 
+                               id="docSearchInput" placeholder="Tìm tài liệu..." 
+                               oninput="filterDocList(this.value)">
+                    </div>
+                </div>
+
                 <!-- Danh sách các bài viết cuộn dọc -->
-                <div class="doc-list d-flex flex-column gap-2 overflow-y-auto" style="max-height: 70vh;">
+                <div class="doc-list d-flex flex-column gap-2 overflow-y-auto" id="docListContainer" style="max-height: 68vh;">
                     
                     <c:forEach items="${docs}" var="d">
-                        <!-- Thẻ bài viết: Bật viền xanh nếu là bài đang được đọc (selectedDoc.id == d.id) -->
                         <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${d.id}" 
-                           class="text-decoration-none text-dark p-3 rounded-3 border transition ${selectedDoc.id == d.id ? 'bg-primary-subtle border-primary border-2 shadow-2xs' : 'bg-light-subtle border-light hover-bg-light'}">
+                           class="wiki-doc-item ${selectedDoc.id == d.id ? 'active' : ''}"
+                           data-doc-title="${d.title.toLowerCase()}">
                             
                             <div class="d-flex align-items-start gap-2 mb-1">
-                                <i class="bi bi-file-earmark-text ${selectedDoc.id == d.id ? 'text-primary' : 'text-secondary'} mt-1"></i>
-                                <h6 class="fw-bold mb-0 fs-7 ${selectedDoc.id == d.id ? 'text-primary' : 'text-dark'}">${d.title}</h6>
+                                <i class="bi bi-file-earmark-text ${selectedDoc.id == d.id ? 'text-primary' : 'text-secondary'} mt-0-5 fs-7"></i>
+                                <span class="fw-bold fs-8 wiki-doc-title ${selectedDoc.id == d.id ? 'text-primary' : 'text-dark'} text-truncate d-block flex-grow-1">${d.title}</span>
                             </div>
 
-                            <!-- Đoạn trích dẫn tóm tắt 80 ký tự -->
-                            <p class="text-muted fs-8 mb-2 ms-4">${d.snippet}</p>
+                            <!-- Đoạn trích dẫn tóm tắt -->
+                            <p class="text-muted fs-9 mb-2 ms-3 text-truncate" style="max-width: 90%;">${d.snippet}</p>
 
                             <!-- Tác giả & Ngày cập nhật -->
-                            <div class="d-flex align-items-center justify-content-between ms-4 fs-9 text-secondary border-top pt-2 mt-1">
-                                <span><i class="bi bi-person me-1"></i>${d.authorName}</span>
+                            <div class="d-flex align-items-center justify-content-between ms-3 fs-9 text-secondary border-top pt-1-5 mt-1">
+                                <span class="text-truncate" style="max-width: 55%;"><i class="bi bi-person me-1"></i>${d.authorName}</span>
                                 <span><i class="bi bi-clock me-1"></i>${d.updatedAt}</span>
                             </div>
                         </a>
@@ -99,8 +104,8 @@
                     <c:if test="${empty docs}">
                         <div class="text-center text-muted py-5">
                             <i class="bi bi-journal-x fs-2 d-block mb-2 opacity-50"></i>
-                            <p class="fs-7 mb-2">Dự án này chưa có tài liệu nào.</p>
-                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill"
+                            <p class="fs-8 mb-2">Dự án này chưa có tài liệu nào.</p>
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill fs-8"
                                     data-bs-toggle="modal" data-bs-target="#createDocModal">
                                 Viết bài đầu tiên
                             </button>
@@ -112,9 +117,9 @@
         </div>
 
         <!-- ==========================================
-             CỘT BÊN PHẢI (COL-12 COL-LG-8): KHUNG ĐỌC & SOẠN THẢO BÀI VIẾT
+             CỘT BÊN PHẢI (COL-12 COL-LG-8 COL-XL-9): KHUNG ĐỌC & SOẠN THẢO BÀI VIẾT
              ========================================== -->
-        <div class="col-12 col-lg-8">
+        <div class="col-12 col-lg-8 col-xl-9">
             <div class="card border-0 bg-white shadow-sm rounded-4 p-4 p-lg-5 h-100">
                 
                 <c:choose>
@@ -123,17 +128,17 @@
                         <!-- Đầu bài viết: Tiêu đề + Nút Sửa/Xóa -->
                         <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 pb-3 mb-4 border-bottom">
                             <div>
-                                <h2 class="fw-extrabold text-dark tracking-tight mb-2">${selectedDoc.title}</h2>
-                                <div class="d-flex flex-wrap align-items-center gap-3 text-secondary fs-7">
+                                <h3 class="fw-bold text-dark tracking-tight mb-2">${selectedDoc.title}</h3>
+                                <div class="d-flex flex-wrap align-items-center gap-3 text-secondary fs-8">
                                     <div class="d-flex align-items-center gap-1">
                                         <i class="bi bi-person-circle text-primary"></i>
-                                        <span class="fw-medium text-dark">${selectedDoc.authorName}</span>
+                                        <span class="fw-semibold text-dark">${selectedDoc.authorName}</span>
                                     </div>
-                                    <span>•</span>
+                                    <span>&bull;</span>
                                     <div>
                                         <i class="bi bi-calendar3 me-1"></i> Tạo: ${selectedDoc.createdAt}
                                     </div>
-                                    <span>•</span>
+                                    <span>&bull;</span>
                                     <div>
                                         <i class="bi bi-arrow-repeat me-1"></i> Cập nhật: ${selectedDoc.updatedAt}
                                     </div>
@@ -142,32 +147,34 @@
 
                             <!-- Cụm nút hành động Sửa & Xóa -->
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fs-8"
                                         data-bs-toggle="modal" data-bs-target="#editDocModal">
                                     <i class="bi bi-pencil me-1"></i> Sửa bài
                                 </button>
                                 
                                 <a href="${pageContext.request.contextPath}/doc?action=delete&docId=${selectedDoc.id}&projectId=${project.id}" 
-                                   class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                   class="btn btn-outline-danger btn-sm rounded-pill px-3 fs-8"
                                    onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết tài liệu này không?');">
                                     <i class="bi bi-trash3 me-1"></i> Xóa
                                 </a>
                             </div>
                         </div>
 
-                        <!-- Thân nội dung bài viết (Giữ nguyên định dạng xuống dòng với white-space: pre-line) -->
-                        <div class="doc-content fs-6 text-dark lh-lg mb-4" style="white-space: pre-line; word-break: break-word;">
+                        <!-- Thân nội dung bài viết -->
+                        <div class="wiki-body mb-5">
                             <c:out value="${selectedDoc.content}" />
                         </div>
 
                         <!-- Khung: Các công việc đang tham chiếu tài liệu này (TaskDoc) -->
-                        <div class="mt-5 pt-4 border-top">
+                        <div class="mt-auto pt-4 border-top">
                             <div class="d-flex align-items-center justify-content-between mb-3">
                                 <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-pin-angle-fill text-primary fs-5"></i>
-                                    <h6 class="fw-bold mb-0 text-dark">Các công việc đang áp dụng tài liệu này</h6>
+                                    <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1">
+                                        <i class="bi bi-pin-angle-fill fs-7"></i>
+                                    </span>
+                                    <h6 class="fw-bold mb-0 text-dark fs-7">Các công việc đang áp dụng tài liệu này</h6>
                                 </div>
-                                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 fs-8">
+                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
                                     ${relatedTasks.size()} công việc
                                 </span>
                             </div>
@@ -175,17 +182,20 @@
                             <c:if test="${not empty relatedTasks}">
                                 <div class="d-flex flex-column gap-2">
                                     <c:forEach items="${relatedTasks}" var="rt">
-                                        <div class="d-flex flex-wrap align-items-center justify-content-between p-3 bg-light rounded-3 border gap-2">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="badge ${rt.priorityBadgeClass} rounded-pill px-2 py-1 fs-9">
-                                                    ${rt.priorityLabel}
+                                        <div class="wiki-task-item">
+                                            <div class="d-flex align-items-center gap-2 text-truncate">
+                                                <span class="badge ${rt.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9">
+                                                    ● ${rt.priorityLabel}
                                                 </span>
-                                                <span class="fw-semibold text-dark fs-7">${rt.title}</span>
+                                                <span class="badge ${rt.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
+                                                    ${rt.statusLabel}
+                                                </span>
+                                                <span class="fw-semibold text-dark fs-8 text-truncate">${rt.title}</span>
                                             </div>
-                                            <div class="d-flex align-items-center gap-3 fs-8 text-secondary">
-                                                <span><i class="bi bi-person me-1"></i>${rt.assigneeName}</span>
+                                            <div class="d-flex align-items-center gap-3 fs-8 text-secondary flex-shrink-0">
+                                                <span><i class="bi bi-person-fill text-primary me-1"></i>${rt.assigneeName}</span>
                                                 <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
-                                                   class="btn btn-outline-primary btn-xs rounded-pill px-3 py-1 fs-8">
+                                                   class="btn btn-outline-primary btn-xs rounded-pill px-3 py-1 fs-9">
                                                     Xem trên Kanban <i class="bi bi-arrow-right ms-1"></i>
                                                 </a>
                                             </div>
@@ -205,9 +215,9 @@
                     <c:otherwise>
                         <div class="text-center text-muted py-5 my-auto">
                             <i class="bi bi-journal-richtext display-3 d-block mb-3 text-primary opacity-50"></i>
-                            <h4 class="fw-bold text-dark">Chọn một bài viết để đọc</h4>
-                            <p class="fs-7 text-secondary mb-4">Hoặc tạo một tài liệu mới để chia sẻ ghi chú và kiến thức kỹ thuật cho nhóm.</p>
-                            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold"
+                            <h5 class="fw-bold text-dark">Chọn một bài viết để đọc</h5>
+                            <p class="fs-8 text-secondary mb-4">Hoặc tạo một tài liệu mới để chia sẻ ghi chú và kiến thức kỹ thuật cho nhóm.</p>
+                            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold fs-8 shadow-2xs text-white"
                                     data-bs-toggle="modal" data-bs-target="#createDocModal">
                                 <i class="bi bi-pencil-square me-1"></i> Viết tài liệu mới
                             </button>
@@ -335,6 +345,21 @@
         </div>
     </div>
 </c:if>
+
+<script>
+function filterDocList(query) {
+    var q = (query || '').trim().toLowerCase();
+    var items = document.querySelectorAll('#docListContainer .wiki-doc-item');
+    items.forEach(function(item) {
+        var title = item.getAttribute('data-doc-title') || '';
+        if (q === '' || title.indexOf(q) !== -1) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
 
 <!-- 6. NẠP FOOTER CHUNG -->
 <jsp:include page="/includes/footer.jsp" />

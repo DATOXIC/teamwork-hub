@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!-- 1. NẠP HEADER & NAVBAR CHUNG -->
@@ -54,9 +54,9 @@
     <div class="row g-4">
 
         <!-- ========================================================
-             CỘT BÊN TRÁI (COL-12 COL-LG-3): THÀNH VIÊN & HƯỚNG DẪN #MENTION
+             CỘT BÊN TRÁI (COL-12 COL-LG-4 COL-XL-3): THÀNH VIÊN & CÚ PHÁP
              ======================================================== -->
-        <div class="col-12 col-lg-3">
+        <div class="col-12 col-lg-4 col-xl-3">
             <div class="d-flex flex-column gap-3">
                 
                 <!-- Card 1: Thành viên trong dự án -->
@@ -68,11 +68,11 @@
                         <span class="badge bg-secondary-subtle text-secondary rounded-pill fs-9">${userList.size()}</span>
                     </div>
 
-                    <div class="d-flex flex-column gap-2">
+                    <div class="d-flex flex-column gap-2 overflow-y-auto" style="max-height: 28vh;">
                         <c:forEach items="${userList}" var="u">
                             <div class="d-flex align-items-center justify-content-between p-2 rounded-3 bg-light-subtle">
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-8" 
+                                    <div class="avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-8 shadow-2xs" 
                                          style="width: 28px; height: 28px;">
                                         ${u.fullName.substring(0, 1).toUpperCase()}
                                     </div>
@@ -87,30 +87,7 @@
                     </div>
                 </div>
 
-                <!-- Card 2: Hướng dẫn cú pháp #mention thông minh -->
-                <div class="card border-0 bg-white shadow-sm rounded-4 p-3 border-start border-4 border-primary">
-                    <h6 class="fw-bold mb-2 text-dark fs-7">
-                        <i class="bi bi-magic text-primary me-1"></i> Cú pháp liên kết nhanh
-                    </h6>
-                    <p class="text-muted fs-8 mb-3">Gõ các ký hiệu sau trong tin nhắn để tự động tạo link bấm được:</p>
-
-                    <div class="d-flex flex-column gap-2 fs-8">
-                        <div class="p-2 bg-light rounded-3 border">
-                            <code class="text-primary fw-bold">#doc-1</code>
-                            <span class="text-secondary d-block fs-9 mt-1">→ Link đến bài viết tài liệu ID 1</span>
-                        </div>
-                        <div class="p-2 bg-light rounded-3 border">
-                            <code class="text-success fw-bold">#task-3</code>
-                            <span class="text-secondary d-block fs-9 mt-1">→ Link đến công việc Kanban ID 3</span>
-                        </div>
-                        <div class="p-2 bg-light rounded-3 border">
-                            <code class="text-info fw-bold">@NguyenVanAn</code>
-                            <span class="text-secondary d-block fs-9 mt-1">→ Tô màu nhắc tên thành viên</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 3: Tra cứu nhanh ID để gõ #mention -->
+                <!-- Card 2: Tra cứu nhanh ID để gõ #mention -->
                 <div class="card border-0 bg-white shadow-sm rounded-4 p-3">
                     <h6 class="fw-bold mb-2 text-dark fs-7">
                         <i class="bi bi-bookmark-star text-warning me-1"></i> ID tra cứu nhanh
@@ -127,7 +104,7 @@
                             <div id="collapseDocs" class="accordion-collapse collapse" data-bs-parent="#quickRefAccordion">
                                 <div class="accordion-body px-0 py-1 fs-9">
                                     <c:forEach items="${docList}" var="d">
-                                        <div class="text-truncate py-1 text-secondary">
+                                        <div class="text-truncate py-1 text-secondary" style="cursor: pointer;" onclick="insertShortcut('#doc-${d.id}')" title="Bấm để chèn vào chat">
                                             <code class="text-primary">#doc-${d.id}</code>: ${d.title}
                                         </div>
                                     </c:forEach>
@@ -145,7 +122,7 @@
                             <div id="collapseTasks" class="accordion-collapse collapse" data-bs-parent="#quickRefAccordion">
                                 <div class="accordion-body px-0 py-1 fs-9">
                                     <c:forEach items="${taskList}" var="t">
-                                        <div class="text-truncate py-1 text-secondary">
+                                        <div class="text-truncate py-1 text-secondary" style="cursor: pointer;" onclick="insertShortcut('#task-${t.id}')" title="Bấm để chèn vào chat">
                                             <code class="text-success">#task-${t.id}</code>: ${t.title}
                                         </div>
                                     </c:forEach>
@@ -160,9 +137,9 @@
         </div>
 
         <!-- ========================================================
-             CỘT BÊN PHẢI (COL-12 COL-LG-9): DÒNG THỜI GIAN TIN NHẮN & Ô NHẬP
+             CỘT BÊN PHẢI (COL-12 COL-LG-8 COL-XL-9): DÒNG THỜI GIAN TIN NHẮN & Ô NHẬP
              ======================================================== -->
-        <div class="col-12 col-lg-9">
+        <div class="col-12 col-lg-8 col-xl-9">
             <div class="card border-0 bg-white shadow-sm rounded-4 overflow-hidden d-flex flex-column" style="height: 75vh;">
                 
                 <!-- 1. Đầu khung Chat: Tiêu đề kênh -->
@@ -179,46 +156,57 @@
                 </div>
 
                 <!-- 2. Thân khung Chat: Dòng thời gian tin nhắn (Cuộn dọc) -->
-                <div class="flex-grow-1 p-4 overflow-y-auto d-flex flex-column gap-3" id="chatMessageContainer">
+                <div class="flex-grow-1 p-4 overflow-y-auto d-flex flex-column gap-3 bg-light-subtle" id="chatMessageContainer">
                     
                     <c:forEach items="${messageList}" var="msg">
-                        <!-- Thẻ tin nhắn: Phân biệt tin nhắn của mình vs người khác -->
-                        <div class="message-card d-flex align-items-start gap-3 p-3 rounded-3 border ${msg.authorId == sessionScope.currentUser.id ? 'bg-primary-subtle border-primary-subtle' : 'bg-light-subtle border-light'}" 
-                             id="msg-${msg.id}">
-                            
-                            <!-- Avatar tròn ký tự đầu -->
-                            <div class="avatar-circle ${msg.authorId == sessionScope.currentUser.id ? 'bg-primary' : 'bg-dark'} text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-7 flex-shrink-0"
-                                 style="width: 38px; height: 38px;">
-                                ${msg.authorInitial}
-                            </div>
-
-                            <!-- Thân tin nhắn -->
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="fw-bold text-dark fs-7">${msg.authorName}</span>
-                                        <c:if test="${msg.authorId == sessionScope.currentUser.id}">
-                                            <span class="badge bg-primary text-white rounded-pill px-2 py-0 fs-9">Bạn</span>
-                                        </c:if>
-                                        <span class="text-muted fs-9"><i class="bi bi-clock me-1"></i>${msg.sentAt}</span>
-                                    </div>
-
-                                    <!-- Nút xóa tin nhắn (Chỉ xóa tin của chính mình hoặc Admin) -->
+                        <c:choose>
+                            <%-- Tin nhắn của chính mình (Canh phải, Nền Tím Indigo chữ trắng) --%>
+                            <c:when test="${msg.authorId == sessionScope.currentUser.id}">
+                                <div class="chat-row-me" id="msg-${msg.id}">
                                     <c:if test="${msg.authorId == sessionScope.currentUser.id || sessionScope.currentUser.role == 'ADMIN'}">
                                         <a href="${pageContext.request.contextPath}/chat?action=delete&projectId=${project.id}&messageId=${msg.id}" 
-                                           class="text-muted text-hover-danger fs-8 text-decoration-none"
+                                           class="text-muted text-hover-danger fs-9 text-decoration-none opacity-50 hover-opacity-100 me-1"
                                            onclick="return confirm('Bạn có chắc chắn muốn xóa tin nhắn này không?');"
                                            title="Xóa tin nhắn">
                                             <i class="bi bi-trash3"></i>
                                         </a>
                                     </c:if>
+                                    <div class="chat-bubble-me">
+                                        <div class="message-body fs-8 lh-base text-white" style="word-break: break-word; white-space: pre-line;" data-raw-content="<c:out value='${msg.content}' />"><c:out value="${msg.content}" /></div>
+                                        <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
+                                            <span class="chat-time-me"><i class="bi bi-clock me-1"></i>${msg.sentAt}</span>
+                                        </div>
+                                    </div>
                                 </div>
+                            </c:when>
 
-                                <!-- Nội dung tin nhắn (Có gắn class để chat.js quét và render mention) -->
-                                <div class="message-body fs-7 text-dark lh-base" style="word-break: break-word; white-space: pre-line;" data-raw-content="<c:out value='${msg.content}' />"><c:out value="${msg.content}" /></div>
-                            </div>
-
-                        </div>
+                            <%-- Tin nhắn của thành viên khác (Canh trái kèm Avatar, Nền trắng viền xám) --%>
+                            <c:otherwise>
+                                <div class="chat-row-other" id="msg-${msg.id}">
+                                    <div class="avatar-circle bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-8 flex-shrink-0 shadow-2xs"
+                                         style="width: 34px; height: 34px;">
+                                        ${msg.authorInitial}
+                                    </div>
+                                    <div class="chat-bubble-other">
+                                        <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
+                                            <span class="fw-bold text-dark fs-8">${msg.authorName}</span>
+                                            <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
+                                                <a href="${pageContext.request.contextPath}/chat?action=delete&projectId=${project.id}&messageId=${msg.id}" 
+                                                   class="text-muted text-hover-danger fs-9 text-decoration-none opacity-50 hover-opacity-100"
+                                                   onclick="return confirm('Bạn có chắc chắn muốn xóa tin nhắn này không?');"
+                                                   title="Xóa tin nhắn">
+                                                    <i class="bi bi-trash3"></i>
+                                                </a>
+                                            </c:if>
+                                        </div>
+                                        <div class="message-body fs-8 text-dark lh-base" style="word-break: break-word; white-space: pre-line;" data-raw-content="<c:out value='${msg.content}' />"><c:out value="${msg.content}" /></div>
+                                        <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
+                                            <span class="chat-time-other"><i class="bi bi-clock me-1"></i>${msg.sentAt}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </c:forEach>
 
                     <!-- Hiển thị khi chưa có tin nhắn nào -->
@@ -226,31 +214,45 @@
                         <div class="text-center text-muted py-5 my-auto" id="emptyChatPlaceholder">
                             <i class="bi bi-chat-heart display-3 d-block mb-3 text-primary opacity-50"></i>
                             <h5 class="fw-bold text-dark">Chưa có cuộc trò chuyện nào</h5>
-                            <p class="fs-7 text-secondary">Hãy gửi tin nhắn đầu tiên để bắt đầu thảo luận cùng các thành viên trong nhóm!</p>
+                            <p class="fs-8 text-secondary">Hãy gửi tin nhắn đầu tiên để bắt đầu thảo luận cùng các thành viên trong nhóm!</p>
                         </div>
                     </c:if>
 
                 </div>
 
-                <!-- 3. Chân khung Chat: Form nhập tin nhắn -->
-                <div class="p-3 bg-light border-top">
+                <!-- 3. Chân khung Chat: Form nhập tin nhắn & Gợi ý chèn nhanh -->
+                <div class="p-3 bg-white border-top">
+                    <!-- Thanh phím tắt chèn cú pháp nhanh -->
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="fs-9 text-muted fw-semibold"><i class="bi bi-lightning-charge text-warning"></i> Chèn nhanh:</span>
+                        <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2 py-0 fs-9" onclick="insertShortcut('#doc-')">
+                            📄 #doc-
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2 py-0 fs-9" onclick="insertShortcut('#task-')">
+                            ✅ #task-
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2 py-0 fs-9" onclick="insertShortcut('@')">
+                            👤 @nhắc tên
+                        </button>
+                    </div>
+
                     <form method="post" action="${pageContext.request.contextPath}/chat" id="chatForm" class="d-flex align-items-center gap-2">
                         <input type="hidden" name="action" value="sendProjectMessage">
                         <input type="hidden" name="projectId" value="${project.id}">
 
                         <!-- Ô nhập nội dung tin nhắn -->
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3 text-muted">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
                                 <i class="bi bi-chat-left-dots"></i>
                             </span>
                             <input type="text" 
-                                   class="form-control border-start-0 border-end-0 py-2 fs-7 shadow-none" 
+                                   class="form-control bg-light border-start-0 border-end-0 py-2 fs-8 shadow-none" 
                                    id="chatInput" 
                                    name="content" 
-                                   placeholder="Nhập tin nhắn... (Gõ #doc-1, #task-1 hoặc @tên để liên kết)" 
+                                   placeholder="Nhập tin nhắn thảo luận... (Gõ #doc-1, #task-1 hoặc @tên để liên kết)" 
                                    autocomplete="off" 
                                    required>
-                            <button type="submit" class="btn btn-primary-custom rounded-end-pill px-4 fw-semibold shadow-sm" id="btnSend">
+                            <button type="submit" class="btn btn-primary-custom rounded-end-pill px-4 fw-semibold shadow-2xs text-white" id="btnSend">
                                 <span>Gửi</span>
                                 <i class="bi bi-send-fill ms-1"></i>
                             </button>
@@ -270,6 +272,14 @@
 <script>
     var contextPath = "${pageContext.request.contextPath}";
     var currentProjectId = "${project.id}";
+
+    function insertShortcut(text) {
+        var input = document.getElementById('chatInput');
+        if (input) {
+            input.value += (input.value.length > 0 && !input.value.endsWith(' ') ? ' ' : '') + text;
+            input.focus();
+        }
+    }
 </script>
 
 <!-- 5. NẠP BỘ MÁY XỬ LÝ CHAT & RENDER MENTION (chat.js) -->

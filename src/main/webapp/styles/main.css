@@ -389,6 +389,217 @@ body {
     border-left: 3.5px solid #f59e0b;
 }
 
+/* ==========================================================================
+   Project Grid & Workspace Styles (projects.jsp)
+   ========================================================================== */
+.project-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 22px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -4px rgba(15, 23, 42, 0.03);
+    border-color: #cbd5e1;
+}
+
+.project-card-other {
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 22px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.project-card-other:hover {
+    transform: translateY(-2px);
+    background-color: #ffffff;
+    border-color: #94a3b8;
+    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.06);
+}
+
+.project-code-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-radius: 50px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+}
+
+.project-code-badge:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.project-progress-container {
+    background-color: #f1f5f9;
+    border-radius: 50px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.project-progress-bar {
+    background: linear-gradient(90deg, #4f46e5 0%, #06b6d4 100%);
+    height: 100%;
+    border-radius: 50px;
+    transition: width 0.4s ease;
+}
+
+.pending-invite-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #4f46e5;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: all 0.15s ease;
+}
+
+.pending-invite-card:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+/* ==========================================================================
+   Wiki & Knowledge Base Styles (docs.jsp)
+   ========================================================================== */
+.wiki-doc-item {
+    display: block;
+    text-decoration: none;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: all 0.15s ease;
+    color: inherit;
+}
+
+.wiki-doc-item:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: inherit;
+    transform: translateX(2px);
+}
+
+.wiki-doc-item.active {
+    background-color: #f5f3ff;
+    border-color: #4f46e5;
+    border-left-width: 3.5px;
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.08);
+}
+
+.wiki-doc-item.active .wiki-doc-title {
+    color: #4f46e5 !important;
+}
+
+.wiki-body {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: #1e293b;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.wiki-task-item {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.15s ease;
+}
+
+.wiki-task-item:hover {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+}
+
+/* ==========================================================================
+   Chat & Discussion Stream Styles (chat.jsp)
+   ========================================================================== */
+.chat-row-me {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 8px;
+    margin-left: 48px;
+}
+
+.chat-row-other {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 10px;
+    margin-right: 48px;
+}
+
+.chat-bubble-me {
+    background-color: #4f46e5;
+    color: #ffffff;
+    border-radius: 16px 16px 4px 16px;
+    padding: 10px 16px;
+    max-width: 82%;
+    box-shadow: 0 2px 10px rgba(79, 70, 229, 0.2);
+}
+
+.chat-bubble-me .message-body {
+    color: #ffffff !important;
+}
+
+.chat-bubble-me a.badge, .chat-bubble-me span.badge {
+    background-color: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.chat-bubble-other {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px 16px 16px 4px;
+    padding: 10px 16px;
+    max-width: 82%;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.chat-bubble-other .message-body {
+    color: #0f172a !important;
+}
+
+.chat-time-me {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.7rem;
+}
+
+.chat-time-other {
+    color: #94a3b8;
+    font-size: 0.7rem;
+}
+
+
+
 
 
 
