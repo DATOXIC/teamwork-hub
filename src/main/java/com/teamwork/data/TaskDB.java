@@ -1,6 +1,7 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Task;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +18,16 @@ public class TaskDB {
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các task mẫu cho Dự án 1 và Dự án 2
     static {
+        LocalDate today = LocalDate.now();
+        String datePlus5 = today.plusDays(5).toString();   // Còn 5 ngày (🟢 Đúng tiến độ)
+        String datePlus1 = today.plusDays(1).toString();   // Ngày mai (🟠 Sắp đến hạn)
+        String dateMinus2 = today.minusDays(2).toString(); // Quá hạn 2 ngày (🔴 Quá hạn)
+        String dateMinus7 = today.minusDays(7).toString(); // Đã xong trong quá khứ (✅ Đúng hạn)
+        String datePlus10 = today.plusDays(10).toString(); // Còn 10 ngày (🟢 Đúng tiến độ)
+
         // --- CÁC TASK MẪU CHO DỰ ÁN 1 (projectId = 1) ---
         
-        // Task 1: 🟣 CHỜ PM DUYỆT KẾ HOẠCH PHÂN RÃ (Cổng 1 - Task Lead An đã chia 3 việc con và trình lên PM)
+        // Task 1: 🟣 CHỜ PM DUYỆT KẾ HOẠCH PHÂN RÃ (Cổng 1 - Còn 5 ngày)
         tasks.add(new Task(
             nextId++,
             1, // projectId = 1
@@ -27,7 +35,7 @@ public class TaskDB {
             "Xây dựng toàn bộ sơ đồ ERD, các bảng quan hệ và các lớp JavaBean Model chuẩn Serializable.",
             "PLANNING",
             "HIGH",
-            "2026-08-30",
+            datePlus5,
             2, // assigneeId = 2 (Nguyễn Văn An)
             "Nguyễn Văn An",
             "",
@@ -40,7 +48,7 @@ public class TaskDB {
             ""
         ));
 
-        // Task 2: 🟡 ĐÃ HOÀN THÀNH 100% VIỆC CON & ĐÃ BÀN GIAO CHO PM (Chờ PM duyệt nghiệm thu Cổng 3)
+        // Task 2: 🟡 ĐÃ HOÀN THÀNH 100% VIỆC CON & ĐÃ BÀN GIAO CHO PM (Chờ PM duyệt nghiệm thu Cổng 3 - Hạn chót ngày mai)
         tasks.add(new Task(
             nextId++,
             1,
@@ -48,7 +56,7 @@ public class TaskDB {
             "Nghiên cứu tài liệu Sandbox và viết Servlet xử lý callback thanh toán VNPAY.",
             "SUBMITTED",
             "HIGH",
-            "2026-09-05",
+            datePlus1,
             2,
             "Nguyễn Văn An",
             "📌 [Tóm tắt kết quả]: Đã hoàn thiện 100% module thanh toán VNPAY, tích hợp mã QR động và thanh toán thẻ ATM nội địa.\n\n🌐 [Link Demo/Sản phẩm]: https://demo.teamworkhub.vn/payment-vnpay\n\n💻 [Link Mã nguồn/PR]: https://github.com/teamwork-hub/teamwork-platform/pull/24\n\n🧪 [Kết quả kiểm thử]: Đã kiểm thử thành công 10/10 ca giao dịch sandbox VNPAY (Tỷ lệ pass 100%).\n\n🧭 [Hướng dẫn PM nghiệm thu]: PM dùng thẻ test 9704198526191432152, ngày phát hành 07/15, OTP 123456 để thử giao dịch.",
@@ -61,7 +69,7 @@ public class TaskDB {
             "25/08/2026 09:00"
         ));
 
-        // Task 3: ⚪ CẦN LÀM (TODO) - Đang trong giai đoạn Task Lead lập kế hoạch phân rã
+        // Task 3: ⚪ CẦN LÀM (TODO) - Minh họa trạng thái QUÁ HẠN 2 NGÀY (🔴)
         tasks.add(new Task(
             nextId++,
             1,
@@ -69,7 +77,7 @@ public class TaskDB {
             "Chặn người dùng chưa đăng nhập truy cập trực tiếp vào các URL nội bộ.",
             "TODO",
             "HIGH",
-            "2026-08-28",
+            dateMinus2,
             2, // assigneeId = 2 (Nguyễn Văn An)
             "Nguyễn Văn An"
         ));
@@ -82,20 +90,20 @@ public class TaskDB {
             "Hoàn thiện trang chủ responsive, thanh điều hướng và chân trang chuẩn.",
             "DONE",
             "LOW",
-            "2026-08-20",
+            dateMinus7,
             2,
             "Nguyễn Văn An",
             "📌 [Tóm tắt kết quả]: Đã hoàn thiện Landing Page chuẩn responsive mobile & desktop.\n\n🌐 [Link Demo/Sản phẩm]: https://teamworkhub.vn/home\n\n💻 [Link Mã nguồn/PR]: https://github.com/teamwork-hub/teamwork-platform/pull/12",
             "PM phê duyệt: Giao diện đạt chuẩn UX/UI Basecamp, tốc độ tải trang cực nhanh! Đạt xuất sắc 5 sao.",
-            "20/08/2026 15:00",
-            "20/08/2026 16:30",
+            dateMinus7 + " 15:00",
+            dateMinus7 + " 16:30",
             "Bien_Ban_Ban_Giao_Landing_Page.pdf",
             5,
             "Đã phân rã 2 việc con.",
             "18/08/2026 08:30"
         ));
 
-        // Task 5: ⚪ CẦN LÀM (TODO)
+        // Task 5: ⚪ CẦN LÀM (TODO) - Còn 10 ngày
         tasks.add(new Task(
             nextId++,
             1,
@@ -103,7 +111,7 @@ public class TaskDB {
             "Soạn thảo tài liệu PDF và slide thuyết trình bảo vệ đồ án.",
             "TODO",
             "MEDIUM",
-            "2026-09-10",
+            datePlus10,
             1,
             "Trưởng Nhóm Admin"
         ));

@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -454,11 +455,13 @@ public class TaskServlet extends HttpServlet {
         String taskIdParam = request.getParameter("taskId");
         String title = request.getParameter("title");
         String assigneeIdParam = request.getParameter("assigneeId");
+        String dueDateParam = request.getParameter("dueDate");
 
         int projectId = 0;
         int taskId = 0;
         int assigneeId = 0;
         String assigneeName = "Chưa phân công";
+        String subDueDate = (dueDateParam != null) ? dueDateParam.trim() : "";
 
         try {
             projectId = Integer.parseInt(projectIdParam.trim());
@@ -490,9 +493,38 @@ public class TaskServlet extends HttpServlet {
                 return;
             }
 
+            // RÀNG BUỘC BẤT BIẾN CÂY PHÂN CẤP (HIERARCHICAL DEADLINE INVARIANT):
+            // Hạn chót của việc con không được vượt quá Hạn chót của Task cha
+            if (!subDueDate.isEmpty() && parentTask.getDueDate() != null && !parentTask.getDueDate().trim().isEmpty()) {
+                try {
+                    LocalDate subDate = LocalDate.parse(subDueDate);
+                    LocalDate parentDate = LocalDate.parse(parentTask.getDueDate().trim());
+                    if (subDate.isAfter(parentDate)) {
+                        request.getSession().setAttribute("toastError", 
+                            "⚠️ Hạn chót việc con (" + subDueDate + ") không được vượt quá hạn chót của Task lớn (" + parentTask.getDueDate().trim() + ")!");
+                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    // Nếu lỗi định dạng ngày, tiếp tục lưu dạng chuỗi an toàn
+                }
+            }
+
             if (currentUser.getId() == parentTask.getAssigneeId() || currentUser.getId() == project.getOwnerId()) {
                 if (title != null && !title.trim().isEmpty() && taskId > 0) {
-                    SubTask newSubTask = new SubTask(0, taskId, title.trim(), assigneeId, assigneeName, false);
+                    SubTask newSubTask = new SubTask(
+                        0, 
+                        taskId, 
+                        title.trim(), 
+                        assigneeId, 
+                        assigneeName, 
+                        "TODO", 
+                        subDueDate, 
+                        "", 
+                        "", 
+                        "", 
+                        ""
+                    );
                     SubTaskDB.insert(newSubTask);
                     request.getSession().setAttribute("toastSuccess", "Đã thêm việc con vào kế hoạch phân rã thành công!");
                 }

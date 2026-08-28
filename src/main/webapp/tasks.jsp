@@ -203,7 +203,7 @@
                      data-status="TODO">
 
                     <c:forEach items="${todoTasks}" var="task">
-                        <div class="card kanban-card border-0 bg-white shadow-sm p-3 rounded-3"
+                        <div class="card kanban-card border-0 bg-white shadow-sm p-3 rounded-3 ${task.isOverdue() ? 'border border-danger border-2' : ''}"
                              id="task-${task.id}"
                              draggable="true" 
                              data-task-id="${task.id}"
@@ -261,10 +261,10 @@
                                     <span class="fw-medium text-dark">${task.assigneeName}</span>
                                 </div>
                                 <c:if test="${not empty task.dueDate}">
-                                    <div class="d-flex align-items-center gap-1" title="Hạn hoàn thành">
+                                    <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="Hạn hoàn thành: ${task.dueDate}">
                                         <i class="bi bi-calendar-event"></i>
-                                        <span>${task.dueDate}</span>
-                                    </div>
+                                        <span>${task.deadlineLabel}</span>
+                                    </span>
                                 </c:if>
                             </div>
 
@@ -318,7 +318,7 @@
                      data-status="IN_PROGRESS">
 
                     <c:forEach items="${inProgressTasks}" var="task">
-                        <div class="card kanban-card kanban-card-inprogress border-0 bg-white p-3 rounded-3"
+                        <div class="card kanban-card kanban-card-inprogress border-0 bg-white p-3 rounded-3 ${task.isOverdue() ? 'border border-danger border-2' : ''}"
                              id="task-${task.id}"
                              draggable="true" 
                              data-task-id="${task.id}"
@@ -376,10 +376,10 @@
                                     <span class="fw-medium text-dark">${task.assigneeName}</span>
                                 </div>
                                 <c:if test="${not empty task.dueDate}">
-                                    <div class="d-flex align-items-center gap-1" title="Hạn hoàn thành">
+                                    <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="Hạn hoàn thành: ${task.dueDate}">
                                         <i class="bi bi-calendar-event"></i>
-                                        <span>${task.dueDate}</span>
-                                    </div>
+                                        <span>${task.deadlineLabel}</span>
+                                    </span>
                                 </c:if>
                             </div>
 
@@ -496,10 +496,10 @@
                                     <span class="fw-medium text-dark">${task.assigneeName}</span>
                                 </div>
                                 <c:if test="${not empty task.dueDate}">
-                                    <div class="d-flex align-items-center gap-1" title="Hạn hoàn thành">
+                                    <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="Hạn hoàn thành: ${task.dueDate}">
                                         <i class="bi bi-calendar-event"></i>
-                                        <span>${task.dueDate}</span>
-                                    </div>
+                                        <span>${task.deadlineLabel}</span>
+                                    </span>
                                 </c:if>
                             </div>
 
@@ -571,9 +571,16 @@
                                 </div>
                                 <div class="col-12 col-sm-4">
                                     <span class="text-muted fs-9 d-block mb-1">Hạn hoàn thành</span>
-                                    <span class="fw-semibold text-dark fs-8 d-inline-flex align-items-center gap-1">
-                                        <i class="bi bi-calendar-event"></i> ${not empty task.dueDate ? task.dueDate : 'Chưa đặt hạn'}
-                                    </span>
+                                    <c:choose>
+                                        <c:when test="${not empty task.dueDate}">
+                                            <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-calendar-event"></i> ${task.deadlineLabel}
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="text-muted fs-8">Chưa đặt hạn</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
 
@@ -644,6 +651,11 @@
                                                     </div>
 
                                                     <div class="d-flex align-items-center gap-2">
+                                                        <c:if test="${not empty st.dueDate}">
+                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="Hạn chót việc con: ${st.dueDate}">
+                                                                <i class="bi bi-clock-history"></i> ${st.deadlineLabel}
+                                                            </span>
+                                                        </c:if>
                                                         <span class="badge bg-white text-secondary border rounded-pill px-2 py-1 fs-9" title="Người phụ trách">
                                                             <i class="bi bi-person-fill text-primary"></i> ${st.assigneeName}
                                                         </span>
@@ -861,14 +873,14 @@
                                             <input type="hidden" name="taskId" value="${task.id}">
 
                                             <div class="row g-2">
-                                                <div class="col-12 col-md-7">
+                                                <div class="col-12 col-md-5">
                                                     <input type="text" 
                                                            name="title" 
                                                            class="form-control form-control-sm fs-8 rounded-3" 
                                                            placeholder="Nhập tên việc con cần bóc tách..." 
                                                            required>
                                                 </div>
-                                                <div class="col-8 col-md-3">
+                                                <div class="col-12 col-md-3">
                                                     <select name="assigneeId" class="form-select form-select-sm fs-8 rounded-3">
                                                         <option value="0">-- Phân công thành viên --</option>
                                                         <c:forEach items="${userList}" var="u">
@@ -876,12 +888,24 @@
                                                         </c:forEach>
                                                     </select>
                                                 </div>
-                                                <div class="col-4 col-md-2">
+                                                <div class="col-6 col-md-2">
+                                                    <input type="date" 
+                                                           name="dueDate" 
+                                                           class="form-control form-control-sm fs-8 rounded-3" 
+                                                           max="${task.dueDate}"
+                                                           title="Hạn chót việc con (tối đa ${not empty task.dueDate ? task.dueDate : 'không giới hạn'})">
+                                                </div>
+                                                <div class="col-6 col-md-2">
                                                     <button type="submit" class="btn btn-primary-custom btn-sm w-100 rounded-3 fs-8 fw-semibold">
                                                         + Thêm
                                                     </button>
                                                 </div>
                                             </div>
+                                            <c:if test="${not empty task.dueDate}">
+                                                <div class="text-muted fs-9 px-1 mt-1">
+                                                    <i class="bi bi-info-circle text-primary me-1"></i>Hạn chót tối đa cho việc con: <strong>${task.dueDate}</strong>
+                                                </div>
+                                            </c:if>
                                         </form>
                                     </div>
 
@@ -1085,9 +1109,16 @@
                                 </div>
                                 <div class="col-12 col-sm-4">
                                     <span class="text-muted fs-9 d-block mb-1">Hạn hoàn thành</span>
-                                    <span class="fw-semibold text-dark fs-8 d-inline-flex align-items-center gap-1">
-                                        <i class="bi bi-calendar-event"></i> ${not empty task.dueDate ? task.dueDate : 'Chưa đặt hạn'}
-                                    </span>
+                                    <c:choose>
+                                        <c:when test="${not empty task.dueDate}">
+                                            <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-calendar-event"></i> ${task.deadlineLabel}
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="text-muted fs-8">Chưa đặt hạn</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
 
@@ -1587,11 +1618,21 @@
                                             <input type="hidden" name="projectId" value="${project.id}">
                                             <input type="hidden" name="taskId" value="${task.id}">
                                             
-                                            <!-- CHECKLIST TIÊU CHÍ CHẤP THUẬN (DEFINITION OF DONE) -->
+                                            <!-- CHECKLIST TIÊU CHÍ CHẤP THUẬN (DEFINITION OF DONE & SLA) -->
                                             <div class="p-2-5 bg-light rounded-2 border mb-3">
                                                 <span class="fw-bold fs-9 text-dark d-block mb-1">
-                                                    <i class="bi bi-card-checklist text-primary me-1"></i> Tiêu chí chấp thuận (Definition of Done - DoD):
+                                                    <i class="bi bi-card-checklist text-primary me-1"></i> Tiêu chí chấp thuận & Tuân thủ thời hạn (SLA & DoD):
                                                 </span>
+                                                <div class="d-flex align-items-center justify-content-between p-2 bg-white rounded border mb-2 fs-9">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="bi bi-calendar2-check text-success fs-7"></i>
+                                                        <div>
+                                                            <span class="fw-bold d-block text-dark">Hạn cam kết: ${not empty task.dueDate ? task.dueDate : 'Không đặt'}</span>
+                                                            <span class="text-muted fs-9">Thời điểm bàn giao: ${not empty task.submittedAt ? task.submittedAt : 'Chưa ghi nhận'}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9">${task.deadlineLabel}</span>
+                                                </div>
                                                 <div class="form-check fs-9 mb-1">
                                                     <input class="form-check-input" type="checkbox" id="dod1-${task.id}" checked>
                                                     <label class="form-check-label text-secondary" for="dod1-${task.id}">
@@ -1730,6 +1771,11 @@
                                                     </div>
 
                                                     <div class="d-flex align-items-center gap-2">
+                                                        <c:if test="${not empty st.dueDate}">
+                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="Hạn chót việc con: ${st.dueDate}">
+                                                                <i class="bi bi-clock-history"></i> ${st.deadlineLabel}
+                                                            </span>
+                                                        </c:if>
                                                         <span class="badge bg-white text-secondary border rounded-pill px-2 py-1 fs-9" title="Người phụ trách">
                                                             <i class="bi bi-person-fill text-primary"></i> ${st.assigneeName}
                                                         </span>
@@ -2068,9 +2114,16 @@
                                 </div>
                                 <div class="col-12 col-sm-4">
                                     <span class="text-muted fs-9 d-block mb-1">Hạn hoàn thành</span>
-                                    <span class="fw-semibold text-dark fs-8 d-inline-flex align-items-center gap-1">
-                                        <i class="bi bi-calendar-event"></i> ${not empty task.dueDate ? task.dueDate : 'Chưa đặt hạn'}
-                                    </span>
+                                    <c:choose>
+                                        <c:when test="${not empty task.dueDate}">
+                                            <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1">
+                                                <i class="bi bi-calendar-event"></i> ${task.deadlineLabel}
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="text-muted fs-8">Chưa đặt hạn</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
                             </div>
 
@@ -2420,11 +2473,21 @@
                                             <input type="hidden" name="projectId" value="${project.id}">
                                             <input type="hidden" name="taskId" value="${task.id}">
                                             
-                                            <!-- CHECKLIST TIÊU CHÍ CHẤP THUẬN (DEFINITION OF DONE) -->
+                                            <!-- CHECKLIST TIÊU CHÍ CHẤP THUẬN (DEFINITION OF DONE & SLA) -->
                                             <div class="p-2-5 bg-light rounded-2 border mb-3">
                                                 <span class="fw-bold fs-9 text-dark d-block mb-1">
-                                                    <i class="bi bi-card-checklist text-primary me-1"></i> Tiêu chí chấp thuận (Definition of Done - DoD):
+                                                    <i class="bi bi-card-checklist text-primary me-1"></i> Tiêu chí chấp thuận & Tuân thủ thời hạn (SLA & DoD):
                                                 </span>
+                                                <div class="d-flex align-items-center justify-content-between p-2 bg-white rounded border mb-2 fs-9">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="bi bi-calendar2-check text-success fs-7"></i>
+                                                        <div>
+                                                            <span class="fw-bold d-block text-dark">Hạn cam kết: ${not empty task.dueDate ? task.dueDate : 'Không đặt'}</span>
+                                                            <span class="text-muted fs-9">Thời điểm bàn giao: ${not empty task.submittedAt ? task.submittedAt : 'Chưa ghi nhận'}</span>
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9">${task.deadlineLabel}</span>
+                                                </div>
                                                 <div class="form-check fs-9 mb-1">
                                                     <input class="form-check-input" type="checkbox" id="dod1-done-${task.id}" checked>
                                                     <label class="form-check-label text-secondary" for="dod1-done-${task.id}">
@@ -2563,6 +2626,11 @@
                                                     </div>
 
                                                     <div class="d-flex align-items-center gap-2">
+                                                        <c:if test="${not empty st.dueDate}">
+                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9 d-inline-flex align-items-center gap-1" title="Hạn chót việc con: ${st.dueDate}">
+                                                                <i class="bi bi-clock-history"></i> ${st.deadlineLabel}
+                                                            </span>
+                                                        </c:if>
                                                         <span class="badge bg-white text-secondary border rounded-pill px-2 py-1 fs-9" title="Người phụ trách">
                                                             <i class="bi bi-person-fill text-primary"></i> ${st.assigneeName}
                                                         </span>

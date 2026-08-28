@@ -1,6 +1,8 @@
 package com.teamwork.business;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 /**
  * JavaBean Model đại diện cho một Thẻ công việc lớn (Task Cha) trong Bảng Kanban & Quy Trình Nghiệm Thu 2 Tầng.
@@ -281,5 +283,151 @@ public class Task implements Serializable {
     }
     public void setPlanningReviewedAt(String planningReviewedAt) {
         this.planningReviewedAt = (planningReviewedAt != null) ? planningReviewedAt.trim() : "";
+    }
+
+    // ===================== CÁC HÀM TIỆN ÍCH TÍNH TOÁN HẠN CHÓT (DEADLINE UTILITIES) =====================
+
+    /**
+     * Tính toán số ngày còn lại đến hạn chót (so với ngày hiện tại).
+     * - Nếu trả về số dương (> 0): Còn N ngày nữa mới đến hạn.
+     * - Nếu trả về 0: Hạn chót chính là ngày hôm nay.
+     * - Nếu trả về số âm (< 0): Đã quá hạn |N| ngày.
+     * - Nếu không có hạn chót (rỗng/null) hoặc định dạng sai: Trả về Long.MAX_VALUE.
+     */
+    public long getDaysRemaining() {
+        if (this.dueDate == null || this.dueDate.trim().isEmpty()) {
+            return Long.MAX_VALUE;
+        }
+
+        try {
+            LocalDate today = LocalDate.now();
+            LocalDate targetDate = LocalDate.parse(this.dueDate.trim());
+            return ChronoUnit.DAYS.between(today, targetDate);
+        } catch (Exception e) {
+            return Long.MAX_VALUE;
+        }
+    }
+
+    /**
+     * Kiểm tra xem Task đã bị Quá Hạn hay chưa.
+     * Task được xem là quá hạn khi:
+     * 1. Chưa hoàn thành (status khác "DONE")
+     * 2. Có ngày hạn chót và ngày hạn chót đã trôi qua trước ngày hôm nay (daysRemaining < 0)
+     */
+    public boolean isOverdue() {
+        if ("DONE".equalsIgnoreCase(this.status)) {
+            return false;
+        }
+        long days = getDaysRemaining();
+        return (days < 0 && days != Long.MAX_VALUE);
+    }
+
+    /**
+     * Kiểm tra xem Task có đang Sắp Đến Hạn (Khẩn Cấp trong 0 đến 2 ngày) hay không.
+     */
+    public boolean isDueSoon() {
+        if ("DONE".equalsIgnoreCase(this.status)) {
+            return false;
+        }
+        long days = getDaysRemaining();
+        return (days >= 0 && days <= 2);
+    }
+
+    /**
+     * Trả về mã chuỗi trạng thái hạn chót:
+     * - "OVERDUE": Quá hạn (🔴)
+     * - "DUE_TODAY": Hôm nay đến hạn (🚨)
+     * - "DUE_SOON": Sắp đến hạn trong 1-2 ngày (🟠)
+     * - "ON_TRACK": Đang trong hạn an toàn (🟢)
+     * - "COMPLETED_ON_TIME": Đã hoàn thành đúng hạn (✅)
+     * - "COMPLETED_LATE": Đã hoàn thành nhưng trễ hạn (⚠️)
+     * - "NO_DEADLINE": Không thiết lập hạn chót
+     */
+    public String getDeadlineStatus() {
+        if (this.dueDate == null || this.dueDate.trim().isEmpty()) {
+            return "NO_DEADLINE";
+        }
+
+        if ("DONE".equalsIgnoreCase(this.status)) {
+            // Nếu đã xong, kiểm tra xem có nộp đúng hạn không
+            if (this.submittedAt != null && !this.submittedAt.trim().isEmpty()) {
+                try {
+                    String subDateStr = this.submittedAt.trim().substring(0, 10);
+                    LocalDate subDate = LocalDate.parse(subDateStr);
+                    LocalDate due = LocalDate.parse(this.dueDate.trim());
+                    if (subDate.isAfter(due)) {
+                        return "COMPLETED_LATE";
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            return "COMPLETED_ON_TIME";
+        }
+
+        long days = getDaysRemaining();
+        if (days < 0) {
+            return "OVERDUE";
+        } else if (days == 0) {
+            return "DUE_TODAY";
+        } else if (days <= 2) {
+            return "DUE_SOON";
+        } else {
+            return "ON_TRACK";
+        }
+    }
+
+    /**
+     * Trả về lớp màu CSS Bootstrap tương ứng với trạng thái hạn chót để hiển thị Badge trực quan
+     */
+    public String getDeadlineBadgeClass() {
+        String deadlineStatus = getDeadlineStatus();
+        switch (deadlineStatus) {
+            case "OVERDUE":
+                return "bg-danger text-white border-danger shadow-2xs";
+            case "DUE_TODAY":
+                return "bg-danger-subtle text-danger border-danger fw-bold shadow-2xs";
+            case "DUE_SOON":
+                return "bg-warning-subtle text-dark border-warning fw-semibold shadow-2xs";
+            case "ON_TRACK":
+                return "bg-light text-secondary border shadow-2xs";
+            case "COMPLETED_ON_TIME":
+                return "bg-success-subtle text-success border-success-subtle shadow-2xs";
+            case "COMPLETED_LATE":
+                return "bg-secondary-subtle text-secondary border shadow-2xs";
+            default:
+                return "bg-light text-muted border";
+        }
+    }
+
+    /**
+     * Trả về nhãn chữ tiếng Việt định dạng đẹp kèm biểu tượng và số ngày đếm ngược
+     */
+    public String getDeadlineLabel() {
+        if (this.dueDate == null || this.dueDate.trim().isEmpty()) {
+            return "Chưa đặt hạn chót";
+        }
+
+        String deadlineStatus = getDeadlineStatus();
+        long days = getDaysRemaining();
+
+        switch (deadlineStatus) {
+            case "OVERDUE":
+                return "🔴 Quá hạn " + Math.abs(days) + " ngày (" + this.dueDate + ")";
+            case "DUE_TODAY":
+                return "🚨 Hạn chót hôm nay (" + this.dueDate + ")";
+            case "DUE_SOON":
+                if (days == 1) {
+                    return "🟠 Hạn chót ngày mai (" + this.dueDate + ")";
+                }
+                return "🟠 Còn " + days + " ngày (" + this.dueDate + ")";
+            case "ON_TRACK":
+                return "🟢 Còn " + days + " ngày (" + this.dueDate + ")";
+            case "COMPLETED_ON_TIME":
+                return "✅ Hoàn thành đúng hạn (" + this.dueDate + ")";
+            case "COMPLETED_LATE":
+                return "⚠️ Hoàn thành trễ hạn (" + this.dueDate + ")";
+            default:
+                return this.dueDate;
+        }
     }
 }
