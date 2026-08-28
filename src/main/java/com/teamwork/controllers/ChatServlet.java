@@ -10,6 +10,7 @@ import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
+import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,6 +59,14 @@ public class ChatServlet extends HttpServlet {
             action = "view";
         }
 
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
         // 3. Phân nhánh hành động GET
         switch (action) {
             case "view":
@@ -98,6 +107,18 @@ public class ChatServlet extends HttpServlet {
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "sendProjectMessage"; // Mặc định là gửi tin nhắn chat dự án
+        }
+
+        String projectIdParam = request.getParameter("projectId");
+        if (projectIdParam != null) {
+            try {
+                int projectId = Integer.parseInt(projectIdParam.trim());
+                if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+                    session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
+                    response.sendRedirect(request.getContextPath() + "/project?action=list");
+                    return;
+                }
+            } catch (Exception e) {}
         }
 
         // 3. Phân nhánh hành động POST
@@ -268,11 +289,23 @@ public class ChatServlet extends HttpServlet {
     private void handleDeleteMessage(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws IOException {
 
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+
         String messageIdParam = request.getParameter("messageId");
-        if (messageIdParam != null && !messageIdParam.trim().isEmpty()) {
+        if (messageIdParam != null && !messageIdParam.trim().isEmpty() && currentUser != null) {
             try {
                 int messageId = Integer.parseInt(messageIdParam.trim());
-                MessageDB.delete(messageId);
+                Message msg = MessageDB.selectById(messageId);
+                Project project = ProjectDB.selectById(projectId);
+
+                if (msg != null && project != null) {
+                    if (currentUser.getId() == msg.getAuthorId() || currentUser.getId() == project.getOwnerId()) {
+                        MessageDB.delete(messageId);
+                    } else {
+                        if (session != null) session.setAttribute("toastError", "Bạn không có quyền xóa tin nhắn của người khác!");
+                    }
+                }
             } catch (NumberFormatException e) {
                 // Bỏ qua nếu messageId không hợp lệ
             }

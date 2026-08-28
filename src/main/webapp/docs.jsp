@@ -147,7 +147,7 @@
                                     <i class="bi bi-pencil me-1"></i> Sửa bài
                                 </button>
                                 
-                                <a href="${pageContext.request.contextPath}/doc?action=delete&projectId=${project.id}&docId=${selectedDoc.id}" 
+                                <a href="${pageContext.request.contextPath}/doc?action=delete&docId=${selectedDoc.id}&projectId=${project.id}" 
                                    class="btn btn-outline-danger btn-sm rounded-pill px-3"
                                    onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết tài liệu này không?');">
                                     <i class="bi bi-trash3 me-1"></i> Xóa

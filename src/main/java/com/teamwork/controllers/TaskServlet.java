@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -65,6 +66,14 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
         // 2. Xử lý hành động của người dùng (list hoặc delete)
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
@@ -93,6 +102,20 @@ public class TaskServlet extends HttpServlet {
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "add";
+        }
+
+        String projectIdParam = request.getParameter("projectId");
+        if (projectIdParam != null) {
+            try {
+                int projectId = Integer.parseInt(projectIdParam.trim());
+                HttpSession session = request.getSession(false);
+                User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+                if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+                    session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
+                    response.sendRedirect(request.getContextPath() + "/project?action=list");
+                    return;
+                }
+            } catch (Exception e) {}
         }
 
         switch (action) {
@@ -454,11 +477,13 @@ public class TaskServlet extends HttpServlet {
         String taskIdParam = request.getParameter("taskId");
         String title = request.getParameter("title");
         String assigneeIdParam = request.getParameter("assigneeId");
+        String dueDateParam = request.getParameter("dueDate");
 
         int projectId = 0;
         int taskId = 0;
         int assigneeId = 0;
         String assigneeName = "Chưa phân công";
+        String subDueDate = (dueDateParam != null) ? dueDateParam.trim() : "";
 
         try {
             projectId = Integer.parseInt(projectIdParam.trim());
@@ -490,9 +515,38 @@ public class TaskServlet extends HttpServlet {
                 return;
             }
 
+            // RÀNG BUỘC BẤT BIẾN CÂY PHÂN CẤP (HIERARCHICAL DEADLINE INVARIANT):
+            // Hạn chót của việc con không được vượt quá Hạn chót của Task cha
+            if (!subDueDate.isEmpty() && parentTask.getDueDate() != null && !parentTask.getDueDate().trim().isEmpty()) {
+                try {
+                    LocalDate subDate = LocalDate.parse(subDueDate);
+                    LocalDate parentDate = LocalDate.parse(parentTask.getDueDate().trim());
+                    if (subDate.isAfter(parentDate)) {
+                        request.getSession().setAttribute("toastError", 
+                            "⚠️ Hạn chót việc con (" + subDueDate + ") không được vượt quá hạn chót của Task lớn (" + parentTask.getDueDate().trim() + ")!");
+                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    // Nếu lỗi định dạng ngày, tiếp tục lưu dạng chuỗi an toàn
+                }
+            }
+
             if (currentUser.getId() == parentTask.getAssigneeId() || currentUser.getId() == project.getOwnerId()) {
                 if (title != null && !title.trim().isEmpty() && taskId > 0) {
-                    SubTask newSubTask = new SubTask(0, taskId, title.trim(), assigneeId, assigneeName, false);
+                    SubTask newSubTask = new SubTask(
+                        0, 
+                        taskId, 
+                        title.trim(), 
+                        assigneeId, 
+                        assigneeName, 
+                        "TODO", 
+                        subDueDate, 
+                        "", 
+                        "", 
+                        "", 
+                        ""
+                    );
                     SubTaskDB.insert(newSubTask);
                     request.getSession().setAttribute("toastSuccess", "Đã thêm việc con vào kế hoạch phân rã thành công!");
                 }

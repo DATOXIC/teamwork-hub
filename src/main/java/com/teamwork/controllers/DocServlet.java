@@ -8,6 +8,7 @@ import com.teamwork.data.DocDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
+import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,6 +58,14 @@ public class DocServlet extends HttpServlet {
             action = "list";
         }
 
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
         // 3. Phân nhánh hành động GET
         switch (action) {
             case "list":
@@ -92,6 +101,18 @@ public class DocServlet extends HttpServlet {
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "create"; // Mặc định là tạo bài mới
+        }
+
+        String projectIdParam = request.getParameter("projectId");
+        if (projectIdParam != null) {
+            try {
+                int projectId = Integer.parseInt(projectIdParam.trim());
+                if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+                    session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
+                    response.sendRedirect(request.getContextPath() + "/project?action=list");
+                    return;
+                }
+            } catch (Exception e) {}
         }
 
         // 3. Phân nhánh hành động POST
@@ -179,16 +200,25 @@ public class DocServlet extends HttpServlet {
     private void handleDeleteDoc(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws IOException {
 
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+
         String docIdParam = request.getParameter("docId");
-        if (docIdParam != null && !docIdParam.trim().isEmpty()) {
+        if (docIdParam != null && !docIdParam.trim().isEmpty() && currentUser != null) {
             try {
                 int docId = Integer.parseInt(docIdParam.trim());
+                Doc doc = DocDB.selectById(docId);
+                Project project = ProjectDB.selectById(projectId);
 
-                // 1. Dọn dẹp liên kết Task-Doc trong TaskDocDB trước (Cascade delete)
-                TaskDocDB.deleteByDocId(docId);
-
-                // 2. Xóa bài viết trong DocDB
-                DocDB.delete(docId);
+                if (doc != null && project != null) {
+                    if (currentUser.getId() == doc.getAuthorId() || currentUser.getId() == project.getOwnerId()) {
+                        TaskDocDB.deleteByDocId(docId);
+                        DocDB.delete(docId);
+                        if (session != null) session.setAttribute("toastSuccess", "Đã xóa tài liệu thành công!");
+                    } else {
+                        if (session != null) session.setAttribute("toastError", "Bạn không có quyền xóa tài liệu của người khác!");
+                    }
+                }
             } catch (NumberFormatException e) {
                 // Bỏ qua nếu docId không hợp lệ
             }

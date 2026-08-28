@@ -359,14 +359,23 @@ public class ProjectInviteServlet extends HttpServlet {
             ProjectMemberDB.insert(member);
 
             // BẮN THÔNG BÁO KẾT NỐI TỚI NGƯỜI KIA
-            int notifyRecipientId = ("INVITATION".equalsIgnoreCase(invite.getType())) ? invite.getSenderId() : invite.getSenderId();
-            NotificationDB.send(
-                notifyRecipientId,
-                "Gia Nhập Dự Án Thành Công",
-                newMemberUser.getFullName() + " đã chính thức trở thành thành viên của dự án [" + invite.getProjectName() + "]!",
-                "/task?action=list&projectId=" + invite.getProjectId(),
-                "INVITE"
-            );
+            if ("INVITATION".equalsIgnoreCase(invite.getType())) {
+                NotificationDB.send(
+                    invite.getSenderId(),
+                    "Thành Viên Mới Gia Nhập",
+                    newMemberUser.getFullName() + " đã đồng ý tham gia vào dự án [" + invite.getProjectName() + "]!",
+                    "/task?action=list&projectId=" + invite.getProjectId(),
+                    "INVITE"
+                );
+            } else {
+                NotificationDB.send(
+                    invite.getSenderId(),
+                    "Yêu Cầu Được Phê Duyệt",
+                    "Yêu cầu xin gia nhập dự án [" + invite.getProjectName() + "] của bạn đã được Trưởng Dự Án chấp thuận!",
+                    "/task?action=list&projectId=" + invite.getProjectId(),
+                    "INVITE"
+                );
+            }
         }
 
         session.setAttribute("toastSuccess", "Chúc mừng! Đã kết nạp thành viên vào dự án [" + invite.getProjectName() + "] thành công!");

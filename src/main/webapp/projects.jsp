@@ -125,13 +125,12 @@
     <!-- =========================================================================
          5. PROJECT GRID: LƯỚI HIỂN THỊ DANH SÁCH CARD DỰ ÁN
          ========================================================================= -->
-    <div class="row g-4">
-        <%-- VÒNG LẶP JSTL DUYỆT QUA DANH SÁCH DỰ ÁN --%>
-        <c:forEach items="${projects}" var="p">
+    <!-- LƯỚI 1: DỰ ÁN CỦA TÔI -->
+    <h5 class="fw-bold text-dark mb-3 mt-2"><i class="bi bi-star-fill text-warning me-2"></i>Dự án của tôi</h5>
+    <div class="row g-4 mb-5">
+        <c:forEach items="${myProjects}" var="p">
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="card h-100 border-0 bg-white shadow-sm rounded-4 p-4 d-flex flex-column justify-content-between transition hover-shadow">
-                    
-                    <!-- Phần thân trên của Card -->
                     <div>
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="d-flex align-items-center gap-2">
@@ -146,45 +145,71 @@
                                 <i class="bi bi-people-fill text-primary me-1"></i> ${memberCountMap[p.id]}/10
                             </span>
                         </div>
-
                         <h5 class="fw-bold text-dark mb-2">${p.name}</h5>
                         <p class="text-secondary fs-7 mb-4 line-clamp-2">
                             ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
                         </p>
                     </div>
-
-                    <!-- Phần đuôi của Card: Hiển thị Tiến độ % và Nút vào dự án -->
                     <div class="pt-3 border-top">
                         <div class="d-flex justify-content-between align-items-center fs-8 text-muted mb-1">
                             <span>Tiến độ hoàn thành</span>
                             <span class="fw-bold text-dark">${p.progressPercentage}%</span>
                         </div>
-
-                        <!-- Thanh Progress Bar tự co giãn theo con số % -->
                         <div class="progress rounded-pill mb-3" style="height: 8px;">
                             <div class="progress-bar bg-primary" role="progressbar" 
                                  style="width: ${p.progressPercentage}%;" 
                                  aria-valuenow="${p.progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
-
-                        <!-- Nút bấm bước vào bảng Kanban của dự án -->
                         <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
                            class="btn btn-outline-primary w-100 rounded-pill py-2 fs-7 fw-semibold d-flex align-items-center justify-content-center gap-2">
                             <span>Vào không gian dự án</span>
                             <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
-
                 </div>
             </div>
         </c:forEach>
+        <c:if test="${empty myProjects}">
+            <div class="col-12 text-center py-4">
+                <div class="text-muted fs-2 mb-2"><i class="bi bi-inbox"></i></div>
+                <h6 class="text-dark fw-bold">Chưa tham gia dự án nào</h6>
+                <p class="text-muted fs-8">Hãy bấm nút "Tạo dự án mới" hoặc "Nhập Mã Xin Vào" để bắt đầu làm việc nhóm!</p>
+            </div>
+        </c:if>
+    </div>
 
-        <!-- Hiển thị khi danh sách dự án trống -->
-        <c:if test="${empty projects}">
-            <div class="col-12 text-center py-5">
-                <div class="text-muted fs-1 mb-2"><i class="bi bi-inbox"></i></div>
-                <h5 class="text-dark fw-bold">Chưa có dự án nào</h5>
-                <p class="text-muted fs-7">Hãy bấm nút "Tạo dự án mới" hoặc "Nhập Mã Xin Vào" để bắt đầu tham gia làm việc nhóm!</p>
+    <!-- LƯỚI 2: CÁC DỰ ÁN KHÁC (CÓ THỂ XIN VÀO) -->
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-globe me-2"></i>Dự án khác trong hệ thống</h5>
+    <div class="row g-4">
+        <c:forEach items="${otherProjects}" var="p">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 bg-light shadow-sm rounded-4 p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 py-1 fs-8">
+                                <i class="bi bi-folder2-open me-1"></i> ID: #${p.id}
+                            </span>
+                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9">
+                                <i class="bi bi-people-fill me-1"></i> ${memberCountMap[p.id]}/10
+                            </span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">${p.name}</h5>
+                        <p class="text-secondary fs-7 mb-4 line-clamp-2">
+                            ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
+                        </p>
+                    </div>
+                    <div class="pt-3 border-top text-center">
+                        <button type="button" class="btn btn-outline-secondary w-100 rounded-pill py-2 fs-7 fw-semibold"
+                                onclick="document.getElementById('projectCodeInput').value='${p.projectCode}'; new bootstrap.Modal(document.getElementById('joinByCodeModal')).show();">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Xin gia nhập
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </c:forEach>
+        <c:if test="${empty otherProjects}">
+            <div class="col-12 text-center py-4">
+                <span class="text-muted fs-8">Không có dự án nào khác.</span>
             </div>
         </c:if>
     </div>

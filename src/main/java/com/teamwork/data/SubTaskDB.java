@@ -1,6 +1,7 @@
 package com.teamwork.data;
 
 import com.teamwork.business.SubTask;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,15 @@ public class SubTaskDB {
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các việc con mẫu đa dạng 5 trạng thái
     static {
-        // --- CÁC VIỆC CON CỦA TASK 1: "Thiết kế Cơ sở Dữ liệu & Model JavaBean" (Trạng thái PLANNING - Đang trình PM duyệt kế hoạch) ---
+        LocalDate today = LocalDate.now();
+        String datePlus2 = today.plusDays(2).toString();
+        String datePlus3 = today.plusDays(3).toString();
+        String datePlus4 = today.plusDays(4).toString();
+        String dateMinus1 = today.minusDays(1).toString();
+        String dateMinus7 = today.minusDays(7).toString();
+        String dateMinus8 = today.minusDays(8).toString();
+
+        // --- CÁC VIỆC CON CỦA TASK 1: "Thiết kế Cơ sở Dữ liệu & Model JavaBean" (Trạng thái PLANNING - Task cha hạn còn 5 ngày) ---
         subTasks.add(new SubTask(
             nextId++,
             1, // taskId = 1
@@ -30,6 +39,7 @@ public class SubTaskDB {
             1, // assigneeId = 1 (Trưởng Nhóm Admin)
             "Trưởng Nhóm Admin",
             "TODO",
+            datePlus2, // Hạn chót: Còn 2 ngày
             "",
             "",
             "",
@@ -43,6 +53,7 @@ public class SubTaskDB {
             2, // assigneeId = 2 (Nguyễn Văn An)
             "Nguyễn Văn An",
             "TODO",
+            datePlus3, // Hạn chót: Còn 3 ngày
             "",
             "",
             "",
@@ -56,6 +67,7 @@ public class SubTaskDB {
             2, // assigneeId = 2 (Nguyễn Văn An)
             "Nguyễn Văn An",
             "TODO",
+            datePlus4, // Hạn chót: Còn 4 ngày
             "",
             "",
             "",
@@ -70,10 +82,11 @@ public class SubTaskDB {
             2, // assigneeId = 2 (Nguyễn Văn An)
             "Nguyễn Văn An",
             "APPROVED",
+            dateMinus1,
             "Đã hoàn thiện giao diện chọn cổng thanh toán và quét mã QR VNPAY",
             "Giao diện chuẩn UI Bootstrap, màu sắc hài hòa",
-            "27/08/2026 14:00",
-            "27/08/2026 14:30"
+            dateMinus1 + " 14:00",
+            dateMinus1 + " 14:30"
         ));
 
         subTasks.add(new SubTask(
@@ -83,10 +96,11 @@ public class SubTaskDB {
             2,
             "Nguyễn Văn An",
             "APPROVED",
+            dateMinus1,
             "Đã viết Servlet kiểm tra chữ ký số SHA-256 và cập nhật đơn hàng",
             "Mã nguồn bảo mật tốt, xử lý bắt ngoại lệ đầy đủ",
-            "27/08/2026 16:30",
-            "27/08/2026 17:00"
+            dateMinus1 + " 16:30",
+            dateMinus1 + " 17:00"
         ));
 
         subTasks.add(new SubTask(
@@ -96,10 +110,11 @@ public class SubTaskDB {
             2,
             "Nguyễn Văn An",
             "APPROVED",
+            today.toString(),
             "Đã chạy thử 10/10 ca test thẻ test, quét QR thành công 100%",
             "Nghiệm thu đạt 100%, sẵn sàng bàn giao cho PM",
-            "27/08/2026 18:00",
-            "27/08/2026 18:30"
+            today.toString() + " 10:00",
+            today.toString() + " 10:30"
         ));
 
         // --- CÁC VIỆC CON CỦA TASK 4: "Xây dựng giao diện Landing Page với Bootstrap 5" (Tiến độ: 100% - DONE ĐÃ DUYỆT 5 SAO) ---
@@ -110,10 +125,11 @@ public class SubTaskDB {
             2,
             "Nguyễn Văn An",
             "APPROVED",
+            dateMinus8,
             "Đã hoàn thành header cố định và banner động",
             "Đạt chuẩn",
-            "20/08/2026 14:00",
-            "20/08/2026 14:30"
+            dateMinus8 + " 14:00",
+            dateMinus8 + " 14:30"
         ));
 
         subTasks.add(new SubTask(
@@ -123,10 +139,11 @@ public class SubTaskDB {
             2,
             "Nguyễn Văn An",
             "APPROVED",
+            dateMinus7,
             "Đã hoàn thành bảng giá 3 gói dịch vụ và footer bản quyền",
             "Đạt chuẩn",
-            "20/08/2026 15:00",
-            "20/08/2026 15:30"
+            dateMinus7 + " 15:00",
+            dateMinus7 + " 15:30"
         ));
     }
 
