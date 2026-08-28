@@ -73,6 +73,13 @@ public class Project implements Serializable {
         this.projectCode = (projectCode != null) ? projectCode.trim().toUpperCase() : "";
     }
 
+    public String getCode() {
+        return getProjectCode();
+    }
+    public void setCode(String code) {
+        setProjectCode(code);
+    }
+
     public String getName() {
         return name;
     }

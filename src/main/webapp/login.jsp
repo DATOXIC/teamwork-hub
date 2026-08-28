@@ -1,45 +1,82 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%-- Thiết lập tiêu đề trang cho header.jsp --%>
-<c:set var="pageTitle" value="Đăng nhập &bull; TeamWork Hub" />
-<jsp:include page="/includes/header.jsp" />
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập &bull; TeamWork Hub</title>
 
-<%-- CSS riêng cho trang Login --%>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/styles/login.css">
+    <%-- Google Fonts --%>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<jsp:include page="/includes/navbar.jsp" />
+    <%-- Bootstrap 5 CSS --%>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <%-- Bootstrap Icons --%>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <%-- CSS riêng của trang Login — đặt trong <head>, tải trước body --%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/styles/login.css?v=<%= System.currentTimeMillis() %>">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;">
+
+<%-- Navbar nhỏ gọn: chỉ Brand + tên trường, không có menu đăng nhập --%>
+<nav class="navbar navbar-dark py-2 shadow-sm" style="background-color: #0f172a; border-bottom: 1px solid #1e293b;">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand d-flex align-items-center fw-bold" href="${pageContext.request.contextPath}/">
+            <span class="me-2 d-flex align-items-center justify-content-center"
+                  style="width: 30px; height: 30px; background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); border-radius: 7px;">
+                <i class="bi bi-grid-1x2-fill text-white" style="font-size: 14px;"></i>
+            </span>
+            <span class="text-white fw-bold">TeamWork</span><span class="text-info fw-bold ms-1">Hub</span>
+        </a>
+        <span class="small" style="color: #94a3b8; font-size: 13px;">
+            <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCMUTE Campus
+        </span>
+    </div>
+</nav>
 
 <%-- ============================================================
      LAYOUT 2 CỘT — Tái tạo từ LoginWindow.xaml
      ============================================================ --%>
 <div class="login-wrapper">
 
-    <%-- ═══════════ CỘT TRÁI: Branding Panel ═══════════ --%>
+    <%-- ═══════════ CỘT TRÁI: Branding Panel (Dark Navy & Indigo) ═══════════ --%>
     <div class="login-branding">
         <div class="branding-content">
-            <%-- Header: Logo + Tên trường --%>
+            
+            <%-- Header: Logo HCMUTE + Tên trường --%>
             <div class="branding-header">
                 <img src="${pageContext.request.contextPath}/images/ute_logo.png" alt="Logo HCMUTE" />
                 <div class="branding-header-text">
-                    <h4>HCMUTE</h4>
-                    <p>ĐẠI HỌC SƯ PHẠM KỸ THUẬT TP.HCM</p>
+                    <h4>TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT TP.HCM</h4>
+                    <p>Khoa Công nghệ Thông tin &bull; Web Programming</p>
                 </div>
             </div>
 
-            <%-- Body: Hero image + Tiêu đề --%>
+            <%-- Body: Showcase Cổng trường & Tên ứng dụng --%>
             <div class="branding-body">
-                <div class="branding-hero-img">
-                    <img src="${pageContext.request.contextPath}/images/HCMUTE_GATE.png" alt="Cổng trường HCMUTE" />
+                <div class="branding-hero-showcase">
+                    <div class="branding-hero-img">
+                        <img src="${pageContext.request.contextPath}/images/HCMUTE_GATE.png" alt="Cổng trường HCMUTE" />
+                    </div>
+                    <div class="branding-hero-badge">
+                        <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCMUTE Campus
+                    </div>
                 </div>
-                <h2>TeamWork Hub</h2>
-                <div class="branding-divider">
-                    <p>Nền tảng làm việc nhóm tập trung và hiệu quả</p>
-                </div>
+
+                <h2 class="branding-title">TeamWork Hub</h2>
+                <p class="branding-desc">Không gian cộng tác, quản lý tiến độ và chia sẻ tài liệu tập trung cho nhóm sinh viên</p>
             </div>
 
-            <%-- Footer: Slogan --%>
+            <%-- Footer: Slogan HCMUTE --%>
             <div class="branding-footer">
-                <p>Chất lượng - Sáng tạo - Hội nhập</p>
+                <div class="branding-slogan-pill">
+                    <i class="bi bi-stars text-warning me-1"></i> Chất lượng &bull; Sáng tạo &bull; Hội nhập
+                </div>
             </div>
         </div>
     </div>
@@ -248,4 +285,6 @@ function fillLogin(u, p) {
 }
 </script>
 
-<jsp:include page="/includes/footer.jsp" />
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

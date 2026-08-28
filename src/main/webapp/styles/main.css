@@ -3,6 +3,8 @@
    Lấy cảm hứng từ Basecamp 4 & Notion & Trello Modern UI
    ========================================================================== */
 
+@import url('login.css');
+
 :root {
     --brand-primary: #4f46e5;
     --brand-primary-hover: #4338ca;
@@ -219,5 +221,175 @@ body {
     font-size: 0.68rem;
     font-weight: 700;
 }
+
+/* ==========================================================================
+   Task Detail Modal — Modern 2-Column SaaS Layout (Linear / Jira style)
+   ========================================================================== */
+.task-modal-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 14px 24px;
+}
+
+.task-modal-id-badge {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    font-family: monospace;
+}
+
+.task-desc-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.65;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.task-modal-sidebar {
+    background-color: #f8fafc;
+    border-left: 1px solid #e2e8f0;
+    padding: 22px;
+}
+
+.task-sidebar-section-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+.task-property-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.task-property-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e2e8f0;
+    font-size: 0.835rem;
+}
+
+.task-property-row:last-child {
+    border-bottom: none;
+}
+
+.task-property-label {
+    color: #64748b;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.task-property-value {
+    font-weight: 600;
+    color: #0f172a;
+    text-align: right;
+}
+
+/* ==========================================================================
+   Subtask Checklist — Modern UI (Linear / Jira style)
+   ========================================================================== */
+.subtask-progress-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+}
+
+.subtask-item {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.subtask-item:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.subtask-item.subtask-approved {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+    opacity: 0.85;
+}
+
+.subtask-add-card {
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 16px;
+    transition: all 0.15s ease;
+}
+
+.subtask-add-card:focus-within {
+    background-color: #ffffff;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+}
+
+/* ==========================================================================
+   Wiki Documents & Quality Gate Cards — Modern UI
+   ========================================================================== */
+.doc-attachment-item {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.15s ease;
+}
+
+.doc-attachment-item:hover {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.gate-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    transition: border-color 0.15s ease;
+}
+
+.gate-card-primary {
+    background-color: #f8fafc;
+    border-left: 3.5px solid #4f46e5;
+}
+
+.gate-card-success {
+    background-color: #f8fafc;
+    border-left: 3.5px solid #10b981;
+}
+
+.gate-card-warning {
+    background-color: #f8fafc;
+    border-left: 3.5px solid #f59e0b;
+}
+
+
+
 
 

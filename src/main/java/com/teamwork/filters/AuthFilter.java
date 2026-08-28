@@ -40,7 +40,7 @@ public class AuthFilter implements Filter {
 
         // 2. Thiết lập bảng mã UTF-8 cho toàn bộ request/response đi qua cổng
         httpRequest.setCharacterEncoding("UTF-8");
-        httpResponse.setContentType("text/html;charset=UTF-8");
+        httpResponse.setCharacterEncoding("UTF-8");
 
         // 3. Lấy đường dẫn URL tương đối mà người dùng đang truy cập
         // Ví dụ: URL đầy đủ là "/teamwork-hub/project" -> path nhận được sẽ là "/project"

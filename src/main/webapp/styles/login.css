@@ -1,6 +1,6 @@
 /* ==========================================================================
-   TeamWork Hub — Modern Login Page Stylesheet
-   Thiết kế giao diện 2 cột hiện đại, tối ưu tương phản & font size tiêu chuẩn
+   TeamWork Hub — Modern SaaS Login Stylesheet
+   Thiết kế 2 cột chuẩn Linear / Notion / SaaS kết hợp nhận diện HCMUTE
    ========================================================================== */
 
 :root {
@@ -20,16 +20,16 @@
     overflow: hidden;
 }
 
-/* ── CỘT TRÁI: Branding Panel (Dark Navy & Indigo) ── */
+/* ── CỘT TRÁI: Branding Panel (Dark Navy & Deep Indigo) ── */
 .login-branding {
-    width: 440px;
-    min-width: 440px;
+    width: 460px;
+    min-width: 460px;
     display: flex;
     flex-direction: column;
     position: relative;
     overflow: hidden;
     background: linear-gradient(165deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
-    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.12);
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.08);
 }
 
 .branding-content {
@@ -39,9 +39,10 @@
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
-    padding: 48px 36px;
+    padding: 44px 36px;
 }
 
+/* Header trường học */
 .branding-header {
     display: flex;
     align-items: center;
@@ -52,15 +53,16 @@
     width: 44px;
     height: 52px;
     object-fit: contain;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
 }
 
 .branding-header-text h4 {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 800;
     color: #ffffff;
     margin: 0;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.5px;
+    line-height: 1.35;
 }
 
 .branding-header-text p {
@@ -68,35 +70,61 @@
     font-weight: 500;
     color: #cbd5e1;
     margin: 2px 0 0 0;
-    line-height: 1.35;
-    letter-spacing: 0.2px;
+    line-height: 1.3;
 }
 
+/* Thân cột Branding: Ảnh Cổng trường + Tiêu đề TeamWork Hub */
 .branding-body {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    margin: 24px 0;
+    margin: 20px 0;
+}
+
+.branding-hero-showcase {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
 .branding-hero-img {
     width: 100%;
-    max-height: 220px;
-    border-radius: 14px;
+    height: 210px;
+    border-radius: 16px;
     overflow: hidden;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .branding-hero-img img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.4s ease;
 }
 
-.branding-body h2 {
+.branding-hero-img:hover img {
+    transform: scale(1.03);
+}
+
+.branding-hero-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 50px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.branding-title {
     font-size: 26px;
     font-weight: 800;
     color: #ffffff;
@@ -104,32 +132,29 @@
     letter-spacing: -0.5px;
 }
 
-.branding-divider {
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 12px 0;
-    margin: 12px 0;
-    width: 100%;
-    max-width: 300px;
-}
-
-.branding-divider p {
-    font-size: 13px;
-    color: #e2e8f0;
+.branding-desc {
+    font-size: 13.5px;
+    color: #cbd5e1;
     margin: 0;
-    text-align: center;
+    max-width: 340px;
     line-height: 1.5;
 }
 
+/* Footer Slogan */
 .branding-footer {
     text-align: center;
 }
 
-.branding-footer p {
-    font-size: 13.5px;
+.branding-slogan-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 12.5px;
     font-weight: 600;
     color: #94a3b8;
-    margin: 0;
     letter-spacing: 0.5px;
 }
 
@@ -151,7 +176,7 @@
     width: 460px;
     max-width: 100%;
     background: #ffffff;
-    border-radius: 18px;
+    border-radius: 20px;
     border: 1px solid #e2e8f0;
     padding: 36px 36px;
     box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
@@ -159,7 +184,7 @@
 
 .login-card-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
 
 .login-card-header h3 {
@@ -346,8 +371,8 @@
     text-decoration: underline;
 }
 
-/* ── Submit Button ── */
-.login-submit-btn {
+/* ── Buttons ── */
+.btn-login-primary, .btn-register-primary {
     width: 100%;
     height: 44px;
     font-size: 14px;
@@ -363,22 +388,68 @@
     justify-content: center;
     gap: 8px;
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    margin-bottom: 12px;
 }
 
-.login-submit-btn:hover {
+.btn-login-primary:hover, .btn-register-primary:hover {
     background: #4338ca;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
 }
 
-.login-submit-btn:active {
+.btn-login-primary:active, .btn-register-primary:active {
     transform: translateY(0);
 }
 
-/* ── Quick Login / Demo Accounts Bar ── */
+.btn-login-exit {
+    width: 100%;
+    height: 40px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.btn-login-exit:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.login-signup-link {
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.login-signup-link a {
+    color: #4f46e5;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 4px;
+}
+
+.login-signup-link a:hover {
+    text-decoration: underline;
+}
+
+.register-password-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* ── Quick Login / Demo Accounts ── */
 .quick-login-section {
-    margin-top: 24px;
-    padding-top: 20px;
+    margin-top: 20px;
+    padding-top: 18px;
     border-top: 1px solid #e2e8f0;
 }
 
@@ -431,7 +502,7 @@
         padding: 30px 20px;
     }
     .branding-hero-img {
-        max-height: 180px;
+        height: 180px;
     }
     .login-form-panel {
         padding: 30px 16px;

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<c:set var="pageTitle" value="Hồ Sơ: ${profileUser.fullName} &bull; TeamWork Hub" />
+<c:set var="pageTitle" value="Hồ Sơ: ${profileUser.fullName} &bull; TeamWork Hub" scope="request" />
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
 
