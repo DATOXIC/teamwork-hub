@@ -1,0 +1,531 @@
+/* ==========================================================================
+   TeamWork Hub — Login Page Stylesheet
+   Tái tạo giao diện WPF LoginWindow.xaml → Web CSS
+   ========================================================================== */
+
+/* ── Layout chính: 2 cột ── */
+.login-wrapper {
+    display: flex;
+    min-height: calc(100vh - 56px - 58px);
+    background-color: #F5F7FA;
+    overflow: hidden;
+}
+
+/* ── CỘT TRÁI: Branding Panel ── */
+.login-branding {
+    width: 420px;
+    min-width: 420px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(to bottom, #0F172A 0%, #1E3A8A 50%, #2563EB 100%);
+}
+
+/* Glassmorphism Bubbles */
+.login-branding::before,
+.login-branding::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.login-branding::before {
+    width: 300px;
+    height: 300px;
+    left: -100px;
+    top: -100px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.login-branding::after {
+    width: 350px;
+    height: 350px;
+    right: -150px;
+    bottom: -200px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.bubble-extra {
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    left: 90px;
+    top: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Nội dung branding */
+.branding-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 40px 30px;
+}
+
+.branding-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.branding-header img {
+    width: 48px;
+    height: 56px;
+    object-fit: contain;
+}
+
+.branding-header-text h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.branding-header-text p {
+    font-size: 8.5px;
+    color: #E2E8F0;
+    margin: 0;
+    max-width: 280px;
+    line-height: 1.4;
+}
+
+.branding-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.branding-hero-img {
+    width: 100%;
+    height: 240px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 0 10px 16px 10px;
+}
+
+.branding-hero-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.branding-body h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+}
+
+.branding-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 0;
+    margin: 16px 0;
+    width: 260px;
+}
+
+.branding-divider p {
+    font-size: 12.5px;
+    color: #CBD5E1;
+    margin: 0;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.branding-footer {
+    text-align: center;
+}
+
+.branding-footer p {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFFFF;
+    font-style: italic;
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* ── CỘT PHẢI: Form Panel ── */
+.login-form-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-color: #F5F7FA;
+    padding: 30px;
+}
+
+.login-form-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('../images/login_background.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ── Card Đăng nhập nổi ── */
+.login-card {
+    position: relative;
+    z-index: 1;
+    width: 450px;
+    max-width: 100%;
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+    padding: 30px 40px;
+    box-shadow: 0 4px 30px rgba(15, 23, 42, 0.06);
+    animation: loginCardFadeIn 0.5s ease-out;
+}
+
+@keyframes loginCardFadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.login-card-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-card-header h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 6px 0;
+}
+
+.login-card-header p {
+    font-size: 12px;
+    color: #64748B;
+    margin: 0;
+}
+
+/* ── Thông báo lỗi / thành công ── */
+.login-error-banner {
+    background: #FEF2F2;
+    border: 1px solid #FEE2E2;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.login-error-banner p {
+    font-size: 11.5px;
+    color: #DC2626;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.login-error-banner i { margin-right: 4px; }
+
+.login-success-banner {
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.login-success-banner p {
+    font-size: 11.5px;
+    color: #16A34A;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ── Tab Pills ── */
+.login-tabs {
+    display: flex;
+    background: #F1F5F9;
+    border-radius: 50px;
+    padding: 4px;
+    margin-bottom: 20px;
+    gap: 4px;
+}
+
+.login-tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.login-tab-btn:hover {
+    color: #334155;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.login-tab-btn.active {
+    background: #6366F1;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.login-tab-pane { display: none; }
+
+.login-tab-pane.active {
+    display: block;
+    animation: tabFadeIn 0.3s ease;
+}
+
+@keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Form ── */
+.login-label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.login-input-group {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.login-input-group .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    font-size: 15px;
+    pointer-events: none;
+    transition: color 0.2s;
+}
+
+.login-input-group input {
+    width: 100%;
+    height: 42px;
+    padding: 8px 12px 8px 40px;
+    font-size: 12.5px;
+    font-family: inherit;
+    color: #1E293B;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.login-input-group input::placeholder {
+    color: #94A3B8;
+    font-size: 12px;
+}
+
+.login-input-group input:focus {
+    border-color: #6366F1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.login-input-group input:focus ~ .input-icon {
+    color: #6366F1;
+}
+
+/* ── Ghi nhớ & Quên MK ── */
+.login-options-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 4px 0 10px 0;
+}
+
+.login-remember {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.login-remember input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #6366F1;
+    cursor: pointer;
+    margin: 0;
+}
+
+.login-remember span {
+    font-size: 11.5px;
+    color: #475569;
+    user-select: none;
+}
+
+.login-forgot-link {
+    font-size: 11.5px;
+    color: #6366F1;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.login-forgot-link:hover {
+    color: #4F46E5;
+    text-decoration: underline;
+}
+
+/* ── Buttons ── */
+.btn-login-primary {
+    display: block;
+    width: 100%;
+    height: 48px;
+    background: #6366F1;
+    color: #FFFFFF;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: all 0.25s ease;
+    letter-spacing: 0.3px;
+}
+
+.btn-login-primary:hover {
+    background: #4F46E5;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+}
+
+.btn-login-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.btn-login-exit {
+    display: block;
+    width: 100%;
+    height: 40px;
+    background: #FFF5F5;
+    color: #E11D48;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    border: 1px solid #FECDD3;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 0 0 16px 0;
+    transition: all 0.2s ease;
+}
+
+.btn-login-exit:hover {
+    background: #FEE2E2;
+    border-color: #FCA5A5;
+}
+
+.btn-register-primary {
+    display: block;
+    width: 100%;
+    height: 48px;
+    background: #6366F1;
+    color: #FFFFFF;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: all 0.25s ease;
+}
+
+.btn-register-primary:hover {
+    background: #4F46E5;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+}
+
+/* ── Link Đăng ký ── */
+.login-signup-link {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.login-signup-link span {
+    font-size: 12px;
+    color: #64748B;
+}
+
+.login-signup-link a {
+    font-size: 12px;
+    color: #6366F1;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 6px;
+    transition: color 0.2s;
+}
+
+.login-signup-link a:hover {
+    color: #4F46E5;
+    text-decoration: underline;
+}
+
+/* ── Form Đăng ký: 2 cột mật khẩu ── */
+.register-password-row {
+    display: flex;
+    gap: 12px;
+}
+
+.register-password-row .login-input-group { flex: 1; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+    .login-branding { width: 340px; min-width: 340px; }
+    .branding-hero-img { height: 180px; }
+    .branding-body h2 { font-size: 22px; }
+    .login-card { width: 420px; padding: 28px 32px; }
+}
+
+@media (max-width: 768px) {
+    .login-wrapper { flex-direction: column; min-height: auto; }
+    .login-branding { width: 100%; min-width: 100%; min-height: 220px; max-height: 280px; }
+    .branding-body { display: none; }
+    .branding-content {
+        padding: 24px 20px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .branding-footer p { font-size: 12px; }
+    .login-form-panel { padding: 20px 16px; }
+    .login-card { width: 100%; padding: 24px 20px; }
+    .register-password-row { flex-direction: column; gap: 0; }
+}
+
+@media (max-width: 480px) {
+    .login-branding { min-height: 160px; max-height: 200px; }
+    .branding-header img { width: 36px; height: 42px; }
+    .branding-header-text h4 { font-size: 11px; }
+    .login-card { padding: 20px 16px; border-radius: 12px; }
+    .login-card-header h3 { font-size: 20px; }
+}

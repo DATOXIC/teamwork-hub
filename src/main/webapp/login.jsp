@@ -2,144 +2,225 @@
 <%-- Thiết lập tiêu đề trang cho header.jsp --%>
 <c:set var="pageTitle" value="Đăng nhập &bull; TeamWork Hub" />
 <jsp:include page="/includes/header.jsp" />
+
+<%-- CSS riêng cho trang Login --%>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/styles/login.css">
+
 <jsp:include page="/includes/navbar.jsp" />
 
-<div class="container py-5 my-auto">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-5">
+<%-- ============================================================
+     LAYOUT 2 CỘT — Tái tạo từ LoginWindow.xaml
+     ============================================================ --%>
+<div class="login-wrapper">
 
-            <!-- Card Xác thực (Phong cách Basecamp / Notion) -->
-            <div class="card auth-card bg-white p-4 p-md-5">
-                
-                <!-- Header Card -->
-                <div class="text-center mb-4">
-                    <div class="brand-icon mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.5rem;">
-                        <i class="bi bi-grid-1x2-fill"></i>
-                    </div>
-                    <h3 class="fw-bold text-dark mb-1">Chào mừng bạn!</h3>
-                    <p class="text-muted fs-7">Không gian làm việc nhóm tập trung và hiệu quả</p>
+    <%-- ═══════════ CỘT TRÁI: Branding Panel ═══════════ --%>
+    <div class="login-branding">
+        <%-- Glassmorphism bubble thứ 3 --%>
+        <div class="bubble-extra"></div>
+
+        <div class="branding-content">
+            <%-- Header: Logo + Tên trường --%>
+            <div class="branding-header">
+                <img src="${pageContext.request.contextPath}/images/ute_logo.png" alt="Logo HCMUTE" />
+                <div class="branding-header-text">
+                    <h4>HCMUTE</h4>
+                    <p>ĐẠI HỌC SƯ PHẠM KỸ THUẬT TP.HCM</p>
                 </div>
+            </div>
 
-                <!-- Thông báo thành công (sau khi Đăng ký) -->
-                <div class="alert alert-success alert-dismissible fade show fs-7 py-2 ${not empty successMessage ? '' : 'd-none'}" role="alert">
-                    <i class="bi bi-check-circle-fill me-1"></i> ${successMessage}
+            <%-- Body: Hero image + Tiêu đề --%>
+            <div class="branding-body">
+                <div class="branding-hero-img">
+                    <img src="${pageContext.request.contextPath}/images/HCMUTE_GATE.png" alt="Cổng trường HCMUTE" />
                 </div>
+                <h2>TeamWork Hub</h2>
+                <div class="branding-divider">
+                    <p>Nền tảng làm việc nhóm tập trung và hiệu quả</p>
+                </div>
+            </div>
 
-                <!-- Tab chuyển đổi: ĐĂNG NHẬP / ĐĂNG KÝ -->
-                <ul class="nav nav-pills nav-fill bg-light p-1 rounded-pill mb-4" id="authTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill py-2 fs-7 ${activeTab != 'register' ? 'active' : ''}" 
-                                id="login-tab" data-bs-toggle="pill" data-bs-target="#login-pane" type="button" role="tab">
-                            <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill py-2 fs-7 ${activeTab == 'register' ? 'active' : ''}" 
-                                id="register-tab" data-bs-toggle="pill" data-bs-target="#register-pane" type="button" role="tab">
-                            <i class="bi bi-person-plus me-1"></i> Đăng ký
-                        </button>
-                    </li>
-                </ul>
+            <%-- Footer: Slogan --%>
+            <div class="branding-footer">
+                <p>Chất lượng - Sáng tạo - Hội nhập</p>
+            </div>
+        </div>
+    </div>
 
-                <!-- Tab Content -->
-                <div class="tab-content" id="authTabContent">
+    <%-- ═══════════ CỘT PHẢI: Form Panel ═══════════ --%>
+    <div class="login-form-panel">
+        <div class="login-card">
 
-                    <!-- ================= TAB 1: FORM ĐĂNG NHẬP ================= -->
-                    <div class="tab-pane fade ${activeTab != 'register' ? 'show active' : ''}" id="login-pane" role="tabpanel">
-                        <!-- Thông báo lỗi đăng nhập -->
-                        <div class="alert alert-danger py-2 fs-7 ${not empty errorMessage ? '' : 'd-none'}" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i> ${errorMessage}
-                        </div>
+            <%-- Card Header --%>
+            <div class="login-card-header">
+                <h3>Đăng Nhập</h3>
+                <p>Nhập tài khoản để truy cập hệ thống</p>
+            </div>
 
-                        <form action="${pageContext.request.contextPath}/auth" method="post">
-                            <input type="hidden" name="action" value="login">
+            <%-- Thông báo thành công (sau khi Đăng ký) --%>
+            <c:if test="${not empty successMessage}">
+                <div class="login-success-banner">
+                    <p><i class="bi bi-check-circle-fill"></i> ${successMessage}</p>
+                </div>
+            </c:if>
 
-                            <div class="mb-3">
-                                <label for="login-username" class="form-label fw-semibold fs-7 text-dark">Tên đăng nhập</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
-                                    <input type="text" class="form-control border-start-0 ps-0" id="login-username" name="username" 
-                                           value="${username}" placeholder="Nhập username của bạn" required autofocus>
-                                </div>
-                            </div>
+            <%-- Thông báo lỗi đăng nhập --%>
+            <c:if test="${not empty errorMessage}">
+                <div class="login-error-banner">
+                    <p><i class="bi bi-exclamation-triangle-fill"></i> ${errorMessage}</p>
+                </div>
+            </c:if>
 
-                            <div class="mb-3">
-                                <label for="login-password" class="form-label fw-semibold fs-7 text-dark">Mật khẩu</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock"></i></span>
-                                    <input type="password" class="form-control border-start-0 ps-0" id="login-password" name="password" 
-                                           placeholder="Nhập mật khẩu" required>
-                                </div>
-                            </div>
+            <%-- Thông báo lỗi đăng ký --%>
+            <c:if test="${not empty regError}">
+                <div class="login-error-banner">
+                    <p><i class="bi bi-exclamation-triangle-fill"></i> ${regError}</p>
+                </div>
+            </c:if>
 
-                            <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-semibold rounded-3 mt-2">
-                                Đăng nhập vào hệ thống <i class="bi bi-arrow-right ms-1"></i>
-                            </button>
-                        </form>
+            <%-- Tab Pills: Đăng nhập | Đăng ký --%>
+            <div class="login-tabs">
+                <button type="button" class="login-tab-btn ${activeTab != 'register' ? 'active' : ''}"
+                        onclick="switchTab('login')" id="tab-btn-login">
+                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                </button>
+                <button type="button" class="login-tab-btn ${activeTab == 'register' ? 'active' : ''}"
+                        onclick="switchTab('register')" id="tab-btn-register">
+                    <i class="bi bi-person-plus"></i> Đăng ký
+                </button>
+            </div>
 
-                        <!-- Box gợi ý tài khoản mẫu để test nhanh -->
-                        <div class="bg-light p-3 rounded-3 mt-4 border">
-                            <div class="fw-semibold text-secondary fs-8 mb-1"><i class="bi bi-key-fill text-warning me-1"></i> Tài khoản mẫu để test nhanh:</div>
-                            <div class="d-flex justify-content-between text-muted fs-8">
-                                <span>Trưởng nhóm: <code>admin</code> / <code>admin123</code></span>
-                                <span>Thành viên: <code>member1</code> / <code>pass123</code></span>
-                            </div>
-                        </div>
-                    </div>
+            <%-- ═══════ TAB 1: FORM ĐĂNG NHẬP ═══════ --%>
+            <div class="login-tab-pane ${activeTab != 'register' ? 'active' : ''}" id="pane-login">
+                <form action="${pageContext.request.contextPath}/auth" method="post" autocomplete="off">
+                    <input type="hidden" name="action" value="login">
 
-                    <!-- ================= TAB 2: FORM ĐĂNG KÝ ================= -->
-                    <div class="tab-pane fade ${activeTab == 'register' ? 'show active' : ''}" id="register-pane" role="tabpanel">
-                        <!-- Thông báo lỗi đăng ký -->
-                        <div class="alert alert-danger py-2 fs-7 ${not empty regError ? '' : 'd-none'}" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i> ${regError}
-                        </div>
-
-                        <form action="${pageContext.request.contextPath}/auth" method="post">
-                            <input type="hidden" name="action" value="register">
-
-                            <div class="mb-3">
-                                <label for="reg-fullname" class="form-label fw-semibold fs-7 text-dark">Họ và tên</label>
-                                <input type="text" class="form-control" id="reg-fullname" name="fullName" 
-                                       value="${regFullName}" placeholder="Ví dụ: Nguyễn Văn A" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="reg-username" class="form-label fw-semibold fs-7 text-dark">Tên đăng nhập</label>
-                                <input type="text" class="form-control" id="reg-username" name="username" 
-                                       value="${regUsername}" placeholder="Tối thiểu 4 ký tự" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="reg-email" class="form-label fw-semibold fs-7 text-dark">Email liên hệ</label>
-                                <input type="email" class="form-control" id="reg-email" name="email" 
-                                       value="${regEmail}" placeholder="name@example.com">
-                            </div>
-
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label for="reg-pass" class="form-label fw-semibold fs-7 text-dark">Mật khẩu</label>
-                                    <input type="password" class="form-control" id="reg-pass" name="password" 
-                                           placeholder="&ge; 6 ký tự" required>
-                                </div>
-                                <div class="col-6">
-                                    <label for="reg-confirmpass" class="form-label fw-semibold fs-7 text-dark">Xác nhận</label>
-                                    <input type="password" class="form-control" id="reg-confirmpass" name="confirmPassword" 
-                                           placeholder="Nhập lại mật khẩu" required>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-semibold rounded-3 mt-2">
-                                <i class="bi bi-person-check me-1"></i> Tạo tài khoản mới
-                            </button>
-                        </form>
+                    <%-- Tên đăng nhập --%>
+                    <label class="login-label" for="login-username">Tên đăng nhập</label>
+                    <div class="login-input-group">
+                        <i class="bi bi-person input-icon"></i>
+                        <input type="text" id="login-username" name="username"
+                               value="${username}" placeholder="Nhập tên đăng nhập hoặc MSSV..." required autofocus>
                     </div>
 
-                </div>
+                    <%-- Mật khẩu --%>
+                    <label class="login-label" for="login-password">Mật khẩu</label>
+                    <div class="login-input-group">
+                        <i class="bi bi-lock input-icon"></i>
+                        <input type="password" id="login-password" name="password"
+                               placeholder="Nhập mật khẩu" required>
+                    </div>
 
+                    <%-- Ghi nhớ & Quên MK --%>
+                    <div class="login-options-row">
+                        <label class="login-remember">
+                            <input type="checkbox" name="remember">
+                            <span>Ghi nhớ đăng nhập</span>
+                        </label>
+                        <a href="#" class="login-forgot-link">Quên mật khẩu?</a>
+                    </div>
+
+                    <%-- Nút Đăng nhập --%>
+                    <button type="submit" class="btn-login-primary">
+                        Đăng Nhập &nbsp;→
+                    </button>
+                </form>
+
+                <%-- Nút Thoát --%>
+                <a href="${pageContext.request.contextPath}/" style="text-decoration:none;">
+                    <button type="button" class="btn-login-exit">Thoát</button>
+                </a>
+
+                <%-- Link Đăng ký --%>
+                <div class="login-signup-link">
+                    <span>Chưa có tài khoản?</span>
+                    <a href="javascript:void(0)" onclick="switchTab('register')">Đăng ký ngay</a>
+                </div>
+            </div>
+
+            <%-- ═══════ TAB 2: FORM ĐĂNG KÝ ═══════ --%>
+            <div class="login-tab-pane ${activeTab == 'register' ? 'active' : ''}" id="pane-register">
+                <form action="${pageContext.request.contextPath}/auth" method="post" autocomplete="off">
+                    <input type="hidden" name="action" value="register">
+
+                    <%-- Họ và tên --%>
+                    <label class="login-label" for="reg-fullname">Họ và tên</label>
+                    <div class="login-input-group">
+                        <i class="bi bi-person-badge input-icon"></i>
+                        <input type="text" id="reg-fullname" name="fullName"
+                               value="${regFullName}" placeholder="Ví dụ: Nguyễn Văn A" required>
+                    </div>
+
+                    <%-- Tên đăng nhập --%>
+                    <label class="login-label" for="reg-username">Tên đăng nhập</label>
+                    <div class="login-input-group">
+                        <i class="bi bi-person input-icon"></i>
+                        <input type="text" id="reg-username" name="username"
+                               value="${regUsername}" placeholder="Tối thiểu 4 ký tự" required>
+                    </div>
+
+                    <%-- Email --%>
+                    <label class="login-label" for="reg-email">Email liên hệ</label>
+                    <div class="login-input-group">
+                        <i class="bi bi-envelope input-icon"></i>
+                        <input type="email" id="reg-email" name="email"
+                               value="${regEmail}" placeholder="name@example.com">
+                    </div>
+
+                    <%-- Mật khẩu + Xác nhận (2 cột) --%>
+                    <div class="register-password-row">
+                        <div>
+                            <label class="login-label" for="reg-pass">Mật khẩu</label>
+                            <div class="login-input-group">
+                                <i class="bi bi-lock input-icon"></i>
+                                <input type="password" id="reg-pass" name="password"
+                                       placeholder="≥ 6 ký tự" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="login-label" for="reg-confirmpass">Xác nhận</label>
+                            <div class="login-input-group">
+                                <i class="bi bi-lock-fill input-icon"></i>
+                                <input type="password" id="reg-confirmpass" name="confirmPassword"
+                                       placeholder="Nhập lại mật khẩu" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <%-- Nút Đăng ký --%>
+                    <button type="submit" class="btn-register-primary">
+                        <i class="bi bi-person-check"></i> Tạo tài khoản mới
+                    </button>
+                </form>
+
+                <%-- Link quay lại Đăng nhập --%>
+                <div class="login-signup-link">
+                    <span>Đã có tài khoản?</span>
+                    <a href="javascript:void(0)" onclick="switchTab('login')">Đăng nhập ngay</a>
+                </div>
             </div>
 
         </div>
     </div>
+
 </div>
+
+<%-- Script chuyển tab --%>
+<script>
+function switchTab(tab) {
+    document.getElementById('tab-btn-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-btn-register').classList.toggle('active', tab === 'register');
+    document.getElementById('pane-login').classList.toggle('active', tab === 'login');
+    document.getElementById('pane-register').classList.toggle('active', tab === 'register');
+    var header = document.querySelector('.login-card-header h3');
+    var subtitle = document.querySelector('.login-card-header p');
+    if (tab === 'register') {
+        header.textContent = 'Đăng Ký';
+        subtitle.textContent = 'Tạo tài khoản mới để bắt đầu';
+    } else {
+        header.textContent = 'Đăng Nhập';
+        subtitle.textContent = 'Nhập tài khoản để truy cập hệ thống';
+    }
+}
+</script>
 
 <jsp:include page="/includes/footer.jsp" />
