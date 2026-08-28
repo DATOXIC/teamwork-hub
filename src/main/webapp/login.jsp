@@ -16,9 +16,6 @@
 
     <%-- ═══════════ CỘT TRÁI: Branding Panel ═══════════ --%>
     <div class="login-branding">
-        <%-- Glassmorphism bubble thứ 3 --%>
-        <div class="bubble-extra"></div>
-
         <div class="branding-content">
             <%-- Header: Logo + Tên trường --%>
             <div class="branding-header">
@@ -132,9 +129,30 @@
                 </a>
 
                 <%-- Link Đăng ký --%>
-                <div class="login-signup-link">
+                <div class="login-signup-link mb-3">
                     <span>Chưa có tài khoản?</span>
                     <a href="javascript:void(0)" onclick="switchTab('register')">Đăng ký ngay</a>
+                </div>
+
+                <%-- Khu vực Đăng nhập Nhanh cho Demo --%>
+                <div class="quick-login-section">
+                    <div class="quick-login-title">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Tài khoản mẫu thử nghiệm:
+                    </div>
+                    <div class="quick-login-pills">
+                        <button type="button" class="quick-login-btn" onclick="fillLogin('admin', 'admin123')">
+                            <i class="bi bi-shield-lock-fill text-primary"></i> <strong>admin</strong> (PM)
+                        </button>
+                        <button type="button" class="quick-login-btn" onclick="fillLogin('member1', 'pass123')">
+                            <i class="bi bi-code-slash text-success"></i> <strong>member1</strong> (Dev)
+                        </button>
+                        <button type="button" class="quick-login-btn" onclick="fillLogin('binh', 'pass123')">
+                            <i class="bi bi-palette-fill text-info"></i> <strong>binh</strong> (Design)
+                        </button>
+                        <button type="button" class="quick-login-btn" onclick="fillLogin('chi', 'pass123')">
+                            <i class="bi bi-bug-fill text-danger"></i> <strong>chi</strong> (QA)
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -221,6 +239,12 @@ function switchTab(tab) {
         header.textContent = 'Đăng Nhập';
         subtitle.textContent = 'Nhập tài khoản để truy cập hệ thống';
     }
+}
+
+function fillLogin(u, p) {
+    document.getElementById('login-username').value = u;
+    document.getElementById('login-password').value = p;
+    switchTab('login');
 }
 </script>
 

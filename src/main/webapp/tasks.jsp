@@ -93,112 +93,97 @@
     </c:if>
 
     <!-- =========================================================================
-         2.5. THANH DẢI AVATAR LỌC VIỆC & THẺ HỒ SƠ ĐỒNG ĐỘI (PHẦN B.3.3)
+         2.5. THANH ĐIỀU KHIỂN & LỌC CÔNG VIỆC TINH GỌN (COMPACT TOOLBAR)
          ========================================================================= -->
     <div class="bg-white p-3 rounded-4 shadow-2xs border mb-4">
-        <!-- Thanh Tìm kiếm và Lọc theo Mức độ ưu tiên -->
-        <div class="row g-2 align-items-center mb-3 pb-3 border-bottom">
-            <div class="col-12 col-md-7 col-lg-8">
-                <div class="input-group">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            
+            <!-- Cụm Trái: Ô tìm kiếm + Lọc mức ưu tiên -->
+            <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 460px;">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light border-end-0 text-muted fs-8">
                         <i class="bi bi-search"></i>
                     </span>
                     <input type="text" id="taskSearchInput" class="form-control form-control-sm border-start-0 ps-0 fs-8 shadow-none bg-light" 
-                           placeholder="Tìm kiếm nhanh thẻ công việc theo tiêu đề hoặc người phụ trách..." 
+                           placeholder="Tìm theo tên task, người làm..." 
                            autocomplete="off">
                 </div>
+                
+                <select id="taskPriorityFilter" class="form-select form-select-sm fs-8 rounded-pill shadow-none bg-light" style="width: 145px;">
+                    <option value="ALL">Mọi ưu tiên</option>
+                    <option value="HIGH">🔴 Cao (High)</option>
+                    <option value="MEDIUM">🟡 Trung bình</option>
+                    <option value="LOW">🟢 Thấp (Low)</option>
+                </select>
             </div>
-            <div class="col-12 col-md-5 col-lg-4">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="fs-9 text-muted text-nowrap"><i class="bi bi-flag-fill text-danger me-1"></i>Ưu tiên:</span>
-                    <select id="taskPriorityFilter" class="form-select form-select-sm fs-8 rounded-pill shadow-none bg-light">
-                        <option value="ALL">Tất cả mức ưu tiên</option>
-                        <option value="HIGH">🔴 Cao (High)</option>
-                        <option value="MEDIUM">🟡 Trung bình (Medium)</option>
-                        <option value="LOW">🟢 Thấp (Low)</option>
-                    </select>
-                </div>
+
+            <!-- Cụm Phải: Nút lọc thành viên & Dải Avatar -->
+            <div class="d-flex flex-wrap align-items-center gap-2" id="memberFilterBar">
+                <!-- Nút Tất cả -->
+                <button type="button" 
+                        class="btn btn-sm btn-primary-custom text-white rounded-pill px-3 py-1 fs-8 fw-semibold member-filter-btn active" 
+                        data-filter-mode="ALL" 
+                        data-related-tasks="ALL"
+                        title="Tất cả công việc">
+                    <i class="bi bi-people-fill me-1"></i> Tất cả (${todoTasks.size() + inProgressTasks.size() + doneTasks.size()})
+                </button>
+
+                <!-- Nút Việc của tôi -->
+                <c:forEach items="${userWorkloadList}" var="uw">
+                    <c:if test="${uw.user.id == sessionScope.currentUser.id}">
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-8 fw-semibold member-filter-btn" 
+                                data-filter-mode="MY_TASKS" 
+                                data-related-tasks="${uw.relatedTaskIdsJoined}"
+                                title="Việc của tôi">
+                            <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Việc của tôi (${uw.totalWorkCount})
+                        </button>
+                    </c:if>
+                </c:forEach>
+
+                <div class="vr mx-1 d-none d-md-block text-secondary opacity-25"></div>
+
+                <!-- Dải nút từng thành viên trong dự án -->
+                <c:forEach items="${userWorkloadList}" var="uw">
+                    <div class="btn-group" role="group">
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-secondary rounded-start-pill ps-2 pe-2 py-1 fs-8 member-filter-btn d-inline-flex align-items-center gap-1" 
+                                data-filter-mode="USER" 
+                                data-user-id="${uw.user.id}"
+                                data-user-name="${uw.user.fullName}"
+                                data-related-tasks="${uw.relatedTaskIdsJoined}"
+                                title="Lọc việc của ${uw.user.fullName}">
+                            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 18px; height: 18px; font-size: 0.65rem;">
+                                ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                            </span>
+                            <span class="fw-medium text-truncate" style="max-width: 80px;">${uw.user.fullName}</span>
+                            <c:if test="${uw.totalWorkCount > 0}">
+                                <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-9">
+                                    ${uw.totalWorkCount}
+                                </span>
+                            </c:if>
+                        </button>
+
+                        <button type="button" 
+                                class="btn btn-sm btn-outline-secondary rounded-end-pill px-2 py-1 fs-8" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#memberProfileModal-${uw.user.id}" 
+                                title="Xem Thẻ Hồ Sơ của ${uw.user.fullName}">
+                            <i class="bi bi-info-circle"></i>
+                        </button>
+                    </div>
+                </c:forEach>
             </div>
         </div>
 
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-            <span class="fs-8 fw-bold text-dark text-uppercase tracking-wider">
-                <i class="bi bi-funnel-fill text-primary me-1"></i> Lọc công việc theo thành viên:
-            </span>
-            <span class="fs-9 text-muted" id="filterResultCount">
+        <!-- Dòng phụ thống kê kết quả lọc -->
+        <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top fs-9 text-muted">
+            <span id="filterResultCount">
                 Hiển thị tất cả <strong>${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong> công việc
             </span>
-        </div>
-
-        <!-- Dải các nút bấm lọc (Pill Filter Bar) -->
-        <div class="d-flex flex-wrap align-items-center gap-2" id="memberFilterBar">
-            
-            <!-- Nút 1: Tất cả công việc (Mặc định active) -->
-            <button type="button" 
-                    class="btn btn-sm btn-primary-custom text-white rounded-pill px-3 py-1 fs-8 fw-semibold member-filter-btn active" 
-                    data-filter-mode="ALL" 
-                    data-related-tasks="ALL"
-                    title="Hiển thị toàn bộ công việc trong dự án">
-                <i class="bi bi-people-fill me-1"></i> Tất cả (${todoTasks.size() + inProgressTasks.size() + doneTasks.size()})
-            </button>
-
-            <!-- Nút 2: Việc của tôi (Chỉ hiện việc có liên quan đến user đang đăng nhập) -->
-            <c:forEach items="${userWorkloadList}" var="uw">
-                <c:if test="${uw.user.id == sessionScope.currentUser.id}">
-                    <button type="button" 
-                            class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-8 fw-semibold member-filter-btn" 
-                            data-filter-mode="MY_TASKS" 
-                            data-related-tasks="${uw.relatedTaskIdsJoined}"
-                            title="Chỉ hiển thị các Task do bạn làm Lead hoặc có việc con của bạn">
-                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Việc của tôi (${uw.totalWorkCount})
-                    </button>
-                </c:if>
-            </c:forEach>
-
-            <div class="vr mx-1 d-none d-md-block text-secondary opacity-25"></div>
-
-            <!-- Nút cho từng thành viên trong hệ thống -->
-            <c:forEach items="${userWorkloadList}" var="uw">
-                <div class="btn-group" role="group">
-                    
-                    <!-- Nút lọc việc của thành viên này -->
-                    <button type="button" 
-                            class="btn btn-sm btn-outline-secondary rounded-start-pill ps-3 pe-2 py-1 fs-8 member-filter-btn d-inline-flex align-items-center gap-2" 
-                            data-filter-mode="USER" 
-                            data-user-id="${uw.user.id}"
-                            data-user-name="${uw.user.fullName}"
-                            data-related-tasks="${uw.relatedTaskIdsJoined}"
-                            title="Bấm để lọc công việc của ${uw.user.fullName}">
-                        
-                        <i class="bi bi-person-circle ${uw.user.id == project.ownerId ? 'text-warning' : 'text-primary'}"></i>
-                        <span class="fw-medium">${uw.user.fullName}</span>
-                        
-                        <!-- Huy hiệu Khối lượng công việc -->
-                        <div class="d-flex align-items-center gap-1">
-                            <c:if test="${uw.leadTaskCount > 0}">
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-1-5 py-0 fs-9" title="Làm Task Lead ${uw.leadTaskCount} Task lớn">
-                                    👑 ${uw.leadTaskCount}
-                                </span>
-                            </c:if>
-                            <c:if test="${uw.subTaskCount > 0}">
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-1-5 py-0 fs-9" title="Được giao ${uw.subTaskCount} việc con (${uw.completedSubTaskCount} đã xong)">
-                                    📋 ${uw.subTaskCount}
-                                </span>
-                            </c:if>
-                        </div>
-                    </button>
-
-                    <!-- Nút (i) mở Thẻ Hồ Sơ Đồng Đội (Profile Card Modal) -->
-                    <button type="button" 
-                            class="btn btn-sm btn-outline-secondary rounded-end-pill px-2 py-1 fs-8" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#memberProfileModal-${uw.user.id}" 
-                            title="Xem Thẻ Hồ Sơ & Năng suất của ${uw.user.fullName}">
-                        <i class="bi bi-info-circle"></i>
-                    </button>
-                </div>
-            </c:forEach>
-
+            <span class="text-secondary opacity-75 d-none d-md-inline">
+                <i class="bi bi-cursor me-1"></i> Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái
+            </span>
         </div>
     </div>
 
