@@ -153,29 +153,71 @@ body {
     padding: 0.85rem;
 }
 
+/* Base Kanban Card */
+.kanban-card {
+    border: 1px solid #e2e8f0 !important;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease;
+}
+
+.kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04) !important;
+    border-color: #cbd5e1 !important;
+}
+
 /* 4. Thẻ công việc trong cột In Progress (Tâm điểm thị giác) */
 .kanban-card-inprogress {
-    border-left: 4px solid #3b82f6 !important;
-    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-left: 3.5px solid #3b82f6 !important;
 }
 
 .kanban-card-inprogress:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.18), 0 2px 5px rgba(0, 0, 0, 0.07) !important;
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.14), 0 2px 5px rgba(0, 0, 0, 0.05) !important;
+    border-color: #93c5fd !important;
 }
 
 /* 5. Thẻ công việc trong cột Done (Làm dịu thị giác) */
 .kanban-card-done {
-    background-color: #FAFAFA !important;
-    opacity: 0.85 !important;
-    border: 1px solid #d1fae5 !important;
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    background-color: #fafbfc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 3.5px solid #10b981 !important;
+    opacity: 0.92;
 }
 
 .kanban-card-done:hover {
     opacity: 1 !important;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Micro Buttons & Utilities */
+.btn-xs {
+    padding: 0.2rem 0.55rem !important;
+    font-size: 0.75rem !important;
+    border-radius: 6px !important;
+    line-height: 1.25 !important;
+}
+
+.py-0-5 {
+    padding-top: 0.15rem !important;
+    padding-bottom: 0.15rem !important;
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.avatar-circle-sm {
+    width: 22px;
+    height: 22px;
+    font-size: 0.68rem;
+    font-weight: 700;
 }
 
 
