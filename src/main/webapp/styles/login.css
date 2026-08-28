@@ -219,7 +219,9 @@
     line-height: 1.4;
 }
 
-.login-error-banner i { margin-right: 6px; }
+.login-error-banner i {
+    margin-right: 6px;
+}
 
 .login-success-banner {
     background: #f0fdf4;
@@ -273,7 +275,9 @@
     box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
 }
 
-.login-tab-pane { display: none; }
+.login-tab-pane {
+    display: none;
+}
 
 .login-tab-pane.active {
     display: block;
@@ -329,7 +333,8 @@
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 
-.login-input-group input:focus ~ .input-icon {
+
+.login-input-group:has(input:focus) .input-icon {
     color: #4f46e5;
 }
 
@@ -372,7 +377,8 @@
 }
 
 /* ── Buttons ── */
-.btn-login-primary, .btn-register-primary {
+.btn-login-primary,
+.btn-register-primary {
     width: 100%;
     height: 44px;
     font-size: 14px;
@@ -391,13 +397,15 @@
     margin-bottom: 12px;
 }
 
-.btn-login-primary:hover, .btn-register-primary:hover {
+.btn-login-primary:hover,
+.btn-register-primary:hover {
     background: #4338ca;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
 }
 
-.btn-login-primary:active, .btn-register-primary:active {
+.btn-login-primary:active,
+.btn-register-primary:active {
     transform: translateY(0);
 }
 
@@ -533,14 +541,17 @@
     .login-wrapper {
         flex-direction: column;
     }
+
     .login-branding {
         width: 100%;
         min-width: 100%;
         padding: 30px 20px;
     }
+
     .branding-hero-img {
         height: 180px;
     }
+
     .login-form-panel {
         padding: 30px 16px;
     }
