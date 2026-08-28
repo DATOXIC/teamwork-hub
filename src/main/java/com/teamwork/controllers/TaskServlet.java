@@ -66,6 +66,14 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
         // 2. Xử lý hành động của người dùng (list hoặc delete)
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
@@ -94,6 +102,20 @@ public class TaskServlet extends HttpServlet {
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "add";
+        }
+
+        String projectIdParam = request.getParameter("projectId");
+        if (projectIdParam != null) {
+            try {
+                int projectId = Integer.parseInt(projectIdParam.trim());
+                HttpSession session = request.getSession(false);
+                User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+                if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+                    session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
+                    response.sendRedirect(request.getContextPath() + "/project?action=list");
+                    return;
+                }
+            } catch (Exception e) {}
         }
 
         switch (action) {

@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,13 +85,31 @@ public class ProjectServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
 
-        // 1. LẤY DỮ LIỆU DỰ ÁN TỪ KHO
-        List<Project> projects = ProjectDB.selectAll();
-        request.setAttribute("projects", projects);
+        // 1. LẤY DỮ LIỆU DỰ ÁN TỪ KHO VÀ PHÂN LOẠI
+        List<Project> allProjects = ProjectDB.selectAll();
+        List<Project> myProjects = new ArrayList<>();
+        List<Project> otherProjects = new ArrayList<>();
+
+        if (currentUser != null) {
+            List<Project> userProjects = ProjectMemberDB.selectProjectsByUserId(currentUser.getId());
+            for (Project p : allProjects) {
+                if (userProjects.contains(p)) {
+                    myProjects.add(p);
+                } else {
+                    otherProjects.add(p);
+                }
+            }
+        } else {
+            otherProjects.addAll(allProjects);
+        }
+
+        request.setAttribute("myProjects", myProjects);
+        request.setAttribute("otherProjects", otherProjects);
+        request.setAttribute("projects", allProjects); // Giữ lại cho map hoạt động nếu cần
 
         // 2. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
         Map<Integer, Integer> memberCountMap = new HashMap<>();
-        for (Project p : projects) {
+        for (Project p : allProjects) {
             memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
         }
         request.setAttribute("memberCountMap", memberCountMap);
