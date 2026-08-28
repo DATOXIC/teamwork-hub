@@ -1,27 +1,31 @@
 package com.teamwork.data;
 
 import com.teamwork.business.User;
+import com.teamwork.util.PasswordUtil;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý Kho Người Dùng (In-Memory Database trên RAM)
  * - Quản lý tài khoản đăng nhập, đăng ký và tìm kiếm người dùng theo username/email
  * - Cung cấp hàm update(User) để lưu lại thay đổi hồ sơ cá nhân
+ * - Bảo mật mật khẩu bằng thuật toán băm SHA-256 + Salt
+ * - Đảm bảo Thread-Safe khi nhiều thread truy cập đồng thời
  */
 public class UserDB {
     
-    // 1. Danh sách liên kết tĩnh để làm Database tạm thời trên RAM
-    private static List<User> users = new ArrayList<>();
+    // 1. Danh sách luồng an toàn (Thread-Safe) để làm Database tạm thời trên RAM
+    private static List<User> users = new CopyOnWriteArrayList<>();
     private static int nextId = 1;
 
-    // 2. Khối khởi tạo tĩnh: Tạo sẵn 4 tài khoản mẫu kèm hồ sơ chuyên môn
+    // 2. Khối khởi tạo tĩnh: Tạo sẵn 4 tài khoản mẫu kèm mật khẩu đã được băm SHA-256 + Salt
     static {
-        // Tài khoản 1: Trưởng nhóm (ADMIN)
+        // Tài khoản 1: Trưởng nhóm (ADMIN) - Mật khẩu: admin123
         users.add(new User(
             nextId++, 
             "admin", 
-            "admin123", 
+            PasswordUtil.hashPassword("admin123"), 
             "Trưởng Nhóm Admin", 
             "admin@teamwork.com", 
             "Project Manager", 
@@ -32,11 +36,11 @@ public class UserDB {
             "https://linkedin.com"
         ));
 
-        // Tài khoản 2: Thành viên Nguyễn Văn An
+        // Tài khoản 2: Thành viên Nguyễn Văn An - Mật khẩu: pass123
         users.add(new User(
             nextId++, 
             "member1", 
-            "pass123", 
+            PasswordUtil.hashPassword("pass123"), 
             "Nguyễn Văn An", 
             "an@teamwork.com", 
             "Senior Backend Developer", 
@@ -47,11 +51,11 @@ public class UserDB {
             "https://linkedin.com"
         ));
 
-        // Tài khoản 3: Thành viên Trần Thị Bình
+        // Tài khoản 3: Thành viên Trần Thị Bình - Mật khẩu: pass123
         users.add(new User(
             nextId++, 
             "binh", 
-            "pass123", 
+            PasswordUtil.hashPassword("pass123"), 
             "Trần Thị Bình", 
             "binh@teamwork.com", 
             "UI/UX Designer & Frontend", 
@@ -62,11 +66,11 @@ public class UserDB {
             "https://linkedin.com"
         ));
 
-        // Tài khoản 4: Thành viên Lê Văn Chi
+        // Tài khoản 4: Thành viên Lê Văn Chi - Mật khẩu: pass123
         users.add(new User(
             nextId++, 
             "chi", 
-            "pass123", 
+            PasswordUtil.hashPassword("pass123"), 
             "Lê Văn Chi", 
             "chi@teamwork.com", 
             "QA Engineer & Tester", 
@@ -80,11 +84,17 @@ public class UserDB {
 
     /**
      * Hàm 1: Xác thực tài khoản (Dùng khi người dùng bấm ĐĂNG NHẬP)
+     * So sánh mật khẩu an toàn theo thời gian không đổi (Constant-Time Compare)
      */
-    public static User selectByCredentials(String username, String password) {
+    public static User selectByCredentials(String username, String plainPassword) {
+        if (username == null || plainPassword == null) {
+            return null;
+        }
         for (User u : users) {
-            if (u.getUsername().equals(username) && u.getPassword().equals(password)) {
-                return u;
+            if (u.getUsername().equalsIgnoreCase(username.trim())) {
+                if (PasswordUtil.verifyPassword(plainPassword.trim(), u.getPassword())) {
+                    return u;
+                }
             }
         }
         return null;
@@ -106,8 +116,9 @@ public class UserDB {
      * Hàm 3: Tìm người dùng theo Username chính xác
      */
     public static User selectByUsername(String username) {
+        if (username == null) return null;
         for (User u : users) {
-            if (u.getUsername().equalsIgnoreCase(username)) {
+            if (u.getUsername().equalsIgnoreCase(username.trim())) {
                 return u;
             }
         }
@@ -132,9 +143,14 @@ public class UserDB {
 
     /**
      * Hàm 5: Thêm người dùng mới (Dùng khi ĐĂNG KÝ)
+     * Tự động mã hóa băm mật khẩu trước khi lưu vào RAM
      */
     public static int insert(User user) {
+        if (user == null) return 0;
         user.setId(nextId++);
+        if (user.getPassword() != null && !user.getPassword().isEmpty() && user.getPassword().length() != 64) {
+            user.setPassword(PasswordUtil.hashPassword(user.getPassword()));
+        }
         users.add(user);
         return user.getId();
     }

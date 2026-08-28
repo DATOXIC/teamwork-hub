@@ -3,17 +3,19 @@ package com.teamwork.data;
 import com.teamwork.business.Message;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu Tin nhắn & Bình luận (In-Memory Message Database trên RAM).
  * Cung cấp các thao tác CRUD cho:
  * - Kênh Chat chung của Dự án (khi taskId == 0)
  * - Luồng Bình luận theo từng Công việc (khi taskId > 0)
+ * - Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class MessageDB {
 
-    // 1. Danh sách tĩnh lưu trữ toàn bộ tin nhắn trong hệ thống trên RAM
-    private static List<Message> messages = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ toàn bộ tin nhắn trong hệ thống trên RAM
+    private static List<Message> messages = new CopyOnWriteArrayList<>();
     private static int nextId = 1; // Biến tự tăng cấp ID cho tin nhắn mới
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các tin nhắn mẫu (Seed Data)
@@ -90,6 +92,19 @@ public class MessageDB {
             }
         }
         return resultList;
+    }
+
+    /**
+     * HÀM 1b: Lấy danh sách N tin nhắn CHAT CHUNG gần đây nhất của một dự án (Mặc định 50 tin)
+     * Giúp tối ưu hiệu năng tải trang và phân bổ bộ nhớ khi có nhiều tin nhắn
+     */
+    public static List<Message> selectRecentByProjectId(int projectId, int limit) {
+        List<Message> allProjectMessages = selectByProjectId(projectId);
+        if (limit <= 0 || allProjectMessages.size() <= limit) {
+            return allProjectMessages;
+        }
+        int startIndex = allProjectMessages.size() - limit;
+        return new ArrayList<>(allProjectMessages.subList(startIndex, allProjectMessages.size()));
     }
 
     /**

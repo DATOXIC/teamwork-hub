@@ -4,17 +4,19 @@ import com.teamwork.business.Project;
 import com.teamwork.business.ProjectMember;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý Danh Sách Thành Viên của từng Dự Án (In-Memory RAM Data Layer).
  * - Cung cấp hàm kiểm tra Quota (countMembers <= 10)
  * - Cung cấp hàm chống trùng lặp thành viên (isMember)
  * - Cung cấp danh sách các dự án của một người dùng (selectProjectsByUserId)
+ * - Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class ProjectMemberDB {
 
-    // 1. Danh sách tĩnh lưu trữ các mối quan hệ Thành Viên - Dự Án trên RAM
-    private static List<ProjectMember> members = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ các mối quan hệ Thành Viên - Dự Án trên RAM
+    private static List<ProjectMember> members = new CopyOnWriteArrayList<>();
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Seed Data mẫu ban đầu
     static {

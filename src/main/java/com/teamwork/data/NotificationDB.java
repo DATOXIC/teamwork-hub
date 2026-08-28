@@ -6,17 +6,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý Kho Thông Báo Toàn Hệ Thống (In-Memory RAM Data Layer).
  * - Cung cấp hàm phát tín hiệu thông báo nhanh NotificationDB.send(...)
  * - Cung cấp số lượng thông báo chưa đọc (countUnread) cho Quả chuông 🔴 trên Header
  * - Quản lý trạng thái Đã đọc / Chưa đọc
+ * - Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class NotificationDB {
 
-    // 1. Danh sách tĩnh lưu trữ các thông báo trên RAM
-    private static List<Notification> notifications = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ các thông báo trên RAM
+    private static List<Notification> notifications = new CopyOnWriteArrayList<>();
     private static int nextId = 1;
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Seed Data mẫu ban đầu

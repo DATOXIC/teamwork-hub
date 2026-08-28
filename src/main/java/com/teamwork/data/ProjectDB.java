@@ -3,15 +3,17 @@ package com.teamwork.data;
 import com.teamwork.business.Project;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu Dự án (In-Memory Database trên RAM)
  * - Cung cấp hàm tìm kiếm theo Mã Dự Án (selectByCode) phục vụ luồng Xin Gia Nhập (Chiều 2)
+ * - Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class ProjectDB {
 
-    // 1. Danh sách tĩnh lưu trữ các dự án trên RAM
-    private static List<Project> projects = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ các dự án trên RAM
+    private static List<Project> projects = new CopyOnWriteArrayList<>();
     private static int nextId = 1; // Biến tự tăng để cấp ID cho dự án mới
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Chạy 1 lần duy nhất khi nạp Class

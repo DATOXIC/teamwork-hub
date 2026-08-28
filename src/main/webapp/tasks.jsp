@@ -96,6 +96,31 @@
          2.5. THANH DẢI AVATAR LỌC VIỆC & THẺ HỒ SƠ ĐỒNG ĐỘI (PHẦN B.3.3)
          ========================================================================= -->
     <div class="bg-white p-3 rounded-4 shadow-2xs border mb-4">
+        <!-- Thanh Tìm kiếm và Lọc theo Mức độ ưu tiên -->
+        <div class="row g-2 align-items-center mb-3 pb-3 border-bottom">
+            <div class="col-12 col-md-7 col-lg-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0 text-muted fs-8">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" id="taskSearchInput" class="form-control form-control-sm border-start-0 ps-0 fs-8 shadow-none bg-light" 
+                           placeholder="Tìm kiếm nhanh thẻ công việc theo tiêu đề hoặc người phụ trách..." 
+                           autocomplete="off">
+                </div>
+            </div>
+            <div class="col-12 col-md-5 col-lg-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fs-9 text-muted text-nowrap"><i class="bi bi-flag-fill text-danger me-1"></i>Ưu tiên:</span>
+                    <select id="taskPriorityFilter" class="form-select form-select-sm fs-8 rounded-pill shadow-none bg-light">
+                        <option value="ALL">Tất cả mức ưu tiên</option>
+                        <option value="HIGH">🔴 Cao (High)</option>
+                        <option value="MEDIUM">🟡 Trung bình (Medium)</option>
+                        <option value="LOW">🟢 Thấp (Low)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
             <span class="fs-8 fw-bold text-dark text-uppercase tracking-wider">
                 <i class="bi bi-funnel-fill text-primary me-1"></i> Lọc công việc theo thành viên:
@@ -207,6 +232,9 @@
                              id="task-${task.id}"
                              draggable="true" 
                              data-task-id="${task.id}"
+                             data-task-title="<c:out value='${task.title}' />"
+                             data-task-priority="${task.priority}"
+                             data-task-assignee="<c:out value='${task.assigneeName}' />"
                              data-bs-toggle="modal" 
                              data-bs-target="#taskDetailModal-${task.id}"
                              style="cursor: pointer;">
@@ -322,6 +350,9 @@
                              id="task-${task.id}"
                              draggable="true" 
                              data-task-id="${task.id}"
+                             data-task-title="<c:out value='${task.title}' />"
+                             data-task-priority="${task.priority}"
+                             data-task-assignee="<c:out value='${task.assigneeName}' />"
                              data-bs-toggle="modal" 
                              data-bs-target="#taskDetailModal-${task.id}"
                              style="cursor: pointer;">
@@ -447,6 +478,9 @@
                              id="task-${task.id}"
                              draggable="true"
                              data-task-id="${task.id}"
+                             data-task-title="<c:out value='${task.title}' />"
+                             data-task-priority="${task.priority}"
+                             data-task-assignee="<c:out value='${task.assigneeName}' />"
                              data-bs-toggle="modal"
                              data-bs-target="#taskDetailModal-${task.id}"
                              style="cursor: pointer;">
@@ -553,11 +587,70 @@
                             ${task.title}
                         </h5>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
+                                <i class="bi bi-pencil-square me-1"></i> Sửa Task
+                            </button>
+                        </c:if>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
                 </div>
                 <div class="modal-body p-0">
                     <div class="row g-0">
                         <div class="col-12 col-md-7 p-4 border-end">
+                            <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
+                                    <form method="post" action="${pageContext.request.contextPath}/task" class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
+                                        <input type="hidden" name="action" value="editTask">
+                                        <input type="hidden" name="projectId" value="${project.id}">
+                                        <input type="hidden" name="taskId" value="${task.id}">
+                                        <h6 class="fw-bold text-primary fs-8 mb-3"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công việc</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề:</label>
+                                            <input type="text" name="title" value="<c:out value='${task.title}' />" class="form-control form-control-sm" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi tiết:</label>
+                                            <textarea name="description" class="form-control form-control-sm" rows="3"><c:out value="${task.description}" /></textarea>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu tiên:</label>
+                                                <select name="priority" class="form-select form-select-sm">
+                                                    <option value="LOW" ${task.priority == 'LOW' ? 'selected' : ''}>Thấp (Low)</option>
+                                                    <option value="MEDIUM" ${task.priority == 'MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
+                                                    <option value="HIGH" ${task.priority == 'HIGH' ? 'selected' : ''}>Cao (High)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
+                                                <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ trách:</label>
+                                                <c:choose>
+                                                    <c:when test="${project.ownerId == sessionScope.currentUser.id}">
+                                                        <select name="assigneeId" class="form-select form-select-sm" required>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <option value="${u.id}" ${u.id == task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <input type="hidden" name="assigneeId" value="${task.assigneeId}">
+                                                        <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
+                                            <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay đổi</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </c:if>
                             <div class="row g-3 p-3 bg-light rounded-3 border mb-4">
                                 <div class="col-6 col-sm-4">
                                     <span class="text-muted fs-9 d-block mb-1">Trạng thái</span>
@@ -659,8 +752,11 @@
                                                         <span class="badge bg-white text-secondary border rounded-pill px-2 py-1 fs-9" title="Người phụ trách">
                                                             <i class="bi bi-person-fill text-primary"></i> ${st.assigneeName}
                                                         </span>
-                                                        <!-- Nút Xóa (Dành riêng cho Task Lead & PM) -->
+                                                        <!-- Nút Sửa & Xóa (Dành riêng cho Task Lead & PM) -->
                                                         <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                                            <button type="button" class="btn btn-link text-muted text-hover-primary p-0 border-0 fs-8" title="Sửa việc con" data-bs-toggle="collapse" data-bs-target="#editSubTaskCollapse-${st.id}">
+                                                                <i class="bi bi-pencil-square"></i>
+                                                            </button>
                                                             <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa việc con này?');">
                                                                 <input type="hidden" name="action" value="deleteSubTask">
                                                                 <input type="hidden" name="projectId" value="${project.id}">
@@ -672,6 +768,39 @@
                                                         </c:if>
                                                     </div>
                                                 </div>
+
+                                                <!-- FORM SỬA VIỆC CON (COLLAPSE) -->
+                                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                                    <div class="collapse mt-2" id="editSubTaskCollapse-${st.id}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/task" class="p-3 bg-white rounded-3 border border-primary-subtle shadow-2xs">
+                                                            <input type="hidden" name="action" value="editSubTask">
+                                                            <input type="hidden" name="projectId" value="${project.id}">
+                                                            <input type="hidden" name="subTaskId" value="${st.id}">
+                                                            <div class="mb-2">
+                                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề việc con:</label>
+                                                                <input type="text" name="title" value="<c:out value='${st.title}' />" class="form-control form-control-sm" required>
+                                                            </div>
+                                                            <div class="row g-2 mb-2">
+                                                                <div class="col-6">
+                                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Người làm:</label>
+                                                                    <select name="assigneeId" class="form-select form-select-sm" required>
+                                                                        <c:forEach items="${userList}" var="u">
+                                                                            <option value="${u.id}" ${u.id == st.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                                        </c:forEach>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-6">
+                                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
+                                                                    <input type="date" name="dueDate" value="${st.dueDate}" class="form-control form-control-sm" ${not empty task.dueDate ? 'max="'.concat(task.dueDate).concat('"') : ''}>
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex justify-content-end gap-2">
+                                                                <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editSubTaskCollapse-${st.id}">Hủy</button>
+                                                                <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu việc con</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </c:if>
 
                                                 <!-- DÒNG 2: THÔNG TIN CHI TIẾT BÀN GIAO / GÓP Ý DỰA THEO TRẠNG THÁI -->
                                                 
@@ -1091,11 +1220,70 @@
                             ${task.title}
                         </h5>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
+                                <i class="bi bi-pencil-square me-1"></i> Sửa Task
+                            </button>
+                        </c:if>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
                 </div>
                 <div class="modal-body p-0">
                     <div class="row g-0">
                         <div class="col-12 col-md-7 p-4 border-end">
+                            <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
+                                    <form method="post" action="${pageContext.request.contextPath}/task" class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
+                                        <input type="hidden" name="action" value="editTask">
+                                        <input type="hidden" name="projectId" value="${project.id}">
+                                        <input type="hidden" name="taskId" value="${task.id}">
+                                        <h6 class="fw-bold text-primary fs-8 mb-3"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công việc</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề:</label>
+                                            <input type="text" name="title" value="<c:out value='${task.title}' />" class="form-control form-control-sm" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi tiết:</label>
+                                            <textarea name="description" class="form-control form-control-sm" rows="3"><c:out value="${task.description}" /></textarea>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu tiên:</label>
+                                                <select name="priority" class="form-select form-select-sm">
+                                                    <option value="LOW" ${task.priority == 'LOW' ? 'selected' : ''}>Thấp (Low)</option>
+                                                    <option value="MEDIUM" ${task.priority == 'MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
+                                                    <option value="HIGH" ${task.priority == 'HIGH' ? 'selected' : ''}>Cao (High)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
+                                                <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ trách:</label>
+                                                <c:choose>
+                                                    <c:when test="${project.ownerId == sessionScope.currentUser.id}">
+                                                        <select name="assigneeId" class="form-select form-select-sm" required>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <option value="${u.id}" ${u.id == task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <input type="hidden" name="assigneeId" value="${task.assigneeId}">
+                                                        <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
+                                            <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay đổi</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </c:if>
                             <div class="row g-3 p-3 bg-light rounded-3 border mb-4">
                                 <div class="col-6 col-sm-4">
                                     <span class="text-muted fs-9 d-block mb-1">Trạng thái</span>
@@ -2096,11 +2284,70 @@
                             ${task.title}
                         </h5>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    <div class="d-flex align-items-center gap-2">
+                        <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
+                                <i class="bi bi-pencil-square me-1"></i> Sửa Task
+                            </button>
+                        </c:if>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
                 </div>
                 <div class="modal-body p-0">
                     <div class="row g-0">
                         <div class="col-12 col-md-7 p-4 border-end">
+                            <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
+                                    <form method="post" action="${pageContext.request.contextPath}/task" class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
+                                        <input type="hidden" name="action" value="editTask">
+                                        <input type="hidden" name="projectId" value="${project.id}">
+                                        <input type="hidden" name="taskId" value="${task.id}">
+                                        <h6 class="fw-bold text-primary fs-8 mb-3"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công việc</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề:</label>
+                                            <input type="text" name="title" value="<c:out value='${task.title}' />" class="form-control form-control-sm" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi tiết:</label>
+                                            <textarea name="description" class="form-control form-control-sm" rows="3"><c:out value="${task.description}" /></textarea>
+                                        </div>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu tiên:</label>
+                                                <select name="priority" class="form-select form-select-sm">
+                                                    <option value="LOW" ${task.priority == 'LOW' ? 'selected' : ''}>Thấp (Low)</option>
+                                                    <option value="MEDIUM" ${task.priority == 'MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
+                                                    <option value="HIGH" ${task.priority == 'HIGH' ? 'selected' : ''}>Cao (High)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
+                                                <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
+                                            </div>
+                                            <div class="col-4">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ trách:</label>
+                                                <c:choose>
+                                                    <c:when test="${project.ownerId == sessionScope.currentUser.id}">
+                                                        <select name="assigneeId" class="form-select form-select-sm" required>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <option value="${u.id}" ${u.id == task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <input type="hidden" name="assigneeId" value="${task.assigneeId}">
+                                                        <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
+                                            <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay đổi</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </c:if>
                             <div class="row g-3 p-3 bg-light rounded-3 border mb-4">
                                 <div class="col-6 col-sm-4">
                                     <span class="text-muted fs-9 d-block mb-1">Trạng thái</span>
@@ -3234,13 +3481,37 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-end">
-                                    <span class="fs-9 text-muted d-block">Gia nhập:</span>
-                                    <span class="fs-9 fw-semibold text-secondary">${pm.joinedAt}</span>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="text-end">
+                                        <span class="fs-9 text-muted d-block">Gia nhập:</span>
+                                        <span class="fs-9 fw-semibold text-secondary">${pm.joinedAt}</span>
+                                    </div>
+                                    <c:if test="${project.ownerId == sessionScope.currentUser.id && pm.userId != project.ownerId}">
+                                        <form method="post" action="${pageContext.request.contextPath}/invite" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn mời thành viên [${pm.userName}] rời khỏi dự án?');">
+                                            <input type="hidden" name="action" value="kick">
+                                            <input type="hidden" name="projectId" value="${project.id}">
+                                            <input type="hidden" name="userId" value="${pm.userId}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-2 rounded-pill fs-9" title="Mời rời dự án">
+                                                <i class="bi bi-person-x-fill me-1"></i> Mời rời
+                                            </button>
+                                        </form>
+                                    </c:if>
                                 </div>
                             </div>
                         </c:forEach>
                     </div>
+
+                    <c:if test="${project.ownerId != sessionScope.currentUser.id}">
+                        <div class="mt-3 pt-2 text-end">
+                            <form method="post" action="${pageContext.request.contextPath}/invite" class="m-0 d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn rời khỏi dự án [${project.name}]? Bạn sẽ không thể truy cập lại trừ khi được mời lại.');">
+                                <input type="hidden" name="action" value="leave">
+                                <input type="hidden" name="projectId" value="${project.id}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fs-8">
+                                    <i class="bi bi-box-arrow-left me-1"></i> Rời khỏi dự án này
+                                </button>
+                            </form>
+                        </div>
+                    </c:if>
                 </div>
 
                 <!-- PHẦN 2: LỜI MỜI / YÊU CẦU ĐANG CHỜ PHẢN HỒI (PENDING) -->
@@ -3318,15 +3589,25 @@
 
                         <div class="mb-3">
                             <label for="inputUsernameOrEmail" class="form-label fw-semibold fs-7 text-dark">
-                                Username hoặc Email <span class="text-danger">*</span>
+                                Chọn tài khoản hoặc nhập Username / Email <span class="text-danger">*</span>
                             </label>
+                            <c:if test="${not empty inviteCandidates}">
+                                <div class="mb-2">
+                                    <select class="form-select fs-7 rounded-3" onchange="if(this.value) document.getElementById('inputUsernameOrEmail').value = this.value;">
+                                        <option value="">-- Chọn nhanh tài khoản trong hệ thống --</option>
+                                        <c:forEach items="${inviteCandidates}" var="cand">
+                                            <option value="${cand.username}">${cand.fullName} (@${cand.username} - ${cand.role})</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                            </c:if>
                             <div class="input-group">
                                 <span class="input-group-text bg-light border-end-0 fs-7 text-muted">
                                     <i class="bi bi-person-badge"></i>
                                 </span>
                                 <input type="text" class="form-control fs-7 rounded-end-3" 
                                        id="inputUsernameOrEmail" name="usernameOrEmail" 
-                                       placeholder="Ví dụ: chi hoặc chi@teamwork.com" required autofocus>
+                                       placeholder="Hoặc tự gõ: chi hoặc chi@teamwork.com" required autofocus>
                             </div>
                         </div>
 

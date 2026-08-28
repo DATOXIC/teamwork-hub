@@ -4,16 +4,18 @@ import com.teamwork.business.Task;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu Thẻ công việc (In-Memory Task Database trên RAM)
  * - Quản lý 5 trạng thái: TODO, IN_PROGRESS, SUBMITTED (🟡), REVISE (🔵), REJECTED (🔴), DONE (🟢)
  * - Cung cấp các thao tác Bàn giao của Task Lead và Phê duyệt Nghiệm thu của Trưởng Dự Án (PM)
+ * - Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class TaskDB {
 
-    // 1. Danh sách tĩnh lưu toàn bộ task trong hệ thống
-    private static List<Task> tasks = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu toàn bộ task trong hệ thống
+    private static List<Task> tasks = new CopyOnWriteArrayList<>();
     private static int nextId = 1; // Biến tự tăng cấp ID cho thẻ task mới
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các task mẫu cho Dự án 1 và Dự án 2
@@ -103,17 +105,17 @@ public class TaskDB {
             "18/08/2026 08:30"
         ));
 
-        // Task 5: ⚪ CẦN LÀM (TODO) - Còn 10 ngày
+        // Task 5: ⚪ CẦN LÀM (TODO) - Còn 10 ngày (Giao cho Trần Thị Bình để demo luồng Cổng 1)
         tasks.add(new Task(
             nextId++,
             1,
-            "Viết tài liệu Hướng dẫn sử dụng & Báo cáo đồ án",
-            "Soạn thảo tài liệu PDF và slide thuyết trình bảo vệ đồ án.",
+            "Thiết kế giao diện Dark Mode & Tối ưu Responsive",
+            "Nghiên cứu bảng màu Dark Palette, thiết kế chuyển đổi theme và tối ưu UX trên thiết bị di động.",
             "TODO",
             "MEDIUM",
             datePlus10,
-            1,
-            "Trưởng Nhóm Admin"
+            3,
+            "Trần Thị Bình"
         ));
     }
 

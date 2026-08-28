@@ -3,17 +3,19 @@ package com.teamwork.data;
 import com.teamwork.business.ProjectInvite;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý Kho Lời Mời & Yêu Cầu Xin Gia Nhập 2 Chiều (In-Memory RAM Data Layer).
  * - Lưu trữ các lời mời PENDING, ACCEPTED, REJECTED, REVOKED, EXPIRED
  * - Chống gửi trùng lặp yêu cầu đang chờ (hasPendingInvite)
  * - Cung cấp danh sách lời mời cho Dashboard của Thành viên và Trang Quản lý của PM
+ * - Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class ProjectInviteDB {
 
-    // 1. Danh sách tĩnh lưu trữ các Lời mời / Yêu cầu trên RAM
-    private static List<ProjectInvite> invites = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ các Lời mời / Yêu cầu trên RAM
+    private static List<ProjectInvite> invites = new CopyOnWriteArrayList<>();
     private static int nextId = 1;
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Seed Data mẫu để kiểm thử ngay

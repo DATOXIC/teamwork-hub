@@ -4,6 +4,7 @@ import com.teamwork.business.SubTask;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu Việc Con & Vòng Đời Nghiệm Thu 5 Cấp Độ (In-Memory RAM Data Layer).
@@ -14,11 +15,12 @@ import java.util.List;
  * - Task Lead Yêu cầu Cân chỉnh nhỏ (reviseDeliverable) ➔ 🔵 REVISE
  * - Task Lead Trả về do Chưa đạt (rejectDeliverable) ➔ 🔴 REJECTED
  * - Tự động tính toán % tiến độ hoàn thành dựa trên số lượng việc ĐÃ DUYỆT (APPROVED)
+ * - Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class SubTaskDB {
 
-    // 1. Danh sách tĩnh lưu trữ toàn bộ các việc con trên RAM
-    private static List<SubTask> subTasks = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ toàn bộ các việc con trên RAM
+    private static List<SubTask> subTasks = new CopyOnWriteArrayList<>();
     private static int nextId = 1; // Biến tự tăng cấp ID cho việc con mới
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các việc con mẫu đa dạng 5 trạng thái
@@ -27,7 +29,9 @@ public class SubTaskDB {
         String datePlus2 = today.plusDays(2).toString();
         String datePlus3 = today.plusDays(3).toString();
         String datePlus4 = today.plusDays(4).toString();
+        String datePlus5 = today.plusDays(5).toString();
         String dateMinus1 = today.minusDays(1).toString();
+        String dateMinus2 = today.minusDays(2).toString();
         String dateMinus7 = today.minusDays(7).toString();
         String dateMinus8 = today.minusDays(8).toString();
 
@@ -144,6 +148,64 @@ public class SubTaskDB {
             "Đạt chuẩn",
             dateMinus7 + " 15:00",
             dateMinus7 + " 15:30"
+        ));
+
+        // --- CÁC VIỆC CON CỦA TASK 3: "Xây dựng Filter bảo mật & Kiểm tra quyền truy cập" (Trạng thái TODO - Quá hạn) ---
+        subTasks.add(new SubTask(
+            nextId++,
+            3, // taskId = 3
+            "Cấu hình UrlPattern cho AuthFilter & Chặn truy cập trực tiếp",
+            2, // assigneeId = 2 (Nguyễn Văn An)
+            "Nguyễn Văn An",
+            "TODO",
+            dateMinus2,
+            "",
+            "",
+            "",
+            ""
+        ));
+
+        subTasks.add(new SubTask(
+            nextId++,
+            3,
+            "Viết unit test kiểm thử phân quyền và chuyển hướng đăng nhập",
+            2,
+            "Nguyễn Văn An",
+            "TODO",
+            dateMinus2,
+            "",
+            "",
+            "",
+            ""
+        ));
+
+        // --- CÁC VIỆC CON CỦA TASK 5: "Thiết kế giao diện Dark Mode & Tối ưu Responsive" (Trạng thái TODO - Còn 10 ngày) ---
+        subTasks.add(new SubTask(
+            nextId++,
+            5, // taskId = 5
+            "Nghiên cứu bảng màu Dark Palette chuẩn độ tương phản WCAG 2.1",
+            3, // assigneeId = 3 (Trần Thị Bình)
+            "Trần Thị Bình",
+            "TODO",
+            datePlus4,
+            "",
+            "",
+            "",
+            ""
+        ));
+
+        subTasks.add(new SubTask(
+            nextId++,
+            5,
+            "Viết CSS Custom Properties và JavaScript lưu trạng thái theme",
+            3,
+            "Trần Thị Bình",
+            "TODO",
+            datePlus4,
+            "",
+            "",
+            "",
+            ""
         ));
     }
 
@@ -281,5 +343,19 @@ public class SubTaskDB {
             }
         }
         return (int) Math.round(((double) approvedCount / list.size()) * 100);
+    }
+
+    /**
+     * HÀM 12: Cập nhật thông tin chi tiết của một việc con (tiêu đề, người phụ trách, hạn chót)
+     */
+    public static boolean update(SubTask updatedSubTask) {
+        if (updatedSubTask == null) return false;
+        for (int i = 0; i < subTasks.size(); i++) {
+            if (subTasks.get(i).getId() == updatedSubTask.getId()) {
+                subTasks.set(i, updatedSubTask);
+                return true;
+            }
+        }
+        return false;
     }
 }

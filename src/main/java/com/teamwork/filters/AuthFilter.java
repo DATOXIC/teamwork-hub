@@ -59,6 +59,8 @@ public class AuthFilter implements Filter {
             isPublicPath = true; // Giao diện form đăng nhập
         } else if (path.startsWith("/styles/") || path.startsWith("/js/") || path.startsWith("/images/") || path.startsWith("/includes/")) {
             isPublicPath = true; // Các tài nguyên tĩnh (CSS, JavaScript, Logo, Footer/Header fragment)
+        } else if (path.equals("/404.jsp") || path.equals("/500.jsp")) {
+            isPublicPath = true; // Các trang lỗi tùy chỉnh
         }
 
         // 5. NẾU LÀ ĐƯỜNG DẪN CÔNG KHAI -> MỞ CỔNG CHO ĐI TIẾP

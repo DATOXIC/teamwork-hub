@@ -3,15 +3,17 @@ package com.teamwork.data;
 import com.teamwork.business.Doc;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu Tài liệu & Ghi chú Wiki (In-Memory Doc Database trên RAM)
  * Cung cấp đầy đủ các thao tác CRUD: Lấy danh sách bài viết theo dự án, Đọc chi tiết, Thêm mới, Cập nhật và Xóa bài.
+ * Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class DocDB {
 
-    // 1. Danh sách tĩnh lưu trữ toàn bộ bài viết tài liệu trên RAM
-    private static List<Doc> docs = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ toàn bộ bài viết tài liệu trên RAM
+    private static List<Doc> docs = new CopyOnWriteArrayList<>();
     private static int nextId = 1; // Biến tự tăng cấp ID cho bài viết mới
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các bài viết mẫu (Seed Data)

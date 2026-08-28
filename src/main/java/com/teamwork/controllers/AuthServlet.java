@@ -2,6 +2,7 @@ package com.teamwork.controllers;
 
 import com.teamwork.business.User;
 import com.teamwork.data.UserDB;
+import com.teamwork.util.PasswordUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -166,7 +167,7 @@ public class AuthServlet extends HttpServlet {
         (
             0, // ID sẽ được UserDB tự động cấp tăng dần
             username.trim(),
-            password.trim(),
+            PasswordUtil.hashPassword(password.trim()),
             fullName.trim(),
             (email != null ? email.trim() : ""),
             "MEMBER", // Mặc định tài khoản đăng ký mới là MEMBER

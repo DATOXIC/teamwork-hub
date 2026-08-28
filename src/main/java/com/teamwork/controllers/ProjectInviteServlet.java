@@ -95,6 +95,12 @@ public class ProjectInviteServlet extends HttpServlet {
             case "revoke":
                 handleRevoke(request, response, currentUser);
                 break;
+            case "leave":
+                handleLeaveProject(request, response, currentUser);
+                break;
+            case "kick":
+                handleKickMember(request, response, currentUser);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/project?action=list");
                 break;
@@ -433,5 +439,118 @@ public class ProjectInviteServlet extends HttpServlet {
             }
         }
         response.sendRedirect(request.getContextPath() + "/project?action=list");
+    }
+
+    // =========================================================================
+    // LUỒNG 6: THÀNH VIÊN TỰ RỜI KHỎI DỰ ÁN (LEAVE PROJECT)
+    // =========================================================================
+    private void handleLeaveProject(HttpServletRequest request, HttpServletResponse response, User currentUser)
+            throws IOException {
+
+        HttpSession session = request.getSession();
+        int projectId = 0;
+        try {
+            projectId = Integer.parseInt(request.getParameter("projectId"));
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        Project project = ProjectDB.selectById(projectId);
+        if (project == null) {
+            session.setAttribute("toastError", "Dự án không tồn tại!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // Ràng buộc bảo mật: Trưởng Dự Án (PM/Owner) không thể tự rời khỏi dự án của mình
+        if (project.getOwnerId() == currentUser.getId()) {
+            session.setAttribute("toastError", "Bạn là Trưởng Dự Án (PM/Owner), không thể rời dự án của chính mình!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // Kiểm tra xem người dùng có thực sự là thành viên không
+        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            session.setAttribute("toastError", "Bạn không phải thành viên của dự án này!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // Thực hiện xóa khỏi danh sách thành viên
+        ProjectMemberDB.delete(projectId, currentUser.getId());
+
+        // Bắn thông báo tới Trưởng Dự Án
+        NotificationDB.send(
+            project.getOwnerId(),
+            "Thành Viên Đã Rời Dự Án",
+            currentUser.getFullName() + " đã tự rời khỏi dự án [" + project.getName() + "].",
+            "/task?action=list&projectId=" + projectId,
+            "INVITE"
+        );
+
+        session.setAttribute("toastSuccess", "Bạn đã rời khỏi dự án [" + project.getName() + "] thành công.");
+        response.sendRedirect(request.getContextPath() + "/project?action=list");
+    }
+
+    // =========================================================================
+    // LUỒNG 7: TRƯỞNG DỰ ÁN (PM) MỜI THÀNH VIÊN RỜI DỰ ÁN (KICK MEMBER)
+    // =========================================================================
+    private void handleKickMember(HttpServletRequest request, HttpServletResponse response, User currentUser)
+            throws IOException {
+
+        HttpSession session = request.getSession();
+        int projectId = 0;
+        int targetUserId = 0;
+        try {
+            projectId = Integer.parseInt(request.getParameter("projectId"));
+            targetUserId = Integer.parseInt(request.getParameter("userId"));
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        Project project = ProjectDB.selectById(projectId);
+        if (project == null) {
+            session.setAttribute("toastError", "Dự án không tồn tại!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // Ràng buộc bảo mật: Chỉ Trưởng Dự Án (PM/Owner) mới có quyền mời rời thành viên
+        if (project.getOwnerId() != currentUser.getId()) {
+            session.setAttribute("toastError", "Chỉ Trưởng Dự Án (PM) mới có quyền mời thành viên rời dự án!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // Không thể tự kick chính mình
+        if (targetUserId == project.getOwnerId()) {
+            session.setAttribute("toastError", "Không thể tự xóa Trưởng Dự Án khỏi dự án!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        User targetUser = UserDB.selectById(targetUserId);
+        if (targetUser == null || !ProjectMemberDB.isMember(projectId, targetUserId)) {
+            session.setAttribute("toastError", "Người dùng không phải thành viên của dự án này!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // Thực hiện xóa khỏi danh sách thành viên
+        ProjectMemberDB.delete(projectId, targetUserId);
+
+        // Bắn thông báo tới thành viên bị kick
+        NotificationDB.send(
+            targetUserId,
+            "Thông Báo Dự Án",
+            "Bạn đã được Trưởng Dự Án mời rời khỏi dự án [" + project.getName() + "].",
+            "/project?action=list",
+            "INVITE"
+        );
+
+        session.setAttribute("toastSuccess", "Đã xóa thành viên [" + targetUser.getFullName() + "] ra khỏi dự án thành công.");
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
     }
 }

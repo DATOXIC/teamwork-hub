@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%-- Thiết lập tiêu đề trang cho header.jsp --%>
 <c:set var="pageTitle" value="Đăng nhập &bull; TeamWork Hub" />
 <jsp:include page="/includes/header.jsp" />

@@ -3,15 +3,17 @@ package com.teamwork.data;
 import com.teamwork.business.TaskDoc;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tầng Data Layer: Quản lý kho dữ liệu liên kết giữa Công việc và Tài liệu (Task ↔ Doc) trên RAM.
  * Cung cấp các thao tác tìm kiếm, thêm mới, và tự động dọn dẹp liên kết khi Task hoặc Doc bị xóa.
+ * Đảm bảo an toàn đa luồng (Thread-Safe)
  */
 public class TaskDocDB {
 
-    // 1. Danh sách tĩnh lưu trữ toàn bộ các cặp liên kết (Task - Doc) trên RAM
-    private static List<TaskDoc> taskDocs = new ArrayList<>();
+    // 1. Danh sách tĩnh luồng an toàn lưu trữ toàn bộ các cặp liên kết (Task - Doc) trên RAM
+    private static List<TaskDoc> taskDocs = new CopyOnWriteArrayList<>();
 
     // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các liên kết mẫu (Seed Data)
     static {

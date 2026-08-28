@@ -98,35 +98,29 @@ document.addEventListener('DOMContentLoaded', function()
     // =========================================================================
     // TÍNH NĂNG LỌC CÔNG VIỆC THEO THÀNH VIÊN TRONG 0.01 GIÂY (PHẦN B.3.3 & B.3.4)
     // =========================================================================
+    // TÍNH NĂNG TÌM KIẾM & BỘ LỌC CÔNG VIỆC TỨC THÌ (0.01 GIÂY)
+    // =========================================================================
     const filterButtons = document.querySelectorAll('.member-filter-btn');
     const filterResultCount = document.getElementById('filterResultCount');
+    const searchInput = document.getElementById('taskSearchInput');
+    const priorityFilter = document.getElementById('taskPriorityFilter');
 
-    function applyMemberFilter(event) {
-        const clickedBtn = event.currentTarget;
-        const relatedTasksStr = clickedBtn.getAttribute('data-related-tasks') || '';
-        const filterMode = clickedBtn.getAttribute('data-filter-mode');
-        const userName = clickedBtn.getAttribute('data-user-name') || '';
+    let activeMemberBtn = document.querySelector('.member-filter-btn.active') || (filterButtons.length > 0 ? filterButtons[0] : null);
 
-        // 1. Cập nhật trạng thái active cho các nút bấm
-        filterButtons.forEach(btn => {
-            btn.classList.remove('btn-primary-custom', 'active', 'text-white');
-            if (btn.getAttribute('data-filter-mode') === 'MY_TASKS') {
-                btn.classList.add('btn-outline-primary');
-            } else if (btn.getAttribute('data-filter-mode') === 'ALL') {
-                btn.classList.add('btn-outline-secondary');
-            } else {
-                btn.classList.add('btn-outline-secondary');
-            }
-        });
+    function applyCombinedFilter() {
+        if (!activeMemberBtn && filterButtons.length > 0) {
+            activeMemberBtn = filterButtons[0];
+        }
 
-        clickedBtn.classList.remove('btn-outline-secondary', 'btn-outline-primary');
-        clickedBtn.classList.add('btn-primary-custom', 'active', 'text-white');
+        const relatedTasksStr = activeMemberBtn ? (activeMemberBtn.getAttribute('data-related-tasks') || '') : 'ALL';
+        const filterMode = activeMemberBtn ? activeMemberBtn.getAttribute('data-filter-mode') : 'ALL';
+        const userName = activeMemberBtn ? (activeMemberBtn.getAttribute('data-user-name') || '') : '';
 
-        // 2. Chuyển chuỗi ID "1,3,5" thành Set các số nguyên
+        // 1. Chuyển chuỗi ID "1,3,5" thành Set các số nguyên
         let allowedTaskIds = new Set();
-        let isShowAll = (filterMode === 'ALL' || relatedTasksStr === 'ALL');
+        let isShowAllMembers = (filterMode === 'ALL' || relatedTasksStr === 'ALL');
 
-        if (!isShowAll && relatedTasksStr.trim() !== '') {
+        if (!isShowAllMembers && relatedTasksStr.trim() !== '') {
             relatedTasksStr.split(',').forEach(idStr => {
                 const id = parseInt(idStr.trim(), 10);
                 if (!isNaN(id)) {
@@ -135,12 +129,29 @@ document.addEventListener('DOMContentLoaded', function()
             });
         }
 
+        // 2. Lấy giá trị tìm kiếm và mức ưu tiên
+        const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const selectedPriority = priorityFilter ? priorityFilter.value.toUpperCase() : 'ALL';
+
         // 3. Quét qua tất cả các thẻ Kanban card để ẩn / hiện tức thì
         let visibleCount = 0;
         cards.forEach(card => {
             const taskId = parseInt(card.getAttribute('data-task-id'), 10);
+            const title = (card.getAttribute('data-task-title') || '').toLowerCase();
+            const assignee = (card.getAttribute('data-task-assignee') || '').toLowerCase();
+            const cardText = card.innerText.toLowerCase();
+            const priority = (card.getAttribute('data-task-priority') || '').toUpperCase();
 
-            if (isShowAll || allowedTaskIds.has(taskId)) {
+            // Kiểm tra điều kiện 1: Thành viên
+            const matchMember = isShowAllMembers || allowedTaskIds.has(taskId);
+
+            // Kiểm tra điều kiện 2: Mức ưu tiên
+            const matchPriority = (selectedPriority === 'ALL' || priority === selectedPriority);
+
+            // Kiểm tra điều kiện 3: Từ khóa tìm kiếm
+            const matchSearch = (searchQuery === '' || title.includes(searchQuery) || assignee.includes(searchQuery) || cardText.includes(searchQuery));
+
+            if (matchMember && matchPriority && matchSearch) {
                 card.classList.remove('d-none');
                 visibleCount++;
             } else {
@@ -150,17 +161,54 @@ document.addEventListener('DOMContentLoaded', function()
 
         // 4. Cập nhật dòng chữ thống kê kết quả lọc
         if (filterResultCount) {
-            if (isShowAll) {
-                filterResultCount.innerHTML = `Hiển thị tất cả <strong>${visibleCount}</strong> công việc`;
+            let desc = '';
+            if (isShowAllMembers) {
+                desc = `Hiển thị <strong>${visibleCount}</strong> công việc`;
             } else if (filterMode === 'MY_TASKS') {
-                filterResultCount.innerHTML = `Hiển thị <strong>${visibleCount}</strong> công việc liên quan đến <strong>bạn</strong>`;
+                desc = `Hiển thị <strong>${visibleCount}</strong> công việc liên quan đến <strong>bạn</strong>`;
             } else {
-                filterResultCount.innerHTML = `Hiển thị <strong>${visibleCount}</strong> công việc liên quan đến <strong>${userName}</strong>`;
+                desc = `Hiển thị <strong>${visibleCount}</strong> công việc liên quan đến <strong>${userName}</strong>`;
             }
+
+            if (selectedPriority !== 'ALL') {
+                desc += ` (Ưu tiên: <strong>${selectedPriority}</strong>)`;
+            }
+            if (searchQuery !== '') {
+                desc += ` (Từ khóa: <em>"${searchQuery}"</em>)`;
+            }
+
+            filterResultCount.innerHTML = desc;
         }
     }
 
+    function handleMemberButtonClick(event) {
+        const clickedBtn = event.currentTarget;
+        activeMemberBtn = clickedBtn;
+
+        filterButtons.forEach(btn => {
+            btn.classList.remove('btn-primary-custom', 'active', 'text-white');
+            if (btn.getAttribute('data-filter-mode') === 'MY_TASKS') {
+                btn.classList.add('btn-outline-primary');
+            } else {
+                btn.classList.add('btn-outline-secondary');
+            }
+        });
+
+        clickedBtn.classList.remove('btn-outline-secondary', 'btn-outline-primary');
+        clickedBtn.classList.add('btn-primary-custom', 'active', 'text-white');
+
+        applyCombinedFilter();
+    }
+
     filterButtons.forEach(btn => {
-        btn.addEventListener('click', applyMemberFilter);
+        btn.addEventListener('click', handleMemberButtonClick);
     });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyCombinedFilter);
+    }
+
+    if (priorityFilter) {
+        priorityFilter.addEventListener('change', applyCombinedFilter);
+    }
 });

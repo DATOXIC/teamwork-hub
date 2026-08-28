@@ -16,9 +16,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import com.teamwork.business.ProjectMember;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -154,8 +156,8 @@ public class ChatServlet extends HttpServlet {
             return;
         }
 
-        // 2. Lấy toàn bộ danh sách tin nhắn chat chung của dự án này (chỉ lấy các tin có taskId == 0)
-        List<Message> messageList = MessageDB.selectByProjectId(projectId);
+        // 2. Lấy danh sách 50 tin nhắn chat chung gần đây nhất của dự án này (chỉ lấy các tin có taskId == 0)
+        List<Message> messageList = MessageDB.selectRecentByProjectId(projectId, 50);
 
         // 3. Lấy danh sách toàn bộ Tài liệu Wiki của dự án (để hỗ trợ gợi ý khi gõ #doc-...)
         List<Doc> docList = DocDB.selectByProjectId(projectId);
@@ -163,8 +165,15 @@ public class ChatServlet extends HttpServlet {
         // 4. Lấy danh sách toàn bộ Công việc Kanban của dự án (để hỗ trợ gợi ý khi gõ #task-...)
         List<Task> taskList = TaskDB.selectByProjectId(projectId);
 
-        // 5. Lấy danh sách toàn bộ thành viên trong hệ thống (để hỗ trợ gợi ý khi gõ @username)
-        List<User> userList = UserDB.selectAll();
+        // 5. Lấy danh sách thành viên thực tế của dự án này (phục vụ danh sách thành viên và gợi ý @mention)
+        List<ProjectMember> memberList = ProjectMemberDB.selectByProjectId(projectId);
+        List<User> userList = new ArrayList<>();
+        for (ProjectMember pm : memberList) {
+            User u = UserDB.selectById(pm.getUserId());
+            if (u != null) {
+                userList.add(u);
+            }
+        }
 
         // 6. Đóng gói toàn bộ vào Request Scope
         request.setAttribute("project", project);

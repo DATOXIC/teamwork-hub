@@ -183,6 +183,14 @@ public class TaskServlet extends HttpServlet {
                 handleDeleteSubTask(request, response);
                 break;
 
+            case "editTask":
+                handleEditTask(request, response);
+                break;
+
+            case "editSubTask":
+                handleEditSubTask(request, response);
+                break;
+
             default:
                 response.sendRedirect(request.getContextPath() + "/project?action=list");
                 break;
@@ -209,8 +217,15 @@ public class TaskServlet extends HttpServlet {
         List<Task> inProgressTasks = TaskDB.selectByProjectAndStatus(projectId, "IN_PROGRESS");
         List<Task> doneTasks = TaskDB.selectByProjectAndStatus(projectId, "DONE");
 
-        // 3. Lấy danh sách thành viên để gán người phụ trách
-        List<User> userList = UserDB.selectAll();
+        // 3. Lấy danh sách thành viên thực tế của dự án để gán người phụ trách
+        List<ProjectMember> projectMemberList = ProjectMemberDB.selectByProjectId(projectId);
+        List<User> userList = new ArrayList<>();
+        for (ProjectMember pm : projectMemberList) {
+            User u = UserDB.selectById(pm.getUserId());
+            if (u != null) {
+                userList.add(u);
+            }
+        }
 
         // 4. Lấy danh sách toàn bộ tài liệu Wiki của dự án này
         List<Doc> docList = DocDB.selectByProjectId(projectId);
@@ -258,10 +273,18 @@ public class TaskServlet extends HttpServlet {
         allTasks.addAll(doneTasks);
         List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks);
 
-        // 8.6. Lấy danh sách thành viên và lời mời của dự án (Chặng C.3)
-        List<ProjectMember> projectMemberList = ProjectMemberDB.selectByProjectId(projectId);
+        // 8.6. Lấy danh sách lời mời của dự án (Chặng C.3)
         List<ProjectInvite> projectInviteList = ProjectInviteDB.selectByProjectId(projectId);
         int memberCount = ProjectMemberDB.countMembers(projectId);
+
+        // Danh sách ứng viên trong hệ thống chưa tham gia dự án (phục vụ Modal Mời thành viên nhanh)
+        List<User> allSystemUsers = UserDB.selectAll();
+        List<User> inviteCandidates = new ArrayList<>();
+        for (User u : allSystemUsers) {
+            if (!ProjectMemberDB.isMember(projectId, u.getId())) {
+                inviteCandidates.add(u);
+            }
+        }
 
         // 8.7. Xử lý Flash Message (Toast)
         HttpSession session = request.getSession(false);
@@ -293,6 +316,7 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("projectMemberList", projectMemberList);
         request.setAttribute("projectInviteList", projectInviteList);
         request.setAttribute("memberCount", memberCount);
+        request.setAttribute("inviteCandidates", inviteCandidates);
         request.setAttribute("activeNav", "projects");
 
         // 10. Forward sang giao diện tasks.jsp
@@ -360,7 +384,12 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
+        HttpSession session = request.getSession(false);
+
         if (title == null || title.trim().isEmpty()) {
+            if (session != null) {
+                session.setAttribute("toastError", "Tiêu đề công việc không được để trống!");
+            }
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
@@ -370,17 +399,31 @@ public class TaskServlet extends HttpServlet {
         }
 
         int assigneeId = 0;
-        String assigneeName = "Chưa phân công";
+        String assigneeName = "";
         if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
             try {
                 assigneeId = Integer.parseInt(assigneeIdParam.trim());
-                User assignee = UserDB.selectById(assigneeId);
-                if (assignee != null) {
-                    assigneeName = assignee.getFullName();
+                if (ProjectMemberDB.isMember(projectId, assigneeId)) {
+                    User assignee = UserDB.selectById(assigneeId);
+                    if (assignee != null) {
+                        assigneeName = assignee.getFullName();
+                    } else {
+                        assigneeId = 0;
+                    }
+                } else {
+                    assigneeId = 0;
                 }
             } catch (NumberFormatException e) {
                 assigneeId = 0;
             }
+        }
+
+        if (assigneeId <= 0) {
+            if (session != null) {
+                session.setAttribute("toastError", "Vui lòng chọn người phụ trách (Task Lead) hợp lệ trong danh sách thành viên dự án!");
+            }
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
         }
 
         Task newTask = new Task(
@@ -682,6 +725,195 @@ public class TaskServlet extends HttpServlet {
             }
         }
 
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 7.1: Chỉnh sửa thông tin công việc lớn (Task cha)
+     * Thẩm quyền: Trưởng Dự Án (PM) hoặc Trưởng Nhóm Task (Task Lead)
+     */
+    private void handleEditTask(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+
+        String projectIdParam = request.getParameter("projectId");
+        String taskIdParam = request.getParameter("taskId");
+        String title = request.getParameter("title");
+        String description = request.getParameter("description");
+        String priority = request.getParameter("priority");
+        String dueDate = request.getParameter("dueDate");
+        String assigneeIdParam = request.getParameter("assigneeId");
+
+        int projectId = 0;
+        int taskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            taskId = Integer.parseInt(taskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        Task task = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (task == null || project == null) {
+            if (session != null) session.setAttribute("toastError", "Không tìm thấy thông tin công việc!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // Kiểm tra thẩm quyền: PM hoặc Task Lead của task này
+        boolean isPm = (currentUser.getId() == project.getOwnerId());
+        boolean isTaskLead = (currentUser.getId() == task.getAssigneeId());
+
+        if (!isPm && !isTaskLead) {
+            if (session != null) session.setAttribute("toastError", "Bạn không có quyền chỉnh sửa thông tin công việc này!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // Validate tiêu đề
+        if (title == null || title.trim().isEmpty()) {
+            if (session != null) session.setAttribute("toastError", "Tiêu đề công việc không được để trống!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // Cập nhật các trường cơ bản
+        task.setTitle(title.trim());
+        task.setDescription(description != null ? description.trim() : "");
+        if (priority != null && ("LOW".equalsIgnoreCase(priority) || "MEDIUM".equalsIgnoreCase(priority) || "HIGH".equalsIgnoreCase(priority))) {
+            task.setPriority(priority.toUpperCase());
+        }
+        task.setDueDate(dueDate != null ? dueDate.trim() : "");
+
+        // Chỉ PM mới được đổi người phụ trách (assigneeId)
+        if (isPm && assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
+            try {
+                int newAssigneeId = Integer.parseInt(assigneeIdParam.trim());
+                if (newAssigneeId != task.getAssigneeId() && ProjectMemberDB.isMember(projectId, newAssigneeId)) {
+                    User newAssignee = UserDB.selectById(newAssigneeId);
+                    if (newAssignee != null) {
+                        task.setAssigneeId(newAssigneeId);
+                        task.setAssigneeName(newAssignee.getFullName());
+
+                        // Gửi thông báo cho người mới được giao task
+                        NotificationDB.send(
+                            newAssigneeId,
+                            "Phân Công Nhiệm Vụ Mới",
+                            "Bạn vừa được Trưởng Dự Án phân công làm Task Lead cho công việc [" + task.getTitle() + "].",
+                            "/task?action=list&projectId=" + projectId,
+                            "TASK"
+                        );
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Bỏ qua nếu assigneeId không hợp lệ
+            }
+        }
+
+        TaskDB.update(task);
+
+        if (session != null) {
+            session.setAttribute("toastSuccess", "Đã cập nhật thông tin công việc [" + task.getTitle() + "] thành công!");
+        }
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 7.2: Chỉnh sửa thông tin việc con (Sub-task)
+     * Thẩm quyền: Trưởng Dự Án (PM) hoặc Trưởng Nhóm Task (Task Lead)
+     */
+    private void handleEditSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+
+        String projectIdParam = request.getParameter("projectId");
+        String subTaskIdParam = request.getParameter("subTaskId");
+        String title = request.getParameter("title");
+        String assigneeIdParam = request.getParameter("assigneeId");
+        String dueDate = request.getParameter("dueDate");
+
+        int projectId = 0;
+        int subTaskId = 0;
+        try {
+            projectId = Integer.parseInt(projectIdParam.trim());
+            subTaskId = Integer.parseInt(subTaskIdParam.trim());
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        SubTask subTask = SubTaskDB.selectById(subTaskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (subTask == null || project == null) {
+            if (session != null) session.setAttribute("toastError", "Không tìm thấy việc con cần sửa!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        Task parentTask = TaskDB.selectById(subTask.getTaskId());
+        if (parentTask == null) {
+            if (session != null) session.setAttribute("toastError", "Không tìm thấy công việc cha!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // Kiểm tra thẩm quyền: PM hoặc Task Lead của parentTask
+        boolean isPm = (currentUser.getId() == project.getOwnerId());
+        boolean isTaskLead = (currentUser.getId() == parentTask.getAssigneeId());
+
+        if (!isPm && !isTaskLead) {
+            if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án hoặc Task Lead mới có quyền sửa việc con!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // Validate tiêu đề
+        if (title == null || title.trim().isEmpty()) {
+            if (session != null) session.setAttribute("toastError", "Tiêu đề việc con không được để trống!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        subTask.setTitle(title.trim());
+        subTask.setDueDate(dueDate != null ? dueDate.trim() : "");
+
+        // Cập nhật người phụ trách việc con
+        if (assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
+            try {
+                int newAssigneeId = Integer.parseInt(assigneeIdParam.trim());
+                if (ProjectMemberDB.isMember(projectId, newAssigneeId)) {
+                    User newAssignee = UserDB.selectById(newAssigneeId);
+                    if (newAssignee != null) {
+                        subTask.setAssigneeId(newAssigneeId);
+                        subTask.setAssigneeName(newAssignee.getFullName());
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Bỏ qua nếu không hợp lệ
+            }
+        }
+
+        SubTaskDB.update(subTask);
+
+        if (session != null) {
+            session.setAttribute("toastSuccess", "Đã cập nhật thông tin việc con [" + subTask.getTitle() + "] thành công!");
+        }
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
     }
 

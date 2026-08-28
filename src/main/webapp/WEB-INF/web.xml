@@ -72,6 +72,20 @@
         <url-pattern>/chat</url-pattern>
     </servlet-mapping>
 
+    <!-- CẤU HÌNH TRANG BÁO LỖI TÙY CHỈNH (CUSTOM ERROR PAGES) -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/404.jsp</location>
+    </error-page>
+    <error-page>
+        <error-code>500</error-code>
+        <location>/500.jsp</location>
+    </error-page>
+    <error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/500.jsp</location>
+    </error-page>
+
     <!-- Trang mặc định khi truy cập root URL -->
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
