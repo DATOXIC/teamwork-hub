@@ -33,7 +33,7 @@ public class Project implements Serializable {
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
     public Project(int id, String projectCode, String name, String description, int ownerId, String createdAt, int totalTasks, int doneTasks) {
         this.id = id;
-        this.projectCode = (projectCode != null && !projectCode.trim().isEmpty()) ? projectCode.trim().toUpperCase() : "PRJ-" + id;
+        this.projectCode = (projectCode != null && !projectCode.trim().isEmpty()) ? projectCode.trim().toUpperCase() : "";
         this.name = name;
         this.description = description;
         this.ownerId = ownerId;

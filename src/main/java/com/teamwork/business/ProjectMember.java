@@ -6,11 +6,15 @@ import java.io.Serializable;
  * JavaBean Model: Đại diện cho Thành Viên Thuộc Dự Án (Project Member).
  * - Đóng vai trò là bản ghi trung gian kết nối Nhiều - Nhiều giữa Project và User.
  * - Quản lý vai trò (OWNER / MEMBER) và thời điểm gia nhập của từng người.
+ * - Class gốc chứa một List Class này
  */
-public class ProjectMember implements Serializable {
-
+public class ProjectMember implements Serializable 
+{
+    // 2 tham chiếu tạo thành mối quan hệ
     private int projectId;            // ID của Dự án
     private int userId;               // ID của Thành viên
+
+
     private String userName;          // Họ và tên thành viên
     private String userEmail;         // Email của thành viên
     private String userRole;          // Chuyên môn của thành viên (Developer, Designer, Tester...)

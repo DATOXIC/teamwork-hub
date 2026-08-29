@@ -27,17 +27,20 @@ import java.util.Map;
  * - Nạp danh sách Lời Mời đang chờ (pendingInvites) cho Dashboard
  */
 public class ProjectServlet extends HttpServlet {
+    private static final String PROJECT_CODE_PATTERN = "^[a-zA-Z0-9_-]{3,15}$";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
-        if (action == null || action.trim().isEmpty()) {
+        if (action == null || action.trim().isEmpty()) 
+        {
             action = "list";
         }
 
-        switch (action) {
+        switch (action) 
+        {
             case "list":
                 showProjectList(request, response);
                 break;
@@ -55,18 +58,23 @@ public class ProjectServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
+
+        // Phòng trường hợp: 1. Hết hạn Session 2. Fake Post
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-        if (currentUser == null) {
+        if (currentUser == null) 
+        {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
         String action = request.getParameter("action");
-        if (action == null || action.trim().isEmpty()) {
+        if (action == null || action.trim().isEmpty()) 
+        {
             action = "create";
         }
 
-        switch (action) {
+        switch (action) 
+        {
             case "create":
                 createProject(request, response, currentUser);
                 break;
@@ -90,45 +98,60 @@ public class ProjectServlet extends HttpServlet {
         List<Project> myProjects = new ArrayList<>();
         List<Project> otherProjects = new ArrayList<>();
 
-        if (currentUser != null) {
+        if (currentUser != null) 
+        {
             List<Project> userProjects = ProjectMemberDB.selectProjectsByUserId(currentUser.getId());
-            for (Project p : allProjects) {
-                if (userProjects.contains(p)) {
+
+            // Phân loại Project có trong Database
+            for (Project p : allProjects) 
+            {
+                if (userProjects.contains(p)) 
+                {
                     myProjects.add(p);
-                } else {
+                } 
+                else 
+                {
                     otherProjects.add(p);
                 }
             }
-        } else {
+        } 
+        else 
+        {
+            // Trống NULL --> Safe Code --> Giúp JSP không bị lỗi
             otherProjects.addAll(allProjects);
         }
 
         request.setAttribute("myProjects", myProjects);
         request.setAttribute("otherProjects", otherProjects);
-        request.setAttribute("projects", allProjects); // Giữ lại cho map hoạt động nếu cần
+        request.setAttribute("projects", allProjects); 
 
         // 2. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
         Map<Integer, Integer> memberCountMap = new HashMap<>();
-        for (Project p : allProjects) {
+        for (Project p : allProjects) 
+        {
             memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
         }
         request.setAttribute("memberCountMap", memberCountMap);
 
         // 3. LẤY DANH SÁCH LỜI MỜI / YÊU CẦU ĐANG CHỜ NGƯỜI DÙNG DUYỆT (Hộp thư Dashboard)
-        if (currentUser != null) {
+        if (currentUser != null) 
+        {
             List<ProjectInvite> pendingInvites = ProjectInviteDB.selectPendingByReceiverId(currentUser.getId());
             request.setAttribute("pendingInvites", pendingInvites);
         }
 
         // 4. XỬ LÝ THÔNG BÁO FLASH (Toast Messages)
-        if (session != null) {
+        if (session != null) 
+        {
             String toastSuccess = (String) session.getAttribute("toastSuccess");
-            if (toastSuccess != null) {
+            if (toastSuccess != null) 
+            {
                 request.setAttribute("toastSuccess", toastSuccess);
                 session.removeAttribute("toastSuccess");
             }
             String toastError = (String) session.getAttribute("toastError");
-            if (toastError != null) {
+            if (toastError != null) 
+            {
                 request.setAttribute("toastError", toastError);
                 session.removeAttribute("toastError");
             }
@@ -146,12 +169,32 @@ public class ProjectServlet extends HttpServlet {
 
         String name = request.getParameter("name");
         String description = request.getParameter("description");
-        String projectCode = request.getParameter("projectCode");
+        String projectCode = (request.getParameter("projectCode") != null) 
+                             ? request.getParameter("projectCode").trim().toUpperCase() 
+                             : "";
 
-        if (name == null || name.trim().isEmpty()) {
+        if (name == null || name.trim().isEmpty()) 
+        {
             request.setAttribute("errorMessage", "Tên dự án không được để trống!");
             showProjectList(request, response);
             return;
+        }
+
+        // Nếu người dùng tự nhập
+        if (!projectCode.isEmpty()) 
+        {
+            if (!projectCode.matches(PROJECT_CODE_PATTERN)) 
+            {
+                request.setAttribute("errorMessage", "Mã dự án từ 3-15 ký tự (chỉ gồm chữ cái, số, dấu '-' hoặc '_', không có khoảng trắng)!");
+                showProjectList(request, response);
+                return;
+            }
+            if (ProjectDB.selectByCode(projectCode) != null) 
+            {
+                request.setAttribute("errorMessage", "Mã dự án [" + projectCode + "] đã tồn tại trên hệ thống. Vui lòng chọn mã khác!");
+                showProjectList(request, response);
+                return;
+            }
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -159,7 +202,7 @@ public class ProjectServlet extends HttpServlet {
 
         Project newProject = new Project(
             0,
-            (projectCode != null && !projectCode.trim().isEmpty()) ? projectCode.trim().toUpperCase() : "",
+            projectCode,
             name.trim(),
             (description != null ? description.trim() : ""),
             currentUser.getId(),
@@ -189,19 +232,24 @@ public class ProjectServlet extends HttpServlet {
 
     /**
      * Nghiệp vụ 3: Xem chi tiết dự án (chuyển sang Bảng Kanban)
+     * 
      */
     private void showProjectDetail(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String projectIdStr = request.getParameter("projectId");
-        try {
+        try 
+        {
             int projectId = Integer.parseInt(projectIdStr);
             Project project = ProjectDB.selectById(projectId);
-            if (project != null) {
+            if (project != null) 
+            {
                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                 return;
             }
-        } catch (NumberFormatException e) {
+        } 
+        catch (NumberFormatException e) 
+        {
             // Không làm gì, để rơi xuống redirect
         }
         response.sendRedirect(request.getContextPath() + "/project?action=list");

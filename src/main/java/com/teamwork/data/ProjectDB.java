@@ -46,7 +46,8 @@ public class ProjectDB {
     /**
      * Hàm 1: Lấy toàn bộ danh sách dự án
      */
-    public static List<Project> selectAll() {
+    public static List<Project> selectAll() 
+    {
         return new ArrayList<>(projects);
     }
 
@@ -66,12 +67,15 @@ public class ProjectDB {
      * Hàm 3: Tìm dự án theo Mã Dự Án (projectCode)
      * Phục vụ Chiều 2: Thành viên nhập mã dự án để gửi yêu cầu Xin Gia Nhập
      */
-    public static Project selectByCode(String code) {
-        if (code == null || code.trim().isEmpty()) {
+    public static Project selectByCode(String code) 
+    {
+        if (code == null || code.trim().isEmpty()) 
+        {
             return null;
         }
         String cleanCode = code.trim().toUpperCase();
-        for (Project p : projects) {
+        for (Project p : projects) 
+        {
             if (p.getProjectCode() != null && p.getProjectCode().equalsIgnoreCase(cleanCode)) {
                 return p;
             }
@@ -82,7 +86,8 @@ public class ProjectDB {
     /**
      * Hàm 4: Thêm dự án mới (Tự động cấp ID và tự động sinh Mã Dự Án nếu chưa có)
      */
-    public static int insert(Project project) {
+    public static int insert(Project project) 
+    {
         project.setId(nextId++);
         if (project.getProjectCode() == null || project.getProjectCode().trim().isEmpty()) {
             project.setProjectCode("PRJ-" + String.format("%03d", project.getId()));
