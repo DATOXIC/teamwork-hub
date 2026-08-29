@@ -19,10 +19,13 @@ import java.io.IOException;
  * - Đăng xuất (action = logout)
  */
 public class AuthServlet extends HttpServlet {
+    private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{4,20}$";
+    private static final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException 
+    {
         // Thiết lập bảng mã UTF-8 để không bị lỗi tiếng Việt
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html;charset=UTF-8");
@@ -41,6 +44,23 @@ public class AuthServlet extends HttpServlet {
                 break;
             case "viewLogin":
             default:
+                HttpSession session = request.getSession(false);
+                if (session != null) 
+                {
+                    String successMsg = (String) session.getAttribute("successMessage");
+                    String registeredUser = (String) session.getAttribute("registeredUsername");
+                    
+                    if (successMsg != null) 
+                    {
+                        request.setAttribute("successMessage", successMsg);
+                        session.removeAttribute("successMessage"); // Xóa ngay sau khi dùng
+                    }
+                    if (registeredUser != null) 
+                    {
+                        request.setAttribute("username", registeredUser);
+                        session.removeAttribute("registeredUsername"); // Xóa ngay sau khi dùng
+                    }
+                }
                 // Chuyển tiếp về trang đăng nhập
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
                 break;
@@ -126,9 +146,9 @@ public class AuthServlet extends HttpServlet {
         String email = request.getParameter("email");
 
         // 1. Server-side Validation
-        if (username == null || username.trim().length() < 4) 
+        if (username == null || username.trim().length() < 4 || !username.trim().matches(USERNAME_PATTERN)) 
         {
-            request.setAttribute("regError", "Tên đăng nhập phải có ít nhất 4 ký tự!");
+            request.setAttribute("regError", "Tên đăng nhập từ 4-20 ký tự (chỉ gồm chữ, số và dấu _, không có khoảng trắng)!");
             forwardRegisterForm(request, response, username, fullName, email);
             return;
         }
@@ -162,6 +182,27 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
+        if(email == null || !email.trim().matches(EMAIL_PATTERN))
+        {
+            request.setAttribute("regError", "Email không hợp lệ!");
+            forwardRegisterForm(request, response, username, fullName, email);
+            return;
+        }
+
+        if (UserDB.selectByUsername(username.trim()) != null) 
+        {
+            request.setAttribute("regError", "Tên đăng nhập này đã được sử dụng!");
+            forwardRegisterForm(request, response, username, fullName, email);
+            return;
+        }
+
+        if (UserDB.selectByUsernameOrEmail(email.trim()) != null) 
+        {
+        request.setAttribute("regError", "Email này đã được đăng ký trong hệ thống!");
+        forwardRegisterForm(request, response, username, fullName, email);
+        return;
+        }
+
         // 3. Tạo đối tượng User mới và thêm vào DB
         User newUser = new User
         (
@@ -177,9 +218,10 @@ public class AuthServlet extends HttpServlet {
         UserDB.insert(newUser);
 
         // Đăng ký thành công -> Thông báo và mở sẵn tab Đăng nhập
-        request.setAttribute("successMessage", "Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay.");
-        request.setAttribute("username", username.trim());
-        request.getRequestDispatcher("/login.jsp").forward(request, response);
+        HttpSession session = request.getSession();
+        session.setAttribute("successMessage", "Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay.");
+        session.setAttribute("registeredUsername", username.trim());
+        response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
     }
 
     /**

@@ -169,17 +169,21 @@
                                                                                     for="login-password">Mật
                                                                                     khẩu</label>
                                                                                 <div class="login-input-group">
-                                                                                     <i
-                                                                                         class="bi bi-lock input-icon"></i>
-                                                                                     <input type="password"
-                                                                                         id="login-password"
-                                                                                         name="password"
-                                                                                         placeholder="Nhập mật khẩu"
-                                                                                         required>
-                                                                                     <button type="button" class="toggle-password-btn" onclick="togglePassword('login-password', this)" tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
-                                                                                         <i class="bi bi-eye"></i>
-                                                                                     </button>
-                                                                                 </div>
+                                                                                    <i
+                                                                                        class="bi bi-lock input-icon"></i>
+                                                                                    <input type="password"
+                                                                                        id="login-password"
+                                                                                        name="password"
+                                                                                        placeholder="Nhập mật khẩu"
+                                                                                        required>
+                                                                                    <button type="button"
+                                                                                        class="toggle-password-btn"
+                                                                                        onclick="togglePassword('login-password', this)"
+                                                                                        tabindex="-1"
+                                                                                        aria-label="Hiện/ẩn mật khẩu">
+                                                                                        <i class="bi bi-eye"></i>
+                                                                                    </button>
+                                                                                </div>
 
                                                                                 <%-- Ghi nhớ & Quên MK --%>
                                                                                     <div class="login-options-row">
@@ -330,11 +334,19 @@
                                                                                                             name="password"
                                                                                                             placeholder="≥ 6 ký tự"
                                                                                                             required>
-                                                                                                        <button type="button" class="toggle-password-btn" onclick="togglePassword('reg-pass', this)" tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
-                                                                                                            <i class="bi bi-eye"></i>
+                                                                                                        <button
+                                                                                                            type="button"
+                                                                                                            class="toggle-password-btn"
+                                                                                                            onclick="togglePassword('reg-pass', this)"
+                                                                                                            tabindex="-1"
+                                                                                                            aria-label="Hiện/ẩn mật khẩu">
+                                                                                                            <i
+                                                                                                                class="bi bi-eye"></i>
                                                                                                         </button>
                                                                                                     </div>
-                                                                                                    <div class="field-error" id="reg-pass-error"></div>
+                                                                                                    <div class="field-error"
+                                                                                                        id="reg-pass-error">
+                                                                                                    </div>
                                                                                                 </div>
                                                                                                 <div>
                                                                                                     <label
@@ -351,11 +363,19 @@
                                                                                                             name="confirmPassword"
                                                                                                             placeholder="Nhập lại mật khẩu"
                                                                                                             required>
-                                                                                                        <button type="button" class="toggle-password-btn" onclick="togglePassword('reg-confirmpass', this)" tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
-                                                                                                            <i class="bi bi-eye"></i>
+                                                                                                        <button
+                                                                                                            type="button"
+                                                                                                            class="toggle-password-btn"
+                                                                                                            onclick="togglePassword('reg-confirmpass', this)"
+                                                                                                            tabindex="-1"
+                                                                                                            aria-label="Hiện/ẩn mật khẩu">
+                                                                                                            <i
+                                                                                                                class="bi bi-eye"></i>
                                                                                                         </button>
                                                                                                     </div>
-                                                                                                    <div class="field-error" id="reg-confirmpass-error"></div>
+                                                                                                    <div class="field-error"
+                                                                                                        id="reg-confirmpass-error">
+                                                                                                    </div>
                                                                                                 </div>
                                                                                             </div>
 
