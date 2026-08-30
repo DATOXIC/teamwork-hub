@@ -76,21 +76,9 @@
         </div>
     </div>
 
-    <!-- Thông báo Flash (Toast Messages) -->
-    <c:if test="${not empty toastSuccess}">
-        <div class="alert alert-success alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-check-circle-fill me-2 fs-6"></i>
-            <div class="flex-grow-1">${toastSuccess}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </c:if>
-    <c:if test="${not empty toastError}">
-        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
-            <div class="flex-grow-1">${toastError}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </c:if>
+    <!-- Thông báo Flash — UI-04: Floating Toast -->
+    <jsp:include page="/includes/toast.jsp" />
+
 
     <!-- =========================================================================
          2.5. THANH ĐIỀU KHIỂN & LỌC CÔNG VIỆC TINH GỌN (COMPACT TOOLBAR)
@@ -302,9 +290,10 @@
                     </c:forEach>
 
                     <c:if test="${empty todoTasks}">
-                        <div class="empty-column-placeholder text-center text-muted py-4 border border-dashed rounded-3">
-                            <i class="bi bi-inbox fs-4 d-block mb-1 opacity-50"></i>
-                            <span class="fs-8">Không có việc cần làm</span>
+                        <div class="empty-state">
+                            <i class="bi bi-list-task empty-state-icon"></i>
+                            <p class="empty-state-title">Chưa có công việc</p>
+                            <p class="empty-state-hint">Bấm "+ Thêm công việc" để bắt đầu lập kế hoạch</p>
                         </div>
                     </c:if>
 
@@ -441,9 +430,10 @@
                     </c:forEach>
 
                     <c:if test="${empty inProgressTasks}">
-                        <div class="empty-column-placeholder text-center text-muted py-4 border border-dashed rounded-3">
-                            <i class="bi bi-hourglass fs-4 d-block mb-1 opacity-50"></i>
-                            <span class="fs-8">Không có việc đang làm</span>
+                        <div class="empty-state">
+                            <i class="bi bi-hourglass empty-state-icon"></i>
+                            <p class="empty-state-title">Chưa có việc đang làm</p>
+                            <p class="empty-state-hint">Khi bắt đầu thực hiện một task, nó sẽ xuất hiện ở đây</p>
                         </div>
                     </c:if>
 
@@ -562,9 +552,10 @@
                     </c:forEach>
 
                     <c:if test="${empty doneTasks}">
-                        <div class="empty-column-placeholder text-center text-muted py-4 border border-dashed rounded-3">
-                            <i class="bi bi-check2-all fs-4 d-block mb-1 opacity-50"></i>
-                            <span class="fs-8">Chưa có việc nào hoàn thành</span>
+                        <div class="empty-state">
+                            <i class="bi bi-check2-circle empty-state-icon"></i>
+                            <p class="empty-state-title">Chưa có việc hoàn thành</p>
+                            <p class="empty-state-hint">Hoàn thành một task và nó sẽ xuất hiện ở đây ✨</p>
                         </div>
                     </c:if>
 

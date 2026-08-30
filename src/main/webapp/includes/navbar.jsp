@@ -16,14 +16,12 @@
 %>
 
 <!-- Top Navbar: Đậm nét, Sang trọng (Dark Navy Slate #0f172a) - Tương phản cao 100% -->
-<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow py-2" data-bs-theme="dark" 
-     style="background-color: #0f172a !important; border-bottom: 1px solid #1e293b !important;">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark-navy sticky-top shadow py-2" data-bs-theme="dark">
     <div class="container-fluid px-3 px-lg-4">
         
         <!-- Logo & Brand Name -->
         <a class="navbar-brand d-flex align-items-center fw-bold text-white fs-5" href="${pageContext.request.contextPath}/">
-            <span class="brand-icon me-2 d-flex align-items-center justify-content-center shadow-sm" 
-                  style="width: 32px; height: 32px; background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); border-radius: 8px;">
+            <span class="brand-icon me-2 d-flex align-items-center justify-content-center shadow-sm">
                 <i class="bi bi-grid-1x2-fill text-white"></i>
             </span>
             <span class="text-white fw-extrabold tracking-tight">TeamWork</span><span class="text-info fw-bold ms-1">Hub</span>
@@ -53,10 +51,9 @@
                      1. QUẢ CHUÔNG THÔNG BÁO THỜI GIAN THỰC (NOTIFICATION BELL)
                      ========================================================= -->
                 <div class="dropdown ${not empty sessionScope.currentUser ? '' : 'd-none'}">
-                    <button class="btn btn-dark border border-secondary position-relative p-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center" 
+                    <button class="btn navbar-bell-btn position-relative shadow-sm" 
                             type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" 
-                            title="Trung tâm thông báo" 
-                            style="width: 38px; height: 38px; background-color: #1e293b !important; border-color: #334155 !important;">
+                            title="Trung tâm thông báo">
                         <i class="bi bi-bell-fill fs-6 text-warning"></i>
                         <c:if test="${unreadNotifCount > 0}">
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light fs-9 px-1 py-0 shadow" style="font-size: 0.65rem;">
@@ -71,7 +68,7 @@
                          aria-labelledby="notificationDropdown">
                         
                         <!-- Header của Dropdown Thông Báo -->
-                        <div class="p-3 bg-dark text-white d-flex align-items-center justify-content-between border-bottom" style="background-color: #0f172a !important;">
+                        <div class="p-3 bg-dark-navy text-white d-flex align-items-center justify-content-between border-bottom">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="bi bi-bell-fill text-warning"></i>
                                 <span class="fw-bold fs-7">Trung Tâm Thông Báo</span>
@@ -132,10 +129,9 @@
                      2. USER PROFILE DROPDOWN (Khi ĐÃ ĐĂNG NHẬP)
                      ========================================================= -->
                 <div class="dropdown ${not empty sessionScope.currentUser ? '' : 'd-none'}">
-                    <button class="btn btn-dark border border-secondary d-flex align-items-center gap-2 px-3 py-1 rounded-pill dropdown-toggle shadow-sm" 
-                            type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                            style="background-color: #1e293b !important; border-color: #334155 !important;">
-                        <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-7 shadow-sm" style="width: 28px; height: 28px;">
+                    <button class="btn navbar-user-pill d-flex align-items-center gap-2 px-3 py-1 dropdown-toggle shadow-sm" 
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-7 shadow-sm">
                             <i class="bi bi-person-fill"></i>
                         </div>
                         <span class="d-none d-md-inline text-white fw-bold fs-7">

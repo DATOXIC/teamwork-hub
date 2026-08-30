@@ -8,6 +8,7 @@ import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +27,7 @@ import java.util.Map;
  * - Tạo dự án mới (POST /project?action=create)
  * - Nạp danh sách Lời Mời đang chờ (pendingInvites) cho Dashboard
  */
+@WebServlet("/project")
 public class ProjectServlet extends HttpServlet {
     private static final String PROJECT_CODE_PATTERN = "^[a-zA-Z0-9_-]{3,15}$";
 

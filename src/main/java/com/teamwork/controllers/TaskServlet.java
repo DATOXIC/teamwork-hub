@@ -15,6 +15,7 @@ import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,7 +44,12 @@ import com.teamwork.business.UserWorkload;
  * - Thêm việc con có kiểm soát thẩm quyền Task Lead / PM (POST /task?action=addSubTask)
  * - Tick chọn hoàn thành việc con [☑] có kiểm soát thẩm quyền 3 bên (POST /task?action=toggleSubTask)
  * - Xóa việc con có kiểm soát thẩm quyền Task Lead / PM (POST /task?action=deleteSubTask)
+ * - Nộp báo cáo việc con kèm ghi chú (POST /task?action=submitSubTask)
+ * - Nghiệm thu việc con: Duyệt Đạt / Cân Chỉnh / Trả Về (POST /task?action=approveSubTask / reviseSubTask / rejectSubTask)
+ * - Nộp bàn giao Task lớn lên cho PM (POST /task?action=submitParentTask)
+ * - PM Nghiệm thu Task lớn: Duyệt Đạt / Cân Chỉnh / Trả Về (POST /task?action=pmApproveTask / pmReviseTask / pmRejectTask)
  */
+@WebServlet("/task")
 public class TaskServlet extends HttpServlet {
 
     @Override

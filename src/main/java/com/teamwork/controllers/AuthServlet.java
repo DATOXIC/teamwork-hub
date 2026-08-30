@@ -5,6 +5,7 @@ import com.teamwork.data.UserDB;
 import com.teamwork.util.PasswordUtil;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import java.io.IOException;
  * - Đăng ký (action = register)
  * - Đăng xuất (action = logout)
  */
+@WebServlet("/auth")
 public class AuthServlet extends HttpServlet {
     private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]{4,20}$";
     private static final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";

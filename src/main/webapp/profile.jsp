@@ -18,21 +18,9 @@
         </span>
     </div>
 
-    <!-- 2. Thông báo Flash (Toast Messages) -->
-    <c:if test="${not empty toastSuccess}">
-        <div class="alert alert-success alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-check-circle-fill me-2 fs-6"></i>
-            <div class="flex-grow-1">${toastSuccess}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </c:if>
-    <c:if test="${not empty toastError}">
-        <div class="alert alert-danger alert-dismissible fade show fs-7 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-6"></i>
-            <div class="flex-grow-1">${toastError}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </c:if>
+    <!-- 2. Thông báo Flash — UI-04: Floating Toast -->
+    <jsp:include page="/includes/toast.jsp" />
+
 
     <!-- =========================================================================
          3. KHỐI 1: IDENTITY & CV HEADER (THÔNG TIN CHUYÊN MÔN)

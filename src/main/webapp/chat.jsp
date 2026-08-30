@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!-- 1. NẠP HEADER & NAVBAR CHUNG -->
@@ -50,7 +50,10 @@
         </div>
     </div>
 
-    <!-- 3. BỐ CỤC 2 CỘT (CỘT TRÁI: DANH SÁCH & HƯỚNG DẪN + CỘT PHẢI: KHUNG CHAT) -->
+    <!-- UI-04: Floating Toast -->
+    <jsp:include page="/includes/toast.jsp" />
+
+    <!-- 3. BỐ CỤC 2 CỘT -->
     <div class="row g-4">
 
         <!-- ========================================================
@@ -81,7 +84,7 @@
                                         <span class="fs-9 text-muted">${u.role}</span>
                                     </div>
                                 </div>
-                                <span class="badge bg-success-subtle text-success rounded-pill px-2 fs-9">Online</span>
+                                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 fs-9">Thành viên</span>
                             </div>
                         </c:forEach>
                     </div>

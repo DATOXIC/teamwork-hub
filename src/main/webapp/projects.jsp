@@ -34,28 +34,9 @@
         </div>
     </div>
 
-    <!-- 3. Thông báo Flash (Toast Messages Thành công / Thất bại) -->
-    <c:if test="${not empty toastSuccess}">
-        <div class="alert alert-success alert-dismissible fade show fs-8 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-check-circle-fill me-2 fs-6 text-success"></i>
-            <div class="flex-grow-1">${toastSuccess}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </c:if>
-    <c:if test="${not empty toastError}">
-        <div class="alert alert-danger alert-dismissible fade show fs-8 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-6 text-danger"></i>
-            <div class="flex-grow-1">${toastError}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </c:if>
-    <c:if test="${not empty errorMessage}">
-        <div class="alert alert-danger alert-dismissible fade show fs-8 py-2 px-3 mb-4 rounded-3 border-0 shadow-sm d-flex align-items-center" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2 fs-6 text-danger"></i>
-            <div class="flex-grow-1">${errorMessage}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </c:if>
+    <!-- 3. Thông báo Flash — UI-04: Floating Toast (tự biến mất sau 4 giây) -->
+    <jsp:include page="/includes/toast.jsp" />
+
 
     <!-- =========================================================================
          4. HỘP THƯ LỜI MỜI / YÊU CẦU XIN GIA NHẬP ĐANG CHỜ PHẢN HỒI (PENDING INVITES)
@@ -145,15 +126,30 @@
             <div class="col-12 col-md-6 col-lg-4">
                 <div class="project-card">
                     <div>
-                        <!-- Header thẻ: Mã dự án 1-click copy + Số lượng thành viên -->
+                        <!-- Header thẻ: Mã dự án 1-click copy + Vai trò + Số lượng thành viên -->
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="project-code-badge" onclick="copyProjectCode('${p.projectCode}')" title="Bấm để sao chép mã dự án">
                                 <i class="bi bi-hash"></i>${p.projectCode}
                                 <i class="bi bi-copy text-primary fs-9 ms-1" id="copy-icon-${p.projectCode}"></i>
                             </span>
-                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9" title="Số lượng thành viên hiện tại">
-                                <i class="bi bi-people-fill text-primary me-1"></i> ${memberCountMap[p.id]}/10
-                            </span>
+                            <div class="d-flex align-items-center gap-1">
+                                <!-- UI-05: Badge vai trò PM / Thành viên -->
+                                <c:choose>
+                                    <c:when test="${p.ownerId == sessionScope.currentUser.id}">
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 fs-9" title="Bạn là Trưởng Dự Án">
+                                            <i class="bi bi-star-fill"></i> PM
+                                        </span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 fs-9" title="Bạn là thành viên">
+                                            <i class="bi bi-person-fill"></i> TV
+                                        </span>
+                                    </c:otherwise>
+                                </c:choose>
+                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9" title="Số lượng thành viên hiện tại">
+                                    <i class="bi bi-people-fill text-primary me-1"></i> ${memberCountMap[p.id]}/10
+                                </span>
+                            </div>
                         </div>
 
                         <!-- Tên dự án -->
@@ -184,19 +180,21 @@
             </div>
         </c:forEach>
         <c:if test="${empty myProjects}">
-            <div class="col-12 text-center py-5 bg-white rounded-4 border">
-                <div class="text-muted fs-1 mb-2 opacity-50"><i class="bi bi-inbox"></i></div>
-                <h6 class="text-dark fw-bold fs-7">Chưa tham gia dự án nào</h6>
-                <p class="text-muted fs-8 mb-3">Hãy bấm nút "Tạo dự án mới" hoặc "Nhập Mã Xin Vào" để bắt đầu làm việc nhóm!</p>
-                <div class="d-flex justify-content-center gap-2">
-                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-8" 
-                            data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
-                        <i class="bi bi-key-fill me-1"></i> Nhập Mã Xin Vào
-                    </button>
-                    <button type="button" class="btn btn-primary-custom btn-sm rounded-pill px-3 fs-8 text-white" 
-                            data-bs-toggle="modal" data-bs-target="#createProjectModal">
-                        <i class="bi bi-plus-circle-fill me-1"></i> Tạo dự án mới
-                    </button>
+            <div class="col-12">
+                <div class="empty-state bg-white rounded-4 border">
+                    <i class="bi bi-grid empty-state-icon"></i>
+                    <p class="empty-state-title">Chưa tham gia dự án nào</p>
+                    <p class="empty-state-hint">Tạo dự án mới hoặc nhập mã để gia nhập nhóm của bạn bè!</p>
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-8"
+                                data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
+                            <i class="bi bi-key-fill me-1"></i> Nhập Mã
+                        </button>
+                        <button type="button" class="btn btn-primary-custom btn-sm rounded-pill px-3 fs-8 text-white"
+                                data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                            <i class="bi bi-plus-circle-fill me-1"></i> Tạo dự án
+                        </button>
+                    </div>
                 </div>
             </div>
         </c:if>

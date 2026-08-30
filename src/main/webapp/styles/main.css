@@ -16,6 +16,18 @@
     --brand-border: #e2e8f0;
     --brand-text-main: #0f172a;
     --brand-text-muted: #64748b;
+
+    /* UI-06: Hệ thống Border-radius chuẩn hóa 4 cấp */
+    --radius-sm:   6px;   /* Badge, chip, btn-xs */
+    --radius-md:   10px;  /* Input, subtask item, doc item */
+    --radius-lg:   14px;  /* Card, modal, dropdown */
+    --radius-xl:   20px;  /* Card lớn (project, login card) */
+    --radius-full: 9999px; /* Button pill, avatar */
+
+    /* UI-07: Shadow chuẩn hóa */
+    --shadow-card: 0 2px 6px rgba(15, 23, 42, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-card-hover: 0 10px 24px -6px rgba(15, 23, 42, 0.10), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
+    --shadow-modal: 0 20px 40px -12px rgba(15, 23, 42, 0.18);
 }
 
 body {
@@ -395,26 +407,26 @@ body {
 .project-card {
     background-color: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     padding: 22px;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    box-shadow: var(--shadow-card);  /* UI-07: tăng shadow mặc định */
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .project-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08), 0 4px 8px -4px rgba(15, 23, 42, 0.03);
+    box-shadow: var(--shadow-card-hover);
     border-color: #cbd5e1;
 }
 
 .project-card-other {
     background-color: #f8fafc;
     border: 1px dashed #cbd5e1;
-    border-radius: 16px;
+    border-radius: var(--radius-xl);
     padding: 22px;
     height: 100%;
     display: flex;
@@ -599,8 +611,151 @@ body {
 }
 
 
+/* ==========================================================================
+   UI-04: Floating Toast Notification System (tự biến mất sau 4 giây)
+   ========================================================================== */
+.toast-container-custom {
+    position: fixed;
+    top: 76px; /* bên dưới navbar sticky */
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
 
+.toast-item {
+    pointer-events: all;
+    min-width: 300px;
+    max-width: 420px;
+    padding: 12px 16px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-modal);
+    animation: toast-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    cursor: pointer;
+    line-height: 1.45;
+    border: 1px solid transparent;
+}
 
+.toast-item.toast-success {
+    background-color: #f0fdf4;
+    color: #166534;
+    border-color: #bbf7d0;
+}
 
+.toast-item.toast-error {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
 
+.toast-item.toast-dismissing {
+    animation: toast-slide-out 0.3s ease forwards;
+}
+
+.toast-item .toast-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.toast-item .toast-close {
+    margin-left: auto;
+    opacity: 0.5;
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.15s;
+}
+
+.toast-item .toast-close:hover {
+    opacity: 1;
+}
+
+@keyframes toast-slide-in {
+    from { opacity: 0; transform: translateX(40px) scale(0.95); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toast-slide-out {
+    from { opacity: 1; transform: translateX(0) scale(1); }
+    to   { opacity: 0; transform: translateX(40px) scale(0.95); }
+}
+
+/* ==========================================================================
+   UI-03: Empty State — dùng chung cho mọi danh sách trống
+   ========================================================================== */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: #94a3b8;
+}
+
+.empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.45;
+    display: block;
+    line-height: 1;
+}
+
+.empty-state-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.empty-state-hint {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 0;
+    max-width: 220px;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   UI-01: Navbar utility classes (chuyển inline styles ra đây)
+   ========================================================================== */
+.navbar-bell-btn {
+    width: 38px;
+    height: 38px;
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    border-radius: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background-color 0.15s ease;
+}
+
+.navbar-bell-btn:hover {
+    background-color: #273549 !important;
+}
+
+.navbar-user-pill {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: var(--radius-full);
+    transition: background-color 0.15s ease;
+}
+
+.navbar-user-pill:hover {
+    background-color: #273549;
+}
 

@@ -22,55 +22,10 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
-    <!-- 1. AuthServlet Mapping (/auth) -->
-    <servlet>
-        <servlet-name>AuthServlet</servlet-name>
-        <servlet-class>com.teamwork.controllers.AuthServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>AuthServlet</servlet-name>
-        <url-pattern>/auth</url-pattern>
-    </servlet-mapping>
-
-    <!-- 2. ProjectServlet Mapping (/project) -->
-    <servlet>
-        <servlet-name>ProjectServlet</servlet-name>
-        <servlet-class>com.teamwork.controllers.ProjectServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ProjectServlet</servlet-name>
-        <url-pattern>/project</url-pattern>
-    </servlet-mapping>
-
-    <!-- 3. TaskServlet Mapping (/task) -->
-    <servlet>
-        <servlet-name>TaskServlet</servlet-name>
-        <servlet-class>com.teamwork.controllers.TaskServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>TaskServlet</servlet-name>
-        <url-pattern>/task</url-pattern>
-    </servlet-mapping>
-
-    <!-- 4. DocServlet Mapping (/doc) -->
-    <servlet>
-        <servlet-name>DocServlet</servlet-name>
-        <servlet-class>com.teamwork.controllers.DocServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>DocServlet</servlet-name>
-        <url-pattern>/doc</url-pattern>
-    </servlet-mapping>
-
-    <!-- 5. ChatServlet Mapping (/chat) -->
-    <servlet>
-        <servlet-name>ChatServlet</servlet-name>
-        <servlet-class>com.teamwork.controllers.ChatServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ChatServlet</servlet-name>
-        <url-pattern>/chat</url-pattern>
-    </servlet-mapping>
+    <!-- 
+        LƯU Ý: Toàn bộ Servlets (/auth, /project, /task, /doc, /chat, /invite, /profile, /notification) 
+        được tự động ánh xạ bằng annotation @WebServlet trên từng Controller class (chuẩn Jakarta Servlet 6.0).
+    -->
 
     <!-- CẤU HÌNH TRANG BÁO LỖI TÙY CHỈNH (CUSTOM ERROR PAGES) -->
     <error-page>
@@ -92,3 +47,4 @@
     </welcome-file-list>
 
 </web-app>
+
