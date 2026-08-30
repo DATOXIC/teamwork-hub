@@ -2,14 +2,16 @@ package com.teamwork.controllers;
 
 import com.teamwork.business.Doc;
 import com.teamwork.business.Project;
+import com.teamwork.business.ProjectMember;
 import com.teamwork.business.Task;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.ProjectDB;
+import com.teamwork.data.ProjectMemberDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
-import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,52 +23,69 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controller phụ trách Quản lý Tài liệu & Ghi chú Wiki nhóm:
+ * Controller phụ trách Quản lý Tài liệu & Ghi chú Wiki nhóm (/doc):
  * - Xem danh mục bài viết, đọc chi tiết bài và danh sách các Task đang áp dụng bài viết này (GET /doc?action=list hoặc action=view)
  * - Tạo bài viết mới (POST /doc?action=create)
- * - Chỉnh sửa cập nhật bài viết (POST /doc?action=update)
- * - Xóa bài viết và tự động dọn dẹp các liên kết TaskDoc (GET /doc?action=delete)
+ * - Chỉnh sửa cập nhật bài viết an toàn, chống IDOR (POST /doc?action=update)
+ * - Xóa bài viết và tự động dọn dẹp các liên kết TaskDoc (GET/POST /doc?action=delete)
  */
+@WebServlet("/doc")
 public class DocServlet extends HttpServlet {
 
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    /**
+     * Tiện ích parse số nguyên an toàn, chống NumberFormatException
+     */
+    private int safeParseInt(String value, int defaultValue) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     // ========================================================
-    // HÀM doGet: XỬ LÝ CÁC YÊU CẦU ĐỌC & XEM TÀI LIỆU
+    // HÀM doGet: XỬ LÝ CÁC YÊU CẦU ĐỌC, XEM VÀ XÓA TÀI LIỆU
     // ========================================================
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Lấy và kiểm tra an toàn tham số projectId từ URL
-        String projectIdParam = request.getParameter("projectId");
-        int projectId = 0;
+        // 1. Kiểm tra xác thực người dùng
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
 
-        if (projectIdParam == null || projectIdParam.trim().isEmpty()) {
+        // 2. Lấy và kiểm tra an toàn tham số projectId từ URL
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        if (projectId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
 
-        try {
-            projectId = Integer.parseInt(projectIdParam.trim());
-        } catch (NumberFormatException e) {
+        // 3. Kiểm tra quyền thành viên trong dự án
+        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            if (session != null) {
+                session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
+            }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
 
-        // 2. Đọc action từ URL (Mặc định là "list" nếu không truyền)
+        // 4. Đọc action từ URL (Mặc định là "list" nếu không truyền)
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
             action = "list";
         }
 
-        HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-        if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
-        }
-
-        // 3. Phân nhánh hành động GET
+        // 5. Phân nhánh hành động GET
         switch (action) {
             case "list":
             case "view":
@@ -74,7 +93,7 @@ public class DocServlet extends HttpServlet {
                 break;
 
             case "delete":
-                handleDeleteDoc(request, response, projectId);
+                handleDeleteDoc(request, response, currentUser, projectId);
                 break;
 
             default:
@@ -84,49 +103,57 @@ public class DocServlet extends HttpServlet {
     }
 
     // ========================================================
-    // HÀM doPost: XỬ LÝ CÁC YÊU CẦU GHI & SỬA TÀI LIỆU
+    // HÀM doPost: XỬ LÝ CÁC YÊU CẦU GHI, SỬA VÀ XÓA TÀI LIỆU
     // ========================================================
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Lấy thông tin User đang đăng nhập từ Session để biết ai là tác giả bài viết
+        // 1. Lấy thông tin User đang đăng nhập từ Session
         HttpSession session = request.getSession(false);
-        User currentUser = null;
-        if (session != null) {
-            currentUser = (User) session.getAttribute("currentUser");
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=login");
+            return;
+        }
+
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        if (projectId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // Kiểm tra quyền thành viên dự án
+        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            if (session != null) {
+                session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
+            }
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
         }
 
         // 2. Đọc action từ Form gửi lên
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) {
-            action = "create"; // Mặc định là tạo bài mới
-        }
-
-        String projectIdParam = request.getParameter("projectId");
-        if (projectIdParam != null) {
-            try {
-                int projectId = Integer.parseInt(projectIdParam.trim());
-                if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-                    session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
-                    response.sendRedirect(request.getContextPath() + "/project?action=list");
-                    return;
-                }
-            } catch (Exception e) {}
+            action = "create";
         }
 
         // 3. Phân nhánh hành động POST
         switch (action) {
             case "create":
-                handleCreateDoc(request, response, currentUser);
+                handleCreateDoc(request, response, currentUser, projectId);
                 break;
 
             case "update":
-                handleUpdateDoc(request, response, currentUser);
+                handleUpdateDoc(request, response, currentUser, projectId);
+                break;
+
+            case "delete":
+                handleDeleteDoc(request, response, currentUser, projectId);
                 break;
 
             default:
-                response.sendRedirect(request.getContextPath() + "/project?action=list");
+                response.sendRedirect(request.getContextPath() + "/doc?action=list&projectId=" + projectId);
                 break;
         }
     }
@@ -138,6 +165,7 @@ public class DocServlet extends HttpServlet {
     /**
      * Nghiệp vụ 1: Lấy danh mục bài viết (bên trái), bài viết đang đọc (bên phải) 
      * VÀ danh sách các Công việc đang áp dụng tài liệu này (relatedTasks) đưa sang docs.jsp
+     * Bảo vệ chống rò rỉ tài liệu khác dự án (Fix DOC-03).
      */
     private void handleShowDocs(HttpServletRequest request, HttpServletResponse response, int projectId)
             throws ServletException, IOException {
@@ -153,20 +181,18 @@ public class DocServlet extends HttpServlet {
         List<Doc> docs = DocDB.selectByProjectId(projectId);
 
         // 3. Xác định bài viết nào sẽ được mở đọc ở khung bên phải (selectedDoc)
-        String docIdParam = request.getParameter("docId");
+        int docId = safeParseInt(request.getParameter("docId"), 0);
         Doc selectedDoc = null;
 
-        // Nếu người dùng bấm vào 1 bài cụ thể có docId trên URL
-        if (docIdParam != null && !docIdParam.trim().isEmpty()) {
-            try {
-                int docId = Integer.parseInt(docIdParam.trim());
-                selectedDoc = DocDB.selectById(docId);
-            } catch (NumberFormatException e) {
-                selectedDoc = null;
+        if (docId > 0) {
+            Doc candidate = DocDB.selectById(docId);
+            // BẢO MẬT: Chỉ nhận bài viết nếu nó thuộc đúng dự án hiện tại
+            if (candidate != null && candidate.getProjectId() == projectId) {
+                selectedDoc = candidate;
             }
         }
 
-        // Nếu chưa chọn bài nào hoặc docId không hợp lệ -> Tự động mở bài đầu tiên trong danh sách
+        // Nếu chưa chọn bài nào hoặc docId không hợp lệ/khác dự án -> Tự động mở bài đầu tiên trong danh sách của dự án
         if (selectedDoc == null && docs != null && !docs.isEmpty()) {
             selectedDoc = docs.get(0);
         }
@@ -177,7 +203,7 @@ public class DocServlet extends HttpServlet {
             List<Integer> relatedTaskIds = TaskDocDB.selectTaskIdsByDocId(selectedDoc.getId());
             for (Integer taskId : relatedTaskIds) {
                 Task t = TaskDB.selectById(taskId);
-                if (t != null) {
+                if (t != null && t.getProjectId() == projectId) {
                     relatedTasks.add(t);
                 }
             }
@@ -196,31 +222,43 @@ public class DocServlet extends HttpServlet {
 
     /**
      * Nghiệp vụ 2: Xóa một bài viết tài liệu theo docId kèm dọn dẹp các liên kết TaskDoc
+     * Bảo mật chống IDOR xóa xuyên dự án (Fix DOC-02).
      */
-    private void handleDeleteDoc(HttpServletRequest request, HttpServletResponse response, int projectId)
+    private void handleDeleteDoc(HttpServletRequest request, HttpServletResponse response, User currentUser, int projectId)
             throws IOException {
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        int docId = safeParseInt(request.getParameter("docId"), 0);
 
-        String docIdParam = request.getParameter("docId");
-        if (docIdParam != null && !docIdParam.trim().isEmpty() && currentUser != null) {
-            try {
-                int docId = Integer.parseInt(docIdParam.trim());
-                Doc doc = DocDB.selectById(docId);
-                Project project = ProjectDB.selectById(projectId);
+        if (docId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/doc?action=list&projectId=" + projectId);
+            return;
+        }
 
-                if (doc != null && project != null) {
-                    if (currentUser.getId() == doc.getAuthorId() || currentUser.getId() == project.getOwnerId()) {
-                        TaskDocDB.deleteByDocId(docId);
-                        DocDB.delete(docId);
-                        if (session != null) session.setAttribute("toastSuccess", "Đã xóa tài liệu thành công!");
-                    } else {
-                        if (session != null) session.setAttribute("toastError", "Bạn không có quyền xóa tài liệu của người khác!");
-                    }
+        Doc doc = DocDB.selectById(docId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (doc != null && project != null) {
+            // RÀO BẢO MẬT 1: Chống IDOR (Tài liệu phải thuộc đúng dự án này)
+            if (doc.getProjectId() != projectId) {
+                if (session != null) {
+                    session.setAttribute("toastError", "Cảnh báo bảo mật: Tài liệu không thuộc dự án này!");
                 }
-            } catch (NumberFormatException e) {
-                // Bỏ qua nếu docId không hợp lệ
+                response.sendRedirect(request.getContextPath() + "/doc?action=list&projectId=" + projectId);
+                return;
+            }
+
+            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả bài viết HOẶC PM dự án)
+            if (currentUser.getId() == doc.getAuthorId() || currentUser.getId() == project.getOwnerId()) {
+                TaskDocDB.deleteByDocId(docId);
+                DocDB.delete(docId);
+                if (session != null) {
+                    session.setAttribute("toastSuccess", "Đã xóa tài liệu thành công!");
+                }
+            } else {
+                if (session != null) {
+                    session.setAttribute("toastError", "Bạn không có quyền xóa tài liệu của người khác!");
+                }
             }
         }
 
@@ -231,107 +269,110 @@ public class DocServlet extends HttpServlet {
     /**
      * Nghiệp vụ 3: Tạo bài viết tài liệu mới từ Form
      */
-    private void handleCreateDoc(HttpServletRequest request, HttpServletResponse response, User currentUser)
+    private void handleCreateDoc(HttpServletRequest request, HttpServletResponse response, User currentUser, int projectId)
             throws IOException {
 
-        // 1. Đọc dữ liệu từ form
-        String projectIdParam = request.getParameter("projectId");
+        HttpSession session = request.getSession();
         String title = request.getParameter("title");
         String content = request.getParameter("content");
 
-        int projectId = 0;
-        try {
-            projectId = Integer.parseInt(projectIdParam.trim());
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
-        }
-
-        // 2. Validation: Tiêu đề không được để trống
+        // 1. Validation: Tiêu đề không được để trống
         if (title == null || title.trim().isEmpty()) {
+            if (session != null) {
+                session.setAttribute("toastError", "Tiêu đề tài liệu không được để trống!");
+            }
             response.sendRedirect(request.getContextPath() + "/doc?action=list&projectId=" + projectId);
             return;
         }
 
-        // 3. Lấy thời gian realtime hiện tại (Định dạng: dd/MM/yyyy HH:mm)
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        String now = LocalDateTime.now().format(formatter);
+        // 2. Lấy thời gian realtime hiện tại (Định dạng: dd/MM/yyyy HH:mm)
+        String now = LocalDateTime.now().format(DATE_FORMATTER);
 
-        // 4. Lấy thông tin tác giả
-        int authorId = (currentUser != null) ? currentUser.getId() : 0;
-        String authorName = (currentUser != null) ? currentUser.getFullName() : "Ẩn danh";
-
-        // 5. Tạo đối tượng Doc mới và lưu vào RAM
+        // 3. Tạo đối tượng Doc mới và lưu vào RAM
         Doc newDoc = new Doc(
             0,
             projectId,
             title.trim(),
             (content != null ? content.trim() : ""),
-            authorId,
-            authorName,
+            currentUser.getId(),
+            currentUser.getFullName(),
             now, // Ngày tạo
             now  // Ngày cập nhật ban đầu trùng ngày tạo
         );
 
         int newDocId = DocDB.insert(newDoc);
 
-        // 6. Mở thẳng vào bài viết vừa tạo xong!
+        if (session != null) {
+            session.setAttribute("toastSuccess", "Đã tạo tài liệu mới thành công!");
+        }
+
+        // 4. Mở thẳng vào bài viết vừa tạo xong!
         response.sendRedirect(request.getContextPath() + "/doc?action=view&projectId=" + projectId + "&docId=" + newDocId);
     }
 
     /**
      * Nghiệp vụ 4: Lưu chỉnh sửa nội dung bài viết cũ
+     * Bảo mật chống IDOR ghi đè & chiếm đoạt bài viết xuyên dự án (Fix DOC-01).
      */
-    private void handleUpdateDoc(HttpServletRequest request, HttpServletResponse response, User currentUser)
+    private void handleUpdateDoc(HttpServletRequest request, HttpServletResponse response, User currentUser, int projectId)
             throws IOException {
 
-        // 1. Đọc dữ liệu từ form sửa
-        String projectIdParam = request.getParameter("projectId");
-        String docIdParam = request.getParameter("docId");
+        HttpSession session = request.getSession();
+        int docId = safeParseInt(request.getParameter("docId"), 0);
         String title = request.getParameter("title");
         String content = request.getParameter("content");
 
-        int projectId = 0;
-        int docId = 0;
+        if (docId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/doc?action=list&projectId=" + projectId);
+            return;
+        }
 
-        try {
-            projectId = Integer.parseInt(projectIdParam.trim());
-            docId = Integer.parseInt(docIdParam.trim());
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        Doc existingDoc = DocDB.selectById(docId);
+        Project project = ProjectDB.selectById(projectId);
+
+        // RÀO BẢO MẬT 1: Kiểm tra tồn tại & Chống IDOR xuyên dự án
+        if (existingDoc == null || project == null || existingDoc.getProjectId() != projectId) {
+            if (session != null) {
+                session.setAttribute("toastError", "Tài liệu không tồn tại hoặc không thuộc dự án này!");
+            }
+            response.sendRedirect(request.getContextPath() + "/doc?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả bài viết HOẶC PM của dự án mới được sửa)
+        if (currentUser.getId() != existingDoc.getAuthorId() && currentUser.getId() != project.getOwnerId()) {
+            if (session != null) {
+                session.setAttribute("toastError", "Bạn không có quyền chỉnh sửa tài liệu của người khác!");
+            }
+            response.sendRedirect(request.getContextPath() + "/doc?action=view&projectId=" + projectId + "&docId=" + docId);
             return;
         }
 
         // 2. Validation tiêu đề
         if (title == null || title.trim().isEmpty()) {
+            if (session != null) {
+                session.setAttribute("toastError", "Tiêu đề tài liệu không được để trống!");
+            }
             response.sendRedirect(request.getContextPath() + "/doc?action=view&projectId=" + projectId + "&docId=" + docId);
             return;
         }
 
         // 3. Lấy thời gian sửa đổi hiện tại
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        String now = LocalDateTime.now().format(formatter);
+        String now = LocalDateTime.now().format(DATE_FORMATTER);
 
-        // 4. Lấy thông tin người sửa
-        int authorId = (currentUser != null) ? currentUser.getId() : 0;
-        String authorName = (currentUser != null) ? currentUser.getFullName() : "Ẩn danh";
+        // 4. Cập nhật thông tin an toàn trên chính đối tượng gốc (Giữ nguyên createdAt và projectId gốc)
+        existingDoc.setTitle(title.trim());
+        existingDoc.setContent(content != null ? content.trim() : "");
+        existingDoc.setUpdatedAt(now);
 
-        // 5. Tạo đối tượng Doc chứa thông tin cập nhật
-        Doc updatedDoc = new Doc(
-            docId,
-            projectId,
-            title.trim(),
-            (content != null ? content.trim() : ""),
-            authorId,
-            authorName,
-            "",  // createdAt giữ nguyên ở trong DB
-            now  // updatedAt mới
-        );
+        // 5. Cập nhật vào DB
+        DocDB.update(existingDoc);
 
-        // 6. Cập nhật vào DB
-        DocDB.update(updatedDoc);
+        if (session != null) {
+            session.setAttribute("toastSuccess", "Đã cập nhật nội dung tài liệu thành công!");
+        }
 
-        // 7. Tải lại chính bài viết vừa sửa xong
+        // 6. Tải lại chính bài viết vừa sửa xong
         response.sendRedirect(request.getContextPath() + "/doc?action=view&projectId=" + projectId + "&docId=" + docId);
     }
 }

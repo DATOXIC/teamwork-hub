@@ -130,4 +130,17 @@ public class ProjectMemberDB
         }
         return false;
     }
+
+    /**
+     * Hàm 7: Đồng bộ tên thành viên mới sang toàn bộ danh sách thành viên dự án
+     */
+    public static void syncUserName(int userId, String newFullName) {
+        if (newFullName != null && !newFullName.trim().isEmpty()) {
+            for (ProjectMember pm : members) {
+                if (pm.getUserId() == userId) {
+                    pm.setUserName(newFullName.trim());
+                }
+            }
+        }
+    }
 }

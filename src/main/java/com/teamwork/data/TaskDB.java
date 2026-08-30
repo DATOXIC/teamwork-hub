@@ -346,4 +346,17 @@ public class TaskDB {
             }
         }
     }
+
+    /**
+     * HÀM 14: Đồng bộ tên người phụ trách mới sang toàn bộ các Task lớn
+     */
+    public static void syncAssigneeName(int userId, String newFullName) {
+        if (newFullName != null && !newFullName.trim().isEmpty()) {
+            for (Task t : tasks) {
+                if (t.getAssigneeId() == userId) {
+                    t.setAssigneeName(newFullName.trim());
+                }
+            }
+        }
+    }
 }

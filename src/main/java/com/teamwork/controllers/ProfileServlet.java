@@ -24,9 +24,43 @@ import java.util.List;
  * - Hiển thị CV Portfolio chuyên môn, Kỹ năng, Liên kết mạng xã hội
  * - Tính toán các chỉ số năng suất Real-time khách quan từ CSDL
  * - Thực thi bảo mật 2 lớp: Chỉ chính chủ mới có quyền cập nhật thông tin
+ * - Tự động đồng bộ tên mới sang toàn bộ hệ thống (ProjectMember, Task, SubTask)
  */
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
+
+    /**
+     * Tiện ích parse số nguyên an toàn
+     */
+    private int safeParseInt(String value, int defaultValue) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Tiện ích chuẩn hóa và lọc URL mạng xã hội an toàn (chống XSS & tự động thêm https://)
+     */
+    private String sanitizeUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return "";
+        }
+        String trimmed = url.trim();
+        // Chặn các scheme nguy hiểm
+        if (trimmed.toLowerCase().startsWith("javascript:") || trimmed.toLowerCase().startsWith("data:")) {
+            return "";
+        }
+        // Tự động gắn protocol https:// nếu chưa có http/https
+        if (!trimmed.toLowerCase().startsWith("http://") && !trimmed.toLowerCase().startsWith("https://")) {
+            trimmed = "https://" + trimmed;
+        }
+        return trimmed;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -40,15 +74,7 @@ public class ProfileServlet extends HttpServlet {
         }
 
         // 1. Đọc userId từ tham số URL (nếu không truyền -> mặc định lấy ID của chính mình)
-        int targetUserId = currentUser.getId();
-        String userIdStr = request.getParameter("userId");
-        if (userIdStr != null && !userIdStr.trim().isEmpty()) {
-            try {
-                targetUserId = Integer.parseInt(userIdStr);
-            } catch (NumberFormatException e) {
-                targetUserId = currentUser.getId();
-            }
-        }
+        int targetUserId = safeParseInt(request.getParameter("userId"), currentUser.getId());
 
         // 2. Tìm thông tin User theo ID
         User profileUser = UserDB.selectById(targetUserId);
@@ -144,16 +170,14 @@ public class ProfileServlet extends HttpServlet {
     }
 
     /**
-     * Xử lý cập nhật thông tin hồ sơ (BẢO VỆ PHÂN QUYỀN CHÍNH CHỦ)
+     * Xử lý cập nhật thông tin hồ sơ (BẢO VỆ PHÂN QUYỀN CHÍNH CHỦ & ĐỒNG BỘ TOÀN HỆ THỐNG)
      */
     private void handleUpdateProfile(HttpServletRequest request, HttpServletResponse response, User currentUser)
             throws IOException {
 
         HttpSession session = request.getSession();
-        int targetUserId = 0;
-        try {
-            targetUserId = Integer.parseInt(request.getParameter("userId"));
-        } catch (NumberFormatException e) {
+        int targetUserId = safeParseInt(request.getParameter("userId"), 0);
+        if (targetUserId <= 0) {
             response.sendRedirect(request.getContextPath() + "/profile");
             return;
         }
@@ -169,8 +193,8 @@ public class ProfileServlet extends HttpServlet {
         String role = request.getParameter("role");
         String bio = request.getParameter("bio");
         String skills = request.getParameter("skills");
-        String githubUrl = request.getParameter("githubUrl");
-        String linkedinUrl = request.getParameter("linkedinUrl");
+        String githubUrl = sanitizeUrl(request.getParameter("githubUrl"));
+        String linkedinUrl = sanitizeUrl(request.getParameter("linkedinUrl"));
 
         if (fullName == null || fullName.trim().isEmpty()) {
             session.setAttribute("toastError", "Họ và tên không được để trống!");
@@ -183,18 +207,23 @@ public class ProfileServlet extends HttpServlet {
             bio = bio.trim().substring(0, 250);
         }
 
-        // Cập nhật thông tin vào đối tượng
+        // Cập nhật thông tin vào đối tượng currentUser
         currentUser.setFullName(fullName.trim());
         currentUser.setRole((role != null && !role.trim().isEmpty()) ? role.trim() : "Developer");
         currentUser.setBio((bio != null) ? bio.trim() : "");
         currentUser.setSkills((skills != null) ? skills.trim() : "");
-        currentUser.setGithubUrl((githubUrl != null) ? githubUrl.trim() : "");
-        currentUser.setLinkedinUrl((linkedinUrl != null) ? linkedinUrl.trim() : "");
+        currentUser.setGithubUrl(githubUrl);
+        currentUser.setLinkedinUrl(linkedinUrl);
 
-        // Lưu vào kho dữ liệu RAM
+        // 1. Lưu vào kho dữ liệu UserDB
         UserDB.update(currentUser);
 
-        // Cập nhật lại session
+        // 2. ĐỒNG BỘ TÊN MỚI SANG TOÀN BỘ CÁC BẢNG TRONG HỆ THỐNG
+        ProjectMemberDB.syncUserName(currentUser.getId(), currentUser.getFullName());
+        TaskDB.syncAssigneeName(currentUser.getId(), currentUser.getFullName());
+        SubTaskDB.syncAssigneeName(currentUser.getId(), currentUser.getFullName());
+
+        // 3. Cập nhật lại session
         session.setAttribute("currentUser", currentUser);
         session.setAttribute("toastSuccess", "Đã cập nhật thông tin hồ sơ cá nhân thành công!");
 
