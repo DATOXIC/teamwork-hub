@@ -442,6 +442,9 @@ public class ProjectInviteServlet extends HttpServlet {
                     );
                     session.setAttribute("toastSuccess", "Đã từ chối yêu cầu xin gia nhập dự án [" + invite.getProjectName() + "].");
                 }
+            } else {
+                // Không phải người nhận — không có quyền từ chối
+                session.setAttribute("toastError", "Bạn không có quyền từ chối lời mời này!");
             }
         }
         response.sendRedirect(request.getContextPath() + "/project?action=list");

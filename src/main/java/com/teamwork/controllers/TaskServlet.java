@@ -71,7 +71,14 @@ public class TaskServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-        if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+
+        // TASK-01: Bắt buộc đăng nhập — nếu chưa có Session, redirect về trang login
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
+            return;
+        }
+
+        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
             session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -115,7 +122,14 @@ public class TaskServlet extends HttpServlet {
                 int projectId = Integer.parseInt(projectIdParam.trim());
                 HttpSession session = request.getSession(false);
                 User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-                if (currentUser != null && !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+
+                // TASK-01: Bắt buộc đăng nhập ngay trong doPost
+                if (currentUser == null) {
+                    response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
+                    return;
+                }
+
+                if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
                     session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
                     response.sendRedirect(request.getContextPath() + "/project?action=list");
                     return;
@@ -417,6 +431,8 @@ public class TaskServlet extends HttpServlet {
 
         int assigneeId = safeParseInt(request.getParameter("assigneeId"), 0);
         String assigneeName = "";
+        boolean assigneeProvided = assigneeId > 0; // Ghi nhớ người dùng có chọn ai chưa
+
         if (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) 
         {
             User assignee = UserDB.selectById(assigneeId);
@@ -432,9 +448,16 @@ public class TaskServlet extends HttpServlet {
             assigneeId = 0;
         }
 
+        // TASK-02: Phân biệt rõ hai trường hợp lỗi để thông báo chính xác hơn
         if (assigneeId <= 0) {
             if (session != null) {
-                session.setAttribute("toastError", "Vui lòng chọn người phụ trách (Task Lead) hợp lệ trong danh sách thành viên dự án!");
+                if (assigneeProvided) {
+                    // Người dùng đã chọn nhưng người đó không còn là thành viên dự án
+                    session.setAttribute("toastError", "Người phụ trách được chọn không còn là thành viên của dự án này! Vui lòng chọn lại.");
+                } else {
+                    // Người dùng chưa chọn ai
+                    session.setAttribute("toastError", "Vui lòng chọn người phụ trách (Task Lead) trong danh sách thành viên dự án!");
+                }
             }
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;

@@ -33,6 +33,15 @@ public class ProjectServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Kiểm tra xác thực: người chưa đăng nhập phải được redirect về trang login
+        HttpSession sessionCheck = request.getSession(false);
+        User currentUserCheck = (sessionCheck != null) ? (User) sessionCheck.getAttribute("currentUser") : null;
+        if (currentUserCheck == null) 
+        {
+            response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
+            return;
+        }
+
         String action = request.getParameter("action");
         if (action == null || action.trim().isEmpty()) 
         {

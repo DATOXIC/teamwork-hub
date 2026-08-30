@@ -189,13 +189,6 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        if (UserDB.selectByUsername(username.trim()) != null) 
-        {
-            request.setAttribute("regError", "Tên đăng nhập này đã được sử dụng!");
-            forwardRegisterForm(request, response, username, fullName, email);
-            return;
-        }
-
         if (UserDB.selectByUsernameOrEmail(email.trim()) != null) 
         {
         request.setAttribute("regError", "Email này đã được đăng ký trong hệ thống!");
