@@ -16,6 +16,8 @@ public class SubTask implements Serializable {
 
     private int id;                  // Khóa chính định danh việc con
     private int taskId;              // Thuộc task cha nào (Khóa ngoại trỏ đến Task.id)
+
+    
     private String title;            // Tiêu đề việc con (Ví dụ: "Viết cấu hình Dockerfile")
     private int assigneeId;          // ID thành viên được giao việc con (trỏ đến User.id)
     private String assigneeName;     // Tên hiển thị người làm việc con

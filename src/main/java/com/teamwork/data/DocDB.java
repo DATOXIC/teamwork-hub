@@ -100,10 +100,13 @@ public class DocDB {
      * HÀM 2: Lấy danh sách toàn bộ tài liệu thuộc về MỘT DỰ ÁN cụ thể
      * Dùng để đổ danh mục bài viết ở cột bên trái của giao diện docs.jsp.
      */
-    public static List<Doc> selectByProjectId(int projectId) {
+    public static List<Doc> selectByProjectId(int projectId) 
+    {
         List<Doc> resultList = new ArrayList<>();
-        for (Doc d : docs) {
-            if (d.getProjectId() == projectId) {
+        for (Doc d : docs) 
+        {
+            if (d.getProjectId() == projectId) 
+            {
                 resultList.add(d);
             }
         }

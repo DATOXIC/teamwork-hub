@@ -81,28 +81,7 @@ public class Task implements Serializable {
         this.planningReviewedAt = (planningReviewedAt != null) ? planningReviewedAt.trim() : "";
     }
 
-    // Constructor tương thích phiên bản có deliverableFile & qualityRating
-    public Task(int id, int projectId, String title, String description,
-                String status, String priority, String dueDate,
-                int assigneeId, String assigneeName,
-                String finalDeliverableNote, String pmFeedback,
-                String submittedAt, String reviewedAt,
-                String deliverableFile, int qualityRating) 
-    {
-        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, finalDeliverableNote, pmFeedback, submittedAt, reviewedAt, deliverableFile, qualityRating, "", "");
-    }
-
-    // Constructor tương thích phiên bản trước
-    public Task(int id, int projectId, String title, String description,
-                String status, String priority, String dueDate,
-                int assigneeId, String assigneeName,
-                String finalDeliverableNote, String pmFeedback,
-                String submittedAt, String reviewedAt) 
-    {
-        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, finalDeliverableNote, pmFeedback, submittedAt, reviewedAt, "", 5, "", "");
-    }
-
-    // Constructor tương thích ngược
+    // Constructor rút gọn (Dùng khi Tạo Task mới từ Form)
     public Task(int id, int projectId, String title, String description,
                 String status, String priority, String dueDate,
                 int assigneeId, String assigneeName) 
@@ -115,12 +94,18 @@ public class Task implements Serializable {
     /**
      * Trả về lớp màu CSS Bootstrap tương ứng với mức độ ưu tiên
      */
-    public String getPriorityBadgeClass() {
-        if (this.priority != null && this.priority.equalsIgnoreCase("HIGH")) {
+    public String getPriorityBadgeClass() 
+    {
+        if (this.priority != null && this.priority.equalsIgnoreCase("HIGH")) 
+        {
             return "bg-danger text-white";
-        } else if (this.priority != null && this.priority.equalsIgnoreCase("MEDIUM")) {
+        } 
+        else if (this.priority != null && this.priority.equalsIgnoreCase("MEDIUM")) 
+        {
             return "bg-warning text-dark";
-        } else {
+        } 
+        else 
+        {
             return "bg-info text-dark";
         }
     }
@@ -128,12 +113,18 @@ public class Task implements Serializable {
     /**
      * Trả về tên hiển thị tiếng Việt của mức độ ưu tiên
      */
-    public String getPriorityLabel() {
-        if (this.priority != null && this.priority.equalsIgnoreCase("HIGH")) {
+    public String getPriorityLabel() 
+    {
+        if (this.priority != null && this.priority.equalsIgnoreCase("HIGH")) 
+        {
             return "Cao";
-        } else if (this.priority != null && this.priority.equalsIgnoreCase("MEDIUM")) {
+        } 
+        else if (this.priority != null && this.priority.equalsIgnoreCase("MEDIUM")) 
+        {
             return "Trung bình";
-        } else {
+        } 
+        else 
+        {
             return "Thấp";
         }
     }
@@ -141,7 +132,8 @@ public class Task implements Serializable {
     /**
      * Trả về lớp màu CSS Bootstrap tương ứng với các trạng thái của Task Lớn
      */
-    public String getStatusBadgeClass() {
+    public String getStatusBadgeClass() 
+    {
         if ("PLANNING".equalsIgnoreCase(status)) return "bg-primary-subtle text-primary border border-primary-subtle"; // 🟣 Đang chờ PM duyệt kế hoạch
         if ("SUBMITTED".equalsIgnoreCase(status)) return "bg-warning text-dark"; // 🟡 Vàng Cam: Chờ PM duyệt nghiệm thu
         if ("REVISE".equalsIgnoreCase(status)) return "bg-primary text-white";   // 🔵 Xanh Dương: PM cần cân chỉnh
@@ -184,35 +176,35 @@ public class Task implements Serializable {
         return this.title;
     }
     public void setTitle(String title) {
-        this.title = title;
+        this.title = (title != null) ? title.trim() : "";
     }
 
     public String getDescription() {
         return this.description;
     }
     public void setDescription(String description) {
-        this.description = description;
+        this.description = (description != null) ? description.trim() : "";
     }
 
     public String getStatus() {
         return this.status;
     }
     public void setStatus(String status) {
-        this.status = (status != null) ? status.trim().toUpperCase() : "TODO";
+        this.status = (status != null && !status.trim().isEmpty()) ? status.trim().toUpperCase() : "TODO";
     }
 
     public String getPriority() {
         return this.priority;
     }
     public void setPriority(String priority) {
-        this.priority = priority;
+        this.priority = (priority != null && !priority.trim().isEmpty()) ? priority.trim().toUpperCase() : "MEDIUM";
     }
 
     public String getDueDate() {
         return this.dueDate;
     }
     public void setDueDate(String dueDate) {
-        this.dueDate = dueDate;
+        this.dueDate = (dueDate != null) ? dueDate.trim() : "";
     }
 
     public int getAssigneeId() {
@@ -226,35 +218,35 @@ public class Task implements Serializable {
         return this.assigneeName;
     }
     public void setAssigneeName(String assigneeName) {
-        this.assigneeName = assigneeName;
+        this.assigneeName = (assigneeName != null && !assigneeName.trim().isEmpty()) ? assigneeName.trim() : "Chưa phân công";
     }
 
     public String getFinalDeliverableNote() {
         return this.finalDeliverableNote;
     }
     public void setFinalDeliverableNote(String finalDeliverableNote) {
-        this.finalDeliverableNote = finalDeliverableNote;
+        this.finalDeliverableNote = (finalDeliverableNote != null) ? finalDeliverableNote.trim() : "";
     }
 
     public String getPmFeedback() {
         return this.pmFeedback;
     }
     public void setPmFeedback(String pmFeedback) {
-        this.pmFeedback = pmFeedback;
+        this.pmFeedback = (pmFeedback != null) ? pmFeedback.trim() : "";
     }
 
     public String getSubmittedAt() {
         return this.submittedAt;
     }
     public void setSubmittedAt(String submittedAt) {
-        this.submittedAt = submittedAt;
+        this.submittedAt = (submittedAt != null) ? submittedAt.trim() : "";
     }
 
     public String getReviewedAt() {
         return this.reviewedAt;
     }
     public void setReviewedAt(String reviewedAt) {
-        this.reviewedAt = reviewedAt;
+        this.reviewedAt = (reviewedAt != null) ? reviewedAt.trim() : "";
     }
 
     public String getDeliverableFile() {
@@ -268,7 +260,7 @@ public class Task implements Serializable {
         return this.qualityRating;
     }
     public void setQualityRating(int qualityRating) {
-        this.qualityRating = qualityRating > 0 ? qualityRating : 5;
+        this.qualityRating = Math.max(1, Math.min(5, qualityRating));
     }
 
     public String getPlanningNote() {
@@ -343,35 +335,59 @@ public class Task implements Serializable {
      * - "COMPLETED_LATE": Đã hoàn thành nhưng trễ hạn (⚠️)
      * - "NO_DEADLINE": Không thiết lập hạn chót
      */
-    public String getDeadlineStatus() {
-        if (this.dueDate == null || this.dueDate.trim().isEmpty()) {
+    public String getDeadlineStatus() 
+    {
+        if (this.dueDate == null || this.dueDate.trim().isEmpty()) 
+        {
             return "NO_DEADLINE";
         }
 
-        if ("DONE".equalsIgnoreCase(this.status)) {
+        if ("DONE".equalsIgnoreCase(this.status)) 
+        {
             // Nếu đã xong, kiểm tra xem có nộp đúng hạn không
-            if (this.submittedAt != null && !this.submittedAt.trim().isEmpty()) {
-                try {
+            if (this.submittedAt != null && !this.submittedAt.trim().isEmpty()) 
+            {
+                try 
+                {
                     String subDateStr = this.submittedAt.trim().substring(0, 10);
-                    LocalDate subDate = LocalDate.parse(subDateStr);
+                    LocalDate subDate;
+                    if (subDateStr.contains("/")) 
+                    {
+                        subDate = LocalDate.parse(subDateStr, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    } 
+                    else 
+                    {
+                        subDate = LocalDate.parse(subDateStr);
+                    }
                     LocalDate due = LocalDate.parse(this.dueDate.trim());
-                    if (subDate.isAfter(due)) {
+                    if (subDate.isAfter(due)) 
+                    {
                         return "COMPLETED_LATE";
                     }
-                } catch (Exception ignored) {
+                } 
+                catch (Exception ignored) 
+                {
+
                 }
             }
             return "COMPLETED_ON_TIME";
         }
 
         long days = getDaysRemaining();
-        if (days < 0) {
+        if (days < 0) 
+        {
             return "OVERDUE";
-        } else if (days == 0) {
+        } 
+        else if (days == 0) 
+        {
             return "DUE_TODAY";
-        } else if (days <= 2) {
+        } 
+        else if (days <= 2) 
+        {
             return "DUE_SOON";
-        } else {
+        } 
+        else 
+        {
             return "ON_TRACK";
         }
     }
@@ -379,9 +395,11 @@ public class Task implements Serializable {
     /**
      * Trả về lớp màu CSS Bootstrap tương ứng với trạng thái hạn chót để hiển thị Badge trực quan
      */
-    public String getDeadlineBadgeClass() {
+    public String getDeadlineBadgeClass() 
+    {
         String deadlineStatus = getDeadlineStatus();
-        switch (deadlineStatus) {
+        switch (deadlineStatus) 
+        {
             case "OVERDUE":
                 return "bg-danger text-white border-danger shadow-2xs";
             case "DUE_TODAY":
@@ -402,15 +420,18 @@ public class Task implements Serializable {
     /**
      * Trả về nhãn chữ tiếng Việt định dạng đẹp kèm biểu tượng và số ngày đếm ngược
      */
-    public String getDeadlineLabel() {
-        if (this.dueDate == null || this.dueDate.trim().isEmpty()) {
+    public String getDeadlineLabel() 
+    {
+        if (this.dueDate == null || this.dueDate.trim().isEmpty()) 
+        {
             return "Chưa đặt hạn chót";
         }
 
         String deadlineStatus = getDeadlineStatus();
         long days = getDaysRemaining();
 
-        switch (deadlineStatus) {
+        switch (deadlineStatus) 
+        {
             case "OVERDUE":
                 return "🔴 Quá hạn " + Math.abs(days) + " ngày (" + this.dueDate + ")";
             case "DUE_TODAY":
