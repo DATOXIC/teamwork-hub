@@ -125,20 +125,30 @@
             <i class="bi bi-graph-up-arrow text-primary me-2"></i>Chỉ số Năng suất & Cống hiến trên Hệ thống
         </h5>
 
-        <div class="row g-3 text-center">
+        <div class="row g-3">
             <!-- Chỉ số 1: Dự án tham gia -->
             <div class="col-6 col-md-3">
-                <div class="card border-0 bg-white shadow-sm rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
-                    <span class="fs-8 text-muted d-block mb-1">Dự án tham gia</span>
+                <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fs-8 text-muted fw-semibold">Dự án tham gia</span>
+                        <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1">
+                            <i class="bi bi-folder2-open fs-7"></i>
+                        </span>
+                    </div>
                     <h3 class="fw-extrabold text-primary mb-0">${userProjects.size()}</h3>
-                    <span class="fs-9 text-muted mt-1">không gian</span>
+                    <span class="fs-9 text-muted mt-1">không gian làm việc</span>
                 </div>
             </div>
 
             <!-- Chỉ số 2: Task Lead -->
             <div class="col-6 col-md-3">
-                <div class="card border-0 bg-white shadow-sm rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
-                    <span class="fs-8 text-muted d-block mb-1">Task Lead chủ trì</span>
+                <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fs-8 text-muted fw-semibold">Task Lead chủ trì</span>
+                        <span class="p-1 bg-warning-subtle text-warning-emphasis rounded-2 lh-1">
+                            <i class="bi bi-person-workspace fs-7"></i>
+                        </span>
+                    </div>
                     <h3 class="fw-extrabold text-warning mb-0">${leadTaskCount}</h3>
                     <span class="fs-9 text-muted mt-1">nhiệm vụ lớn</span>
                 </div>
@@ -146,8 +156,13 @@
 
             <!-- Chỉ số 3: Việc con hoàn thành -->
             <div class="col-6 col-md-3">
-                <div class="card border-0 bg-white shadow-sm rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
-                    <span class="fs-8 text-muted d-block mb-1">Việc con đã xong</span>
+                <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fs-8 text-muted fw-semibold">Việc con đã xong</span>
+                        <span class="p-1 bg-success-subtle text-success rounded-2 lh-1">
+                            <i class="bi bi-check-all fs-7"></i>
+                        </span>
+                    </div>
                     <h3 class="fw-extrabold text-success mb-0">${completedSubTasks} / ${totalSubTasks}</h3>
                     <span class="fs-9 text-muted mt-1">việc hoàn tất</span>
                 </div>
@@ -155,11 +170,16 @@
 
             <!-- Chỉ số 4: Tỷ lệ hoàn thành -->
             <div class="col-6 col-md-3">
-                <div class="card border-0 bg-white shadow-sm rounded-4 p-3 h-100 d-flex flex-column justify-content-between">
-                    <span class="fs-8 text-muted d-block mb-1">Tỷ lệ hoàn thành chung</span>
+                <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fs-8 text-muted fw-semibold">Tỷ lệ hoàn thành</span>
+                        <span class="p-1 bg-info-subtle text-info-emphasis rounded-2 lh-1">
+                            <i class="bi bi-speedometer2 fs-7"></i>
+                        </span>
+                    </div>
                     <h3 class="fw-extrabold text-dark mb-0">${completionRate}%</h3>
-                    <div class="progress mt-2 rounded-pill" style="height: 6px;">
-                        <div class="progress-bar bg-success" role="progressbar" style="width: ${completionRate}%;"></div>
+                    <div class="project-progress-container mt-2">
+                        <div class="project-progress-bar" style="width: ${completionRate}%;"></div>
                     </div>
                 </div>
             </div>
@@ -177,11 +197,11 @@
         <div class="row g-4">
             <c:forEach items="${userProjects}" var="p">
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 bg-white shadow-sm rounded-4 p-4 d-flex flex-column justify-content-between transition hover-shadow">
+                    <div class="project-card h-100 d-flex flex-column justify-content-between">
                         <div>
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge bg-dark-navy text-white rounded-pill px-2 py-1 fs-9">
-                                    <i class="bi bi-hash"></i> ${p.projectCode}
+                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9 fw-bold">
+                                    #${p.projectCode}
                                 </span>
                                 <span class="text-muted fs-9">${p.createdAt}</span>
                             </div>
@@ -195,8 +215,8 @@
                                 <span>Tiến độ dự án</span>
                                 <span class="fw-bold text-dark">${p.progressPercentage}%</span>
                             </div>
-                            <div class="progress rounded-pill mb-3" style="height: 6px;">
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: ${p.progressPercentage}%;"></div>
+                            <div class="project-progress-container mb-3">
+                                <div class="project-progress-bar" style="width: ${p.progressPercentage}%;"></div>
                             </div>
                             <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
                                class="btn btn-outline-primary btn-sm w-100 rounded-pill py-1 fs-8 fw-semibold">

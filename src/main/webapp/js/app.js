@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TeamWork Hub — app.js
  * Global utility scripts: Floating Toast System + misc helpers
  */
@@ -9,7 +9,7 @@
     function showToast(message, type) {
         if (!message || !message.trim()) return;
 
-        let container = document.getElementById('toastContainerCustom');
+        var container = document.getElementById('toastContainerCustom');
         if (!container) {
             container = document.createElement('div');
             container.id = 'toastContainerCustom';
@@ -17,34 +17,57 @@
             document.body.appendChild(container);
         }
 
-        const icon = type === 'success'
-            ? '<i class="bi bi-check-circle-fill toast-icon"></i>'
-            : '<i class="bi bi-exclamation-triangle-fill toast-icon"></i>';
+        var isSuccess = (type === 'success');
+        var iconHtml = isSuccess
+            ? '<i class="bi bi-check-circle-fill toast-icon text-success"></i>'
+            : '<i class="bi bi-exclamation-triangle-fill toast-icon text-danger"></i>';
 
-        const toast = document.createElement('div');
-        toast.className = 	oast-item toast-;
-        toast.innerHTML = ${icon}<span class="flex-grow-1"></span><button class="toast-close" aria-label="Dong">&#x2715;</button>;
+        var toast = document.createElement('div');
+        toast.className = 'toast-item ' + (isSuccess ? 'toast-success' : 'toast-error');
+        
+        var contentSpan = document.createElement('span');
+        contentSpan.className = 'flex-grow-1';
+        contentSpan.textContent = message;
+
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'toast-close btn-close btn-close-sm';
+        closeBtn.setAttribute('aria-label', 'Đóng');
+
+        toast.innerHTML = iconHtml;
+        toast.appendChild(contentSpan);
+        toast.appendChild(closeBtn);
 
         container.appendChild(toast);
 
         function dismiss() {
             toast.classList.add('toast-dismissing');
-            toast.addEventListener('animationend', () => toast.remove(), { once: true });
+            toast.addEventListener('animationend', function() {
+                toast.remove();
+            }, { once: true });
         }
+
+        closeBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dismiss();
+        });
 
         toast.addEventListener('click', dismiss);
         setTimeout(dismiss, 4000);
     }
 
     function initToastsFromDOM() {
-        const toastData = document.getElementById('toastData');
+        var toastData = document.getElementById('toastData');
         if (!toastData) return;
 
-        const successMsg = toastData.dataset.success;
-        const errorMsg   = toastData.dataset.error;
+        var successMsg = toastData.getAttribute('data-success');
+        var errorMsg   = toastData.getAttribute('data-error');
 
-        if (successMsg) showToast(successMsg, 'success');
-        if (errorMsg)   showToast(errorMsg, 'error');
+        if (successMsg && successMsg.trim().length > 0) {
+            showToast(successMsg, 'success');
+        }
+        if (errorMsg && errorMsg.trim().length > 0) {
+            showToast(errorMsg, 'error');
+        }
     }
 
     if (document.readyState === 'loading') {
@@ -56,3 +79,4 @@
     window.showToast = showToast;
 
 })();
+
