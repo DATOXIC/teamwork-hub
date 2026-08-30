@@ -32,8 +32,8 @@ public class ProjectInviteDB {
             4,
             "Lê Văn Chi",
             "PENDING",
-            "2026-08-25 10:00",
-            "2026-09-01 10:00" // Hết hạn sau 7 ngày
+            "25/08/2026 10:00",
+            "01/09/2026 10:00" // Hết hạn sau 7 ngày
         ));
     }
 
@@ -98,20 +98,20 @@ public class ProjectInviteDB {
     }
 
     /**
-     * Hàm 5: Kiểm tra xem đã có Lời mời / Yêu cầu PENDING giữa 2 người trong dự án này chưa
+     * Hàm 5: Kiểm tra xem đã có Lời mời / Yêu cầu PENDING giữa 2 người trong dự án này chưa (Kiểm tra 2 chiều)
      * Phục vụ Ràng buộc 2: Chống gửi trùng lặp lời mời khi người kia chưa phản hồi
      */
-    public static boolean hasPendingInvite(int projectId, int senderId, int receiverId) {
+    public static boolean hasPendingInvite(int projectId, int user1Id, int user2Id) {
         for (ProjectInvite pi : invites) {
-            if (pi.getProjectId() == projectId 
-                && pi.getSenderId() == senderId 
-                && pi.getReceiverId() == receiverId 
-                && "PENDING".equalsIgnoreCase(pi.getStatus())) {
-                
-                if (!pi.isExpired()) {
-                    return true;
-                } else {
-                    pi.setStatus("EXPIRED");
+            if (pi.getProjectId() == projectId && "PENDING".equalsIgnoreCase(pi.getStatus())) {
+                boolean isSamePair = (pi.getSenderId() == user1Id && pi.getReceiverId() == user2Id)
+                                  || (pi.getSenderId() == user2Id && pi.getReceiverId() == user1Id);
+                if (isSamePair) {
+                    if (!pi.isExpired()) {
+                        return true;
+                    } else {
+                        pi.setStatus("EXPIRED");
+                    }
                 }
             }
         }

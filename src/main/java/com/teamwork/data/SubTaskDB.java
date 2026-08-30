@@ -1,6 +1,7 @@
 package com.teamwork.data;
 
 import com.teamwork.business.SubTask;
+import com.teamwork.business.Task;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -357,5 +358,20 @@ public class SubTaskDB {
             }
         }
         return false;
+    }
+
+    /**
+     * HÀM 13: Hủy phân công Việc Con cho một thành viên khi rời nhóm hoặc bị kick
+     */
+    public static void unassignUserFromProject(int projectId, int userId) {
+        for (SubTask st : subTasks) {
+            if (st.getAssigneeId() == userId) {
+                Task parent = TaskDB.selectById(st.getTaskId());
+                if (parent != null && parent.getProjectId() == projectId) {
+                    st.setAssigneeId(0);
+                    st.setAssigneeName("Chưa phân công");
+                }
+            }
+        }
     }
 }

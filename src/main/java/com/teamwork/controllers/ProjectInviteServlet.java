@@ -8,6 +8,8 @@ import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
+import com.teamwork.data.SubTaskDB;
+import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -23,11 +25,26 @@ import java.time.format.DateTimeFormatter;
  * Controller: Quản lý Luồng Mời & Xin Gia Nhập Dự Án 2 Chiều (/invite)
  * - Thực thi nghiêm ngặt 5 Hàng Rào Bảo Mật (Authorization, Quota <= 10, Entity Existence, Expiration 7 days, Anti-duplicate)
  * - Tự động phát tín hiệu sang Trung Tâm Thông Báo (NotificationDB)
+ * - Tự động dọn dẹp phân công công việc khi thành viên rời nhóm hoặc bị kick
  */
 @WebServlet("/invite")
 public class ProjectInviteServlet extends HttpServlet {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    /**
+     * Tiện ích parse số nguyên an toàn, chống NumberFormatException
+     */
+    private int safeParseInt(String value, int defaultValue) {
+        if (value == null || value.trim().isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -114,10 +131,8 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int projectId = 0;
-        try {
-            projectId = Integer.parseInt(request.getParameter("projectId"));
-        } catch (NumberFormatException e) {
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        if (projectId <= 0) {
             session.setAttribute("toastError", "Mã ID dự án không hợp lệ!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -259,7 +274,7 @@ public class ProjectInviteServlet extends HttpServlet {
 
         // --- RÀO BẢO MẬT 2.C: CHỐNG GỬI TRÙNG YÊU CẦU ĐANG CHỜ ---
         if (ProjectInviteDB.hasPendingInvite(project.getId(), currentUser.getId(), project.getOwnerId())) {
-            session.setAttribute("toastError", "Bạn đã gửi yêu cầu xin gia nhập dự án này trước đó, vui lòng chờ PM duyệt!");
+            session.setAttribute("toastError", "Đã có lời mời hoặc yêu cầu đang chờ xử lý giữa bạn và dự án này!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -306,10 +321,8 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int inviteId = 0;
-        try {
-            inviteId = Integer.parseInt(request.getParameter("inviteId"));
-        } catch (NumberFormatException e) {
+        int inviteId = safeParseInt(request.getParameter("inviteId"), 0);
+        if (inviteId <= 0) {
             session.setAttribute("toastError", "Mã lời mời không hợp lệ!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -344,45 +357,48 @@ public class ProjectInviteServlet extends HttpServlet {
             return;
         }
 
-        // HỢP LỆ -> CẬP NHẬT TRẠNG THÁI ACCEPTED
-        ProjectInviteDB.updateStatus(inviteId, "ACCEPTED");
-
         // XÁC ĐỊNH NGƯỜI ĐƯỢC KẾT NẠP VÀO DỰ ÁN
         int newMemberId = ("INVITATION".equalsIgnoreCase(invite.getType())) ? invite.getReceiverId() : invite.getSenderId();
-        User newMemberUser = UserDB.selectById(newMemberId);
-
-        if (newMemberUser != null) {
-            LocalDateTime now = LocalDateTime.now();
-            ProjectMember member = new ProjectMember(
-                invite.getProjectId(),
-                newMemberUser.getId(),
-                newMemberUser.getFullName(),
-                newMemberUser.getEmail(),
-                newMemberUser.getRole(),
-                "MEMBER",
-                now.format(DATE_FORMATTER)
-            );
-            ProjectMemberDB.insert(member);
-
-            // BẮN THÔNG BÁO KẾT NỐI TỚI NGƯỜI KIA
-            if ("INVITATION".equalsIgnoreCase(invite.getType())) {
-                NotificationDB.send(
-                    invite.getSenderId(),
-                    "Thành Viên Mới Gia Nhập",
-                    newMemberUser.getFullName() + " đã đồng ý tham gia vào dự án [" + invite.getProjectName() + "]!",
-                    "/task?action=list&projectId=" + invite.getProjectId(),
-                    "INVITE"
+        
+        // Chống lặp thành viên
+        if (!ProjectMemberDB.isMember(invite.getProjectId(), newMemberId)) {
+            User newMemberUser = UserDB.selectById(newMemberId);
+            if (newMemberUser != null) {
+                LocalDateTime now = LocalDateTime.now();
+                ProjectMember member = new ProjectMember(
+                    invite.getProjectId(),
+                    newMemberUser.getId(),
+                    newMemberUser.getFullName(),
+                    newMemberUser.getEmail(),
+                    newMemberUser.getRole(),
+                    "MEMBER",
+                    now.format(DATE_FORMATTER)
                 );
-            } else {
-                NotificationDB.send(
-                    invite.getSenderId(),
-                    "Yêu Cầu Được Phê Duyệt",
-                    "Yêu cầu xin gia nhập dự án [" + invite.getProjectName() + "] của bạn đã được Trưởng Dự Án chấp thuận!",
-                    "/task?action=list&projectId=" + invite.getProjectId(),
-                    "INVITE"
-                );
+                ProjectMemberDB.insert(member);
+
+                // BẮN THÔNG BÁO KẾT NỐI TỚI NGƯỜI KIA
+                if ("INVITATION".equalsIgnoreCase(invite.getType())) {
+                    NotificationDB.send(
+                        invite.getSenderId(),
+                        "Thành Viên Mới Gia Nhập",
+                        newMemberUser.getFullName() + " đã đồng ý tham gia vào dự án [" + invite.getProjectName() + "]!",
+                        "/task?action=list&projectId=" + invite.getProjectId(),
+                        "INVITE"
+                    );
+                } else {
+                    NotificationDB.send(
+                        invite.getSenderId(),
+                        "Yêu Cầu Được Phê Duyệt",
+                        "Yêu cầu xin gia nhập dự án [" + invite.getProjectName() + "] của bạn đã được Trưởng Dự Án chấp thuận!",
+                        "/task?action=list&projectId=" + invite.getProjectId(),
+                        "INVITE"
+                    );
+                }
             }
         }
+
+        // CẬP NHẬT TRẠNG THÁI ACCEPTED
+        ProjectInviteDB.updateStatus(inviteId, "ACCEPTED");
 
         session.setAttribute("toastSuccess", "Chúc mừng! Đã kết nạp thành viên vào dự án [" + invite.getProjectName() + "] thành công!");
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + invite.getProjectId());
@@ -395,10 +411,8 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int inviteId = 0;
-        try {
-            inviteId = Integer.parseInt(request.getParameter("inviteId"));
-        } catch (NumberFormatException e) {
+        int inviteId = safeParseInt(request.getParameter("inviteId"), 0);
+        if (inviteId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -407,7 +421,27 @@ public class ProjectInviteServlet extends HttpServlet {
         if (invite != null && "PENDING".equalsIgnoreCase(invite.getStatus())) {
             if (currentUser.getId() == invite.getReceiverId()) {
                 ProjectInviteDB.updateStatus(inviteId, "REJECTED");
-                session.setAttribute("toastSuccess", "Đã từ chối lời mời vào dự án [" + invite.getProjectName() + "].");
+
+                // Bắn thông báo phản hồi cho người gửi
+                if ("INVITATION".equalsIgnoreCase(invite.getType())) {
+                    NotificationDB.send(
+                        invite.getSenderId(),
+                        "Từ Chối Lời Mời",
+                        currentUser.getFullName() + " đã từ chối lời mời tham gia dự án [" + invite.getProjectName() + "].",
+                        "/task?action=list&projectId=" + invite.getProjectId(),
+                        "INVITE"
+                    );
+                    session.setAttribute("toastSuccess", "Đã từ chối lời mời vào dự án [" + invite.getProjectName() + "].");
+                } else {
+                    NotificationDB.send(
+                        invite.getSenderId(),
+                        "Yêu Cầu Không Được Phê Duyệt",
+                        "Yêu cầu xin gia nhập dự án [" + invite.getProjectName() + "] của bạn đã bị Trưởng Dự Án từ chối.",
+                        "/project?action=list",
+                        "INVITE"
+                    );
+                    session.setAttribute("toastSuccess", "Đã từ chối yêu cầu xin gia nhập dự án [" + invite.getProjectName() + "].");
+                }
             }
         }
         response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -420,10 +454,8 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int inviteId = 0;
-        try {
-            inviteId = Integer.parseInt(request.getParameter("inviteId"));
-        } catch (NumberFormatException e) {
+        int inviteId = safeParseInt(request.getParameter("inviteId"), 0);
+        if (inviteId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -448,10 +480,8 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int projectId = 0;
-        try {
-            projectId = Integer.parseInt(request.getParameter("projectId"));
-        } catch (NumberFormatException e) {
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        if (projectId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -477,14 +507,18 @@ public class ProjectInviteServlet extends HttpServlet {
             return;
         }
 
-        // Thực hiện xóa khỏi danh sách thành viên
+        // 1. Thực hiện xóa khỏi danh sách thành viên
         ProjectMemberDB.delete(projectId, currentUser.getId());
 
-        // Bắn thông báo tới Trưởng Dự Án
+        // 2. Dọn dẹp phân công công việc (Hủy phụ trách Task lớn và Việc con để tránh bị mồ côi)
+        TaskDB.unassignUserFromProject(projectId, currentUser.getId());
+        SubTaskDB.unassignUserFromProject(projectId, currentUser.getId());
+
+        // 3. Bắn thông báo tới Trưởng Dự Án
         NotificationDB.send(
             project.getOwnerId(),
             "Thành Viên Đã Rời Dự Án",
-            currentUser.getFullName() + " đã tự rời khỏi dự án [" + project.getName() + "].",
+            currentUser.getFullName() + " đã tự rời khỏi dự án [" + project.getName() + "]. Các công việc liên quan đã được chuyển về trạng thái 'Chưa phân công'.",
             "/task?action=list&projectId=" + projectId,
             "INVITE"
         );
@@ -500,12 +534,10 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int projectId = 0;
-        int targetUserId = 0;
-        try {
-            projectId = Integer.parseInt(request.getParameter("projectId"));
-            targetUserId = Integer.parseInt(request.getParameter("userId"));
-        } catch (NumberFormatException e) {
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        int targetUserId = safeParseInt(request.getParameter("userId"), 0);
+
+        if (projectId <= 0 || targetUserId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -538,10 +570,14 @@ public class ProjectInviteServlet extends HttpServlet {
             return;
         }
 
-        // Thực hiện xóa khỏi danh sách thành viên
+        // 1. Thực hiện xóa khỏi danh sách thành viên
         ProjectMemberDB.delete(projectId, targetUserId);
 
-        // Bắn thông báo tới thành viên bị kick
+        // 2. Dọn dẹp phân công công việc (Hủy phụ trách Task lớn và Việc con để tránh bị mồ côi)
+        TaskDB.unassignUserFromProject(projectId, targetUserId);
+        SubTaskDB.unassignUserFromProject(projectId, targetUserId);
+
+        // 3. Bắn thông báo tới thành viên bị kick
         NotificationDB.send(
             targetUserId,
             "Thông Báo Dự Án",
@@ -550,7 +586,7 @@ public class ProjectInviteServlet extends HttpServlet {
             "INVITE"
         );
 
-        session.setAttribute("toastSuccess", "Đã xóa thành viên [" + targetUser.getFullName() + "] ra khỏi dự án thành công.");
+        session.setAttribute("toastSuccess", "Đã xóa thành viên [" + targetUser.getFullName() + "] ra khỏi dự án thành công. Các công việc liên quan đã được chuyển về 'Chưa phân công'.");
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
     }
 }

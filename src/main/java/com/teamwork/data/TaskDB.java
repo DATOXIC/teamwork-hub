@@ -334,4 +334,16 @@ public class TaskDB {
     public static boolean delete(int id) {
         return tasks.removeIf(t -> t.getId() == id);
     }
+
+    /**
+     * HÀM 13: Hủy phân công Task lớn cho một thành viên khi rời nhóm hoặc bị kick
+     */
+    public static void unassignUserFromProject(int projectId, int userId) {
+        for (Task t : tasks) {
+            if (t.getProjectId() == projectId && t.getAssigneeId() == userId) {
+                t.setAssigneeId(0);
+                t.setAssigneeName("Chưa phân công");
+            }
+        }
+    }
 }
