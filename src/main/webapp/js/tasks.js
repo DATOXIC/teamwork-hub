@@ -1,85 +1,202 @@
-// Bước 1: Dùng tay cầm một món đồ lên → Trình duyệt gọi là sự kiện dragstart.
-// Bước 2: Cầm món đồ rê qua một cái bàn khác → Trình duyệt gọi là sự kiện dragover.
-// Bước 3: Đặt món đồ xuống cái bàn mới → Trình duyệt gọi là sự kiện drop.
-// Bước 4: Báo với Quản lý (Servlet): "Tôi vừa chuyển đồ số 3 sang Bàn Đang Làm!" → Gửi dữ liệu lên Server.
-
+// =========================================================================
+// PURE VANILLA JS PHYSICS KANBAN DRAG ENGINE (ZERO DEPENDENCY / 100% NATIVE)
+// Tự code 100% - Không dùng thư viện ngoài - Đảm bảo chuẩn môn học
+// =========================================================================
 document.addEventListener('DOMContentLoaded', function()
 {
-    // 1. Tìm tất cả các thẻ công việc có trên màn hình
     const cards = document.querySelectorAll('.kanban-card');
-    // 2. Tìm 3 vùng chứa cột (Cần làm, Đang làm, Đã xong)
     const columns = document.querySelectorAll('.kanban-task-list');
-    // 3. Biến tạm để ghi nhớ xem mình đang cầm thẻ Task số mấy
-    let draggedTaskId = null;
 
-    // GẮN SỰ KIỆN KÉO THẢ CHO CÁC THẺ (CƠ CHẾ VẬT LÝ 3D LIFT & TILT)
-    function handleDragStart(event) 
+    let activeCard = null;
+    let placeholder = null;
+    let originalColumn = null;
+    let currentTargetColumn = null;
+    let offsetX = 0;
+    let offsetY = 0;
+    let lastClientX = 0;
+    let cardWidth = 0;
+    let cardHeight = 0;
+    let isDragging = false;
+    let startMouseX = 0;
+    let startMouseY = 0;
+    let hasJustDragged = false;
+    const DRAG_THRESHOLD = 6; // Ngưỡng 6px di chuyển chuột để phân biệt Click xem chi tiết với Kéo thả
+
+    function onMouseDown(e) 
     {
-        const currentCard = event.currentTarget;
-        draggedTaskId = currentCard.getAttribute('data-task-id');
-        
-        // Nhấc thẻ lên trong không gian 3D (Phóng to 1.04x, Nghiêng 2.5 độ, Tỏa bóng đổ sâu)
-        setTimeout(function() {
-            currentCard.classList.add('is-dragging');
-        }, 0);
+        // Chỉ nhận chuột trái và không bấm vào nút bấm, liên kết, menu
+        if (e.button !== 0) return;
+        if (e.target.closest('button, a, input, select, textarea, .dropdown, .modal')) return;
+
+        const card = e.target.closest('.kanban-card');
+        if (!card) return;
+
+        activeCard = card;
+        startMouseX = e.clientX;
+        startMouseY = e.clientY;
+        lastClientX = e.clientX;
+
+        const rect = card.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        cardWidth = rect.width;
+        cardHeight = rect.height;
+        originalColumn = card.closest('.kanban-task-list');
+        currentTargetColumn = originalColumn;
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
     }
 
-    function handleDragEnd(event) 
+    function onMouseMove(e) 
     {
-        const currentCard = event.currentTarget;
-        currentCard.classList.remove('is-dragging');
-        
-        // Dọn dẹp viền rãnh hút trên toàn bộ các cột
+        if (!activeCard) return;
+
+        const deltaX = Math.abs(e.clientX - startMouseX);
+        const deltaY = Math.abs(e.clientY - startMouseY);
+
+        // Kích hoạt chế độ bốc nổi 3D khi chuột vượt quá ngưỡng di chuyển
+        if (!isDragging && (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD)) 
+        {
+            isDragging = true;
+            hasJustDragged = true;
+            document.body.style.userSelect = 'none';
+            document.body.style.cursor = 'grabbing';
+
+            // 1. Tạo rãnh giữ chỗ (Placeholder) để đẩy các thẻ khác dạt ra
+            placeholder = document.createElement('div');
+            placeholder.className = 'kanban-placeholder';
+            placeholder.style.height = cardHeight + 'px';
+            placeholder.style.width = '100%';
+            activeCard.parentNode.insertBefore(placeholder, activeCard);
+
+            // 2. Chuyển thẻ thật thành Floating Card bay trên không trung
+            activeCard.classList.add('is-floating-drag');
+            activeCard.style.width = cardWidth + 'px';
+            activeCard.style.height = cardHeight + 'px';
+            document.body.appendChild(activeCard);
+        }
+
+        if (!isDragging) return;
+
+        // 3. Điều khiển thẻ bay chính xác theo con trỏ chuột
+        activeCard.style.left = (e.clientX - offsetX) + 'px';
+        activeCard.style.top = (e.clientY - offsetY) + 'px';
+
+        // 4. Cơ chế vật lý quán tính nghiêng 3D (Dynamic Inertia Tilt)
+        const mouseSpeedX = e.clientX - lastClientX;
+        lastClientX = e.clientX;
+        let tiltAngle = 3;
+        if (mouseSpeedX > 2) {
+            tiltAngle = Math.min(6, 3 + mouseSpeedX * 0.3); // Kéo sang phải nhanh -> Nghiêng phải
+        } else if (mouseSpeedX < -2) {
+            tiltAngle = Math.max(-5, 3 + mouseSpeedX * 0.3); // Kéo sang trái nhanh -> Nghiêng trái
+        }
+
+        activeCard.style.transform = `scale(1.04) rotate(${tiltAngle}deg)`;
+
+        // 5. Xác định cột và vị trí thẻ dưới chuột bằng elementFromPoint
+        activeCard.style.display = 'none';
+        const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+        activeCard.style.display = '';
+
+        if (!elemBelow) return;
+
+        const targetCol = elemBelow.closest('.kanban-task-list');
+        if (targetCol) 
+        {
+            currentTargetColumn = targetCol;
+
+            // Highlight cột đích
+            columns.forEach(function(col) {
+                if (col === targetCol) col.classList.add('drag-over');
+                else col.classList.remove('drag-over');
+            });
+
+            // Chèn rãnh placeholder vào vị trí tương ứng trong cột đích (Đẩy các thẻ khác dạt ra)
+            const cardBelow = elemBelow.closest('.kanban-card:not(.is-floating-drag)');
+            if (cardBelow && cardBelow.parentNode === targetCol) 
+            {
+                const rectBelow = cardBelow.getBoundingClientRect();
+                const isAfter = (e.clientY - rectBelow.top) > (rectBelow.height / 2);
+                if (isAfter) {
+                    targetCol.insertBefore(placeholder, cardBelow.nextSibling);
+                } else {
+                    targetCol.insertBefore(placeholder, cardBelow);
+                }
+            } 
+            else if (!targetCol.contains(placeholder)) 
+            {
+                targetCol.appendChild(placeholder);
+            }
+        }
+    }
+
+    function onMouseUp(e) 
+    {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+
         columns.forEach(function(col) {
             col.classList.remove('drag-over');
         });
-    }
 
-    for (const card of cards) 
-    {
-        card.addEventListener('dragstart', handleDragStart);
-        card.addEventListener('dragend', handleDragEnd);
-    }
+        if (!activeCard) return;
 
-    // Hàm 3: Cho phép rê thẻ bay qua cột này (Bật hiệu ứng rãnh hút nam châm)
-    function handleDragOver(event) 
-    {
-        event.preventDefault();
-        const currentColumn = event.currentTarget;
-        if (!currentColumn.classList.contains('drag-over')) {
-            currentColumn.classList.add('drag-over');
-        }
-    }
-
-    // Hàm 4: Khi rê chuột ra khỏi cột
-    function handleDragLeave(event) 
-    {
-        const currentColumn = event.currentTarget;
-        if (!currentColumn.contains(event.relatedTarget)) {
-            currentColumn.classList.remove('drag-over');
-        }
-    }
-
-    // Xử lý khoảnh khắc THẺ RƠI XUỐNG CỘT (Sự kiện drop - Hạ cánh êm ái)
-    function handleDrop(event) 
-    {
-        event.preventDefault();
-        const targetColumn = event.currentTarget;
-        targetColumn.classList.remove('drag-over');
-        const newStatus = targetColumn.getAttribute('data-status');
-
-        if (draggedTaskId != null && newStatus != null) 
+        if (isDragging && placeholder) 
         {
-            sendDataToServer(draggedTaskId, newStatus);
+            // 1. Đặt thẻ trở lại vị trí rãnh placeholder
+            placeholder.parentNode.insertBefore(activeCard, placeholder);
+            placeholder.remove();
+            placeholder = null;
+
+            // 2. Thu hồi các style bay nổi
+            activeCard.classList.remove('is-floating-drag');
+            activeCard.style.position = '';
+            activeCard.style.left = '';
+            activeCard.style.top = '';
+            activeCard.style.width = '';
+            activeCard.style.height = '';
+            activeCard.style.transform = '';
+
+            // 3. Kiểm tra thay đổi trạng thái
+            const newStatus = currentTargetColumn ? currentTargetColumn.getAttribute('data-status') : null;
+            const oldStatus = originalColumn ? originalColumn.getAttribute('data-status') : null;
+            const taskId = activeCard.getAttribute('data-task-id');
+
+            if (newStatus && oldStatus && newStatus !== oldStatus && taskId) 
+            {
+                sendDataToServer(taskId, newStatus);
+            }
+
+            // Chặn click mở modal sau khi vừa thả thẻ
+            setTimeout(function() {
+                hasJustDragged = false;
+            }, 100);
+        } 
+        else 
+        {
+            hasJustDragged = false;
         }
+
+        isDragging = false;
+        activeCard = null;
+        originalColumn = null;
+        currentTargetColumn = null;
     }
 
-    for (const column of columns) 
+    // Chặn sự kiện click mở modal nếu vừa thực hiện kéo thả
+    document.addEventListener('click', function(e) 
     {
-        column.addEventListener('dragover', handleDragOver);
-        column.addEventListener('dragleave', handleDragLeave);
-        column.addEventListener('drop', handleDrop);
-    }
+        if (hasJustDragged) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    }, true);
+
+    document.addEventListener('mousedown', onMouseDown);
 
     function sendDataToServer(taskId, newStatus) 
     {

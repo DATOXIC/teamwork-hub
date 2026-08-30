@@ -203,7 +203,7 @@
                     <c:forEach items="${todoTasks}" var="task">
                         <div class="card kanban-card p-3 rounded-3 ${task.isOverdue() ? 'border-danger border-2' : ''}"
                              id="task-${task.id}"
-                             draggable="true" 
+                             draggable="false" 
                              data-task-id="${task.id}"
                              data-task-title="<c:out value='${task.title}' />"
                              data-task-priority="${task.priority}"
@@ -325,7 +325,7 @@
                     <c:forEach items="${inProgressTasks}" var="task">
                         <div class="card kanban-card kanban-card-inprogress p-3 rounded-3 ${task.isOverdue() ? 'border-danger border-2' : ''}"
                              id="task-${task.id}"
-                             draggable="true" 
+                             draggable="false" 
                              data-task-id="${task.id}"
                              data-task-title="<c:out value='${task.title}' />"
                              data-task-priority="${task.priority}"
@@ -465,7 +465,7 @@
                     <c:forEach items="${doneTasks}" var="task">
                         <div class="card kanban-card kanban-card-done p-3 rounded-3"
                              id="task-${task.id}"
-                             draggable="true"
+                             draggable="false"
                              data-task-id="${task.id}"
                              data-task-title="<c:out value='${task.title}' />"
                              data-task-priority="${task.priority}"
