@@ -70,13 +70,32 @@
         }
     }
 
+    function initProgressBars() {
+        var progressBars = document.querySelectorAll('.project-progress-bar');
+        if (!progressBars || progressBars.length === 0) return;
+
+        setTimeout(function() {
+            progressBars.forEach(function(bar) {
+                var targetWidth = bar.getAttribute('data-progress');
+                if (targetWidth) {
+                    bar.style.width = targetWidth;
+                }
+            });
+        }, 120);
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initToastsFromDOM);
+        document.addEventListener('DOMContentLoaded', function() {
+            initToastsFromDOM();
+            initProgressBars();
+        });
     } else {
         initToastsFromDOM();
+        initProgressBars();
     }
 
     window.showToast = showToast;
 
 })();
+
 

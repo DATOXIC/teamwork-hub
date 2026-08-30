@@ -168,7 +168,7 @@
                             <span class="fw-bold text-primary">${p.progressPercentage}%</span>
                         </div>
                         <div class="project-progress-container mb-3">
-                            <div class="project-progress-bar" style="width: ${p.progressPercentage}%;"></div>
+                            <div class="project-progress-bar" data-progress="${p.progressPercentage}%" style="width: 0%;"></div>
                         </div>
                         <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
                            class="btn btn-primary-custom w-100 rounded-pill py-1-5 fs-8 fw-semibold d-flex align-items-center justify-content-center gap-2 shadow-2xs text-white">

@@ -12,18 +12,27 @@ document.addEventListener('DOMContentLoaded', function()
     // 3. Biến tạm để ghi nhớ xem mình đang cầm thẻ Task số mấy
     let draggedTaskId = null;
 
-    // GẮN SỰ KIỆN KÉO THẢ CHO CÁC THẺ
+    // GẮN SỰ KIỆN KÉO THẢ CHO CÁC THẺ (CƠ CHẾ VẬT LÝ 3D LIFT & TILT)
     function handleDragStart(event) 
     {
         const currentCard = event.currentTarget;
         draggedTaskId = currentCard.getAttribute('data-task-id');
-        currentCard.classList.add('opacity-50');
+        
+        // Nhấc thẻ lên trong không gian 3D (Phóng to 1.04x, Nghiêng 2.5 độ, Tỏa bóng đổ sâu)
+        setTimeout(function() {
+            currentCard.classList.add('is-dragging');
+        }, 0);
     }
 
     function handleDragEnd(event) 
     {
         const currentCard = event.currentTarget;
-        currentCard.classList.remove('opacity-50');
+        currentCard.classList.remove('is-dragging');
+        
+        // Dọn dẹp viền rãnh hút trên toàn bộ các cột
+        columns.forEach(function(col) {
+            col.classList.remove('drag-over');
+        });
     }
 
     for (const card of cards) 
@@ -32,17 +41,31 @@ document.addEventListener('DOMContentLoaded', function()
         card.addEventListener('dragend', handleDragEnd);
     }
 
-    // Hàm 3: Cho phép rê thẻ bay qua cột này (Mở khóa vùng thả)
+    // Hàm 3: Cho phép rê thẻ bay qua cột này (Bật hiệu ứng rãnh hút nam châm)
     function handleDragOver(event) 
     {
         event.preventDefault();
+        const currentColumn = event.currentTarget;
+        if (!currentColumn.classList.contains('drag-over')) {
+            currentColumn.classList.add('drag-over');
+        }
     }
 
-    // Xử lý khoảnh khắc THẺ RƠI XUỐNG CỘT (Sự kiện drop)
+    // Hàm 4: Khi rê chuột ra khỏi cột
+    function handleDragLeave(event) 
+    {
+        const currentColumn = event.currentTarget;
+        if (!currentColumn.contains(event.relatedTarget)) {
+            currentColumn.classList.remove('drag-over');
+        }
+    }
+
+    // Xử lý khoảnh khắc THẺ RƠI XUỐNG CỘT (Sự kiện drop - Hạ cánh êm ái)
     function handleDrop(event) 
     {
         event.preventDefault();
         const targetColumn = event.currentTarget;
+        targetColumn.classList.remove('drag-over');
         const newStatus = targetColumn.getAttribute('data-status');
 
         if (draggedTaskId != null && newStatus != null) 
@@ -54,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function()
     for (const column of columns) 
     {
         column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('dragleave', handleDragLeave);
         column.addEventListener('drop', handleDrop);
     }
 

@@ -179,7 +179,7 @@
                     </div>
                     <h3 class="fw-extrabold text-dark mb-0">${completionRate}%</h3>
                     <div class="project-progress-container mt-2">
-                        <div class="project-progress-bar" style="width: ${completionRate}%;"></div>
+                        <div class="project-progress-bar" data-progress="${completionRate}%" style="width: 0%;"></div>
                     </div>
                 </div>
             </div>
@@ -216,7 +216,7 @@
                                 <span class="fw-bold text-dark">${p.progressPercentage}%</span>
                             </div>
                             <div class="project-progress-container mb-3">
-                                <div class="project-progress-bar" style="width: ${p.progressPercentage}%;"></div>
+                                <div class="project-progress-bar" data-progress="${p.progressPercentage}%" style="width: 0%;"></div>
                             </div>
                             <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
                                class="btn btn-outline-primary btn-sm w-100 rounded-pill py-1 fs-8 fw-semibold">
