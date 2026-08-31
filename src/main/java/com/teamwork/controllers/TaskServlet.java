@@ -1,6 +1,7 @@
 package com.teamwork.controllers;
 
 import com.teamwork.business.Doc;
+import com.teamwork.business.Label;
 import com.teamwork.business.Message;
 import com.teamwork.business.Project;
 import com.teamwork.business.SubTask;
@@ -8,6 +9,7 @@ import com.teamwork.business.Task;
 import com.teamwork.business.TaskDoc;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
+import com.teamwork.data.LabelDB;
 import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.SubTaskDB;
@@ -480,6 +482,9 @@ public class TaskServlet extends HttpServlet {
             assigneeId,
             assigneeName
         );
+
+        String labels = request.getParameter("labels");
+        newTask.setLabels(labels != null ? labels.trim() : "");
 
         int newTaskId = TaskDB.insert(newTask);
 
@@ -1673,4 +1678,5 @@ public class TaskServlet extends HttpServlet {
         return isTaskLead(user, parentTask) || (parentTask != null && parentTask.getAssigneeId() == 0 && isProjectOwner(user, project));
     }
 }
+
 

@@ -30,7 +30,7 @@ public class TaskDB {
         // --- CÁC TASK MẪU CHO DỰ ÁN 1 (projectId = 1) ---
         
         // Task 1: 🟣 CHỜ PM DUYỆT KẾ HOẠCH PHÂN RÃ (Cổng 1 - Còn 5 ngày)
-        tasks.add(new Task(
+        Task t1 = new Task(
             nextId++,
             1, // projectId = 1
             "Thiết kế CSDL quan hệ & Model JavaBean",
@@ -48,10 +48,12 @@ public class TaskDB {
             5,
             "Đã phân rã đầy đủ 3 việc con cốt lõi (1 sơ đồ ERD, 1 JavaBean Models, 1 RAM Data Layer CRUD). Đội ngũ sẵn sàng bắt tay thực hiện ngay khi PM duyệt khóa kế hoạch!",
             ""
-        ));
+        );
+        t1.setLabels("BACKEND,FEATURE");
+        tasks.add(t1);
 
         // Task 2: 🟡 ĐÃ HOÀN THÀNH 100% VIỆC CON & ĐÃ BÀN GIAO CHO PM (Chờ PM duyệt nghiệm thu Cổng 3 - Hạn chót ngày mai)
-        tasks.add(new Task(
+        Task t2 = new Task(
             nextId++,
             1,
             "Tích hợp cổng thanh toán trực tuyến",
@@ -69,10 +71,12 @@ public class TaskDB {
             5,
             "Đã phân rã 3 việc con và được PM phê duyệt khóa kế hoạch.",
             "25/08/2026 09:00"
-        ));
+        );
+        t2.setLabels("BACKEND,FEATURE,URGENT");
+        tasks.add(t2);
 
         // Task 3: ⚪ CẦN LÀM (TODO) - Minh họa trạng thái QUÁ HẠN 2 NGÀY (🔴)
-        tasks.add(new Task(
+        Task t3 = new Task(
             nextId++,
             1,
             "Xây dựng Filter bảo mật & Kiểm tra quyền truy cập",
@@ -82,10 +86,12 @@ public class TaskDB {
             dateMinus2,
             2, // assigneeId = 2 (Nguyễn Văn An)
             "Nguyễn Văn An"
-        ));
+        );
+        t3.setLabels("BUG,BACKEND");
+        tasks.add(t3);
 
         // Task 4: 🟢 ĐÃ HOÀN THÀNH (DONE) - ĐÃ QUA ĐỦ 3 CỔNG, ĐƯỢC PM DUYỆT ĐẠT 5 SAO ⭐⭐⭐⭐⭐
-        tasks.add(new Task(
+        Task t4 = new Task(
             nextId++,
             1,
             "Xây dựng giao diện Landing Page với Bootstrap 5",
@@ -103,10 +109,12 @@ public class TaskDB {
             5,
             "Đã phân rã 2 việc con.",
             "18/08/2026 08:30"
-        ));
+        );
+        t4.setLabels("UI,FEATURE");
+        tasks.add(t4);
 
         // Task 5: ⚪ CẦN LÀM (TODO) - Còn 10 ngày (Giao cho Trần Thị Bình để demo luồng Cổng 1)
-        tasks.add(new Task(
+        Task t5 = new Task(
             nextId++,
             1,
             "Thiết kế giao diện Dark Mode & Tối ưu Responsive",
@@ -116,7 +124,9 @@ public class TaskDB {
             datePlus10,
             3,
             "Trần Thị Bình"
-        ));
+        );
+        t5.setLabels("UI,DOCS");
+        tasks.add(t5);
     }
 
     /**

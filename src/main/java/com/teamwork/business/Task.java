@@ -29,6 +29,7 @@ public class Task implements Serializable {
     private int qualityRating;          // Đánh giá chất lượng của PM (1 - 5 sao ⭐)
     private String planningNote;        // Ghi chú kế hoạch phân rã Task Lead gửi PM thẩm định (Cổng 1)
     private String planningReviewedAt;  // Thời điểm PM phê duyệt & khóa kế hoạch phân rã
+    private String labels;              // Nhãn phân loại (Ví dụ: "BUG,BACKEND", "FEATURE,UI")
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
 
@@ -50,6 +51,7 @@ public class Task implements Serializable {
         this.qualityRating = 5;
         this.planningNote = "";
         this.planningReviewedAt = "";
+        this.labels = "";
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
@@ -451,4 +453,93 @@ public class Task implements Serializable {
                 return this.dueDate;
         }
     }
+
+    // ===================== QUẢN LÝ NHÃN DÁN (LABELS / TAGS) =====================
+
+    public String getLabels() 
+    {
+        return (this.labels != null) ? this.labels : "";
+    }
+
+    public void setLabels(String labels) 
+    {
+        this.labels = (labels != null) ? labels.trim() : "";
+    }
+
+    /**
+     * Tách chuỗi nhãn phân cách dấu phẩy thành List các tag sạch sẽ
+     */
+    public java.util.List<String> getLabelList() 
+    {
+        java.util.List<String> list = new java.util.ArrayList<>();
+        if (this.labels != null && !this.labels.trim().isEmpty()) 
+        {
+            String[] parts = this.labels.split(",");
+            for (String p : parts) 
+            {
+                String clean = p.trim();
+                if (!clean.isEmpty()) 
+                {
+                    list.add(clean);
+                }
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Trả về lớp màu CSS Bootstrap & Custom cho từng nhãn
+     */
+    public String getLabelBadgeClass(String label) 
+    {
+        if (label == null) return "bg-light text-secondary border";
+        String upper = label.trim().toUpperCase();
+        switch (upper) 
+        {
+            case "BUG":
+                return "bg-danger-subtle text-danger border border-danger-subtle";
+            case "FEATURE":
+                return "bg-primary-subtle text-primary border border-primary-subtle";
+            case "UI":
+            case "UI/UX":
+                return "bg-purple-subtle text-purple border border-purple-subtle";
+            case "BACKEND":
+            case "API":
+                return "bg-warning-subtle text-warning-emphasis border border-warning-subtle";
+            case "DOCS":
+                return "bg-success-subtle text-success border border-success-subtle";
+            case "URGENT":
+                return "bg-danger text-white";
+            default:
+                return "bg-light text-secondary border";
+        }
+    }
+
+    /**
+     * Trả về tên hiển thị kèm biểu tượng trực quan
+     */
+    public String getLabelDisplayName(String label) 
+    {
+        if (label == null) return "";
+        String upper = label.trim().toUpperCase();
+        switch (upper) 
+        {
+            case "BUG":
+                return "🔴 Bug";
+            case "FEATURE":
+                return "✨ Feature";
+            case "UI":
+            case "UI/UX":
+                return "🎨 UI/UX";
+            case "BACKEND":
+                return "⚙️ Backend";
+            case "DOCS":
+                return "📚 Docs";
+            case "URGENT":
+                return "⚡ Gấp";
+            default:
+                return label;
+        }
+    }
 }
+

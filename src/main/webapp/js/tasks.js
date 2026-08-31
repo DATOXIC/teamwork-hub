@@ -270,9 +270,11 @@ document.addEventListener('DOMContentLoaded', function()
             });
         }
 
-        // 2. Lấy giá trị tìm kiếm và mức ưu tiên
+        // 2. Lấy giá trị tìm kiếm, mức ưu tiên và nhãn phân loại (Labels)
         const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
         const selectedPriority = priorityFilter ? priorityFilter.value.toUpperCase() : 'ALL';
+        const labelFilter = document.getElementById('taskLabelFilter');
+        const selectedLabel = labelFilter ? labelFilter.value.toUpperCase() : 'ALL';
 
         // 3. Quét qua tất cả các thẻ Kanban card để ẩn / hiện tức thì
         let visibleCount = 0;
@@ -282,6 +284,7 @@ document.addEventListener('DOMContentLoaded', function()
             const assignee = (card.getAttribute('data-task-assignee') || '').toLowerCase();
             const cardText = card.innerText.toLowerCase();
             const priority = (card.getAttribute('data-task-priority') || '').toUpperCase();
+            const labels = (card.getAttribute('data-task-labels') || '').toUpperCase();
 
             // Kiểm tra điều kiện 1: Thành viên
             const matchMember = isShowAllMembers || allowedTaskIds.has(taskId);
@@ -289,10 +292,13 @@ document.addEventListener('DOMContentLoaded', function()
             // Kiểm tra điều kiện 2: Mức ưu tiên
             const matchPriority = (selectedPriority === 'ALL' || priority === selectedPriority);
 
-            // Kiểm tra điều kiện 3: Từ khóa tìm kiếm
+            // Kiểm tra điều kiện 3: Nhãn phân loại (Labels)
+            const matchLabel = (selectedLabel === 'ALL' || labels.includes(selectedLabel));
+
+            // Kiểm tra điều kiện 4: Từ khóa tìm kiếm
             const matchSearch = (searchQuery === '' || title.includes(searchQuery) || assignee.includes(searchQuery) || cardText.includes(searchQuery));
 
-            if (matchMember && matchPriority && matchSearch) {
+            if (matchMember && matchPriority && matchLabel && matchSearch) {
                 card.classList.remove('d-none');
                 visibleCount++;
             } else {
@@ -313,6 +319,9 @@ document.addEventListener('DOMContentLoaded', function()
 
             if (selectedPriority !== 'ALL') {
                 desc += ` (Ưu tiên: <strong>${selectedPriority}</strong>)`;
+            }
+            if (selectedLabel !== 'ALL') {
+                desc += ` (Nhãn: <strong>${selectedLabel}</strong>)`;
             }
             if (searchQuery !== '') {
                 desc += ` (Từ khóa: <em>"${searchQuery}"</em>)`;
@@ -352,4 +361,102 @@ document.addEventListener('DOMContentLoaded', function()
     if (priorityFilter) {
         priorityFilter.addEventListener('change', applyCombinedFilter);
     }
+
+    const labelFilter = document.getElementById('taskLabelFilter');
+    if (labelFilter) {
+        labelFilter.addEventListener('change', applyCombinedFilter);
+    }
 });
+
+/**
+ * Hàm toàn cục hỗ trợ Toggle chọn/bỏ chọn Nhãn trong Modal thêm Task
+ */
+window.toggleTaskLabel = function(btn, label) {
+    var input = document.getElementById('taskSelectedLabels');
+    if (!input) return;
+    var current = input.value ? input.value.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+    var index = current.indexOf(label);
+    if (index > -1) {
+        current.splice(index, 1);
+        btn.classList.remove('active');
+    } else {
+        current.push(label);
+        btn.classList.add('active');
+    }
+    input.value = current.join(',');
+};
+
+/**
+ * Hàm tạo nhanh nhãn trực tiếp trong Form Thêm Công Việc (Inline Create & Select)
+ */
+window.handleQuickCreateLabel = function() {
+    var nameInput = document.getElementById('inlineLabelName');
+    var colorSelect = document.getElementById('inlineLabelColor');
+    var labelGroup = document.getElementById('labelButtonGroup');
+    var selectedLabelsInput = document.getElementById('taskSelectedLabels');
+    
+    if (!nameInput || !nameInput.value.trim()) {
+        if (nameInput) {
+            nameInput.focus();
+            nameInput.classList.add('is-invalid');
+            setTimeout(function() { nameInput.classList.remove('is-invalid'); }, 2000);
+        }
+        return;
+    }
+
+    var labelName = nameInput.value.trim();
+    var colorKey = colorSelect ? colorSelect.value : 'blue';
+    var labelKey = labelName.toUpperCase();
+
+    // Map mã màu sang class nút
+    var colorClass = 'btn-outline-primary';
+    var dotEmoji = '🔵';
+    switch (colorKey) {
+        case 'red':    colorClass = 'btn-outline-danger'; dotEmoji = '🔴'; break;
+        case 'blue':   colorClass = 'btn-outline-primary'; dotEmoji = '🔵'; break;
+        case 'purple': colorClass = 'btn-outline-purple'; dotEmoji = '🟣'; break;
+        case 'amber':  colorClass = 'btn-outline-warning text-dark'; dotEmoji = '🟡'; break;
+        case 'green':  colorClass = 'btn-outline-success'; dotEmoji = '🟢'; break;
+        case 'pink':   colorClass = 'btn-outline-danger'; dotEmoji = '🌸'; break;
+        case 'cyan':   colorClass = 'btn-outline-info text-dark'; dotEmoji = '💎'; break;
+        case 'slate':  colorClass = 'btn-outline-secondary'; dotEmoji = '🔘'; break;
+    }
+
+    // Kiểm tra xem nút nhãn đã có trên giao diện chưa
+    var existingBtn = labelGroup.querySelector('[data-label="' + labelKey + '"]');
+    if (!existingBtn) {
+        var newBtn = document.createElement('button');
+        newBtn.type = 'button';
+        newBtn.className = 'btn btn-sm ' + colorClass + ' rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn active';
+        newBtn.setAttribute('data-label', labelKey);
+        newBtn.innerHTML = dotEmoji + ' ' + labelName;
+        newBtn.onclick = function() {
+            window.toggleTaskLabel(this, labelKey);
+        };
+        labelGroup.appendChild(newBtn);
+    } else {
+        existingBtn.classList.add('active');
+    }
+
+    // Tự động tích chọn nhãn này vào input ẩn
+    if (selectedLabelsInput) {
+        var current = selectedLabelsInput.value ? selectedLabelsInput.value.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+        if (current.indexOf(labelKey) === -1) {
+            current.push(labelKey);
+            selectedLabelsInput.value = current.join(',');
+        }
+    }
+
+    // Reset ô nhập và thu gọn khung tạo nhãn
+    nameInput.value = '';
+    var collapseEl = document.getElementById('inlineCreateLabelBox');
+    if (collapseEl) {
+        var bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
+        if (bsCollapse) {
+            bsCollapse.hide();
+        } else {
+            collapseEl.classList.remove('show');
+        }
+    }
+};
+
