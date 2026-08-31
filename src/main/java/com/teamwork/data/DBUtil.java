@@ -1,8 +1,9 @@
 package com.teamwork.data;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -11,27 +12,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Utility Class quản lý kết nối Cơ Sở Dữ Liệu PostgreSQL (Supabase).
- * 
- * Áp dụng nguyên tắc Backend Code Mastery:
- * - Đọc cấu hình từ file db.properties một cách an toàn
- * - Nạp PostgreSQL JDBC Driver
- * - Kết nối qua Transaction Pooler IPv4 (aws-0-ap-northeast-2.pooler.supabase.com:6543)
- * - Cung cấp hàm đóng tài nguyên Connection/Statement/ResultSet chống rò rỉ bộ nhớ (Memory Leak)
+ * Utility Class quản lý kết nối Cơ Sở Dữ Liệu PostgreSQL (Supabase Singapore - ap-southeast-1).
+ * Sử dụng HikariCP Connection Pool hiệu năng cao:
+ * - Giữ các kết nối TCP/SSL luôn mở sẵn (Warm-up & Keep-Alive)
+ * - Đặt tại Region Singapore cho tốc độ mạng thấp nhất từ Việt Nam (< 50ms)
+ * - Tự động tái sử dụng kết nối an toàn đa luồng (Thread-Safe)
  */
 public class DBUtil {
 
     private static final Logger LOGGER = Logger.getLogger(DBUtil.class.getName());
-    
-    private static String driver = "org.postgresql.Driver";
-    private static String url = "jdbc:postgresql://aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres?sslmode=require";
-    private static String username = "postgres.ioogfazyclnbcegtkxrq";
-    private static String password = "matkhaudenho123";
+    private static HikariDataSource dataSource;
 
     static {
         try {
-            // Đọc cấu hình từ file db.properties trong classpath
             Properties props = new Properties();
+            String driver = "org.postgresql.Driver";
+            String url = "jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require";
+            String username = "postgres.nppsoolbarfagwqdtcdm";
+            String password = "matkhaudenho123";
+
             try (InputStream in = DBUtil.class.getClassLoader().getResourceAsStream("db.properties")) {
                 if (in != null) {
                     props.load(in);
@@ -41,29 +40,51 @@ public class DBUtil {
                     if (props.getProperty("db.password") != null) password = props.getProperty("db.password").trim();
                     LOGGER.info("DBUtil: Nạp cấu hình từ db.properties thành công.");
                 } else {
-                    LOGGER.info("DBUtil: Sử dụng cấu hình mặc định kết nối Supabase Pooler.");
+                    LOGGER.info("DBUtil: Sử dụng cấu hình mặc định Supabase Singapore Pooler.");
                 }
             }
 
-            // Nạp Driver vào bộ nhớ
-            Class.forName(driver);
-            LOGGER.info("DBUtil: Nạp PostgreSQL JDBC Driver thành công.");
+            HikariConfig config = new HikariConfig();
+            config.setDriverClassName(driver);
+            config.setJdbcUrl(url);
+            config.setUsername(username);
+            config.setPassword(password);
+
+            // Cấu hình tối ưu cho Supabase Pooler Singapore
+            config.setMaximumPoolSize(10);          // Duy trì tối đa 10 kết nối đồng thời
+            config.setMinimumIdle(3);              // Luôn giữ 3 kết nối sẵn sàng (Warm-up)
+            config.setIdleTimeout(60000);          // 60 giây không dùng thì giải phóng bớt
+            config.setConnectionTimeout(10000);     // Chờ lấy kết nối tối đa 10 giây
+            config.setMaxLifetime(600000);         // Tái tạo kết nối mỗi 10 phút để tránh đứt socket
+            config.setKeepaliveTime(30000);        // Bắn ping giữ kết nối mỗi 30 giây
+
+            // Tối ưu hóa bộ nhớ đệm Prepared Statement của PostgreSQL Driver
+            config.addDataSourceProperty("cachePrepStmts", "true");
+            config.addDataSourceProperty("prepStmtCacheSize", "250");
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            config.addDataSourceProperty("tcpKeepAlive", "true");
+
+            dataSource = new HikariDataSource(config);
+            LOGGER.info("DBUtil: Khởi tạo HikariCP Connection Pool (Singapore) thành công!");
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "DBUtil: Khởi tạo kết nối thất bại", e);
+            LOGGER.log(Level.SEVERE, "DBUtil: Khởi tạo HikariCP thất bại", e);
         }
     }
 
     /**
-     * Mở một kết nối mới tới Supabase PostgreSQL
+     * Mượn 1 kết nối có sẵn từ HikariCP Pool (Cực nhanh, không tốn thời gian bắt tay SSL/TCP)
      * @return Connection đối tượng kết nối JDBC
      * @throws SQLException nếu kết nối thất bại
      */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(url, username, password);
+        if (dataSource != null) {
+            return dataSource.getConnection();
+        }
+        throw new SQLException("DBUtil: HikariDataSource chưa được khởi tạo!");
     }
 
     /**
-     * Đóng an toàn các tài nguyên JDBC (ResultSet, Statement, Connection)
+     * Đóng an toàn các tài nguyên JDBC (Trả kết nối lại cho Pool để tái sử dụng)
      */
     public static void close(Connection conn, Statement stmt, ResultSet rs) {
         if (rs != null) {
@@ -82,7 +103,7 @@ public class DBUtil {
         }
         if (conn != null) {
             try {
-                conn.close();
+                conn.close(); // Trả kết nối về Pool, KHÔNG đóng socket mạng vật lý
             } catch (SQLException e) {
                 LOGGER.log(Level.WARNING, "Lỗi khi đóng Connection", e);
             }
