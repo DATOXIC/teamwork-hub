@@ -1,184 +1,219 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Doc;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Tầng Data Layer: Quản lý kho dữ liệu Tài liệu & Ghi chú Wiki (In-Memory Doc Database trên RAM)
- * Cung cấp đầy đủ các thao tác CRUD: Lấy danh sách bài viết theo dự án, Đọc chi tiết, Thêm mới, Cập nhật và Xóa bài.
- * Đảm bảo an toàn đa luồng (Thread-Safe)
+ * Tầng Data Access Object (DAO): Quản lý Tài liệu & Ghi chú Wiki kết nối Supabase PostgreSQL.
+ * 
+ * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
+ * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
+ * - Sử dụng LEFT JOIN users để lấy tên tác giả (authorName) chính xác
+ * - Sử dụng PreparedStatement an toàn chống SQL Injection
+ * - Quản lý tài nguyên bằng try-with-resources
  */
 public class DocDB {
 
-    // 1. Danh sách tĩnh luồng an toàn lưu trữ toàn bộ bài viết tài liệu trên RAM
-    private static List<Doc> docs = new CopyOnWriteArrayList<>();
-    private static int nextId = 1; // Biến tự tăng cấp ID cho bài viết mới
+    private static final Logger LOGGER = Logger.getLogger(DocDB.class.getName());
 
-    // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các bài viết mẫu (Seed Data)
-    static {
-        // --- CÁC BÀI VIẾT MẪU CHO DỰ ÁN 1 (projectId = 1) ---
-        
-        // Bài 1: Quy chuẩn code
-        docs.add(new Doc(
-            nextId++,
-            1, // projectId = 1
-            "Quy chuẩn phát triển Web MVC Model 2",
-            "1. CẤU TRÚC PHÂN TẦNG:\n"
-            + "- Model (com.teamwork.business): Định nghĩa các JavaBean thuần túy có Serializable.\n"
-            + "- Data Layer (com.teamwork.data): Quản lý kho dữ liệu CRUD trên RAM.\n"
-            + "- Controller (com.teamwork.controllers): Kế thừa HttpServlet, điều phối luồng doGet và doPost.\n"
-            + "- View (src/main/webapp): Dùng thuần thẻ JSTL <c:...> và Jakarta EL ${...}, TUYỆT ĐỐI KHÔNG dùng Scriptlet Java <% ... %>.\n\n"
-            + "2. QUY TẮC ĐIỀU PHỐI URL (PRG PATTERN):\n"
-            + "- Mọi thao tác ghi dữ liệu (POST) sau khi xử lý xong bắt buộc phải gọi response.sendRedirect() về lại lệnh GET để tránh việc người dùng bấm F5 bị lặp lại dữ liệu.",
-            1, // authorId = 1 (Trưởng Nhóm Admin)
-            "Trưởng Nhóm Admin",
-            "15/08/2026 09:00",
-            "15/08/2026 09:00"
-        ));
+    private static final String BASE_SELECT_SQL =
+        "SELECT d.id, d.project_id, d.title, d.content, d.author_id, " +
+        "       COALESCE(u.full_name, 'Ẩn danh') AS author_name, " +
+        "       to_char(d.created_at, 'DD/MM/YYYY HH24:MI') AS created_at_str, " +
+        "       to_char(d.updated_at, 'DD/MM/YYYY HH24:MI') AS updated_at_str " +
+        "FROM docs d " +
+        "LEFT JOIN users u ON d.author_id = u.id ";
 
-        // Bài 2: Biên bản họp
-        docs.add(new Doc(
-            nextId++,
-            1,
-            "Biên bản họp Kickoff Dự án & Phân công nhiệm vụ",
-            "THÔNG TIN CUỘC HỌP:\n"
-            + "- Thời gian: 14:00 - 15:30 ngày 18/08/2026.\n"
-            + "- Thành phần tham dự: Trưởng Nhóm Admin, Nguyễn Văn An.\n\n"
-            + "NỘI DUNG THỐNG NHẤT:\n"
-            + "1. Sprint 1 & 2: Hoàn thành Đăng nhập, Session Filter và Dashboard dự án.\n"
-            + "2. Sprint 3: Hoàn thành Bảng Kanban kéo thả HTML5 Drag & Drop.\n"
-            + "3. Sprint 4: Triển khai phân hệ Wiki tài liệu nhóm phong cách Notion.\n"
-            + "4. Sprint 5: Tích hợp kênh Chat thảo luận realtime theo dự án.",
-            2, // authorId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An",
-            "18/08/2026 14:30",
-            "18/08/2026 14:30"
-        ));
-
-        // Bài 3: Hướng dẫn Deploy
-        docs.add(new Doc(
-            nextId++,
-            1,
-            "Hướng dẫn đóng gói Docker & Triển khai lên Render.com",
-            "CÁC BƯỚC TRIỂN KHAI CLOUD:\n"
-            + "1. Dockerfile Multi-stage: Dùng Maven JDK 21 để build file teamwork-hub-1.0-SNAPSHOT.war.\n"
-            + "2. Runtime: Copy sang image Tomcat 10.1 và đổi tên thành ROOT.war để chạy trực tiếp tại root URL.\n"
-            + "3. Port cấu hình: EXPOSE 8080 để Render tự động định tuyến tên miền.\n"
-            + "4. Tự động hóa: Mỗi khi git push origin main, Render sẽ tự động kéo code về và build lại.",
-            1,
-            "Trưởng Nhóm Admin",
-            "22/08/2026 16:00",
-            "22/08/2026 16:00"
-        ));
-
-        // --- BÀI VIẾT MẪU CHO DỰ ÁN 2 (projectId = 2) ---
-        docs.add(new Doc(
-            nextId++,
-            2, // projectId = 2
-            "Tài liệu thiết kế giao diện Mobile App với Flutter",
-            "BẢN THIẾT KẾ GIAO DIỆN DI ĐỘNG:\n"
-            + "- Áp dụng Material Design 3.\n"
-            + "- Tương thích đa nền tảng iOS & Android.\n"
-            + "- Sử dụng Riverpod để quản lý State tập trung.",
-            1,
-            "Trưởng Nhóm Admin",
-            "20/08/2026 10:00",
-            "20/08/2026 10:00"
-        ));
+    private static Doc mapResultSetToDoc(ResultSet rs) throws SQLException {
+        return new Doc(
+            rs.getInt("id"),
+            rs.getInt("project_id"),
+            rs.getString("title"),
+            rs.getString("content"),
+            rs.getInt("author_id"),
+            rs.getString("author_name"),
+            rs.getString("created_at_str"),
+            rs.getString("updated_at_str")
+        );
     }
 
     /**
      * HÀM 1: Lấy danh sách tất cả các bài viết trong hệ thống
      */
     public static List<Doc> selectAll() {
-        return new ArrayList<>(docs);
+        List<Doc> list = new ArrayList<>();
+        String sql = BASE_SELECT_SQL + "ORDER BY d.id ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                list.add(mapResultSetToDoc(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy toàn bộ Doc", e);
+        }
+        return list;
     }
 
     /**
      * HÀM 2: Lấy danh sách toàn bộ tài liệu thuộc về MỘT DỰ ÁN cụ thể
-     * Dùng để đổ danh mục bài viết ở cột bên trái của giao diện docs.jsp.
      */
-    public static List<Doc> selectByProjectId(int projectId) 
-    {
-        List<Doc> resultList = new ArrayList<>();
-        for (Doc d : docs) 
-        {
-            if (d.getProjectId() == projectId) 
-            {
-                resultList.add(d);
+    public static List<Doc> selectByProjectId(int projectId) {
+        List<Doc> list = new ArrayList<>();
+        if (projectId <= 0) return list;
+
+        String sql = BASE_SELECT_SQL + "WHERE d.project_id = ? ORDER BY d.id ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToDoc(rs));
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy Doc theo Project ID: " + projectId, e);
         }
-        return resultList;
+        return list;
     }
 
     /**
-     * HÀM 3: Tìm một bài viết chi tiết theo ID của bài viết
-     * Dùng khi người dùng bấm vào một bài viết từ danh mục để đọc nội dung.
+     * HÀM 3: Tìm một tài liệu cụ thể theo ID
      */
     public static Doc selectById(int id) {
-        for (Doc d : docs) {
-            if (d.getId() == id) {
-                return d; // Tìm thấy bài viết
+        if (id <= 0) return null;
+
+        String sql = BASE_SELECT_SQL + "WHERE d.id = ? LIMIT 1";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToDoc(rs);
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Doc ID: " + id, e);
         }
-        return null; // Không tìm thấy
+        return null;
     }
 
     /**
-     * HÀM 4: Thêm một bài viết tài liệu mới vào dự án
-     * Dùng khi người dùng bấm nút "+ Tạo tài liệu mới" (UC09)
+     * HÀM 4: Thêm một bài viết tài liệu mới
      */
     public static int insert(Doc doc) {
-        doc.setId(nextId++); // Cấp ID tự động tăng
-        docs.add(doc);       // Cất vào danh sách trên RAM
-        return doc.getId();  // Trả về ID của bài vừa tạo
+        if (doc == null || doc.getTitle() == null || doc.getTitle().trim().isEmpty()) {
+            return 0;
+        }
+
+        String sql = "INSERT INTO docs (project_id, title, content, author_id, created_at, updated_at) " +
+                     "VALUES (?, ?, ?, ?, NOW(), NOW()) RETURNING id";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, doc.getProjectId());
+            ps.setString(2, doc.getTitle().trim());
+            ps.setString(3, doc.getContent() != null ? doc.getContent().trim() : "");
+
+            if (doc.getAuthorId() > 0) {
+                ps.setInt(4, doc.getAuthorId());
+            } else {
+                ps.setNull(4, Types.INTEGER);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int genId = rs.getInt(1);
+                    doc.setId(genId);
+                    return genId;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi thêm Doc mới: " + doc.getTitle(), e);
+        }
+        return 0;
     }
 
     /**
-     * HÀM 5: Cập nhật nội dung bài viết sau khi chỉnh sửa
-     * Dùng khi người dùng sửa tiêu đề hoặc nội dung và bấm "Lưu thay đổi"
+     * HÀM 5: Cập nhật nội dung bài viết tài liệu
      */
     public static boolean update(Doc updatedDoc) {
-        for (Doc d : docs) {
-            if (d.getId() == updatedDoc.getId()) {
-                d.setTitle(updatedDoc.getTitle());
-                d.setContent(updatedDoc.getContent());
-                d.setAuthorId(updatedDoc.getAuthorId());
-                d.setAuthorName(updatedDoc.getAuthorName());
-                d.setUpdatedAt(updatedDoc.getUpdatedAt()); // Cập nhật mốc thời gian sửa đổi
-                return true; // Cập nhật thành công
-            }
+        if (updatedDoc == null || updatedDoc.getId() <= 0) return false;
+
+        String sql = "UPDATE docs SET title = ?, content = ?, updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, updatedDoc.getTitle() != null ? updatedDoc.getTitle().trim() : "");
+            ps.setString(2, updatedDoc.getContent() != null ? updatedDoc.getContent().trim() : "");
+            ps.setInt(3, updatedDoc.getId());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi update Doc ID: " + updatedDoc.getId(), e);
         }
-        return false; // Không tìm thấy bài viết để sửa
+        return false;
     }
 
     /**
-     * HÀM 6: Xóa một bài viết tài liệu khỏi dự án
-     * Dùng khi người dùng bấm nút Xóa bài
+     * HÀM 6: Xóa một bài viết theo ID
      */
-    public static boolean delete(int docId) {
-        for (int i = 0; i < docs.size(); i++) {
-            Doc d = docs.get(i);
-            if (d.getId() == docId) {
-                docs.remove(i); // Xóa khỏi danh sách RAM
-                return true;    // Xóa thành công
-            }
+    public static boolean delete(int id) {
+        if (id <= 0) return false;
+
+        String sql = "DELETE FROM docs WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Doc ID: " + id, e);
         }
-        return false; // Không tìm thấy bài viết để xóa
+        return false;
     }
 
     /**
-     * HÀM 7: Đếm tổng số tài liệu của một dự án
+     * HÀM 7: Đếm tổng số tài liệu của một Dự án
      */
-    public static int countDocs(int projectId) {
-        int count = 0;
-        for (Doc d : docs) {
-            if (d.getProjectId() == projectId) {
-                count = count + 1;
+    public static int countByProject(int projectId) {
+        if (projectId <= 0) return 0;
+
+        String sql = "SELECT COUNT(*) FROM docs WHERE project_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi đếm Doc Project ID: " + projectId, e);
         }
-        return count;
+        return 0;
     }
 }

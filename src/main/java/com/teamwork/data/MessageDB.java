@@ -1,185 +1,259 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Message;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Tầng Data Layer: Quản lý kho dữ liệu Tin nhắn & Bình luận (In-Memory Message Database trên RAM).
- * Cung cấp các thao tác CRUD cho:
- * - Kênh Chat chung của Dự án (khi taskId == 0)
- * - Luồng Bình luận theo từng Công việc (khi taskId > 0)
- * - Đảm bảo an toàn đa luồng (Thread-Safe)
+ * Tầng Data Access Object (DAO): Quản lý Tin nhắn Chat & Bình luận Task kết nối Supabase PostgreSQL.
+ * 
+ * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
+ * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
+ * - Sử dụng PreparedStatement an toàn chống SQL Injection
+ * - Quản lý tài nguyên bằng try-with-resources
  */
 public class MessageDB {
 
-    // 1. Danh sách tĩnh luồng an toàn lưu trữ toàn bộ tin nhắn trong hệ thống trên RAM
-    private static List<Message> messages = new CopyOnWriteArrayList<>();
-    private static int nextId = 1; // Biến tự tăng cấp ID cho tin nhắn mới
+    private static final Logger LOGGER = Logger.getLogger(MessageDB.class.getName());
 
-    // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các tin nhắn mẫu (Seed Data)
-    // chứa cả #doc-X, #task-X và @username để kiểm thử ngay bộ máy Mention
-    static {
-        // --- CÁC TIN NHẮN CHAT CHUNG CHO DỰ ÁN 1 (projectId = 1, taskId = 0) ---
-        
-        // Tin nhắn 1: Admin nhắc nhở tài liệu
-        messages.add(new Message(
-            nextId++,
-            1, // projectId = 1
-            0, // taskId = 0 (Chat chung dự án)
-            1, // authorId = 1
-            "Trưởng Nhóm Admin",
-            "Chào cả nhóm! Mọi người vui lòng đọc kỹ tài liệu #doc-1 trước khi bắt đầu nhận việc nhé. @NguyenVanAn hãy chú ý kỹ quy tắc phân tầng MVC.",
-            "23/08/2026 09:30"
-        ));
+    private static Message mapResultSetToMessage(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id");
+        int projectId = rs.getInt("project_id");
+        int taskId = rs.getInt("task_id"); // If NULL in DB, rs.getInt returns 0
+        int authorId = rs.getInt("author_id");
+        String authorName = rs.getString("author_name");
+        String content = rs.getString("content");
+        String sentAt = rs.getString("sent_at_str");
 
-        // Tin nhắn 2: Nguyễn Văn An phản hồi
-        messages.add(new Message(
-            nextId++,
-            1,
-            0,
-            2, // authorId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An",
-            "Em đã đọc xong #doc-1 rồi ạ! Hiện em đang hoàn thành #task-1 và thấy cấu trúc rất rõ ràng.",
-            "23/08/2026 10:15"
-        ));
-
-        // Tin nhắn 3: Admin hướng dẫn tiếp theo
-        messages.add(new Message(
-            nextId++,
-            1,
-            0,
-            1,
-            "Trưởng Nhóm Admin",
-            "Tốt lắm! Sau khi xong #task-1, nhớ đọc tiếp #doc-3 để chuẩn bị triển khai lên Render nhé.",
-            "24/08/2026 14:00"
-        ));
-
-        // --- BÌNH LUẬN RIÊNG CHO TASK 3 TRONG DỰ ÁN 1 (projectId = 1, taskId = 3) ---
-        messages.add(new Message(
-            nextId++,
-            1,
-            3, // taskId = 3 (Bình luận của Task 3)
-            1,
-            "Trưởng Nhóm Admin",
-            "Task này cần lưu ý cấu hình đúng port 8080 và biến môi trường theo hướng dẫn trong #doc-3 nhé!",
-            "24/08/2026 15:30"
-        ));
-
-        // --- TIN NHẮN CHAT CHO DỰ ÁN 2 (projectId = 2, taskId = 0) ---
-        messages.add(new Message(
-            nextId++,
-            2,
-            0,
-            1,
-            "Trưởng Nhóm Admin",
-            "Chào mừng đến với dự án Mobile App! Mọi người xem qua thiết kế giao diện tại #doc-4 nhé.",
-            "25/08/2026 08:30"
-        ));
+        return new Message(
+            id,
+            projectId,
+            taskId,
+            authorId,
+            authorName != null ? authorName : "Ẩn danh",
+            content != null ? content : "",
+            sentAt != null ? sentAt : ""
+        );
     }
+
+    private static final String BASE_SELECT_SQL =
+        "SELECT id, project_id, COALESCE(task_id, 0) AS task_id, author_id, author_name, content, " +
+        "       to_char(sent_at, 'DD/MM/YYYY HH24:MI') AS sent_at_str " +
+        "FROM messages ";
 
     /**
      * HÀM 1: Lấy danh sách tin nhắn CHAT CHUNG của MỘT DỰ ÁN (taskId == 0)
-     * Dùng để đổ dữ liệu vào dòng thời gian tin nhắn trong giao diện chat.jsp.
      */
     public static List<Message> selectByProjectId(int projectId) {
-        List<Message> resultList = new ArrayList<>();
-        for (Message m : messages) {
-            // Chỉ lấy tin nhắn thuộc dự án này VÀ có taskId == 0 (chat chung)
-            if (m.getProjectId() == projectId && m.getTaskId() == 0) {
-                resultList.add(m);
+        List<Message> list = new ArrayList<>();
+        if (projectId <= 0) return list;
+
+        String sql = BASE_SELECT_SQL + "WHERE project_id = ? AND task_id IS NULL ORDER BY sent_at ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToMessage(rs));
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy tin nhắn chat Project ID: " + projectId, e);
         }
-        return resultList;
+        return list;
     }
 
     /**
-     * HÀM 1b: Lấy danh sách N tin nhắn CHAT CHUNG gần đây nhất của một dự án (Mặc định 50 tin)
-     * Giúp tối ưu hiệu năng tải trang và phân bổ bộ nhớ khi có nhiều tin nhắn
+     * HÀM 1b: Lấy danh sách N tin nhắn CHAT CHUNG gần đây nhất
      */
     public static List<Message> selectRecentByProjectId(int projectId, int limit) {
-        List<Message> allProjectMessages = selectByProjectId(projectId);
-        if (limit <= 0 || allProjectMessages.size() <= limit) {
-            return allProjectMessages;
+        List<Message> list = new ArrayList<>();
+        if (projectId <= 0) return list;
+
+        int safeLimit = limit > 0 ? limit : 50;
+        String sql = "SELECT * FROM (" +
+                     BASE_SELECT_SQL + "WHERE project_id = ? AND task_id IS NULL ORDER BY sent_at DESC LIMIT ?" +
+                     ") sub ORDER BY sent_at_str ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+            ps.setInt(2, safeLimit);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToMessage(rs));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy tin nhắn recent Project ID: " + projectId, e);
         }
-        int startIndex = allProjectMessages.size() - limit;
-        return new ArrayList<>(allProjectMessages.subList(startIndex, allProjectMessages.size()));
+        return list;
     }
 
     /**
      * HÀM 2: Lấy danh sách BÌNH LUẬN của MỘT CÔNG VIỆC CỤ THỂ (taskId > 0)
-     * Dùng để hiển thị luồng bình luận trong Modal chi tiết của Task đó.
      */
     public static List<Message> selectByTaskId(int taskId) {
-        List<Message> resultList = new ArrayList<>();
-        for (Message m : messages) {
-            if (m.getTaskId() == taskId) {
-                resultList.add(m);
+        List<Message> list = new ArrayList<>();
+        if (taskId <= 0) return list;
+
+        String sql = BASE_SELECT_SQL + "WHERE task_id = ? ORDER BY sent_at ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, taskId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToMessage(rs));
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy bình luận Task ID: " + taskId, e);
         }
-        return resultList;
+        return list;
     }
 
     /**
      * HÀM 3: Tìm một tin nhắn cụ thể theo ID
      */
     public static Message selectById(int id) {
-        for (Message m : messages) {
-            if (m.getId() == id) {
-                return m;
+        if (id <= 0) return null;
+
+        String sql = BASE_SELECT_SQL + "WHERE id = ? LIMIT 1";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToMessage(rs);
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm tin nhắn ID: " + id, e);
         }
         return null;
     }
 
     /**
-     * HÀM 4: Thêm một tin nhắn mới vào kho dữ liệu trên RAM
-     * Dùng khi người dùng gửi tin nhắn trong kênh chat hoặc gửi bình luận trong Task.
+     * HÀM 4: Thêm một tin nhắn mới
      */
     public static int insert(Message message) {
-        message.setId(nextId++); // Cấp ID tự động tăng
-        messages.add(message);   // Cất vào danh sách trên RAM
-        return message.getId();  // Trả về ID vừa tạo
+        if (message == null || message.getContent() == null || message.getContent().trim().isEmpty()) {
+            return 0;
+        }
+
+        String sql = "INSERT INTO messages (project_id, task_id, author_id, author_name, content, sent_at) " +
+                     "VALUES (?, ?, ?, ?, ?, NOW()) RETURNING id";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, message.getProjectId());
+
+            if (message.getTaskId() > 0) {
+                ps.setInt(2, message.getTaskId());
+            } else {
+                ps.setNull(2, Types.INTEGER);
+            }
+
+            if (message.getAuthorId() > 0) {
+                ps.setInt(3, message.getAuthorId());
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
+
+            ps.setString(4, message.getAuthorName() != null ? message.getAuthorName().trim() : "Ẩn danh");
+            ps.setString(5, message.getContent().trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int genId = rs.getInt(1);
+                    message.setId(genId);
+                    return genId;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi gửi tin nhắn", e);
+        }
+        return 0;
     }
 
     /**
-     * HÀM 5: Đếm tổng số thảo luận (cả chat chung và bình luận) của một Dự án
-     * Dùng để hiển thị thống kê "💬 X thảo luận" trên Card dự án ở trang Dashboard.
+     * HÀM 5: Đếm tổng số thảo luận của một Dự án
      */
     public static int countByProject(int projectId) {
-        int count = 0;
-        for (Message m : messages) {
-            if (m.getProjectId() == projectId) {
-                count = count + 1;
+        if (projectId <= 0) return 0;
+
+        String sql = "SELECT COUNT(*) FROM messages WHERE project_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi đếm tin nhắn Project ID: " + projectId, e);
         }
-        return count;
+        return 0;
     }
 
     /**
      * HÀM 6: Xóa một tin nhắn theo ID
      */
     public static boolean delete(int id) {
-        for (int i = 0; i < messages.size(); i++) {
-            Message m = messages.get(i);
-            if (m.getId() == id) {
-                messages.remove(i);
-                return true;
-            }
+        if (id <= 0) return false;
+
+        String sql = "DELETE FROM messages WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa tin nhắn ID: " + id, e);
         }
         return false;
     }
 
     /**
-     * HÀM 7: Xóa toàn bộ bình luận của một Task khi Task đó bị xóa
+     * HÀM 7: Xóa toàn bộ bình luận của một Task khi Task bị xóa
      */
     public static void deleteByTaskId(int taskId) {
-        for (int i = messages.size() - 1; i >= 0; i--) {
-            Message m = messages.get(i);
-            if (m.getTaskId() == taskId) {
-                messages.remove(i);
-            }
+        if (taskId <= 0) return;
+
+        String sql = "DELETE FROM messages WHERE task_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, taskId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa bình luận theo Task ID: " + taskId, e);
         }
     }
 }

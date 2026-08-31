@@ -1,194 +1,197 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Task;
-import java.time.LocalDate;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Tầng Data Layer: Quản lý kho dữ liệu Thẻ công việc (In-Memory Task Database trên RAM)
- * - Quản lý 5 trạng thái: TODO, IN_PROGRESS, SUBMITTED (🟡), REVISE (🔵), REJECTED (🔴), DONE (🟢)
- * - Cung cấp các thao tác Bàn giao của Task Lead và Phê duyệt Nghiệm thu của Trưởng Dự Án (PM)
- * - Đảm bảo an toàn đa luồng (Thread-Safe)
+ * Tầng Data Access Object (DAO): Quản lý dữ liệu Thẻ công việc (Task) kết nối Supabase PostgreSQL.
+ * 
+ * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
+ * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
+ * - Sử dụng LEFT JOIN users để lấy tên người phụ trách (assigneeName) chính xác
+ * - Hỗ trợ đầy đủ các cổng phê duyệt 2 tầng (Planning Gate & Deliverable Review)
+ * - Sử dụng PreparedStatement an toàn chống SQL Injection
+ * - Quản lý tài nguyên bằng try-with-resources
  */
 public class TaskDB {
 
-    // 1. Danh sách tĩnh luồng an toàn lưu toàn bộ task trong hệ thống
-    private static List<Task> tasks = new CopyOnWriteArrayList<>();
-    private static int nextId = 1; // Biến tự tăng cấp ID cho thẻ task mới
+    private static final Logger LOGGER = Logger.getLogger(TaskDB.class.getName());
 
-    // 2. Khối khởi tạo tĩnh (Static Initializer): Tạo sẵn các task mẫu cho Dự án 1 và Dự án 2
-    static {
-        LocalDate today = LocalDate.now();
-        String datePlus5 = today.plusDays(5).toString();   // Còn 5 ngày (🟢 Đúng tiến độ)
-        String datePlus1 = today.plusDays(1).toString();   // Ngày mai (🟠 Sắp đến hạn)
-        String dateMinus2 = today.minusDays(2).toString(); // Quá hạn 2 ngày (🔴 Quá hạn)
-        String dateMinus7 = today.minusDays(7).toString(); // Đã xong trong quá khứ (✅ Đúng hạn)
-        String datePlus10 = today.plusDays(10).toString(); // Còn 10 ngày (🟢 Đúng tiến độ)
+    /**
+     * Ánh xạ 1 dòng ResultSet sang đối tượng JavaBean Task
+     */
+    private static Task mapResultSetToTask(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id");
+        int projectId = rs.getInt("project_id");
+        String title = rs.getString("title");
+        String description = rs.getString("description");
+        String status = rs.getString("status");
+        String priority = rs.getString("priority");
+        String dueDate = rs.getString("due_date_str");
+        int assigneeId = rs.getInt("assignee_id");
+        String assigneeName = rs.getString("assignee_name");
+        String finalDeliverableNote = rs.getString("final_deliverable_note");
+        String pmFeedback = rs.getString("pm_feedback");
+        String submittedAt = rs.getString("submitted_at_str");
+        String reviewedAt = rs.getString("reviewed_at_str");
+        String deliverableFile = rs.getString("deliverable_file");
+        int qualityRating = rs.getInt("quality_rating");
+        String planningNote = rs.getString("planning_note");
+        String planningReviewedAt = rs.getString("planning_reviewed_at_str");
+        String labels = rs.getString("labels");
 
-        // --- CÁC TASK MẪU CHO DỰ ÁN 1 (projectId = 1) ---
-        
-        // Task 1: 🟣 CHỜ PM DUYỆT KẾ HOẠCH PHÂN RÃ (Cổng 1 - Còn 5 ngày)
-        Task t1 = new Task(
-            nextId++,
-            1, // projectId = 1
-            "Thiết kế CSDL quan hệ & Model JavaBean",
-            "Xây dựng toàn bộ sơ đồ ERD, các bảng quan hệ và các lớp JavaBean Model chuẩn Serializable.",
-            "PLANNING",
-            "HIGH",
-            datePlus5,
-            2, // assigneeId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An",
-            "",
-            "",
-            "27/08/2026 19:30",
-            "",
-            "",
-            5,
-            "Đã phân rã đầy đủ 3 việc con cốt lõi (1 sơ đồ ERD, 1 JavaBean Models, 1 RAM Data Layer CRUD). Đội ngũ sẵn sàng bắt tay thực hiện ngay khi PM duyệt khóa kế hoạch!",
-            ""
+        Task task = new Task(
+            id,
+            projectId,
+            title != null ? title : "",
+            description != null ? description : "",
+            status != null ? status : "TODO",
+            priority != null ? priority : "MEDIUM",
+            dueDate != null ? dueDate : "",
+            assigneeId,
+            assigneeName != null && !assigneeName.trim().isEmpty() ? assigneeName : "Chưa phân công",
+            finalDeliverableNote != null ? finalDeliverableNote : "",
+            pmFeedback != null ? pmFeedback : "",
+            submittedAt != null ? submittedAt : "",
+            reviewedAt != null ? reviewedAt : "",
+            deliverableFile != null ? deliverableFile : "",
+            qualityRating > 0 ? qualityRating : 5,
+            planningNote != null ? planningNote : "",
+            planningReviewedAt != null ? planningReviewedAt : ""
         );
-        t1.setLabels("BACKEND,FEATURE");
-        tasks.add(t1);
-
-        // Task 2: 🟡 ĐÃ HOÀN THÀNH 100% VIỆC CON & ĐÃ BÀN GIAO CHO PM (Chờ PM duyệt nghiệm thu Cổng 3 - Hạn chót ngày mai)
-        Task t2 = new Task(
-            nextId++,
-            1,
-            "Tích hợp cổng thanh toán trực tuyến",
-            "Nghiên cứu tài liệu Sandbox và viết Servlet xử lý callback thanh toán VNPAY.",
-            "SUBMITTED",
-            "HIGH",
-            datePlus1,
-            2,
-            "Nguyễn Văn An",
-            "📌 [Tóm tắt kết quả]: Đã hoàn thiện 100% module thanh toán VNPAY, tích hợp mã QR động và thanh toán thẻ ATM nội địa.\n\n🌐 [Link Demo/Sản phẩm]: https://demo.teamworkhub.vn/payment-vnpay\n\n💻 [Link Mã nguồn/PR]: https://github.com/teamwork-hub/teamwork-platform/pull/24\n\n🧪 [Kết quả kiểm thử]: Đã kiểm thử thành công 10/10 ca giao dịch sandbox VNPAY (Tỷ lệ pass 100%).\n\n🧭 [Hướng dẫn PM nghiệm thu]: PM dùng thẻ test 9704198526191432152, ngày phát hành 07/15, OTP 123456 để thử giao dịch.",
-            "",
-            "27/08/2026 21:00",
-            "",
-            "Bao_Cao_Nghiem_Thu_Thanh_Toan_VNPAY.pdf",
-            5,
-            "Đã phân rã 3 việc con và được PM phê duyệt khóa kế hoạch.",
-            "25/08/2026 09:00"
-        );
-        t2.setLabels("BACKEND,FEATURE,URGENT");
-        tasks.add(t2);
-
-        // Task 3: ⚪ CẦN LÀM (TODO) - Minh họa trạng thái QUÁ HẠN 2 NGÀY (🔴)
-        Task t3 = new Task(
-            nextId++,
-            1,
-            "Xây dựng Filter bảo mật & Kiểm tra quyền truy cập",
-            "Chặn người dùng chưa đăng nhập truy cập trực tiếp vào các URL nội bộ.",
-            "TODO",
-            "HIGH",
-            dateMinus2,
-            2, // assigneeId = 2 (Nguyễn Văn An)
-            "Nguyễn Văn An"
-        );
-        t3.setLabels("BUG,BACKEND");
-        tasks.add(t3);
-
-        // Task 4: 🟢 ĐÃ HOÀN THÀNH (DONE) - ĐÃ QUA ĐỦ 3 CỔNG, ĐƯỢC PM DUYỆT ĐẠT 5 SAO ⭐⭐⭐⭐⭐
-        Task t4 = new Task(
-            nextId++,
-            1,
-            "Xây dựng giao diện Landing Page với Bootstrap 5",
-            "Hoàn thiện trang chủ responsive, thanh điều hướng và chân trang chuẩn.",
-            "DONE",
-            "LOW",
-            dateMinus7,
-            2,
-            "Nguyễn Văn An",
-            "📌 [Tóm tắt kết quả]: Đã hoàn thiện Landing Page chuẩn responsive mobile & desktop.\n\n🌐 [Link Demo/Sản phẩm]: https://teamworkhub.vn/home\n\n💻 [Link Mã nguồn/PR]: https://github.com/teamwork-hub/teamwork-platform/pull/12",
-            "PM phê duyệt: Giao diện đạt chuẩn UX/UI Basecamp, tốc độ tải trang cực nhanh! Đạt xuất sắc 5 sao.",
-            dateMinus7 + " 15:00",
-            dateMinus7 + " 16:30",
-            "Bien_Ban_Ban_Giao_Landing_Page.pdf",
-            5,
-            "Đã phân rã 2 việc con.",
-            "18/08/2026 08:30"
-        );
-        t4.setLabels("UI,FEATURE");
-        tasks.add(t4);
-
-        // Task 5: ⚪ CẦN LÀM (TODO) - Còn 10 ngày (Giao cho Trần Thị Bình để demo luồng Cổng 1)
-        Task t5 = new Task(
-            nextId++,
-            1,
-            "Thiết kế giao diện Dark Mode & Tối ưu Responsive",
-            "Nghiên cứu bảng màu Dark Palette, thiết kế chuyển đổi theme và tối ưu UX trên thiết bị di động.",
-            "TODO",
-            "MEDIUM",
-            datePlus10,
-            3,
-            "Trần Thị Bình"
-        );
-        t5.setLabels("UI,DOCS");
-        tasks.add(t5);
+        task.setLabels(labels != null ? labels : "");
+        return task;
     }
+
+    private static final String BASE_SELECT_SQL =
+        "SELECT t.id, t.project_id, t.title, t.description, t.status::text AS status, t.priority::text AS priority, " +
+        "       to_char(t.due_date, 'YYYY-MM-DD') AS due_date_str, " +
+        "       t.assignee_id, COALESCE(u.full_name, 'Chưa phân công') AS assignee_name, " +
+        "       t.final_deliverable_note, t.pm_feedback, " +
+        "       to_char(t.submitted_at, 'DD/MM/YYYY HH24:MI') AS submitted_at_str, " +
+        "       to_char(t.reviewed_at, 'DD/MM/YYYY HH24:MI') AS reviewed_at_str, " +
+        "       t.deliverable_file, t.quality_rating, " +
+        "       t.planning_note, " +
+        "       to_char(t.planning_reviewed_at, 'DD/MM/YYYY HH24:MI') AS planning_reviewed_at_str, " +
+        "       t.labels " +
+        "FROM tasks t " +
+        "LEFT JOIN users u ON t.assignee_id = u.id ";
 
     /**
      * HÀM 1: Lấy toàn bộ task trong hệ thống
      */
     public static List<Task> selectAll() {
-        return new ArrayList<>(tasks);
+        List<Task> list = new ArrayList<>();
+        String sql = BASE_SELECT_SQL + "ORDER BY t.id ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                list.add(mapResultSetToTask(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy toàn bộ Task", e);
+        }
+        return list;
     }
 
     /**
      * HÀM 2: Lấy danh sách tất cả các task thuộc về MỘT DỰ ÁN cụ thể
      */
     public static List<Task> selectByProjectId(int projectId) {
-        List<Task> resultList = new ArrayList<>();
-        for (Task t : tasks) {
-            if (t.getProjectId() == projectId) {
-                resultList.add(t);
+        List<Task> list = new ArrayList<>();
+        if (projectId <= 0) return list;
+
+        String sql = BASE_SELECT_SQL + "WHERE t.project_id = ? ORDER BY t.id ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToTask(rs));
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy Task theo Project ID: " + projectId, e);
         }
-        return resultList;
+        return list;
     }
 
     /**
      * HÀM 3: Lấy danh sách task của một dự án ĐƯỢC LỌC THEO 3 CỘT KANBAN:
-     * - TODO: Task có trạng thái TODO (Đang lập kế hoạch)
-     * - IN_PROGRESS: Task có trạng thái PLANNING (🟣), IN_PROGRESS (🚀), SUBMITTED (🟡), REVISE (🔵), REJECTED (🔴)
-     * - DONE: Task có trạng thái DONE hoặc APPROVED (🟢)
+     * - TODO: Task có trạng thái TODO
+     * - IN_PROGRESS: PLANNING, IN_PROGRESS, SUBMITTED, REVISE, REJECTED
+     * - DONE: DONE, APPROVED
      */
     public static List<Task> selectByProjectAndStatus(int projectId, String status) {
-        List<Task> resultList = new ArrayList<>();
-        if (status == null) return resultList;
+        List<Task> list = new ArrayList<>();
+        if (projectId <= 0 || status == null) return list;
 
-        for (Task t : tasks) {
-            if (t.getProjectId() == projectId) {
-                if ("TODO".equalsIgnoreCase(status) && "TODO".equalsIgnoreCase(t.getStatus())) {
-                    resultList.add(t);
-                } else if ("IN_PROGRESS".equalsIgnoreCase(status)) {
-                    if ("PLANNING".equalsIgnoreCase(t.getStatus()) ||
-                        "IN_PROGRESS".equalsIgnoreCase(t.getStatus()) ||
-                        "SUBMITTED".equalsIgnoreCase(t.getStatus()) ||
-                        "REVISE".equalsIgnoreCase(t.getStatus()) ||
-                        "REJECTED".equalsIgnoreCase(t.getStatus())) {
-                        resultList.add(t);
-                    }
-                } else if ("DONE".equalsIgnoreCase(status)) {
-                    if ("DONE".equalsIgnoreCase(t.getStatus()) || "APPROVED".equalsIgnoreCase(t.getStatus())) {
-                        resultList.add(t);
-                    }
+        String sql;
+        if ("TODO".equalsIgnoreCase(status)) {
+            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status = 'TODO' ORDER BY t.id ASC";
+        } else if ("IN_PROGRESS".equalsIgnoreCase(status)) {
+            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status IN ('PLANNING', 'IN_PROGRESS', 'SUBMITTED', 'REVISE', 'REJECTED') ORDER BY t.id ASC";
+        } else if ("DONE".equalsIgnoreCase(status)) {
+            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status IN ('DONE', 'APPROVED') ORDER BY t.id ASC";
+        } else {
+            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status::text = ? ORDER BY t.id ASC";
+        }
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+            if (!"TODO".equalsIgnoreCase(status) && !"IN_PROGRESS".equalsIgnoreCase(status) && !"DONE".equalsIgnoreCase(status)) {
+                ps.setString(2, status.trim().toUpperCase());
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToTask(rs));
                 }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lọc Task theo Status", e);
         }
-        return resultList;
+        return list;
     }
 
     /**
-     * HÀM 4: Tìm task theo ID
+     * HÀM 4: Tìm task theo ID duy nhất
      */
     public static Task selectById(int id) {
-        for (Task t : tasks) {
-            if (t.getId() == id) {
-                return t;
+        if (id <= 0) return null;
+
+        String sql = BASE_SELECT_SQL + "WHERE t.id = ? LIMIT 1";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToTask(rs);
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Task ID: " + id, e);
         }
         return null;
     }
@@ -197,34 +200,98 @@ public class TaskDB {
      * HÀM 5: Thêm task mới
      */
     public static int insert(Task task) {
-        task.setId(nextId++);
-        tasks.add(task);
-        return task.getId();
+        if (task == null || task.getTitle() == null || task.getTitle().trim().isEmpty()) {
+            return 0;
+        }
+
+        String sql = "INSERT INTO tasks (project_id, title, description, status, priority, due_date, assignee_id, labels, " +
+                     "final_deliverable_note, pm_feedback, deliverable_file, quality_rating, planning_note, created_at) " +
+                     "VALUES (?, ?, ?, ?::task_status_enum, ?::priority_enum, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) RETURNING id";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, task.getProjectId());
+            ps.setString(2, task.getTitle().trim());
+            ps.setString(3, task.getDescription() != null ? task.getDescription().trim() : "");
+            ps.setString(4, task.getStatus() != null && !task.getStatus().trim().isEmpty() ? task.getStatus().trim().toUpperCase() : "TODO");
+            ps.setString(5, task.getPriority() != null && !task.getPriority().trim().isEmpty() ? task.getPriority().trim().toUpperCase() : "MEDIUM");
+
+            if (task.getDueDate() != null && !task.getDueDate().trim().isEmpty()) {
+                try {
+                    ps.setDate(6, Date.valueOf(task.getDueDate().trim()));
+                } catch (IllegalArgumentException ex) {
+                    ps.setNull(6, Types.DATE);
+                }
+            } else {
+                ps.setNull(6, Types.DATE);
+            }
+
+            if (task.getAssigneeId() > 0) {
+                ps.setInt(7, task.getAssigneeId());
+            } else {
+                ps.setNull(7, Types.INTEGER);
+            }
+
+            ps.setString(8, task.getLabels() != null ? task.getLabels().trim() : "");
+            ps.setString(9, task.getFinalDeliverableNote() != null ? task.getFinalDeliverableNote().trim() : "");
+            ps.setString(10, task.getPmFeedback() != null ? task.getPmFeedback().trim() : "");
+            ps.setString(11, task.getDeliverableFile() != null ? task.getDeliverableFile().trim() : "");
+            ps.setInt(12, task.getQualityRating() > 0 ? task.getQualityRating() : 5);
+            ps.setString(13, task.getPlanningNote() != null ? task.getPlanningNote().trim() : "");
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int genId = rs.getInt(1);
+                    task.setId(genId);
+                    return genId;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi thêm Task mới: " + task.getTitle(), e);
+        }
+        return 0;
     }
 
     /**
-     * HÀM 6: Cập nhật trạng thái Task (kéo thả HTML5)
+     * HÀM 6: Cập nhật trạng thái Task (kéo thả Kanban)
      */
     public static boolean updateStatus(int id, String newStatus) {
-        Task t = selectById(id);
-        if (t != null && newStatus != null) {
-            t.setStatus(newStatus.trim().toUpperCase());
-            return true;
+        if (id <= 0 || newStatus == null || newStatus.trim().isEmpty()) return false;
+
+        String sql = "UPDATE tasks SET status = ?::task_status_enum, updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, newStatus.trim().toUpperCase());
+            ps.setInt(2, id);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật status Task ID: " + id, e);
         }
         return false;
     }
 
     /**
-     * HÀM 7: Task Lead Bàn Giao & Nộp Báo Cáo Task Lớn Kèm Tệp Đính Kèm ➔ Chuyển sang 🟡 SUBMITTED
+     * HÀM 7: Task Lead Bàn Giao & Nộp Báo Cáo Task Kèm Tệp Đính Kèm ➔ SUBMITTED
      */
     public static boolean submitTaskDeliverable(int taskId, String note, String deliverableFile, String submittedAt) {
-        Task t = selectById(taskId);
-        if (t != null) {
-            t.setStatus("SUBMITTED");
-            t.setFinalDeliverableNote(note != null ? note.trim() : "");
-            t.setDeliverableFile(deliverableFile != null ? deliverableFile.trim() : "");
-            t.setSubmittedAt(submittedAt);
-            return true;
+        if (taskId <= 0) return false;
+
+        String sql = "UPDATE tasks SET status = 'SUBMITTED', final_deliverable_note = ?, deliverable_file = ?, submitted_at = NOW(), updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, note != null ? note.trim() : "");
+            ps.setString(2, deliverableFile != null ? deliverableFile.trim() : "");
+            ps.setInt(3, taskId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi submit deliverable Task ID: " + taskId, e);
         }
         return false;
     }
@@ -234,16 +301,23 @@ public class TaskDB {
     }
 
     /**
-     * HÀM 8: Trưởng Dự Án (PM) Phê Duyệt Nghiệm Thu ĐẠT Kèm Đánh Giá Sao ➔ Chuyển sang 🟢 DONE (100%)
+     * HÀM 8: Trưởng Dự Án (PM) Phê Duyệt Nghiệm Thu ĐẠT Kèm Đánh Giá Sao ➔ DONE (100%)
      */
     public static boolean pmApproveTask(int taskId, String feedback, int qualityRating, String reviewedAt) {
-        Task t = selectById(taskId);
-        if (t != null) {
-            t.setStatus("DONE");
-            t.setPmFeedback(feedback != null ? feedback.trim() : "PM đã phê duyệt nghiệm thu xuất sắc!");
-            t.setQualityRating(qualityRating > 0 ? qualityRating : 5);
-            t.setReviewedAt(reviewedAt);
-            return true;
+        if (taskId <= 0) return false;
+
+        String sql = "UPDATE tasks SET status = 'DONE', pm_feedback = ?, quality_rating = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, feedback != null ? feedback.trim() : "PM đã phê duyệt nghiệm thu xuất sắc!");
+            ps.setInt(2, qualityRating > 0 ? qualityRating : 5);
+            ps.setInt(3, taskId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM duyệt Task ID: " + taskId, e);
         }
         return false;
     }
@@ -253,120 +327,195 @@ public class TaskDB {
     }
 
     /**
-     * HÀM 9: Trưởng Dự Án (PM) Yêu Cầu Cân Chỉnh Nhỏ ➔ Chuyển sang 🔵 REVISE (Màu Xanh Dương)
+     * HÀM 9: Trưởng Dự Án (PM) Yêu Cầu Cân Chỉnh Nhỏ ➔ REVISE
      */
     public static boolean pmReviseTask(int taskId, String feedback, String reviewedAt) {
-        Task t = selectById(taskId);
-        if (t != null) {
-            t.setStatus("REVISE");
-            t.setPmFeedback(feedback != null ? feedback.trim() : "");
-            t.setReviewedAt(reviewedAt);
-            return true;
+        if (taskId <= 0) return false;
+
+        String sql = "UPDATE tasks SET status = 'REVISE', pm_feedback = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, feedback != null ? feedback.trim() : "");
+            ps.setInt(2, taskId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM yêu cầu revise Task ID: " + taskId, e);
         }
         return false;
     }
 
     /**
-     * HÀM 10: Trưởng Dự Án (PM) Trả Về Do Chưa Đạt ➔ Chuyển sang 🔴 REJECTED (Màu Đỏ)
+     * HÀM 10: Trưởng Dự Án (PM) Trả Về Do Chưa Đạt ➔ REJECTED
      */
     public static boolean pmRejectTask(int taskId, String feedback, String reviewedAt) {
-        Task t = selectById(taskId);
-        if (t != null) {
-            t.setStatus("REJECTED");
-            t.setPmFeedback(feedback != null ? feedback.trim() : "");
-            t.setReviewedAt(reviewedAt);
-            return true;
+        if (taskId <= 0) return false;
+
+        String sql = "UPDATE tasks SET status = 'REJECTED', pm_feedback = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, feedback != null ? feedback.trim() : "");
+            ps.setInt(2, taskId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM reject Task ID: " + taskId, e);
         }
         return false;
     }
 
     /**
-     * HÀM 13: Task Lead Trình Kế Hoạch Phân Rã Sub-Tasks Cho PM Thẩm Định (CỔNG 1) ➔ Chuyển sang 🟣 PLANNING
+     * HÀM 11: Task Lead Trình Kế Hoạch Phân Rã (CỔNG 1) ➔ PLANNING
      */
     public static boolean submitPlanningRequest(int taskId, String planningNote, String submittedAt) {
-        Task t = selectById(taskId);
-        if (t != null) {
-            t.setStatus("PLANNING");
-            t.setPlanningNote(planningNote != null ? planningNote.trim() : "");
-            t.setSubmittedAt(submittedAt);
-            return true;
+        if (taskId <= 0) return false;
+
+        String sql = "UPDATE tasks SET status = 'PLANNING', planning_note = ?, submitted_at = NOW(), updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, planningNote != null ? planningNote.trim() : "");
+            ps.setInt(2, taskId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi submit planning Task ID: " + taskId, e);
         }
         return false;
     }
 
     /**
-     * HÀM 14: Trưởng Dự Án (PM) Phê Duyệt Kế Hoạch & KHÓA PHÂN RÃ (SCOPE LOCK - CỔNG 1) ➔ Chuyển sang 🚀 IN_PROGRESS
+     * HÀM 12: Trưởng Dự Án (PM) Phê Duyệt Kế Hoạch & KHÓA PHÂN RÃ ➔ IN_PROGRESS
      */
     public static boolean pmApprovePlanning(int taskId, String pmFeedback, String reviewedAt) {
-        Task t = selectById(taskId);
-        if (t != null) {
-            t.setStatus("IN_PROGRESS");
-            t.setPlanningReviewedAt(reviewedAt);
-            if (pmFeedback != null && !pmFeedback.trim().isEmpty()) {
-                t.setPmFeedback(pmFeedback.trim());
-            }
-            return true;
+        if (taskId <= 0) return false;
+
+        String sql = "UPDATE tasks SET status = 'IN_PROGRESS', pm_feedback = ?, planning_reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, pmFeedback != null ? pmFeedback.trim() : "");
+            ps.setInt(2, taskId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM approve planning Task ID: " + taskId, e);
         }
         return false;
     }
 
     /**
-     * HÀM 15: Trưởng Dự Án (PM) Yêu Cầu Task Lead Bổ Sung / Chỉnh Sửa Kế Hoạch Phân Rã ➔ Trả về ⚪ TODO
+     * HÀM 13: Trưởng Dự Án (PM) Yêu Cầu Chỉnh Sửa Kế Hoạch Phân Rã ➔ TODO
      */
     public static boolean pmRejectPlanning(int taskId, String pmFeedback, String reviewedAt) {
-        Task t = selectById(taskId);
-        if (t != null) {
-            t.setStatus("TODO");
-            t.setPmFeedback(pmFeedback != null ? pmFeedback.trim() : "");
-            t.setReviewedAt(reviewedAt);
-            return true;
+        if (taskId <= 0) return false;
+
+        String sql = "UPDATE tasks SET status = 'TODO', pm_feedback = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, pmFeedback != null ? pmFeedback.trim() : "");
+            ps.setInt(2, taskId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM reject planning Task ID: " + taskId, e);
         }
         return false;
     }
 
     /**
-     * HÀM 11: Cập nhật thông tin toàn diện của Task
+     * HÀM 14: Cập nhật thông tin toàn diện của Task
      */
     public static boolean update(Task updatedTask) {
-        if (updatedTask == null) return false;
-        for (int i = 0; i < tasks.size(); i++) {
-            if (tasks.get(i).getId() == updatedTask.getId()) {
-                tasks.set(i, updatedTask);
-                return true;
+        if (updatedTask == null || updatedTask.getId() <= 0) return false;
+
+        String sql = "UPDATE tasks SET title = ?, description = ?, status = ?::task_status_enum, priority = ?::priority_enum, " +
+                     "due_date = ?, assignee_id = ?, labels = ?, updated_at = NOW() WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, updatedTask.getTitle() != null ? updatedTask.getTitle().trim() : "");
+            ps.setString(2, updatedTask.getDescription() != null ? updatedTask.getDescription().trim() : "");
+            ps.setString(3, updatedTask.getStatus() != null && !updatedTask.getStatus().trim().isEmpty() ? updatedTask.getStatus().trim().toUpperCase() : "TODO");
+            ps.setString(4, updatedTask.getPriority() != null && !updatedTask.getPriority().trim().isEmpty() ? updatedTask.getPriority().trim().toUpperCase() : "MEDIUM");
+
+            if (updatedTask.getDueDate() != null && !updatedTask.getDueDate().trim().isEmpty()) {
+                try {
+                    ps.setDate(5, Date.valueOf(updatedTask.getDueDate().trim()));
+                } catch (IllegalArgumentException ex) {
+                    ps.setNull(5, Types.DATE);
+                }
+            } else {
+                ps.setNull(5, Types.DATE);
             }
+
+            if (updatedTask.getAssigneeId() > 0) {
+                ps.setInt(6, updatedTask.getAssigneeId());
+            } else {
+                ps.setNull(6, Types.INTEGER);
+            }
+
+            ps.setString(7, updatedTask.getLabels() != null ? updatedTask.getLabels().trim() : "");
+            ps.setInt(8, updatedTask.getId());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi update Task ID: " + updatedTask.getId(), e);
         }
         return false;
     }
 
     /**
-     * HÀM 12: Xóa task theo ID
+     * HÀM 15: Xóa task theo ID
      */
     public static boolean delete(int id) {
-        return tasks.removeIf(t -> t.getId() == id);
+        if (id <= 0) return false;
+
+        String sql = "DELETE FROM tasks WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Task ID: " + id, e);
+        }
+        return false;
     }
 
     /**
-     * HÀM 13: Hủy phân công Task lớn cho một thành viên khi rời nhóm hoặc bị kick
+     * HÀM 16: Hủy phân công Task lớn cho một thành viên khi rời nhóm
      */
     public static void unassignUserFromProject(int projectId, int userId) {
-        for (Task t : tasks) {
-            if (t.getProjectId() == projectId && t.getAssigneeId() == userId) {
-                t.setAssigneeId(0);
-                t.setAssigneeName("Chưa phân công");
-            }
+        if (projectId <= 0 || userId <= 0) return;
+
+        String sql = "UPDATE tasks SET assignee_id = NULL, updated_at = NOW() WHERE project_id = ? AND assignee_id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi unassign user", e);
         }
     }
 
     /**
-     * HÀM 14: Đồng bộ tên người phụ trách mới sang toàn bộ các Task lớn
+     * HÀM 17: Đồng bộ tên người phụ trách (tự động xử lý qua JOIN bảng users trong DB)
      */
     public static void syncAssigneeName(int userId, String newFullName) {
-        if (newFullName != null && !newFullName.trim().isEmpty()) {
-            for (Task t : tasks) {
-                if (t.getAssigneeId() == userId) {
-                    t.setAssigneeName(newFullName.trim());
-                }
-            }
-        }
+        // Tự động đồng bộ qua JOIN users trong Database
     }
 }

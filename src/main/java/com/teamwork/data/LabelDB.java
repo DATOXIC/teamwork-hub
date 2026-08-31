@@ -1,177 +1,186 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Label;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Táº§ng Data Layer: Quáº£n lÃ½ Kho NhÃ£n PhÃ¢n Loáº¡i (In-Memory Database trÃªn RAM)
+ * Tầng Data Access Object (DAO): Quản lý dữ liệu Nhãn phân loại (Label) kết nối Supabase PostgreSQL.
  * 
- * Ãp dá»¥ng nguyÃªn táº¯c Backend Code Mastery:
- * - Thread-safe 100%: DÃ¹ng CopyOnWriteArrayList vÃ  AtomicInteger cho nextId.
- * - Input validation & Trust boundary: Kiá»ƒm tra null, rá»—ng, chá»‘ng trÃ¹ng tÃªn trong cÃ¹ng project.
- * - Idempotent & Atomic operations: TrÃ¡nh race condition khi nhiá»u luá»“ng cÃ¹ng thÃªm/sá»­a/xÃ³a.
+ * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
+ * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
+ * - Sử dụng PreparedStatement an toàn chống SQL Injection
+ * - Quản lý tài nguyên bằng try-with-resources
  */
 public class LabelDB {
 
-    // 1. Bá»™ nhá»› RAM lÆ°u trá»¯ danh sÃ¡ch nhÃ£n an toÃ n Ä‘a luá»“ng
-    private static final List<Label> labels = new CopyOnWriteArrayList<>();
-    private static final AtomicInteger nextId = new AtomicInteger(1);
+    private static final Logger LOGGER = Logger.getLogger(LabelDB.class.getName());
 
-    // 2. Khá»Ÿi táº¡o dá»¯ liá»‡u máº«u ban Ä‘áº§u (Seed Data)
-    static {
-        // --- Dá»° ÃN 1 (TW-HUB-01) ---
-        labels.add(new Label(nextId.getAndIncrement(), 1, "Bug", "red", "bi-bug-fill"));
-        labels.add(new Label(nextId.getAndIncrement(), 1, "Feature", "blue", "bi-stars"));
-        labels.add(new Label(nextId.getAndIncrement(), 1, "UI/UX", "purple", "bi-palette-fill"));
-        labels.add(new Label(nextId.getAndIncrement(), 1, "Backend", "amber", "bi-gear-fill"));
-        labels.add(new Label(nextId.getAndIncrement(), 1, "Docs", "green", "bi-journal-bookmark-fill"));
-        labels.add(new Label(nextId.getAndIncrement(), 1, "Urgent", "pink", "bi-lightning-fill"));
-
-        // --- Dá»° ÃN 2 (ECOMMERCE-99) ---
-        labels.add(new Label(nextId.getAndIncrement(), 2, "Bug", "red", "bi-bug-fill"));
-        labels.add(new Label(nextId.getAndIncrement(), 2, "Feature", "blue", "bi-stars"));
-        labels.add(new Label(nextId.getAndIncrement(), 2, "UI/UX", "purple", "bi-palette-fill"));
-        labels.add(new Label(nextId.getAndIncrement(), 2, "Backend", "amber", "bi-gear-fill"));
-        labels.add(new Label(nextId.getAndIncrement(), 2, "Docs", "green", "bi-journal-bookmark-fill"));
+    private static Label mapResultSetToLabel(ResultSet rs) throws SQLException {
+        return new Label(
+            rs.getInt("id"),
+            rs.getInt("project_id"),
+            rs.getString("name"),
+            rs.getString("color_key"),
+            rs.getString("icon")
+        );
     }
 
     /**
-     * Nghiá»‡p vá»¥ 1: Láº¥y táº¥t cáº£ nhÃ£n thuá»™c vá» má»™t dá»± Ã¡n cá»¥ thá»ƒ
-     * @param projectId ID cá»§a dá»± Ã¡n
-     * @return Danh sÃ¡ch Label thuá»™c dá»± Ã¡n (khÃ´ng bao giá» null)
+     * Nghiệp vụ 1: Lấy tất cả nhãn thuộc về một dự án cụ thể
      */
     public static List<Label> selectByProjectId(int projectId) {
         List<Label> result = new ArrayList<>();
-        if (projectId <= 0) {
-            return result;
-        }
-        for (Label lbl : labels) {
-            if (lbl.getProjectId() == projectId) {
-                result.add(lbl);
+        if (projectId <= 0) return result;
+
+        String sql = "SELECT id, project_id, name, color_key::text AS color_key, icon FROM labels WHERE project_id = ? ORDER BY id ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapResultSetToLabel(rs));
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy danh sách nhãn Project ID: " + projectId, e);
         }
         return result;
     }
 
     /**
-     * Nghiá»‡p vá»¥ 2: TÃ¬m nhÃ£n theo ID
-     * @param id ID cá»§a nhÃ£n
-     * @return Äá»‘i tÆ°á»£ng Label hoáº·c null náº¿u khÃ´ng tÃ¬m tháº¥y
+     * Nghiệp vụ 2: Tìm nhãn theo ID
      */
     public static Label selectById(int id) {
-        if (id <= 0) {
-            return null;
-        }
-        for (Label lbl : labels) {
-            if (lbl.getId() == id) {
-                return lbl;
+        if (id <= 0) return null;
+
+        String sql = "SELECT id, project_id, name, color_key::text AS color_key, icon FROM labels WHERE id = ? LIMIT 1";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToLabel(rs);
+                }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm nhãn ID: " + id, e);
         }
         return null;
     }
 
     /**
-     * Nghiá»‡p vá»¥ 3: Kiá»ƒm tra tÃªn nhÃ£n Ä‘Ã£ tá»“n táº¡i trong dá»± Ã¡n chÆ°a (Chá»‘ng trÃ¹ng láº·p)
-     * @param projectId ID dá»± Ã¡n
-     * @param name TÃªn nhÃ£n cáº§n kiá»ƒm tra
-     * @param excludeId ID nhÃ£n cáº§n loáº¡i trá»« khi Ä‘ang sá»­a (truyá»n <= 0 náº¿u lÃ  thÃªm má»›i)
-     * @return true náº¿u Ä‘Ã£ cÃ³ nhÃ£n trÃ¹ng tÃªn, false náº¿u chÆ°a cÃ³
+     * Nghiệp vụ 3: Kiểm tra tên nhãn đã tồn tại trong dự án chưa
      */
     public static boolean existsByName(int projectId, String name, int excludeId) {
         if (name == null || name.trim().isEmpty() || projectId <= 0) {
             return false;
         }
-        String cleanName = name.trim().toLowerCase();
-        for (Label lbl : labels) {
-            if (lbl.getProjectId() == projectId && lbl.getId() != excludeId) {
-                if (lbl.getName().trim().equalsIgnoreCase(cleanName)) {
-                    return true;
+
+        String sql = "SELECT 1 FROM labels WHERE project_id = ? AND LOWER(name) = LOWER(?) AND id <> ? LIMIT 1";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+            ps.setString(2, name.trim());
+            ps.setInt(3, excludeId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra trùng tên nhãn", e);
+        }
+        return false;
+    }
+
+    /**
+     * Nghiệp vụ 4: Thêm một nhãn mới vào dự án
+     */
+    public static int insert(Label label) {
+        if (label == null || label.getProjectId() <= 0 || label.getName() == null || label.getName().trim().isEmpty()) {
+            return 0;
+        }
+
+        String sql = "INSERT INTO labels (project_id, name, color_key, icon) " +
+                     "VALUES (?, ?, ?::label_color_enum, ?) RETURNING id";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, label.getProjectId());
+            ps.setString(2, label.getName().trim());
+            String color = label.getColorKey() != null && !label.getColorKey().trim().isEmpty() ? label.getColorKey().trim().toLowerCase() : "blue";
+            ps.setString(3, color);
+            ps.setString(4, label.getIcon() != null && !label.getIcon().trim().isEmpty() ? label.getIcon().trim() : "bi-tag-fill");
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int genId = rs.getInt(1);
+                    label.setId(genId);
+                    return genId;
                 }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi thêm nhãn mới: " + label.getName(), e);
+        }
+        return 0;
+    }
+
+    /**
+     * Nghiệp vụ 5: Cập nhật thông tin nhãn
+     */
+    public static boolean update(Label updatedLabel) {
+        if (updatedLabel == null || updatedLabel.getId() <= 0) return false;
+
+        String sql = "UPDATE labels SET name = ?, color_key = ?::label_color_enum, icon = ? WHERE id = ?";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, updatedLabel.getName() != null ? updatedLabel.getName().trim() : "");
+            String color = updatedLabel.getColorKey() != null ? updatedLabel.getColorKey().trim().toLowerCase() : "blue";
+            ps.setString(2, color);
+            ps.setString(3, updatedLabel.getIcon() != null ? updatedLabel.getIcon().trim() : "bi-tag-fill");
+            ps.setInt(4, updatedLabel.getId());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi update nhãn ID: " + updatedLabel.getId(), e);
         }
         return false;
     }
 
     /**
-     * Nghiá»‡p vá»¥ 4: ThÃªm má»™t nhÃ£n má»›i vÃ o dá»± Ã¡n
-     * @param label Äá»‘i tÆ°á»£ng nhÃ£n cáº§n thÃªm
-     * @return true náº¿u thÃªm thÃ nh cÃ´ng, false náº¿u dá»¯ liá»‡u khÃ´ng há»£p lá»‡ hoáº·c trÃ¹ng tÃªn
+     * Nghiệp vụ 6: Xóa nhãn theo ID
      */
-    public static boolean insert(Label label) {
-        if (label == null || label.getProjectId() <= 0) {
-            return false;
-        }
-        if (label.getName() == null || label.getName().trim().isEmpty()) {
-            return false;
-        }
-        // Kiá»ƒm tra chá»‘ng trÃ¹ng tÃªn trong cÃ¹ng dá»± Ã¡n
-        if (existsByName(label.getProjectId(), label.getName(), 0)) {
-            return false;
-        }
+    public static boolean delete(int id) {
+        if (id <= 0) return false;
 
-        label.setId(nextId.getAndIncrement());
-        labels.add(label);
-        return true;
-    }
+        String sql = "DELETE FROM labels WHERE id = ?";
 
-    /**
-     * Nghiá»‡p vá»¥ 5: Cáº­p nháº­t thÃ´ng tin nhÃ£n cÃ³ sáºµn
-     * @param label Äá»‘i tÆ°á»£ng nhÃ£n vá»›i thÃ´ng tin má»›i
-     * @return true náº¿u cáº­p nháº­t thÃ nh cÃ´ng, false náº¿u khÃ´ng tÃ¬m tháº¥y hoáº·c trÃ¹ng tÃªn
-     */
-    public static boolean update(Label label) {
-        if (label == null || label.getId() <= 0 || label.getProjectId() <= 0) {
-            return false;
-        }
-        if (label.getName() == null || label.getName().trim().isEmpty()) {
-            return false;
-        }
-        // Kiá»ƒm tra trÃ¹ng tÃªn vá»›i nhÃ£n khÃ¡c trong cÃ¹ng dá»± Ã¡n
-        if (existsByName(label.getProjectId(), label.getName(), label.getId())) {
-            return false;
-        }
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
 
-        for (int i = 0; i < labels.size(); i++) {
-            Label current = labels.get(i);
-            if (current.getId() == label.getId() && current.getProjectId() == label.getProjectId()) {
-                current.setName(label.getName().trim());
-                current.setColorKey(label.getColorKey());
-                current.setIcon(label.getIcon());
-                return true;
-            }
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa nhãn ID: " + id, e);
         }
         return false;
-    }
-
-    /**
-     * Nghiá»‡p vá»¥ 6: XÃ³a má»™t nhÃ£n khá»i dá»± Ã¡n
-     * @param labelId ID cá»§a nhÃ£n cáº§n xÃ³a
-     * @param projectId ID cá»§a dá»± Ã¡n sá»Ÿ há»¯u
-     * @return true náº¿u xÃ³a thÃ nh cÃ´ng, false náº¿u khÃ´ng tÃ¬m tháº¥y
-     */
-    public static boolean delete(int labelId, int projectId) {
-        if (labelId <= 0 || projectId <= 0) {
-            return false;
-        }
-        return labels.removeIf(lbl -> lbl.getId() == labelId && lbl.getProjectId() == projectId);
-    }
-
-    /**
-     * Nghiá»‡p vá»¥ 7: Tá»± Ä‘á»™ng khá»Ÿi táº¡o bá»™ nhÃ£n máº·c Ä‘á»‹nh náº¿u má»™t dá»± Ã¡n má»›i chÆ°a cÃ³ nhÃ£n nÃ o
-     * @param projectId ID cá»§a dá»± Ã¡n
-     */
-    public static void initDefaultLabelsIfEmpty(int projectId) {
-        if (projectId <= 0) return;
-        List<Label> existing = selectByProjectId(projectId);
-        if (existing.isEmpty()) {
-            insert(new Label(0, projectId, "Bug", "red", "bi-bug-fill"));
-            insert(new Label(0, projectId, "Feature", "blue", "bi-stars"));
-            insert(new Label(0, projectId, "UI/UX", "purple", "bi-palette-fill"));
-            insert(new Label(0, projectId, "Backend", "amber", "bi-gear-fill"));
-            insert(new Label(0, projectId, "Docs", "green", "bi-journal-bookmark-fill"));
-        }
     }
 }
