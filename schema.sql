@@ -484,6 +484,24 @@ COMMENT ON COLUMN notifications.link         IS 'Deep-link URL: bấm vào chuy�
 
 
 -- =============================================================================
+-- BẢO MẬT: BẬT ROW LEVEL SECURITY (RLS) CHO TOÀN BỘ CÁC BẢNG
+-- Mục đích: Khóa toàn bộ các API HTTP công khai (PostgREST / anon key) của Supabase.
+-- Chỉ cho phép Java Backend (kết nối trực tiếp qua JDBC quyền postgres/admin) truy cập.
+-- =============================================================================
+ALTER TABLE users           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_invites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tasks           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subtasks        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE labels          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE docs            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE task_docs       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications   ENABLE ROW LEVEL SECURITY;
+
+
+-- =============================================================================
 -- SEED DATA — Dữ liệu mẫu khởi tạo (giữ nguyên cấu trúc In-Memory hiện tại)
 -- =============================================================================
 
