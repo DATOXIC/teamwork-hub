@@ -112,11 +112,15 @@ public class ProjectServlet extends HttpServlet {
         if (currentUser != null) 
         {
             List<Project> userProjects = ProjectMemberDB.selectProjectsByUserId(currentUser.getId());
+            java.util.Set<Integer> userProjectIds = new java.util.HashSet<>();
+            for (Project up : userProjects) {
+                userProjectIds.add(up.getId());
+            }
 
             // Phân loại Project có trong Database
             for (Project p : allProjects) 
             {
-                if (userProjects.contains(p)) 
+                if (userProjectIds.contains(p.getId())) 
                 {
                     myProjects.add(p);
                 } 
