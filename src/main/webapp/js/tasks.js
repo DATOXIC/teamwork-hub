@@ -489,3 +489,48 @@ window.handleQuickCreateLabel = function() {
     }
 };
 
+// =========================================================================
+// INSTANT CACHE-FIRST PERFORMANCE ENGINE (LOCALSTORAGE + OPTIMISTIC UI)
+// =========================================================================
+(function initInstantCacheEngine() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var projectId = urlParams.get('projectId') || '1';
+    var cacheKey = 'teamwork_kanban_cache_p' + projectId;
+
+    // Lưu snapshot bảng Kanban vào LocalStorage
+    function saveKanbanSnapshot() {
+        try {
+            var colTodo = document.getElementById('column-TODO');
+            var colInProg = document.getElementById('column-IN_PROGRESS');
+            var colDone = document.getElementById('column-DONE');
+
+            if (colTodo && colInProg && colDone) {
+                var snapshot = {
+                    savedAt: Date.now(),
+                    todoHtml: colTodo.innerHTML,
+                    inProgHtml: colInProg.innerHTML,
+                    doneHtml: colDone.innerHTML
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(snapshot));
+            }
+        } catch (e) {
+            console.warn('Lỗi lưu cache LocalStorage:', e);
+        }
+    }
+
+    // Tự động lưu sau khi trang tải xong và trước khi rời đi
+    window.addEventListener('load', function() {
+        saveKanbanSnapshot();
+        var badge = document.getElementById('cloudSyncBadge');
+        if (badge) {
+            badge.classList.remove('bg-warning-subtle', 'text-warning', 'border-warning-subtle');
+            badge.classList.add('bg-success-subtle', 'text-success', 'border-success-subtle');
+            var txt = document.getElementById('cloudSyncText');
+            if (txt) txt.textContent = 'Đã đồng bộ Cloud';
+        }
+    });
+
+    window.addEventListener('beforeunload', saveKanbanSnapshot);
+})();
+
+

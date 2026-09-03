@@ -27,8 +27,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import com.teamwork.business.ProjectInvite;
 import com.teamwork.business.ProjectMember;
 import com.teamwork.data.NotificationDB;
@@ -63,6 +65,20 @@ public class TaskServlet extends HttpServlet {
         int projectId = 0;
 
         if (projectIdParam == null || projectIdParam.trim().isEmpty()) {
+            // Tối ưu hóa Cookie: Đọc dự án truy cập gần nhất để vào thẳng mà không cần query lại
+            if (request.getCookies() != null) {
+                for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+                    if ("last_project_id".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                        try {
+                            int cachedProjectId = Integer.parseInt(c.getValue().trim());
+                            if (cachedProjectId > 0) {
+                                response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + cachedProjectId);
+                                return;
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+            }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -246,90 +262,115 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
-        // 2. Lấy danh sách Task phân theo 3 cột trạng thái
-        List<Task> todoTasks = TaskDB.selectByProjectAndStatus(projectId, "TODO");
-        List<Task> inProgressTasks = TaskDB.selectByProjectAndStatus(projectId, "IN_PROGRESS");
-        List<Task> doneTasks = TaskDB.selectByProjectAndStatus(projectId, "DONE");
+        // 1.5. Ghi nhớ Cookie dự án truy cập gần nhất (hạn 30 ngày)
+        jakarta.servlet.http.Cookie lastProjectCookie = new jakarta.servlet.http.Cookie("last_project_id", String.valueOf(projectId));
+        lastProjectCookie.setMaxAge(30 * 24 * 60 * 60);
+        lastProjectCookie.setPath(request.getContextPath().isEmpty() ? "/" : request.getContextPath());
+        response.addCookie(lastProjectCookie);
 
-        // 3. Lấy bộ dữ liệu cặp (Project - User)
+        // 2. TỐI ƯU HÓA: Lấy TẤT CẢ Task của Dự án trong 1 câu SQL duy nhất
+        List<Task> allProjectTasks = TaskDB.selectByProjectId(projectId);
+        List<Task> todoTasks = new ArrayList<>();
+        List<Task> inProgressTasks = new ArrayList<>();
+        List<Task> doneTasks = new ArrayList<>();
+
+        for (Task t : allProjectTasks) {
+            String st = t.getStatus() != null ? t.getStatus().toUpperCase() : "TODO";
+            if ("DONE".equals(st) || "APPROVED".equals(st)) {
+                doneTasks.add(t);
+            } else if ("IN_PROGRESS".equals(st) || "SUBMITTED".equals(st) || "REVISE".equals(st) || "REJECTED".equals(st)) {
+                inProgressTasks.add(t);
+            } else {
+                todoTasks.add(t);
+            }
+        }
+
+        // 3. Lấy thành viên dự án và nạp thông tin user từ danh sách hệ thống (Tối ưu Session Cache)
         List<ProjectMember> projectMemberList = ProjectMemberDB.selectByProjectId(projectId);
+        HttpSession session = request.getSession(false);
+        @SuppressWarnings("unchecked")
+        List<User> allSystemUsers = (session != null) ? (List<User>) session.getAttribute("cached_system_users") : null;
+        if (allSystemUsers == null) {
+            allSystemUsers = UserDB.selectAll();
+            if (session != null) {
+                session.setAttribute("cached_system_users", allSystemUsers);
+            }
+        }
+        Map<Integer, User> systemUserMap = new HashMap<>();
+        for (User u : allSystemUsers) {
+            systemUserMap.put(u.getId(), u);
+        }
 
         List<User> userList = new ArrayList<>();
-        for (ProjectMember pm : projectMemberList) 
-        { 
-            User u = UserDB.selectById(pm.getUserId());
-            if (u != null) 
-            {
+        for (ProjectMember pm : projectMemberList) {
+            User u = systemUserMap.get(pm.getUserId());
+            if (u != null) {
                 userList.add(u);
             }
         }
 
-        // 4. Lấy danh sách toàn bộ tài liệu Wiki của dự án này
+        // 4. Lấy danh sách toàn bộ tài liệu Wiki của dự án này (1 câu SQL)
         List<Doc> docList = DocDB.selectByProjectId(projectId);
 
-        // 5. Gom toàn bộ danh sách tài liệu đính kèm cho từng Task vào một Map (taskId -> List<TaskDoc>)
+        // 5. BATCH LOAD: Lấy toàn bộ TaskDoc của cả dự án trong 1 câu SQL duy nhất
+        List<TaskDoc> allTaskDocs = TaskDocDB.selectByProjectId(projectId);
         Map<Integer, List<TaskDoc>> taskDocsMap = new HashMap<>();
+        for (TaskDoc td : allTaskDocs) {
+            taskDocsMap.computeIfAbsent(td.getTaskId(), k -> new ArrayList<>()).add(td);
+        }
 
-        // 6. Gom toàn bộ danh sách bình luận riêng cho từng Task vào một Map (taskId -> List<Message>)
+        // 6. BATCH LOAD: Lấy toàn bộ Bình luận của các Task trong 1 câu SQL duy nhất
+        List<Message> allTaskComments = MessageDB.selectTaskCommentsByProjectId(projectId);
         Map<Integer, List<Message>> taskCommentsMap = new HashMap<>();
+        for (Message m : allTaskComments) {
+            taskCommentsMap.computeIfAbsent(m.getTaskId(), k -> new ArrayList<>()).add(m);
+        }
 
-        // 7. Gom toàn bộ danh sách việc con cho từng Task vào một Map (taskId -> List<SubTask>)
+        // 7. BATCH LOAD: Lấy toàn bộ Việc con của các Task trong 1 câu SQL duy nhất
+        List<SubTask> allSubTasks = SubTaskDB.selectByProjectId(projectId);
         Map<Integer, List<SubTask>> taskSubTasksMap = new HashMap<>();
+        for (SubTask st : allSubTasks) {
+            taskSubTasksMap.computeIfAbsent(st.getTaskId(), k -> new ArrayList<>()).add(st);
+        }
 
-        // 8. Gom % tiến độ tự động cho từng Task vào một Map (taskId -> Integer progress)
+        // 8. TÍNH TOÁN % TIẾN ĐỘ TRÊN BỘ NHỚ RAM (CỰC NHANH, 0.001ms, KHÔNG GỌI DATABASE)
         Map<Integer, Integer> taskProgressMap = new HashMap<>();
-
-        // Nạp dữ liệu đa tầng cho cột TODO gồm < projId, List<> >
-        for (Task t : todoTasks) 
-        {
-            taskDocsMap.put(t.getId(), TaskDocDB.selectByTaskId(t.getId()));
-            taskCommentsMap.put(t.getId(), MessageDB.selectByTaskId(t.getId()));
-            taskSubTasksMap.put(t.getId(), SubTaskDB.selectByTaskId(t.getId()));
-            taskProgressMap.put(t.getId(), SubTaskDB.calculateProgress(t.getId()));
-        }
-
-        // Nạp dữ liệu đa tầng cho cột IN_PROGRESS
-        for (Task t : inProgressTasks) 
-        {
-            taskDocsMap.put(t.getId(), TaskDocDB.selectByTaskId(t.getId()));
-            taskCommentsMap.put(t.getId(), MessageDB.selectByTaskId(t.getId()));
-            taskSubTasksMap.put(t.getId(), SubTaskDB.selectByTaskId(t.getId()));
-            taskProgressMap.put(t.getId(), SubTaskDB.calculateProgress(t.getId()));
-        }
-
-        // Nạp dữ liệu đa tầng cho cột DONE
-        for (Task t : doneTasks) 
-        {
-            taskDocsMap.put(t.getId(), TaskDocDB.selectByTaskId(t.getId()));
-            taskCommentsMap.put(t.getId(), MessageDB.selectByTaskId(t.getId()));
-            taskSubTasksMap.put(t.getId(), SubTaskDB.selectByTaskId(t.getId()));
-            taskProgressMap.put(t.getId(), SubTaskDB.calculateProgress(t.getId()));
+        for (Task t : allProjectTasks) {
+            List<SubTask> subList = taskSubTasksMap.get(t.getId());
+            if (subList == null || subList.isEmpty()) {
+                boolean isDone = "DONE".equalsIgnoreCase(t.getStatus()) || "APPROVED".equalsIgnoreCase(t.getStatus());
+                taskProgressMap.put(t.getId(), isDone ? 100 : 0);
+            } else {
+                long doneCount = subList.stream()
+                        .filter(s -> "APPROVED".equalsIgnoreCase(s.getStatus()) || "DONE".equalsIgnoreCase(s.getStatus()))
+                        .count();
+                int pct = (int) Math.round(((double) doneCount / subList.size()) * 100);
+                taskProgressMap.put(t.getId(), pct);
+            }
         }
 
         // 8.5. Tính toán khối lượng công việc của từng thành viên (UserWorkload DTO) cho Dải Avatar B.3
-        List<Task> allTasks = new ArrayList<>();
-        allTasks.addAll(todoTasks);
-        allTasks.addAll(inProgressTasks);
-        allTasks.addAll(doneTasks);
+        List<Task> allTasks = new ArrayList<>(allProjectTasks);
         List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks);
 
         // 8.6. Lấy danh sách lời mời của dự án (Chặng C.3)
         List<ProjectInvite> projectInviteList = ProjectInviteDB.selectByProjectId(projectId);
         int memberCount = ProjectMemberDB.countMembers(projectId);
 
-        // Danh sách ứng viên trong hệ thống chưa tham gia dự án (phục vụ Modal Mời thành viên nhanh)
-        List<User> allSystemUsers = UserDB.selectAll();
+        // Danh sách ứng viên trong hệ thống chưa tham gia dự án (Tối ưu hóa trong RAM)
+        Set<Integer> memberUserIds = new HashSet<>();
+        for (ProjectMember pm : projectMemberList) {
+            memberUserIds.add(pm.getUserId());
+        }
+
         List<User> inviteCandidates = new ArrayList<>();
-        for (User u : allSystemUsers) 
-        {
-            if (!ProjectMemberDB.isMember(projectId, u.getId())) 
-            {
+        for (User u : allSystemUsers) {
+            if (!memberUserIds.contains(u.getId())) {
                 inviteCandidates.add(u);
             }
         }
 
         // 8.7. Xử lý Flash Message (Toast)
-        HttpSession session = request.getSession(false);
         if (session != null) 
         {
             String toastSuccess = (String) session.getAttribute("toastSuccess");

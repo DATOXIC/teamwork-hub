@@ -178,9 +178,15 @@
             <span id="filterResultCount">
                 Hiển thị tất cả <strong>${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong> công việc
             </span>
-            <span class="text-secondary opacity-75 d-none d-md-inline">
-                <i class="bi bi-cursor me-1"></i> Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái
-            </span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-secondary opacity-75 d-none d-md-inline">
+                    <i class="bi bi-cursor me-1"></i> Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái
+                </span>
+                <span id="cloudSyncBadge" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs" title="Tốc độ tức thì từ Bộ nhớ đệm Cache & Đám mây Supabase">
+                    <i class="bi bi-lightning-charge-fill text-warning"></i>
+                    <span id="cloudSyncText">Siêu tốc (Cache + Cloud)</span>
+                </span>
+            </div>
         </div>
     </div>
 

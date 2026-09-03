@@ -256,4 +256,31 @@ public class MessageDB {
             LOGGER.log(Level.SEVERE, "Lỗi khi xóa bình luận theo Task ID: " + taskId, e);
         }
     }
+
+    /**
+     * HÀM BATCH MỚI: Lấy toàn bộ bình luận của TẤT CẢ các Task trong một Dự Án trong 1 câu SQL duy nhất!
+     * Giúp loại bỏ N+1 query problem, tăng tốc độ tải trang gấp nhiều lần.
+     */
+    public static List<Message> selectTaskCommentsByProjectId(int projectId) {
+        List<Message> list = new ArrayList<>();
+        if (projectId <= 0) return list;
+
+        String sql = BASE_SELECT_SQL + "WHERE project_id = ? AND task_id IS NOT NULL ORDER BY sent_at ASC, id ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToMessage(rs));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy batch Task Comments theo Project ID: " + projectId, e);
+        }
+        return list;
+    }
 }
+

@@ -137,4 +137,40 @@ public class TaskDocDB {
             LOGGER.log(Level.SEVERE, "Lỗi khi xóa TaskDoc theo Doc ID: " + docId, e);
         }
     }
+
+    /**
+     * HÀM BATCH MỚI: Lấy toàn bộ TaskDoc của TẤT CẢ các Task trong một Dự Án trong 1 câu SQL duy nhất!
+     * Giúp loại bỏ N+1 query problem, tăng tốc độ tải trang gấp nhiều lần.
+     */
+    public static List<TaskDoc> selectByProjectId(int projectId) {
+        List<TaskDoc> resultList = new ArrayList<>();
+        if (projectId <= 0) return resultList;
+
+        String sql = "SELECT td.task_id, td.doc_id, d.title AS doc_title " +
+                     "FROM task_docs td " +
+                     "JOIN tasks t ON td.task_id = t.id " +
+                     "JOIN docs d ON td.doc_id = d.id " +
+                     "WHERE t.project_id = ? " +
+                     "ORDER BY d.id ASC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, projectId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    resultList.add(new TaskDoc(
+                        rs.getInt("task_id"),
+                        rs.getInt("doc_id"),
+                        rs.getString("doc_title")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy batch TaskDoc theo Project ID: " + projectId, e);
+        }
+        return resultList;
+    }
 }
+
