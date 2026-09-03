@@ -512,15 +512,46 @@ public class TaskServlet extends HttpServlet {
         int projectId = safeParseInt(request.getParameter("projectId"), 0);
         int taskId = safeParseInt(request.getParameter("taskId"), 0);
         String newStatus = request.getParameter("newStatus");
+        if (newStatus == null || newStatus.trim().isEmpty()) {
+            newStatus = request.getParameter("status");
+        }
 
         if (taskId > 0 && projectId > 0 && newStatus != null && !newStatus.trim().isEmpty()) {
             Task task = TaskDB.selectById(taskId);
             if (task != null && task.getProjectId() == projectId) {
                 String status = newStatus.trim();
                 HttpSession session = request.getSession(false);
+                // =========================================================================
+                // RÀNG BUỘC GIAI ĐOẠN 1: CHUYỂN TỪ TODO SANG IN_PROGRESS (ĐANG LÀM)
+                // =========================================================================
+                if ("IN_PROGRESS".equalsIgnoreCase(status) && "TODO".equalsIgnoreCase(task.getStatus())) {
+                    String taskTitle = task.getTitle();
 
-                // RÀNG BUỘC CHẤT LƯỢNG NGHIỆM THU:
-                // Nếu muốn chuyển sang DONE, bắt buộc toàn bộ danh sách việc con (Sub-tasks) phải hoàn thành 100%
+                    // Ràng buộc 1: Bắt buộc phải có Người phụ trách (Task Lead)
+                    if (task.getAssigneeId() <= 0) {
+                        if (session != null) {
+                            session.setAttribute("toastError", 
+                                "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.");
+                        }
+                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                        return;
+                    }
+
+                    // Ràng buộc 2: Bắt buộc phải có danh mục Việc con (Sub-tasks) đã phân rã
+                    List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
+                    if (subTasks == null || subTasks.isEmpty()) {
+                        if (session != null) {
+                            session.setAttribute("toastError", 
+                                "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Chưa có danh mục việc con. Vui lòng tạo ít nhất 1 việc con (Sub-task) để lập kế hoạch trước khi bắt đầu thực hiện.");
+                        }
+                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                        return;
+                    }
+                }
+
+                // =========================================================================
+                // RÀNG BUỘC GIAI ĐOẠN 2: CHUYỂN SANG DONE (HOÀN THÀNH)
+                // =========================================================================
                 if ("DONE".equalsIgnoreCase(status)) {
                     List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                     int progress = SubTaskDB.calculateProgress(taskId);
@@ -540,6 +571,8 @@ public class TaskServlet extends HttpServlet {
 
                 if ("DONE".equalsIgnoreCase(status) && session != null) {
                     session.setAttribute("toastSuccess", "🎉 Chúc mừng! Thẻ công việc đã được hoàn tất thành công.");
+                } else if ("IN_PROGRESS".equalsIgnoreCase(status) && session != null) {
+                    session.setAttribute("toastSuccess", "🚀 Bắt đầu thực hiện công việc [" + task.getTitle() + "] thành công!");
                 }
             }
         }
@@ -592,10 +625,12 @@ public class TaskServlet extends HttpServlet {
         // 1. Chỉ Task Lead của chính Task này HOẶC Trưởng Dự Án mới được thêm việc con.
         // 2. Chỉ được thêm việc con khi Task đang ở trạng thái TODO (Giai đoạn Lập Kế Hoạch). Khi đã trình PM hoặc đã khóa thì không được thêm tự do.
         if (isTaskLead(currentUser, parentTask) || isProjectOwner(currentUser, project)) {
-            if (!"TODO".equalsIgnoreCase(parentTask.getStatus())) {
+            // Cho phép thêm việc con khi Task đang ở TODO hoặc IN_PROGRESS (phục vụ phát sinh việc con)
+            // Khóa lại khi Task đã nộp nghiệm thu (SUBMITTED, REVISE, REJECTED, DONE)
+            if (!"TODO".equalsIgnoreCase(parentTask.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(parentTask.getStatus())) {
                 if (session != null) {
                     session.setAttribute("toastError", 
-                        "⚠️ Công việc này đang trong giai đoạn thực hiện hoặc đã được khóa kế hoạch, không thể thêm việc con mới!");
+                        "⚠️ Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm việc con mới!");
                 }
                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                 return;
@@ -678,15 +713,20 @@ public class TaskServlet extends HttpServlet {
                 String now = LocalDateTime.now().format(formatter);
 
                 // 2. CƠ CHẾ TỰ ĐỘNG CHUYỂN CỘT KANBAN CHO TASK LỚN:
-                if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) {
+                if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) 
+                {
                     TaskDB.updateStatus(parentTask.getId(), "DONE");
                     String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
                     MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
-                } else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
+                } 
+                else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) 
+                {
                     TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
                     String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
                     MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
-                } else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) {
+                } 
+                else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) 
+                {
                     TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
                     String reopenText = "⚠️ CẬP NHẬT: Còn việc con chưa xong (" + newProgress + "%). Task [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
                     MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));

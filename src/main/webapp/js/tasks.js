@@ -168,6 +168,35 @@ document.addEventListener('DOMContentLoaded', function()
 
             if (newStatus && oldStatus && newStatus !== oldStatus && taskId) 
             {
+                // Kiểm tra ràng buộc khi kéo thả TODO sang IN_PROGRESS
+                if (oldStatus === 'TODO' && newStatus === 'IN_PROGRESS') {
+                    const assigneeId = parseInt(activeCard.getAttribute('data-assignee-id') || '0', 10);
+                    const subtaskCount = parseInt(activeCard.getAttribute('data-subtask-count') || '0', 10);
+
+                    if (assigneeId <= 0) {
+                        alert('⚠️ Không thể chuyển sang Đang Làm! Công việc chưa được phân công Người phụ trách (Task Lead).');
+                        window.location.reload();
+                        return;
+                    }
+                    if (subtaskCount <= 0) {
+                        alert('⚠️ Không thể chuyển sang Đang Làm! Công việc chưa có danh mục việc con (Sub-task). Cần phân rã ít nhất 1 việc con để lập kế hoạch trước.');
+                        window.location.reload();
+                        return;
+                    }
+                }
+
+                // Kiểm tra ràng buộc khi kéo thả sang DONE
+                if (newStatus === 'DONE') {
+                    const progress = parseInt(activeCard.getAttribute('data-progress') || '0', 10);
+                    const subtaskCount = parseInt(activeCard.getAttribute('data-subtask-count') || '0', 10);
+
+                    if (subtaskCount > 0 && progress < 100) {
+                        alert('⚠️ Không thể đánh dấu Hoàn thành! Vẫn còn việc con chưa xong (Tiến độ: ' + progress + '%). Cần đạt đủ 100% việc con.');
+                        window.location.reload();
+                        return;
+                    }
+                }
+
                 sendDataToServer(taskId, newStatus);
             }
 
