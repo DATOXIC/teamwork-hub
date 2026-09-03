@@ -6,6 +6,6 @@ target/
 sources.txt
 env.bat
 local.env.bat
-build_and_run.bat
+
 
 
