@@ -1,10 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-        <c:set var="pageTitle" value="Báo Cáo Tiến Độ Dự Án — ${project.name}" />
-        <c:set var="extraCss" value="styles/report.css" />
+        <c:set var="pageTitle" value="Báo Cáo Tiến Độ Dự Án — ${project.name}" scope="request" />
+        <c:set var="extraCss" value="styles/report.css" scope="request" />
 
         <jsp:include page="/includes/header.jsp" />
         <jsp:include page="/includes/navbar.jsp" />
+        <link rel="stylesheet"
+            href="${pageContext.request.contextPath}/styles/report.css?v=<%= System.currentTimeMillis() %>">
 
         <div class="container-fluid px-lg-5 py-4">
 
@@ -72,32 +74,121 @@
             <div class="report-header-badge mb-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
                     <div>
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-primary text-white rounded-pill px-3 py-1 fs-9">
-                                <i class="bi bi-file-earmark-bar-graph-fill me-1"></i> BÁO CÁO TIẾN ĐỘ DỰ ÁN
+                        <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                            <span
+                                class="badge ${healthBadgeClass} rounded-pill px-3 py-1 fs-9 shadow-xs d-flex align-items-center gap-1">
+                                <i class="bi ${healthIcon}"></i> ${healthLabel}
                             </span>
                             <span
                                 class="badge bg-secondary-subtle text-white border border-secondary rounded-pill px-2 py-1 fs-9">
                                 Mã: #${project.projectCode}
                             </span>
+                            <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2 py-1 fs-9">
+                                <i class="bi bi-calendar3 me-1"></i> Khởi tạo: ${project.createdAt}
+                            </span>
                         </div>
                         <h2 class="fw-extrabold mb-1 text-white tracking-tight">${project.name}</h2>
-                        <p class="text-white-50 fs-8 mb-0 report-project-desc">
+                        <p class="text-white-50 fs-8 mb-2 report-project-desc">
                             ${not empty project.description ? project.description : 'Dự án chưa cập nhật mô tả chi
                             tiết.'}
                         </p>
+                        <div class="d-flex align-items-center gap-2 text-white-50 fs-9">
+                            <i class="bi bi-info-circle text-info"></i>
+                            <span>${healthDescription}</span>
+                        </div>
                     </div>
 
                     <!-- Metadata Khung Phải -->
                     <div class="text-md-end text-white-50 fs-8">
-                        <div><strong>Ngày khởi tạo:</strong> <span class="text-white">${project.createdAt}</span></div>
                         <div><strong>Thời điểm xuất báo cáo:</strong> <span class="text-white">${generatedAt}</span>
                         </div>
                         <div><strong>Người xuất báo cáo:</strong> <span
                                 class="text-white">${sessionScope.currentUser.fullName}
                                 (${sessionScope.currentUser.role})</span></div>
+                        <div class="mt-2">
+                            <span
+                                class="badge bg-success bg-opacity-25 text-white border border-success border-opacity-50 rounded-pill px-2 py-1 fs-9">
+                                <i class="bi bi-shield-lock-fill me-1"></i> Dữ liệu thực 100%
+                            </span>
+                        </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- =========================================================================
+            3. EXECUTIVE SPOTLIGHT: ĐIỂM NGHẼN & RỦI RO CẦN QUYẾT ĐỊNH (BLOCKER SPOTLIGHT)
+            ========================================================================= -->
+            <div class="mb-4 avoid-break">
+                <c:choose>
+                    <c:when test="${blockerCount > 0}">
+                        <div class="blocker-spotlight-card shadow-sm">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-danger text-white rounded-pill px-2-5 py-1 fs-9 fw-bold">
+                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> ${blockerCount} ĐIỂM NGHẼN
+                                    </span>
+                                    <h6 class="fw-bold text-dark fs-7 mb-0">Công Việc Có Nguy Cơ / Cần Can Thiệp Khẩn
+                                        Cấp</h6>
+                                </div>
+                                <span class="fs-9 text-muted">Ưu tiên xử lý để đảm bảo tiến độ nghiệm thu dự án</span>
+                            </div>
+                            <div class="row g-2">
+                                <c:forEach items="${criticalBlockers}" var="b" end="3">
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <div class="blocker-item h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <span
+                                                        class="badge bg-dark-navy text-white fs-9 rounded-pill">#${b.id}</span>
+                                                    <span
+                                                        class="badge ${b.priorityBadgeClass} fs-9">${b.priority}</span>
+                                                </div>
+                                                <div class="fw-bold text-dark fs-8 text-truncate mb-1"
+                                                    title="${b.title}">${b.title}</div>
+                                                <div class="fs-9 text-muted mb-2">
+                                                    <i class="bi bi-person text-secondary"></i> ${b.assigneeName}
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="d-flex align-items-center justify-content-between pt-2 border-top fs-9">
+                                                <span class="text-danger fw-semibold">
+                                                    <c:choose>
+                                                        <c:when test="${b.isOverdue()}">
+                                                            <i class="bi bi-clock-history me-1"></i> Quá hạn
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <i class="bi bi-arrow-repeat me-1"></i> ${b.statusLabel}
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
+                                                    class="text-decoration-none fw-bold fs-9 text-primary no-print">
+                                                    Xem task &rarr;
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="no-blocker-card d-flex align-items-center justify-content-between shadow-xs">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-shield-check-fill fs-5 text-success"></i>
+                                <div>
+                                    <div class="fw-bold fs-8">Dự án không có điểm nghẽn (No Active Blockers)</div>
+                                    <div class="fs-9 text-muted">Toàn bộ công việc đang chạy đúng kế hoạch, không có
+                                        công việc nào bị quá hạn hoặc bị từ chối duyệt.</div>
+                                </div>
+                            </div>
+                            <span
+                                class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fs-9 fw-semibold">
+                                🟢 Hoàn Hảo
+                            </span>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
             <!-- =========================================================================
@@ -301,7 +392,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover report-table mb-0 align-middle">
+                    <table class="table table-hover report-table mb-0 align-middle" id="membersPerformanceTable">
                         <thead>
                             <tr>
                                 <th class="col-w-id">STT</th>
@@ -403,17 +494,59 @@
             6. DANH SÁCH CHI TIẾT TẤT CẢ CÔNG VIỆC (DETAILED TASKS INVENTORY)
             ========================================================================= -->
             <div class="bg-white p-4 rounded-4 shadow-sm border mb-4 avoid-break">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                     <div>
                         <h5 class="fw-bold text-dark fs-6 mb-1 d-flex align-items-center gap-2">
-                            <i class="bi bi-card-checklist text-primary"></i> Danh Sách Chi Tiết Công Việc
+                            <i class="bi bi-card-checklist text-primary"></i> Bảng Kê Công Việc & Nghiệm Thu
                         </h5>
-                        <p class="text-muted fs-8 mb-0">Bảng kê chi tiết trạng thái, người phụ trách, hạn chót và kết
-                            quả nghiệm thu.</p>
+                        <p class="text-muted fs-8 mb-0">Quản lý chi tiết tiến độ, đầu ra nghiệm thu và đánh giá chất
+                            lượng từng nhiệm vụ.</p>
                     </div>
-                    <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fs-8">
-                        ${tasks.size()} công việc
-                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fs-8"
+                            id="tasksVisibleCount">
+                            Hiển thị: ${tasks.size()} / ${tasks.size()} công việc
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Interactive Filter & Search Controls (Ẩn khi in) -->
+                <div
+                    class="no-print report-filter-bar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <!-- Filter Tabs -->
+                    <div class="d-flex align-items-center gap-1 flex-wrap" id="taskFilterTabs">
+                        <button type="button" class="filter-tab-btn active" onclick="filterTasks('ALL', this)">
+                            Tất cả <span class="badge bg-secondary rounded-pill">${totalTasks}</span>
+                        </button>
+                        <button type="button" class="filter-tab-btn" onclick="filterTasks('IN_PROGRESS', this)">
+                            Đang làm <span class="badge bg-info text-dark rounded-pill">${inProgressCount}</span>
+                        </button>
+                        <button type="button" class="filter-tab-btn" onclick="filterTasks('PENDING_REVIEW', this)">
+                            Chờ duyệt <span class="badge bg-warning text-dark rounded-pill">${submittedCount +
+                                planningCount}</span>
+                        </button>
+                        <button type="button" class="filter-tab-btn" onclick="filterTasks('REVISE_OR_REJECT', this)">
+                            Cần chỉnh sửa <span class="badge bg-danger rounded-pill">${reviseCount +
+                                rejectedCount}</span>
+                        </button>
+                        <button type="button" class="filter-tab-btn" onclick="filterTasks('DONE', this)">
+                            Đã xong <span class="badge bg-success rounded-pill">${doneCount}</span>
+                        </button>
+                        <c:if test="${overdueCount > 0}">
+                            <button type="button" class="filter-tab-btn text-danger"
+                                onclick="filterTasks('OVERDUE', this)">
+                                <i class="bi bi-exclamation-circle-fill"></i> Quá hạn <span
+                                    class="badge bg-danger rounded-pill">${overdueCount}</span>
+                            </button>
+                        </c:if>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="report-search-wrap">
+                        <i class="bi bi-search report-search-icon"></i>
+                        <input type="text" class="form-control form-control-sm report-search-input" id="taskSearchInput"
+                            placeholder="Tìm theo tên, người phụ trách..." oninput="handleTaskSearch()">
+                    </div>
                 </div>
 
                 <div class="table-responsive">
@@ -432,7 +565,8 @@
                         </thead>
                         <tbody>
                             <c:forEach items="${tasks}" var="t">
-                                <tr>
+                                <tr class="task-inventory-row" data-status="${t.status}" data-overdue="${t.isOverdue()}"
+                                    data-search="#${t.id} ${t.title.toLowerCase()} ${not empty t.assigneeName ? t.assigneeName.toLowerCase() : ''} ${t.priority.toLowerCase()}">
                                     <td class="text-muted fw-bold">#${t.id}</td>
                                     <td>
                                         <div class="fw-bold text-dark">${t.title}</div>
@@ -523,6 +657,12 @@
                                     </td>
                                 </tr>
                             </c:forEach>
+                            <tr id="noMatchingTasksRow" class="d-none">
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    <i class="bi bi-search fs-4 d-block mb-1 text-secondary"></i>
+                                    Không tìm thấy công việc nào khớp với bộ lọc hoặc từ khóa tìm kiếm.
+                                </td>
+                            </tr>
                             <c:if test="${empty tasks}">
                                 <tr>
                                     <td colspan="8" class="text-center py-4 text-muted">Dự án chưa có công việc nào.
@@ -615,11 +755,11 @@
             </div>
 
             <!-- =========================================================================
-            8. KHUNG CHỮ KÝ XÁC NHẬN (PHỤC VỤ IN ẤN & NỘP BÁO CÁO)
+            8. XÁC NHẬN CỦA TRƯỞNG DỰ ÁN (PHỤC VỤ IN ẤN & LƯU TRỮ)
             ========================================================================= -->
-            <div class="row g-4 mt-4 pt-3 avoid-break">
-                <div class="col-6">
-                    <div class="signature-box">
+            <div class="d-flex justify-content-end mt-4 pt-3 avoid-break">
+                <div class="col-12 col-sm-6 col-md-4">
+                    <div class="signature-box text-center">
                         <div class="fw-bold text-dark mb-1">TRƯỞNG DỰ ÁN (PROJECT MANAGER)</div>
                         <div class="text-muted fs-9 mb-5">(Ký và ghi rõ họ tên)</div>
                         <div class="fw-semibold text-dark">${project.ownerId == sessionScope.currentUser.id ?
@@ -627,21 +767,94 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6">
-                    <div class="signature-box">
-                        <div class="fw-bold text-dark mb-1">GIẢNG VIÊN HƯỚNG DẪN / ĐÁNH GIÁ</div>
-                        <div class="text-muted fs-9 mb-5">(Ký và ghi nhận xét đánh giá)</div>
-                        <div class="fw-semibold text-dark">...................................................</div>
-                    </div>
-                </div>
             </div>
 
         </div>
 
         <!-- =========================================================================
-        JAVASCRIPT TIỆN ÍCH: XUẤT CSV TIẾNG VIỆT CHUẨN UTF-8 (CÓ BOM)
+        JAVASCRIPT TIỆN ÍCH: BỘ LỌC TƯƠNG TÁC + TÌM KIẾM + XUẤT CSV
         ========================================================================= -->
         <script>
+            // 1. Quản lý trạng thái bộ lọc Task (Interactive Task Filter & Search)
+            let currentStatusFilter = 'ALL';
+            let currentSearchQuery = '';
+
+            function filterTasks(filterType, btnElement) {
+                currentStatusFilter = filterType;
+
+                // Cập nhật trạng thái active của tab buttons
+                const buttons = document.querySelectorAll('#taskFilterTabs .filter-tab-btn');
+                buttons.forEach(b => b.classList.remove('active'));
+                if (btnElement) {
+                    btnElement.classList.add('active');
+                }
+
+                applyTaskFilters();
+            }
+
+            function handleTaskSearch() {
+                const input = document.getElementById('taskSearchInput');
+                currentSearchQuery = input ? input.value.trim().toLowerCase() : '';
+                applyTaskFilters();
+            }
+
+            function applyTaskFilters() {
+                const rows = document.querySelectorAll('.task-inventory-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const status = row.getAttribute('data-status') || '';
+                    const isOverdue = row.getAttribute('data-overdue') === 'true';
+                    const searchTarget = (row.getAttribute('data-search') || '').toLowerCase();
+
+                    // Khớp trạng thái (Status match)
+                    let matchesStatus = false;
+                    if (currentStatusFilter === 'ALL') {
+                        matchesStatus = true;
+                    } else if (currentStatusFilter === 'IN_PROGRESS') {
+                        matchesStatus = (status === 'IN_PROGRESS');
+                    } else if (currentStatusFilter === 'PENDING_REVIEW') {
+                        matchesStatus = (status === 'SUBMITTED' || status === 'PLANNING');
+                    } else if (currentStatusFilter === 'REVISE_OR_REJECT') {
+                        matchesStatus = (status === 'REVISE' || status === 'REJECTED');
+                    } else if (currentStatusFilter === 'DONE') {
+                        matchesStatus = (status === 'DONE' || status === 'APPROVED');
+                    } else if (currentStatusFilter === 'OVERDUE') {
+                        matchesStatus = isOverdue;
+                    }
+
+                    // Khớp từ khóa tìm kiếm (Search match)
+                    let matchesSearch = true;
+                    if (currentSearchQuery.length > 0) {
+                        matchesSearch = searchTarget.includes(currentSearchQuery);
+                    }
+
+                    if (matchesStatus && matchesSearch) {
+                        row.classList.remove('d-none');
+                        visibleCount++;
+                    } else {
+                        row.classList.add('d-none');
+                    }
+                });
+
+                // Cập nhật số lượng công việc hiển thị
+                const countBadge = document.getElementById('tasksVisibleCount');
+                if (countBadge) {
+                    countBadge.innerText = 'Hiển thị: ' + visibleCount + ' / ' + rows.length + ' công việc';
+                }
+
+                // Hiển thị dòng empty state nếu không tìm thấy kết quả
+                const noMatchRow = document.getElementById('noMatchingTasksRow');
+                if (noMatchRow) {
+                    if (visibleCount === 0 && rows.length > 0) {
+                        noMatchRow.classList.remove('d-none');
+                    } else {
+                        noMatchRow.classList.add('d-none');
+                    }
+                }
+            }
+
+            // 2. Xuất CSV Tiếng Việt chuẩn UTF-8 (có BOM)
             function exportTasksToCSV() {
                 const table = document.getElementById("tasksInventoryTable");
                 if (!table) return;
@@ -651,8 +864,8 @@
                 // Header CSV
                 csvContent += "Mã Task,Tên Công Việc,Người Phụ Trách,Mức Ưu Tiên,Hạn Chót,Trạng Thái,Đánh Giá Sao,Ghi Chú Bàn Giao\n";
 
-                // Đọc từng dòng dữ liệu trong tbody
-                const rows = table.querySelectorAll("tbody tr");
+                // Đọc từng dòng dữ liệu trong tbody (chỉ đọc các dòng task thực, bỏ qua empty row)
+                const rows = table.querySelectorAll("tbody tr.task-inventory-row");
                 rows.forEach(row => {
                     const cols = row.querySelectorAll("td");
                     if (cols.length >= 8) {

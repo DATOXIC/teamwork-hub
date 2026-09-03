@@ -43,20 +43,17 @@ public class ProjectServlet extends HttpServlet {
         // Kiểm tra xác thực: người chưa đăng nhập phải được redirect về trang login
         HttpSession sessionCheck = request.getSession(false);
         User currentUserCheck = (sessionCheck != null) ? (User) sessionCheck.getAttribute("currentUser") : null;
-        if (currentUserCheck == null) 
-        {
+        if (currentUserCheck == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
             return;
         }
 
         String action = request.getParameter("action");
-        if (action == null || action.trim().isEmpty()) 
-        {
+        if (action == null || action.trim().isEmpty()) {
             action = "list";
         }
 
-        switch (action) 
-        {
+        switch (action) {
             case "list":
                 showProjectList(request, response);
                 break;
@@ -80,20 +77,17 @@ public class ProjectServlet extends HttpServlet {
 
         // Phòng trường hợp: 1. Hết hạn Session 2. Fake Post
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
-        if (currentUser == null) 
-        {
+        if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
         String action = request.getParameter("action");
-        if (action == null || action.trim().isEmpty()) 
-        {
+        if (action == null || action.trim().isEmpty()) {
             action = "create";
         }
 
-        switch (action) 
-        {
+        switch (action) {
             case "create":
                 createProject(request, response, currentUser);
                 break;
@@ -104,7 +98,8 @@ public class ProjectServlet extends HttpServlet {
     }
 
     /**
-     * Nghiệp vụ 1: Lấy danh sách dự án, lời mời chờ duyệt và chuyển sang View (projects.jsp)
+     * Nghiệp vụ 1: Lấy danh sách dự án, lời mời chờ duyệt và chuyển sang View
+     * (projects.jsp)
      */
     private void showProjectList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -117,8 +112,7 @@ public class ProjectServlet extends HttpServlet {
         List<Project> myProjects = new ArrayList<>();
         List<Project> otherProjects = new ArrayList<>();
 
-        if (currentUser != null) 
-        {
+        if (currentUser != null) {
             List<Project> userProjects = ProjectMemberDB.selectProjectsByUserId(currentUser.getId());
             java.util.Set<Integer> userProjectIds = new java.util.HashSet<>();
             for (Project up : userProjects) {
@@ -126,55 +120,45 @@ public class ProjectServlet extends HttpServlet {
             }
 
             // Phân loại Project có trong Database
-            for (Project p : allProjects) 
-            {
-                if (userProjectIds.contains(p.getId())) 
-                {
+            for (Project p : allProjects) {
+                if (userProjectIds.contains(p.getId())) {
                     myProjects.add(p);
-                } 
-                else 
-                {
+                } else {
                     otherProjects.add(p);
                 }
             }
-        } 
-        else 
-        {
+        } else {
             // Trống NULL --> Safe Code --> Giúp JSP không bị lỗi
             otherProjects.addAll(allProjects);
         }
 
         request.setAttribute("myProjects", myProjects);
         request.setAttribute("otherProjects", otherProjects);
-        request.setAttribute("projects", allProjects); 
+        request.setAttribute("projects", allProjects);
 
         // 2. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
         Map<Integer, Integer> memberCountMap = new HashMap<>();
-        for (Project p : allProjects) 
-        {
+        for (Project p : allProjects) {
             memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
         }
         request.setAttribute("memberCountMap", memberCountMap);
 
-        // 3. LẤY DANH SÁCH LỜI MỜI / YÊU CẦU ĐANG CHỜ NGƯỜI DÙNG DUYỆT (Hộp thư Dashboard)
-        if (currentUser != null) 
-        {
+        // 3. LẤY DANH SÁCH LỜI MỜI / YÊU CẦU ĐANG CHỜ NGƯỜI DÙNG DUYỆT (Hộp thư
+        // Dashboard)
+        if (currentUser != null) {
             List<ProjectInvite> pendingInvites = ProjectInviteDB.selectPendingByReceiverId(currentUser.getId());
             request.setAttribute("pendingInvites", pendingInvites);
         }
 
         // 4. XỬ LÝ THÔNG BÁO FLASH (Toast Messages)
-        if (session != null) 
-        {
+        if (session != null) {
             String toastSuccess = (String) session.getAttribute("toastSuccess");
-            if (toastSuccess != null) 
-            {
+            if (toastSuccess != null) {
                 request.setAttribute("toastSuccess", toastSuccess);
                 session.removeAttribute("toastSuccess");
             }
             String toastError = (String) session.getAttribute("toastError");
-            if (toastError != null) 
-            {
+            if (toastError != null) {
                 request.setAttribute("toastError", toastError);
                 session.removeAttribute("toastError");
             }
@@ -192,29 +176,27 @@ public class ProjectServlet extends HttpServlet {
 
         String name = request.getParameter("name");
         String description = request.getParameter("description");
-        String projectCode = (request.getParameter("projectCode") != null) 
-                             ? request.getParameter("projectCode").trim().toUpperCase() 
-                             : "";
+        String projectCode = (request.getParameter("projectCode") != null)
+                ? request.getParameter("projectCode").trim().toUpperCase()
+                : "";
 
-        if (name == null || name.trim().isEmpty()) 
-        {
+        if (name == null || name.trim().isEmpty()) {
             request.setAttribute("errorMessage", "Tên dự án không được để trống!");
             showProjectList(request, response);
             return;
         }
 
         // Nếu người dùng tự nhập
-        if (!projectCode.isEmpty()) 
-        {
-            if (!projectCode.matches(PROJECT_CODE_PATTERN)) 
-            {
-                request.setAttribute("errorMessage", "Mã dự án từ 3-15 ký tự (chỉ gồm chữ cái, số, dấu '-' hoặc '_', không có khoảng trắng)!");
+        if (!projectCode.isEmpty()) {
+            if (!projectCode.matches(PROJECT_CODE_PATTERN)) {
+                request.setAttribute("errorMessage",
+                        "Mã dự án từ 3-15 ký tự (chỉ gồm chữ cái, số, dấu '-' hoặc '_', không có khoảng trắng)!");
                 showProjectList(request, response);
                 return;
             }
-            if (ProjectDB.selectByCode(projectCode) != null) 
-            {
-                request.setAttribute("errorMessage", "Mã dự án [" + projectCode + "] đã tồn tại trên hệ thống. Vui lòng chọn mã khác!");
+            if (ProjectDB.selectByCode(projectCode) != null) {
+                request.setAttribute("errorMessage",
+                        "Mã dự án [" + projectCode + "] đã tồn tại trên hệ thống. Vui lòng chọn mã khác!");
                 showProjectList(request, response);
                 return;
             }
@@ -224,32 +206,31 @@ public class ProjectServlet extends HttpServlet {
         String createdAt = LocalDateTime.now().format(formatter);
 
         Project newProject = new Project(
-            0,
-            projectCode,
-            name.trim(),
-            (description != null ? description.trim() : ""),
-            currentUser.getId(),
-            createdAt,
-            0,
-            0
-        );
+                0,
+                projectCode,
+                name.trim(),
+                (description != null ? description.trim() : ""),
+                currentUser.getId(),
+                createdAt,
+                0,
+                0);
 
         int newProjectId = ProjectDB.insert(newProject);
 
         // TỰ ĐỘNG ĐĂNG KÝ NGƯỜI TẠO LÀM OWNER TRONG PROJECTMEMBERDB
         ProjectMember ownerMember = new ProjectMember(
-            newProjectId,
-            currentUser.getId(),
-            currentUser.getFullName(),
-            currentUser.getEmail(),
-            currentUser.getRole(),
-            "OWNER",
-            createdAt
-        );
+                newProjectId,
+                currentUser.getId(),
+                currentUser.getFullName(),
+                currentUser.getEmail(),
+                currentUser.getRole(),
+                "OWNER",
+                createdAt);
         ProjectMemberDB.insert(ownerMember);
 
         HttpSession session = request.getSession();
-        session.setAttribute("toastSuccess", "Đã khởi tạo dự án [" + newProject.getName() + " (" + newProject.getProjectCode() + ")] thành công!");
+        session.setAttribute("toastSuccess",
+                "Đã khởi tạo dự án [" + newProject.getName() + " (" + newProject.getProjectCode() + ")] thành công!");
         response.sendRedirect(request.getContextPath() + "/project?action=list");
     }
 
@@ -261,18 +242,14 @@ public class ProjectServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String projectIdStr = request.getParameter("projectId");
-        try 
-        {
+        try {
             int projectId = Integer.parseInt(projectIdStr);
             Project project = ProjectDB.selectById(projectId);
-            if (project != null) 
-            {
+            if (project != null) {
                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                 return;
             }
-        } 
-        catch (NumberFormatException e) 
-        {
+        } catch (NumberFormatException e) {
             // Không làm gì, để rơi xuống redirect
         }
         response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -404,7 +381,8 @@ public class ProjectServlet extends HttpServlet {
                 }
             }
 
-            int memberCompletionRate = assignedCount > 0 ? (int) Math.round((double) memberDone * 100 / assignedCount) : 0;
+            int memberCompletionRate = assignedCount > 0 ? (int) Math.round((double) memberDone * 100 / assignedCount)
+                    : 0;
             double avgRating = ratedTasksCount > 0 ? ((double) totalRating / ratedTasksCount) : 0.0;
 
             stat.put("assignedCount", assignedCount);
@@ -418,7 +396,57 @@ public class ProjectServlet extends HttpServlet {
             memberStats.add(stat);
         }
 
-        // 6. Đưa dữ liệu sang View
+        // 6. Trích xuất các điểm nghẽn & rủi ro khẩn cấp (Critical Blockers & At-Risk
+        // Tasks)
+        List<Task> criticalBlockers = new ArrayList<>();
+        for (Task t : tasks) {
+            boolean isOverdue = t.isOverdue();
+            boolean isProblematic = "REJECTED".equalsIgnoreCase(t.getStatus())
+                    || "REVISE".equalsIgnoreCase(t.getStatus());
+            if (isOverdue || isProblematic) {
+                criticalBlockers.add(t);
+            }
+        }
+        // Sắp xếp ưu tiên: Task mức HIGH lên đầu, sau đó tới MEDIUM, LOW
+        criticalBlockers.sort((t1, t2) -> {
+            int p1 = "HIGH".equalsIgnoreCase(t1.getPriority()) ? 3
+                    : ("MEDIUM".equalsIgnoreCase(t1.getPriority()) ? 2 : 1);
+            int p2 = "HIGH".equalsIgnoreCase(t2.getPriority()) ? 3
+                    : ("MEDIUM".equalsIgnoreCase(t2.getPriority()) ? 2 : 1);
+            return Integer.compare(p2, p1);
+        });
+
+        // 7. Đánh giá sức khỏe dự án chuẩn SaaS Executive (Health Status Indicator)
+        String projectHealth;
+        String healthLabel;
+        String healthBadgeClass;
+        String healthIcon;
+        String healthDescription;
+
+        int blockerCount = criticalBlockers.size();
+        if (overdueCount == 0 && rejectedCount == 0 && reviseCount == 0) {
+            projectHealth = "HEALTHY";
+            healthLabel = "Dự Án Đúng Tiến Độ (On Track)";
+            healthBadgeClass = "badge-health-healthy";
+            healthIcon = "bi-check-circle-fill";
+            healthDescription = "Tất cả công việc đang vận hành theo đúng kế hoạch, không có task nào bị trễ hạn hoặc tắc nghẽn.";
+        } else if (overdueCount <= 2 && (rejectedCount + reviseCount) <= 2) {
+            projectHealth = "AT_RISK";
+            healthLabel = "Có Nguy Cơ Chậm Trễ (At Risk)";
+            healthBadgeClass = "badge-health-warning";
+            healthIcon = "bi-exclamation-circle-fill";
+            healthDescription = "Phát sinh " + overdueCount
+                    + " công việc quá hạn hoặc cần chỉnh sửa. Cần Task Lead bám sát tiến độ.";
+        } else {
+            projectHealth = "CRITICAL";
+            healthLabel = "Cần Can Thiệp Khẩn Cấp (Critical)";
+            healthBadgeClass = "badge-health-critical";
+            healthIcon = "bi-exclamation-triangle-fill";
+            healthDescription = "Dự án có " + blockerCount
+                    + " điểm nghẽn nghiêm trọng vượt ngưỡng an toàn. Yêu cầu PM và đội ngũ xử lý ngay.";
+        }
+
+        // 8. Đưa toàn bộ dữ liệu sang View
         request.setAttribute("project", project);
         request.setAttribute("members", members);
         request.setAttribute("memberCount", members.size());
@@ -443,7 +471,16 @@ public class ProjectServlet extends HttpServlet {
         request.setAttribute("lowPriorityCount", lowPriorityCount);
 
         request.setAttribute("memberStats", memberStats);
-        request.setAttribute("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+        request.setAttribute("criticalBlockers", criticalBlockers);
+        request.setAttribute("blockerCount", blockerCount);
+        request.setAttribute("projectHealth", projectHealth);
+        request.setAttribute("healthLabel", healthLabel);
+        request.setAttribute("healthBadgeClass", healthBadgeClass);
+        request.setAttribute("healthIcon", healthIcon);
+        request.setAttribute("healthDescription", healthDescription);
+
+        request.setAttribute("generatedAt",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
 
         request.getRequestDispatcher("/project_report.jsp").forward(request, response);
     }

@@ -105,77 +105,531 @@
     font-size: 0.85rem;
 }
 
+/* 6. Executive Health Indicators */
+.badge-health-healthy {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+}
+
+.badge-health-warning {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+}
+
+.badge-health-critical {
+    background-color: #fff1f2 !important;
+    color: #be123c !important;
+    border: 1px solid #fecdd3 !important;
+}
+
+/* 7. Blocker & Risk Spotlight Cards */
+.blocker-spotlight-card {
+    border-left: 4px solid #ef4444 !important;
+    background-color: #fffafb;
+    border-radius: 14px;
+    border-top: 1px solid #fee2e2;
+    border-right: 1px solid #fee2e2;
+    border-bottom: 1px solid #fee2e2;
+    padding: 16px 20px;
+}
+
+.blocker-item {
+    background-color: #ffffff;
+    border: 1px solid #fecdd3;
+    border-radius: 10px;
+    padding: 10px 14px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.blocker-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);
+}
+
+.no-blocker-card {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    border-radius: 14px;
+    padding: 14px 20px;
+}
+
+/* 8. Interactive Filter Bar & Controls */
+.report-filter-bar {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 12px;
+}
+
+.filter-tab-btn {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-tab-btn:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+}
+
+.filter-tab-btn.active {
+    background-color: #0f172a;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+}
+
+.filter-tab-btn .badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+}
+
+.filter-tab-btn.active .badge {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.report-search-input {
+    border-radius: 999px;
+    font-size: 0.8rem;
+    padding-left: 36px;
+    border: 1px solid #cbd5e1;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.report-search-input:focus {
+    background-color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.report-search-wrap {
+    position: relative;
+    max-width: 280px;
+    width: 100%;
+}
+
+.report-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
 /* ==========================================================================
-   6. CSS CHUYÊN BIỆT DÀNH CHO IN ẤN KHỔ GIẤY A4 (@media print)
+   9. CSS CHUYÊN BIỆT DÀNH CHO IN ẤN KHỔ GIẤY A4 (@media print)
    ========================================================================== */
 @media print {
     @page {
-        size: A4;
-        margin: 12mm 15mm 15mm 15mm;
+        size: A4 portrait;
+        margin: 10mm 12mm 12mm 12mm;
     }
 
-    nav, .navbar, footer, .footer, .no-print, .btn, .breadcrumb {
+    /* 1. Ẩn toàn bộ thanh điều hướng, nút bấm, menu, popup khi in */
+    nav,
+    .navbar,
+    footer,
+    .footer,
+    .no-print,
+    .btn,
+    .breadcrumb,
+    .dropdown,
+    #copyToast,
+    .toast,
+    .modal,
+    header {
         display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
+    /* 2. Thiết lập Body & Container vừa khít khổ giấy A4, không tràn viền */
+    html,
     body {
         background-color: #ffffff !important;
         color: #0f172a !important;
-        font-size: 10pt !important;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        font-size: 8.5pt !important;
+        line-height: 1.4 !important;
         padding: 0 !important;
         margin: 0 !important;
+        width: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
-    .container, .container-fluid {
+    .container,
+    .container-fluid {
         max-width: 100% !important;
+        width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
     }
 
-    .report-header-badge {
-        background: #f8fafc !important;
-        color: #0f172a !important;
-        border: 2px solid #0f172a !important;
-        box-shadow: none !important;
-        padding: 16px !important;
-        border-radius: 8px !important;
+    /* 3. KHẮC PHỤC TRIỆT ĐỂ THANH KÉO NGANG (HORIZONTAL SCROLLBAR):
+          Bỏ cơ chế overflow-x: auto của Bootstrap, ép toàn bộ bảng bung 100% */
+    .table-responsive {
+        overflow: visible !important;
+        overflow-x: visible !important;
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
-    .report-header-badge h2,
-    .report-header-badge h3,
-    .report-header-badge p,
-    .report-header-badge span {
-        color: #0f172a !important;
+    /* 4. Table Layout cố định (fixed) để bảng chia cột chuẩn, tự động ngắt dòng */
+    .report-table,
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        page-break-inside: auto;
     }
 
-    .report-stat-card {
-        border: 1px solid #cbd5e1 !important;
-        box-shadow: none !important;
-        padding: 10px 12px !important;
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    .report-table th,
+    .report-table td {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        border: 1px solid #94a3b8 !important;
+        padding: 5px 6px !important;
+        font-size: 8pt !important;
+        vertical-align: top !important;
+        color: #0f172a !important;
     }
 
     .report-table th {
-        background-color: #f1f5f9 !important;
+        background-color: #e2e8f0 !important;
         color: #0f172a !important;
-        border: 1px solid #cbd5e1 !important;
-        font-size: 8pt !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        font-size: 7.5pt !important;
+        border-bottom: 2px solid #475569 !important;
     }
 
-    .report-table td {
-        border: 1px solid #cbd5e1 !important;
-        font-size: 8.5pt !important;
-        padding: 4px 6px !important;
+    /* 5. Phân chia tỉ lệ % cột chuẩn vừa khít A4 cho Bảng Thành Viên */
+    #membersPerformanceTable th:nth-child(1),
+    #membersPerformanceTable td:nth-child(1) {
+        width: 5%;
+        text-align: center;
     }
 
-    .badge {
-        border: 1px solid #64748b !important;
+    /* STT */
+    #membersPerformanceTable th:nth-child(2),
+    #membersPerformanceTable td:nth-child(2) {
+        width: 23%;
+    }
+
+    /* Thành viên */
+    #membersPerformanceTable th:nth-child(3),
+    #membersPerformanceTable td:nth-child(3) {
+        width: 14%;
+    }
+
+    /* Chuyên môn / Vai trò */
+    #membersPerformanceTable th:nth-child(4),
+    #membersPerformanceTable td:nth-child(4) {
+        width: 7%;
+        text-align: center;
+    }
+
+    /* Được giao */
+    #membersPerformanceTable th:nth-child(5),
+    #membersPerformanceTable td:nth-child(5) {
+        width: 8%;
+        text-align: center;
+    }
+
+    /* Hoàn thành */
+    #membersPerformanceTable th:nth-child(6),
+    #membersPerformanceTable td:nth-child(6) {
+        width: 7%;
+        text-align: center;
+    }
+
+    /* Đang làm */
+    #membersPerformanceTable th:nth-child(7),
+    #membersPerformanceTable td:nth-child(7) {
+        width: 7%;
+        text-align: center;
+    }
+
+    /* Quá hạn */
+    #membersPerformanceTable th:nth-child(8),
+    #membersPerformanceTable td:nth-child(8) {
+        width: 15%;
+        text-align: center;
+    }
+
+    /* Tiến độ */
+    #membersPerformanceTable th:nth-child(9),
+    #membersPerformanceTable td:nth-child(9) {
+        width: 14%;
+        text-align: center;
+    }
+
+    /* Đánh giá TB */
+
+    /* 6. Phân chia tỉ lệ % cột chuẩn vừa khít A4 cho Bảng Danh Sách Công Việc */
+    #tasksInventoryTable th:nth-child(1),
+    #tasksInventoryTable td:nth-child(1) {
+        width: 6%;
+        text-align: center;
+    }
+
+    /* Mã # */
+    #tasksInventoryTable th:nth-child(2),
+    #tasksInventoryTable td:nth-child(2) {
+        width: 28%;
+    }
+
+    /* Tên + Mô tả đầy đủ */
+    #tasksInventoryTable th:nth-child(3),
+    #tasksInventoryTable td:nth-child(3) {
+        width: 13%;
+    }
+
+    /* Người Phụ Trách */
+    #tasksInventoryTable th:nth-child(4),
+    #tasksInventoryTable td:nth-child(4) {
+        width: 9%;
+        text-align: center;
+    }
+
+    /* Ưu Tiên */
+    #tasksInventoryTable th:nth-child(5),
+    #tasksInventoryTable td:nth-child(5) {
+        width: 10%;
+        text-align: center;
+    }
+
+    /* Hạn Chót */
+    #tasksInventoryTable th:nth-child(6),
+    #tasksInventoryTable td:nth-child(6) {
+        width: 11%;
+        text-align: center;
+    }
+
+    /* Trạng Thái */
+    #tasksInventoryTable th:nth-child(7),
+    #tasksInventoryTable td:nth-child(7) {
+        width: 8%;
+        text-align: center;
+    }
+
+    /* Đánh Giá */
+    #tasksInventoryTable th:nth-child(8),
+    #tasksInventoryTable td:nth-child(8) {
+        width: 15%;
+    }
+
+    /* Ghi Chú Nghiệm Thu */
+
+    /* 7. HIỂN THỊ TRỌN VẸN NỘI DUNG (Bỏ hoàn toàn việc cắt ngắn bằng dấu ...) */
+    .report-desc-truncate,
+    .text-truncate {
+        max-width: none !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        word-break: break-word !important;
+        display: block !important;
+    }
+
+    /* 8. Ẩn avatar hình tròn trong bảng để dành trọn diện tích cho Họ Tên & Email */
+    .report-avatar,
+    .avatar-circle {
+        display: none !important;
+    }
+
+    /* ==========================================================================
+       TỐI ƯU MÀU SẮC ĐỘ TƯƠNG PHẢN CAO TRÊN GIẤY TRẮNG (HIGH CONTRAST PRINT)
+       ========================================================================== */
+    /* Triệt tiêu hoàn toàn màu chữ trắng hoặc màu mờ (text-white-50) */
+    .text-white,
+    .text-white-50,
+    .text-light {
         color: #0f172a !important;
-        background: transparent !important;
     }
 
-    .card {
-        border: 1px solid #cbd5e1 !important;
+    /* Màu chữ xám chuyển sang màu than đậm #334155 dễ đọc trên bản in */
+    .text-muted,
+    .text-secondary,
+    .text-black-50 {
+        color: #334155 !important;
+        font-weight: 500 !important;
+    }
+
+    .text-dark {
+        color: #0f172a !important;
+        font-weight: 600 !important;
+    }
+
+    /* Banner Tiêu Đề Báo Cáo: Nền xám trang nhã, chữ đen đậm tương phản 100% */
+    .report-header-badge {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 2px solid #0f172a !important;
         box-shadow: none !important;
+        padding: 14px 18px !important;
+        border-radius: 6px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .report-header-badge * {
+        color: #0f172a !important;
+    }
+
+    .report-header-badge h2 {
+        font-size: 14pt !important;
+        font-weight: 800 !important;
+        color: #0f172a !important;
+        margin-bottom: 4px !important;
+    }
+
+    .report-header-badge p {
+        color: #334155 !important;
+        font-size: 8.5pt !important;
+    }
+
+    /* Thẻ Card Thống Kê KPI: Viền rõ ràng, số to đậm */
+    .report-stat-card {
+        border: 1px solid #94a3b8 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+    }
+
+    .report-card-title {
+        color: #334155 !important;
+        font-size: 7.5pt !important;
+        font-weight: 700 !important;
+    }
+
+    .report-stat-number {
+        color: #0f172a !important;
+        font-size: 14pt !important;
+        font-weight: 800 !important;
+    }
+
+    /* Huy hiệu (Badge): Chữ đậm, viền sắc nét, nền sáng dễ đọc */
+    .badge {
+        border: 1px solid #94a3b8 !important;
+        color: #0f172a !important;
+        background: #f8fafc !important;
+        font-weight: 600 !important;
+        font-size: 7.5pt !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        display: inline-block !important;
+        white-space: normal !important;
+    }
+
+    /* Phối màu chữ đậm (có độ tối) theo từng trạng thái */
+    .badge.bg-success,
+    .badge.text-success,
+    .text-success {
+        color: #14532d !important;
+        /* Xanh lá đậm */
+        font-weight: 700 !important;
+    }
+
+    .badge.bg-danger,
+    .badge.text-danger,
+    .text-danger {
+        color: #991b1b !important;
+        /* Đỏ đô đậm */
+        font-weight: 700 !important;
+    }
+
+    .badge.bg-warning,
+    .badge.text-warning,
+    .text-warning,
+    .text-warning-emphasis {
+        color: #78350f !important;
+        /* Nâu hổ phách đậm */
+        font-weight: 700 !important;
+    }
+
+    .badge.bg-info,
+    .badge.text-info,
+    .text-info,
+    .text-info-emphasis {
+        color: #0e7490 !important;
+        /* Xanh dương đậm */
+        font-weight: 700 !important;
+    }
+
+    .badge.bg-primary,
+    .badge.text-primary,
+    .text-primary {
+        color: #1e3a8a !important;
+        /* Xanh Navy đậm */
+        font-weight: 700 !important;
+    }
+
+    /* Thanh tiến độ in rõ ràng */
+    .progress {
+        background-color: #e2e8f0 !important;
+        border: 1px solid #94a3b8 !important;
+        height: 8px !important;
+        border-radius: 4px !important;
+        overflow: hidden !important;
+    }
+
+    .progress-bar {
+        print-color-adjust: exact !important;
+        -webkit-print-color-adjust: exact !important;
+    }
+
+    .progress-bar.bg-success {
+        background-color: #16a34a !important;
+    }
+
+    .progress-bar.bg-danger {
+        background-color: #dc2626 !important;
+    }
+
+    .progress-bar.bg-warning {
+        background-color: #d97706 !important;
+    }
+
+    .progress-bar.bg-info {
+        background-color: #0284c7 !important;
+    }
+
+    /* Thẻ bao ngoài và khung khối */
+    .card,
+    .bg-white {
+        border: 1px solid #94a3b8 !important;
+        box-shadow: none !important;
+        background-color: #ffffff !important;
     }
 
     .avoid-break {

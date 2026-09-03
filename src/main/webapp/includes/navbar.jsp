@@ -16,7 +16,7 @@
 %>
 
 <!-- Top Navbar: Đậm nét, Sang trọng (Dark Navy Slate #0f172a) - Tương phản cao 100% -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark-navy sticky-top shadow py-2" data-bs-theme="dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark-navy sticky-top shadow py-2 no-print" data-bs-theme="dark">
     <div class="container-fluid px-3 px-lg-4">
         
         <!-- Logo & Brand Name -->

@@ -874,6 +874,36 @@ body {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+/* ==========================================================================
+   GLOBAL PRINT UTILITIES (@media print)
+   ========================================================================== */
+@media print {
+    nav,
+    .navbar,
+    footer,
+    .footer,
+    .no-print,
+    .btn,
+    .breadcrumb,
+    .toast,
+    .modal,
+    #copyToast,
+    .navbar-toggler {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
+
 
 
 

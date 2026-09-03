@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!-- Footer -->
-<footer class="footer mt-auto py-3 bg-white border-top">
+<footer class="footer mt-auto py-3 bg-white border-top no-print">
     <div class="container text-center text-muted fs-8">
         <div class="d-flex flex-wrap justify-content-between align-items-center">
             <p class="col-md-4 mb-0 text-start">

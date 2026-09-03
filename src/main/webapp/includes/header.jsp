@@ -30,9 +30,10 @@
                 href="${pageContext.request.contextPath}/styles/main.css?v=<%= System.currentTimeMillis() %>">
 
             <!-- CSS Bổ sung riêng cho từng trang trong HEAD với Cache-Busting -->
-            <c:if test="${not empty extraCss}">
+            <c:set var="resolvedCss" value="${not empty extraCss ? extraCss : (not empty requestScope.extraCss ? requestScope.extraCss : param.extraCss)}" />
+            <c:if test="${not empty resolvedCss}">
                 <link rel="stylesheet"
-                    href="${pageContext.request.contextPath}/${extraCss}?v=<%= System.currentTimeMillis() %>">
+                    href="${pageContext.request.contextPath}/${resolvedCss}?v=<%= System.currentTimeMillis() %>">
             </c:if>
         </head>
 
