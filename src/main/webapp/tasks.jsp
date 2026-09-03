@@ -217,6 +217,9 @@
                              data-task-title="<c:out value='${task.title}' />"
                              data-task-priority="${task.priority}"
                              data-task-assignee="<c:out value='${task.assigneeName}' />"
+                             data-assignee-id="${task.assigneeId}"
+                             data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
+                             data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                              data-task-labels="${task.labels}"
                              data-bs-toggle="modal" 
                              data-bs-target="#taskDetailModal-${task.id}"
@@ -333,6 +336,9 @@
                              data-task-title="<c:out value='${task.title}' />"
                              data-task-priority="${task.priority}"
                              data-task-assignee="<c:out value='${task.assigneeName}' />"
+                             data-assignee-id="${task.assigneeId}"
+                             data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
+                             data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                              data-task-labels="${task.labels}"
                              data-bs-toggle="modal" 
                              data-bs-target="#taskDetailModal-${task.id}"
@@ -1181,19 +1187,64 @@
                                 </div>
 
                                 <!-- Thao tác nhanh -->
-                                <div class="task-sidebar-section-title">
-                                    <i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh
+                                <c:set var="hasAssignee" value="${task.assigneeId > 0}" />
+                                <c:set var="subTaskCount" value="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}" />
+                                <c:set var="canStartTask" value="${hasAssignee && subTaskCount > 0}" />
+
+                                <div class="task-sidebar-section-title d-flex align-items-center justify-content-between mb-2">
+                                    <span><i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh</span>
+                                    <c:choose>
+                                        <c:when test="${canStartTask}">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 fs-9">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Đủ điều kiện
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 fs-9">
+                                                <i class="bi bi-lock-fill me-1"></i> Chưa đủ điều kiện
+                                            </span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
+
                                 <div class="d-flex flex-column gap-2 mb-3">
-                                    <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
-                                        <input type="hidden" name="action" value="updateStatus">
-                                        <input type="hidden" name="projectId" value="${project.id}">
-                                        <input type="hidden" name="taskId" value="${task.id}">
-                                        <input type="hidden" name="status" value="IN_PROGRESS">
-                                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1">
-                                            <i class="bi bi-play-circle-fill"></i> Bắt đầu làm việc (→ In Progress)
-                                        </button>
-                                    </form>
+                                    <c:choose>
+                                        <c:when test="${canStartTask}">
+                                            <!-- NÚT BỪNG SÁNG: Đầy đủ Task Lead & Việc con -->
+                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                <input type="hidden" name="action" value="updateStatus">
+                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                <input type="hidden" name="taskId" value="${task.id}">
+                                                <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                                <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
+                                                        style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                                                    <i class="bi bi-play-circle-fill fs-7"></i> Bắt đầu làm việc (→ In Progress) ✨
+                                                </button>
+                                            </form>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <!-- NÚT MỜ / VÔ HIỆU HÓA KHI THIẾU ĐIỀU KIỆN -->
+                                            <button type="button" class="btn btn-light text-muted border border-secondary-subtle btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1 opacity-75" 
+                                                    disabled title="Cần thỏa mãn các điều kiện bên dưới để mở khóa nút này">
+                                                <i class="bi bi-lock-fill text-secondary"></i> Bắt đầu làm việc (→ In Progress)
+                                            </button>
+                                            
+                                            <!-- Bảng kiểm tra điều kiện tường minh -->
+                                            <div class="p-2.5 bg-light rounded-3 border fs-9 text-secondary mt-1">
+                                                <div class="fw-bold text-dark mb-1 pb-1 border-bottom fs-9">
+                                                    <i class="bi bi-shield-lock text-primary me-1"></i> Ràng buộc để mở khóa:
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1.5 ${hasAssignee ? 'text-success fw-semibold' : 'text-danger'}">
+                                                    <i class="bi ${hasAssignee ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                                    <span>${hasAssignee ? 'Đã gán người phụ trách (' : 'Chưa phân công (Bấm nút "Chỉnh sửa" ở trên)'}${hasAssignee ? task.assigneeName : ''}${hasAssignee ? ')' : ''}</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-1.5 ${subTaskCount > 0 ? 'text-success fw-semibold' : 'text-danger'} mt-1">
+                                                    <i class="bi ${subTaskCount > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                                    <span>${subTaskCount > 0 ? 'Đã có kế hoạch (' : 'Chưa có việc con (Tạo ít nhất 1 việc con ở mục dưới)'}${subTaskCount > 0 ? subTaskCount : ''}${subTaskCount > 0 ? ' việc con)' : ''}</span>
+                                                </div>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
 
                                 <!-- Hội thoại của Task -->
@@ -2338,19 +2389,57 @@
                                 </div>
 
                                 <!-- Thao tác nhanh -->
-                                <div class="task-sidebar-section-title">
-                                    <i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh
+                                <c:set var="currentProgress" value="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}" />
+                                <c:set var="canCompleteTask" value="${currentProgress == 100}" />
+
+                                <div class="task-sidebar-section-title d-flex align-items-center justify-content-between mb-2">
+                                    <span><i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh</span>
+                                    <c:choose>
+                                        <c:when test="${canCompleteTask}">
+                                            <span class="badge bg-success text-white rounded-pill px-2 fs-9">
+                                                <i class="bi bi-check-all me-1"></i> Đủ 100%
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 fs-9">
+                                                <i class="bi bi-clock-history me-1"></i> Đạt ${currentProgress}%
+                                            </span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
+
                                 <div class="d-flex flex-column gap-2 mb-3">
-                                    <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
-                                        <input type="hidden" name="action" value="updateStatus">
-                                        <input type="hidden" name="projectId" value="${project.id}">
-                                        <input type="hidden" name="taskId" value="${task.id}">
-                                        <input type="hidden" name="status" value="DONE">
-                                        <button type="submit" class="btn btn-outline-success btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1">
-                                            <i class="bi bi-check-circle-fill"></i> Đánh dấu Hoàn thành (→ Done)
-                                        </button>
-                                    </form>
+                                    <c:choose>
+                                        <c:when test="${canCompleteTask}">
+                                            <!-- NÚT BỪNG SÁNG XANH LÁ: Đã hoàn thành 100% -->
+                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                <input type="hidden" name="action" value="updateStatus">
+                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                <input type="hidden" name="taskId" value="${task.id}">
+                                                <input type="hidden" name="newStatus" value="DONE">
+                                                <button type="submit" class="btn btn-success btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
+                                                        style="background: linear-gradient(135deg, #16a34a, #15803d);">
+                                                    <i class="bi bi-check-circle-fill fs-7"></i> Đánh dấu Hoàn thành (→ Done) 🎉
+                                                </button>
+                                            </form>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <!-- NÚT MỜ / VÔ HIỆU HÓA: Chưa đủ 100% -->
+                                            <button type="button" class="btn btn-light text-muted border border-secondary-subtle btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1 opacity-75" 
+                                                    disabled title="Cần hoàn thành và nghiệm thu đủ 100% việc con để mở khóa">
+                                                <i class="bi bi-lock-fill text-secondary"></i> Đánh dấu Hoàn thành (→ Done)
+                                            </button>
+                                            <div class="p-2.5 bg-light rounded-3 border fs-9 text-secondary mt-1">
+                                                <div class="d-flex align-items-center gap-1.5 text-warning fw-semibold mb-1">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                    <span>Tiến độ hiện tại: ${currentProgress}%</span>
+                                                </div>
+                                                <div class="text-muted fs-9">
+                                                    Cần hoàn thành và nghiệm thu đủ <strong>100% việc con</strong> để mở khóa nút hoàn tất công việc.
+                                                </div>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </div>
 
                                 <!-- Hội thoại của Task -->
