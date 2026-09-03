@@ -24,7 +24,7 @@
                     <span class="fs-8 text-muted">Kênh Thảo luận & Trao đổi nhóm</span>
                 </div>
 
-                <!-- 3 Nút chuyển phân hệ nhanh: Kanban / Docs / Chat -->
+                <!-- 4 Nút chuyển phân hệ nhanh: Kanban / Docs / Chat / Báo cáo -->
                 <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
                     <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
                        class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
@@ -37,6 +37,11 @@
                     <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
                        class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8">
                         <i class="bi bi-chat-dots me-1"></i> Thảo luận
+                    </a>
+                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
+                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"
+                       title="Xem báo cáo tổng hợp tiến độ và đánh giá">
+                        <i class="bi bi-file-earmark-bar-graph me-1"></i> Báo cáo
                     </a>
                 </div>
             </div>

@@ -1,0 +1,188 @@
+/* ==========================================================================
+   TEAMWORK HUB — STYLESHEET DÀNH CHO TRANG BÁO CÁO TIẾN ĐỘ DỰ ÁN
+   File: styles/report.css
+   Mục đích: Tách toàn bộ định dạng và CSS in ấn A4 ra khỏi file JSP
+   ========================================================================== */
+
+/* 1. Header Banner Báo Cáo */
+.report-header-badge {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #ffffff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+.report-project-desc {
+    max-width: 750px;
+}
+
+/* 2. Thẻ Chỉ Số KPI (Executive Summary Cards) */
+.report-stat-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 16px 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.report-stat-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.report-card-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+/* 3. Thanh Tiến Độ (Progress Bars) */
+.progress-bar-custom {
+    height: 12px;
+    border-radius: 999px;
+    background-color: #e2e8f0;
+    overflow: hidden;
+}
+
+.progress-mini {
+    height: 6px;
+}
+
+/* 4. Bảng Dữ Liệu Báo Cáo */
+.report-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.report-table td {
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+.report-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+}
+
+.report-desc-truncate {
+    max-width: 320px;
+}
+
+.col-w-id {
+    width: 50px;
+}
+
+.col-w-progress {
+    width: 140px;
+}
+
+.min-w-rate {
+    min-width: 35px;
+}
+
+/* 5. Khung Ký Xác Nhận Báo Cáo */
+.signature-box {
+    border-top: 1px dashed #94a3b8;
+    padding-top: 8px;
+    margin-top: 60px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   6. CSS CHUYÊN BIỆT DÀNH CHO IN ẤN KHỔ GIẤY A4 (@media print)
+   ========================================================================== */
+@media print {
+    @page {
+        size: A4;
+        margin: 12mm 15mm 15mm 15mm;
+    }
+
+    nav, .navbar, footer, .footer, .no-print, .btn, .breadcrumb {
+        display: none !important;
+    }
+
+    body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 10pt !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .container, .container-fluid {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .report-header-badge {
+        background: #f8fafc !important;
+        color: #0f172a !important;
+        border: 2px solid #0f172a !important;
+        box-shadow: none !important;
+        padding: 16px !important;
+        border-radius: 8px !important;
+    }
+
+    .report-header-badge h2,
+    .report-header-badge h3,
+    .report-header-badge p,
+    .report-header-badge span {
+        color: #0f172a !important;
+    }
+
+    .report-stat-card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+        padding: 10px 12px !important;
+    }
+
+    .report-table th {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        font-size: 8pt !important;
+    }
+
+    .report-table td {
+        border: 1px solid #cbd5e1 !important;
+        font-size: 8.5pt !important;
+        padding: 4px 6px !important;
+    }
+
+    .badge {
+        border: 1px solid #64748b !important;
+        color: #0f172a !important;
+        background: transparent !important;
+    }
+
+    .card {
+        border: 1px solid #cbd5e1 !important;
+        box-shadow: none !important;
+    }
+
+    .avoid-break {
+        page-break-inside: avoid;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+}

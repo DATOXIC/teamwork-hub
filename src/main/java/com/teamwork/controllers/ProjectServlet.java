@@ -1,12 +1,17 @@
 package com.teamwork.controllers;
 
+import com.teamwork.business.Doc;
 import com.teamwork.business.Project;
 import com.teamwork.business.ProjectInvite;
 import com.teamwork.business.ProjectMember;
+import com.teamwork.business.Task;
 import com.teamwork.business.User;
+import com.teamwork.data.DocDB;
+import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
+import com.teamwork.data.TaskDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -57,6 +62,9 @@ public class ProjectServlet extends HttpServlet {
                 break;
             case "detail":
                 showProjectDetail(request, response);
+                break;
+            case "report":
+                showProjectReport(request, response, currentUserCheck);
                 break;
             default:
                 showProjectList(request, response);
@@ -268,5 +276,175 @@ public class ProjectServlet extends HttpServlet {
             // Không làm gì, để rơi xuống redirect
         }
         response.sendRedirect(request.getContextPath() + "/project?action=list");
+    }
+
+    /**
+     * Nghiệp vụ 4: Xem và xuất Báo Cáo Tiến Độ Dự Án (Project Summary Report)
+     */
+    private void showProjectReport(HttpServletRequest request, HttpServletResponse response, User currentUser)
+            throws ServletException, IOException {
+
+        String projectIdStr = request.getParameter("projectId");
+        int projectId = 0;
+        try {
+            if (projectIdStr != null) {
+                projectId = Integer.parseInt(projectIdStr.trim());
+            }
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        if (projectId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // 1. Lấy thông tin dự án
+        Project project = ProjectDB.selectById(projectId);
+        if (project == null) {
+            HttpSession session = request.getSession();
+            session.setAttribute("toastError", "Không tìm thấy dự án được yêu cầu!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // 2. Kiểm tra tư cách thành viên trong dự án
+        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            HttpSession session = request.getSession();
+            session.setAttribute("toastError", "Bạn không có quyền truy cập báo cáo của dự án này!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // 3. Truy xuất dữ liệu liên quan
+        List<ProjectMember> members = ProjectMemberDB.selectByProjectId(projectId);
+        List<Task> tasks = TaskDB.selectByProjectId(projectId);
+        List<Doc> docs = DocDB.selectByProjectId(projectId);
+        int messageCount = MessageDB.countByProject(projectId);
+
+        // 4. Tính toán thống kê công việc (Task Metrics)
+        int totalTasks = tasks.size();
+        int doneCount = 0;
+        int inProgressCount = 0;
+        int submittedCount = 0;
+        int planningCount = 0;
+        int todoCount = 0;
+        int reviseCount = 0;
+        int rejectedCount = 0;
+        int overdueCount = 0;
+
+        int highPriorityCount = 0;
+        int mediumPriorityCount = 0;
+        int lowPriorityCount = 0;
+
+        for (Task t : tasks) {
+            String st = t.getStatus();
+            if ("DONE".equalsIgnoreCase(st) || "APPROVED".equalsIgnoreCase(st)) {
+                doneCount++;
+            } else if ("IN_PROGRESS".equalsIgnoreCase(st)) {
+                inProgressCount++;
+            } else if ("SUBMITTED".equalsIgnoreCase(st)) {
+                submittedCount++;
+            } else if ("PLANNING".equalsIgnoreCase(st)) {
+                planningCount++;
+            } else if ("REVISE".equalsIgnoreCase(st)) {
+                reviseCount++;
+            } else if ("REJECTED".equalsIgnoreCase(st)) {
+                rejectedCount++;
+            } else {
+                todoCount++;
+            }
+
+            if (t.isOverdue()) {
+                overdueCount++;
+            }
+
+            String pr = t.getPriority();
+            if ("HIGH".equalsIgnoreCase(pr)) {
+                highPriorityCount++;
+            } else if ("LOW".equalsIgnoreCase(pr)) {
+                lowPriorityCount++;
+            } else {
+                mediumPriorityCount++;
+            }
+        }
+
+        int progressPercentage = totalTasks > 0 ? (int) Math.round((double) doneCount * 100 / totalTasks) : 0;
+
+        // 5. Thống kê năng suất & đóng góp của từng thành viên
+        List<Map<String, Object>> memberStats = new ArrayList<>();
+        for (ProjectMember m : members) {
+            Map<String, Object> stat = new HashMap<>();
+            stat.put("member", m);
+
+            int assignedCount = 0;
+            int memberDone = 0;
+            int memberPending = 0;
+            int memberOverdue = 0;
+            int totalRating = 0;
+            int ratedTasksCount = 0;
+
+            for (Task t : tasks) {
+                if (t.getAssigneeId() == m.getUserId()) {
+                    assignedCount++;
+                    String st = t.getStatus();
+                    if ("DONE".equalsIgnoreCase(st) || "APPROVED".equalsIgnoreCase(st)) {
+                        memberDone++;
+                        if (t.getQualityRating() > 0) {
+                            totalRating += t.getQualityRating();
+                            ratedTasksCount++;
+                        }
+                    } else {
+                        memberPending++;
+                        if (t.isOverdue()) {
+                            memberOverdue++;
+                        }
+                    }
+                }
+            }
+
+            int memberCompletionRate = assignedCount > 0 ? (int) Math.round((double) memberDone * 100 / assignedCount) : 0;
+            double avgRating = ratedTasksCount > 0 ? ((double) totalRating / ratedTasksCount) : 0.0;
+
+            stat.put("assignedCount", assignedCount);
+            stat.put("doneCount", memberDone);
+            stat.put("pendingCount", memberPending);
+            stat.put("overdueCount", memberOverdue);
+            stat.put("completionRate", memberCompletionRate);
+            stat.put("avgRating", String.format(java.util.Locale.US, "%.1f", avgRating));
+            stat.put("ratedTasksCount", ratedTasksCount);
+
+            memberStats.add(stat);
+        }
+
+        // 6. Đưa dữ liệu sang View
+        request.setAttribute("project", project);
+        request.setAttribute("members", members);
+        request.setAttribute("memberCount", members.size());
+        request.setAttribute("tasks", tasks);
+        request.setAttribute("docs", docs);
+        request.setAttribute("docCount", docs.size());
+        request.setAttribute("messageCount", messageCount);
+
+        request.setAttribute("totalTasks", totalTasks);
+        request.setAttribute("doneCount", doneCount);
+        request.setAttribute("inProgressCount", inProgressCount);
+        request.setAttribute("submittedCount", submittedCount);
+        request.setAttribute("planningCount", planningCount);
+        request.setAttribute("todoCount", todoCount);
+        request.setAttribute("reviseCount", reviseCount);
+        request.setAttribute("rejectedCount", rejectedCount);
+        request.setAttribute("overdueCount", overdueCount);
+        request.setAttribute("progressPercentage", progressPercentage);
+
+        request.setAttribute("highPriorityCount", highPriorityCount);
+        request.setAttribute("mediumPriorityCount", mediumPriorityCount);
+        request.setAttribute("lowPriorityCount", lowPriorityCount);
+
+        request.setAttribute("memberStats", memberStats);
+        request.setAttribute("generatedAt", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+
+        request.getRequestDispatcher("/project_report.jsp").forward(request, response);
     }
 }
