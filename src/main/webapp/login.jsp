@@ -44,7 +44,7 @@
                                 class="text-info fw-bold ms-1">Hub</span>
                         </a>
                         <span class="small" style="color: #94a3b8; font-size: 13px;">
-                            <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCMUTE Campus
+                            <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCM-UTE Campus
                         </span>
                     </div>
                 </nav>
@@ -62,8 +62,8 @@
                                             <img src="${pageContext.request.contextPath}/images/ute_logo.png"
                                                 alt="Logo HCMUTE" />
                                             <div class="branding-header-text">
-                                                <h4>TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT TP.HCM</h4>
-                                                <p>Khoa Công nghệ Thông tin &bull; Web Programming</p>
+                                                <h4>TRƯỜNG ĐẠI HỌC CÔNG NGHỆ KỸ THUẬT TP.HCM</h4>
+                                                <p>Khoa Đào tạo Tiên tiến &bull; Web Programming</p>
                                             </div>
                                         </div>
 
@@ -75,7 +75,7 @@
                                                             alt="Cổng trường HCMUTE" />
                                                     </div>
                                                     <div class="branding-hero-badge">
-                                                        <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCMUTE
+                                                        <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCM-UTE
                                                         Campus
                                                     </div>
                                                 </div>
