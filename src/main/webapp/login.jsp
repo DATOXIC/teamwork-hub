@@ -8,6 +8,9 @@
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Đăng nhập &bull; TeamWork Hub</title>
 
+            <!-- Favicon -->
+            <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/images/favicon.png">
+
             <%-- Google Fonts --%>
                 <link rel="preconnect" href="https://fonts.googleapis.com">
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
