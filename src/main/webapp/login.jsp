@@ -245,18 +245,18 @@
                                                                                         </button>
                                                                                         <button type="button"
                                                                                             class="quick-login-btn"
-                                                                                            onclick="fillLogin('binh', 'pass123')">
+                                                                                            onclick="fillLogin('carol', 'carol123')">
                                                                                             <i
                                                                                                 class="bi bi-palette-fill text-info"></i>
-                                                                                            <strong>binh</strong>
-                                                                                            (Design)
+                                                                                            <strong>carol</strong>
+                                                                                            (Designer)
                                                                                         </button>
                                                                                         <button type="button"
                                                                                             class="quick-login-btn"
-                                                                                            onclick="fillLogin('chi', 'pass123')">
+                                                                                            onclick="fillLogin('david', 'david123')">
                                                                                             <i
                                                                                                 class="bi bi-bug-fill text-danger"></i>
-                                                                                            <strong>chi</strong> (QA)
+                                                                                            <strong>david</strong> (QA)
                                                                                         </button>
                                                                                     </div>
                                                                                 </div>
