@@ -50,22 +50,38 @@ public class DBUtil {
             config.setUsername(username);
             config.setPassword(password);
 
-            // Cấu hình tối ưu cho Supabase Pooler Singapore
-            config.setMaximumPoolSize(10);          // Duy trì tối đa 10 kết nối đồng thời
-            config.setMinimumIdle(3);              // Luôn giữ 3 kết nối sẵn sàng (Warm-up)
-            config.setIdleTimeout(60000);          // 60 giây không dùng thì giải phóng bớt
-            config.setConnectionTimeout(10000);     // Chờ lấy kết nối tối đa 10 giây
-            config.setMaxLifetime(600000);         // Tái tạo kết nối mỗi 10 phút để tránh đứt socket
-            config.setKeepaliveTime(30000);        // Bắn ping giữ kết nối mỗi 30 giây
+            // ─── CẤU HÌNH POOL SIZE (Tinh chỉnh cho Render Free 512MB RAM) ───────────
+            // Render Free chỉ có 512MB RAM dùng chung cho JVM + Tomcat + HikariCP.
+            // Mỗi connection JDBC tốn ~10-15MB RAM → Giới hạn 5 connection = ~50-75MB.
+            // Dự án đồ án sinh viên < 10 người dùng đồng thời nên 5 connection là dư.
+            config.setMaximumPoolSize(5);           // Tối đa 5 kết nối đồng thời
+            config.setMinimumIdle(2);               // Luôn giữ 2 kết nối sẵn sàng
 
-            // Tối ưu hóa bộ nhớ đệm Prepared Statement của PostgreSQL Driver
+            // ─── TIMEOUT (Tinh chỉnh cho môi trường Cloud Free - Kết nối bất ổn) ─────
+            config.setConnectionTimeout(15000);     // Chờ lấy kết nối từ pool tối đa 15 giây
+            config.setIdleTimeout(300000);          // 5 phút không dùng mới giải phóng (UptimeRobot ping mỗi 5 phút giữ pool ấm)
+            config.setMaxLifetime(1800000);         // Tái tạo kết nối mỗi 30 phút (tránh bị Supabase server-side timeout)
+            config.setKeepaliveTime(60000);         // Ping giữ kết nối mỗi 60 giây (tránh firewall cắt TCP idle)
+
+            // ─── XÁC THỰC KẾT NỐI (Phòng kết nối "ma" từ Cloud bị đứt ngầm) ─────────
+            config.setConnectionTestQuery("SELECT 1");  // Kiểm tra kết nối còn sống trước khi dùng
+            config.setValidationTimeout(3000);          // Timeout kiểm tra tối đa 3 giây
+
+            // ─── TỐI ƯU HOÁ PREPARED STATEMENT CACHE ─────────────────────────────────
+            // Cache lại các câu lệnh SQL đã biên dịch (Giảm 30-50% overhead mỗi query)
             config.addDataSourceProperty("cachePrepStmts", "true");
-            config.addDataSourceProperty("prepStmtCacheSize", "250");
-            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            config.addDataSourceProperty("tcpKeepAlive", "true");
+            config.addDataSourceProperty("prepStmtCacheSize", "250");       // Cache 250 câu SQL khác nhau
+            config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048"); // SQL tối đa 2048 ký tự
+            config.addDataSourceProperty("useServerPrepStmts", "true");    // Dùng Server-Side Prepared Stmt
+
+            // ─── GIỮ KẾT NỐI TCP BỀN VỮNG ───────────────────────────────────────────
+            config.addDataSourceProperty("tcpKeepAlive", "true");           // Bật TCP Keep-Alive ở tầng socket
+
+            // ─── TÊN POOL (Dễ theo dõi trong log Tomcat) ─────────────────────────────
+            config.setPoolName("TeamworkHub-HikariPool");
 
             dataSource = new HikariDataSource(config);
-            LOGGER.info("DBUtil: Khởi tạo HikariCP Connection Pool (Singapore) thành công!");
+            LOGGER.info("DBUtil: Khởi tạo HikariCP Pool [" + config.getPoolName() + "] → Supabase Singapore (Session Mode :5432) thành công!");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "DBUtil: Khởi tạo HikariCP thất bại", e);
         }
