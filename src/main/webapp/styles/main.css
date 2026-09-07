@@ -1047,6 +1047,17 @@ body {
 .scroll-reveal[data-delay="2"] { transition-delay: 0.30s; }
 .scroll-reveal[data-delay="3"] { transition-delay: 0.45s; }
 
+/* ---------- Smart Auto-Hide Navbar on Scroll (Homepage) ---------- */
+.navbar.sticky-top {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    will-change: transform;
+}
+
+.navbar.sticky-top.navbar-hidden {
+    transform: translateY(-100%);
+    box-shadow: none !important;
+}
+
 /* ---------- CTA Block ---------- */
 .cta-block {
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);

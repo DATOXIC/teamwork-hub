@@ -56,11 +56,9 @@
                 Kéo thả 3 cột trạng thái, bộ lọc tức thì, nắm bắt tiến độ chỉ bằng một cái nhìn.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <div class="feature-screenshot">
-                    <i class="bi bi-kanban"></i>
-                    <span>Screenshot: Cận cảnh bảng Kanban — 3 cột kéo thả</span>
-                    <span class="fs-9 mt-1">(Thay bằng ảnh thật hoặc GIF sau)</span>
-                </div>
+                <img src="${pageContext.request.contextPath}/images/kanban.png" 
+                     alt="Bảng Kanban Trực Quan" 
+                     class="feature-screenshot-natural">
             </div>
         </div>
     </section>
@@ -79,11 +77,9 @@
                 Bố cục thoáng đãng, liên kết trực tiếp đến từng thẻ công việc.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <div class="feature-screenshot">
-                    <i class="bi bi-journal-text"></i>
-                    <span>Screenshot: Giao diện viết tài liệu Wiki — sidebar + editor</span>
-                    <span class="fs-9 mt-1">(Thay bằng ảnh thật sau)</span>
-                </div>
+                <img src="${pageContext.request.contextPath}/images/wiki.png" 
+                     alt="Tài Liệu Wiki Thông Minh" 
+                     class="feature-screenshot-natural">
             </div>
         </div>
     </section>
@@ -102,11 +98,9 @@
                 #liên kết thẳng đến task — mọi cuộc trò chuyện đều có ngữ cảnh rõ ràng.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <div class="feature-screenshot">
-                    <i class="bi bi-chat-dots"></i>
-                    <span>Screenshot: Khung chat nhóm — @mention + #task liên kết</span>
-                    <span class="fs-9 mt-1">(Thay bằng ảnh thật sau)</span>
-                </div>
+                <img src="${pageContext.request.contextPath}/images/chat.png" 
+                     alt="Thảo Luận Nhóm Tập Trung" 
+                     class="feature-screenshot-natural">
             </div>
         </div>
     </section>
@@ -125,11 +119,9 @@
                 Biểu đồ trực quan, minh bạch từng thành viên.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <div class="feature-screenshot">
-                    <i class="bi bi-bar-chart-line"></i>
-                    <span>Screenshot: Dashboard thống kê — biểu đồ tiến độ & đóng góp</span>
-                    <span class="fs-9 mt-1">(Thay bằng ảnh thật sau)</span>
-                </div>
+                <img src="${pageContext.request.contextPath}/images/activity.png" 
+                     alt="Chỉ Số Năng Suất & Hoạt Động" 
+                     class="feature-screenshot-natural">
             </div>
         </div>
     </section>
@@ -156,9 +148,10 @@
         </div>
     </section>
 
-    <!-- Scroll Reveal: Intersection Observer (CSS thuần, không dependency) -->
+    <!-- Scroll Reveal & Smart Auto-Hide Navbar -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // 1. Scroll Reveal cho từng khối tính năng
             var observer = new IntersectionObserver(function (entries) {
                 entries.forEach(function (entry) {
                     if (entry.isIntersecting) {
@@ -171,6 +164,44 @@
             document.querySelectorAll('.scroll-reveal').forEach(function (el) {
                 observer.observe(el);
             });
+
+            // 2. Smart Auto-hide Navbar: Cuộn xuống ẩn đi, cuộn lên hiện ra
+            var navbar = document.querySelector('.navbar.sticky-top');
+            if (navbar) {
+                var lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+                var ticking = false;
+
+                window.addEventListener('scroll', function () {
+                    if (!ticking) {
+                        window.requestAnimationFrame(function () {
+                            var currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+                            var navCollapse = document.getElementById('navbarContent');
+                            var hasOpenDropdown = navbar.querySelector('.dropdown-menu.show');
+
+                            // Không ẩn nếu đang mở menu mobile hoặc dropdown thông báo/profile
+                            if ((navCollapse && navCollapse.classList.contains('show')) || hasOpenDropdown) {
+                                ticking = false;
+                                return;
+                            }
+
+                            // Luôn hiển thị khi ở gần đỉnh trang (<= 60px)
+                            if (currentScrollY <= 60) {
+                                navbar.classList.remove('navbar-hidden');
+                            } else if (currentScrollY > lastScrollY && (currentScrollY - lastScrollY > 8)) {
+                                // Lướt xuống dưới -> ẩn navbar
+                                navbar.classList.add('navbar-hidden');
+                            } else if (currentScrollY < lastScrollY && (lastScrollY - currentScrollY > 8)) {
+                                // Lướt lên trên -> hiện lại navbar
+                                navbar.classList.remove('navbar-hidden');
+                            }
+
+                            lastScrollY = Math.max(0, currentScrollY);
+                            ticking = false;
+                        });
+                        ticking = true;
+                    }
+                }, { passive: true });
+            }
         });
     </script>
 
