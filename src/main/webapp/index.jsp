@@ -6,12 +6,18 @@
      SCROLLTELLING HOMEPAGE — TeamWork Hub Landing Page
      ============================================================ -->
 
-    <!-- ==================== BLOCK 1: HERO (Dark, Full Viewport) ==================== -->
+    <!-- ==================== BLOCK 1: HERO (Modern Tech SaaS Dark & Ambient Glow) ==================== -->
     <section class="hero-scrolltelling">
+        <!-- Badge Pill phát sáng công nghệ -->
+        <div class="hero-badge-pill scroll-reveal">
+            <span class="badge-pill-dot"></span>
+            <span>Nền tảng làm việc nhóm &amp; quản trị dự án All-in-One</span>
+        </div>
+
         <!-- Tiêu đề chính -->
         <h1>
             Không gian làm việc nhóm <br>
-            <span class="text-gradient">Tập trung & Tinh gọn</span>
+            <span class="text-gradient">Tập trung &amp; Tinh gọn</span>
         </h1>
 
         <!-- Mô tả ngắn -->
@@ -34,11 +40,10 @@
             </div>
         </div>
 
-        <!-- Ảnh Dashboard Peek (Screenshot tự nhiên, không viền) -->
+        <!-- Ảnh Dashboard Peek (Screenshot nhô lên với hiệu ứng nổi 3D giữa hào quang) -->
         <div class="hero-dashboard-peek">
-            <img src="${pageContext.request.contextPath}/images/dashboard-hero.png" 
-                 alt="Dashboard Teamwork Hub"
-                 class="hero-screenshot-natural">
+            <img src="${pageContext.request.contextPath}/images/dashboard-hero.png" alt="Dashboard Teamwork Hub"
+                class="hero-screenshot-natural">
         </div>
     </section>
 
@@ -46,7 +51,7 @@
     <section class="feature-block">
         <div class="container text-center">
             <div class="scroll-reveal">
-                <div class="feature-icon-wrapper bg-primary-subtle text-primary">
+                <div class="feature-icon-wrapper feature-icon-wrapper--kanban">
                     <i class="bi bi-kanban-fill"></i>
                 </div>
             </div>
@@ -56,9 +61,8 @@
                 Kéo thả 3 cột trạng thái, bộ lọc tức thì, nắm bắt tiến độ chỉ bằng một cái nhìn.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <img src="${pageContext.request.contextPath}/images/kanban.png" 
-                     alt="Bảng Kanban Trực Quan" 
-                     class="feature-screenshot-natural">
+                <img src="${pageContext.request.contextPath}/images/kanban.png" alt="Bảng Kanban Trực Quan"
+                    class="feature-screenshot-natural">
             </div>
         </div>
     </section>
@@ -67,7 +71,7 @@
     <section class="feature-block feature-block--alt">
         <div class="container text-center">
             <div class="scroll-reveal">
-                <div class="feature-icon-wrapper bg-success-subtle text-success">
+                <div class="feature-icon-wrapper feature-icon-wrapper--wiki">
                     <i class="bi bi-journal-richtext"></i>
                 </div>
             </div>
@@ -77,9 +81,8 @@
                 Bố cục thoáng đãng, liên kết trực tiếp đến từng thẻ công việc.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <img src="${pageContext.request.contextPath}/images/wiki.png" 
-                     alt="Tài Liệu Wiki Thông Minh" 
-                     class="feature-screenshot-natural">
+                <img src="${pageContext.request.contextPath}/images/wiki.png" alt="Tài Liệu Wiki Thông Minh"
+                    class="feature-screenshot-natural">
             </div>
         </div>
     </section>
@@ -88,7 +91,7 @@
     <section class="feature-block">
         <div class="container text-center">
             <div class="scroll-reveal">
-                <div class="feature-icon-wrapper bg-info-subtle text-info">
+                <div class="feature-icon-wrapper feature-icon-wrapper--chat">
                     <i class="bi bi-chat-dots-fill"></i>
                 </div>
             </div>
@@ -98,9 +101,8 @@
                 #liên kết thẳng đến task — mọi cuộc trò chuyện đều có ngữ cảnh rõ ràng.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <img src="${pageContext.request.contextPath}/images/chat.png" 
-                     alt="Thảo Luận Nhóm Tập Trung" 
-                     class="feature-screenshot-natural">
+                <img src="${pageContext.request.contextPath}/images/chat.png" alt="Thảo Luận Nhóm Tập Trung"
+                    class="feature-screenshot-natural">
             </div>
         </div>
     </section>
@@ -109,7 +111,7 @@
     <section class="feature-block feature-block--alt">
         <div class="container text-center">
             <div class="scroll-reveal">
-                <div class="feature-icon-wrapper bg-warning-subtle text-warning-emphasis">
+                <div class="feature-icon-wrapper feature-icon-wrapper--stats">
                     <i class="bi bi-graph-up-arrow"></i>
                 </div>
             </div>
@@ -119,14 +121,13 @@
                 Biểu đồ trực quan, minh bạch từng thành viên.
             </p>
             <div class="scroll-reveal" data-delay="2">
-                <img src="${pageContext.request.contextPath}/images/activity.png" 
-                     alt="Chỉ Số Năng Suất & Hoạt Động" 
-                     class="feature-screenshot-natural">
+                <img src="${pageContext.request.contextPath}/images/activity.png" alt="Chỉ Số Năng Suất & Hoạt Động"
+                    class="feature-screenshot-natural">
             </div>
         </div>
     </section>
 
-    <!-- ==================== BLOCK 6: CTA — Kêu Gọi Hành Động ==================== -->
+    <!-- ==================== BLOCK 6: CTA — Kêu Gọi Hành Động (Dark Obsidian) ==================== -->
     <section class="cta-block">
         <div class="container">
             <h2 class="scroll-reveal">Sẵn sàng nâng cấp cách làm việc nhóm?</h2>
