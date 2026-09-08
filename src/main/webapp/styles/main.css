@@ -135,64 +135,110 @@ body {
 }
 
 /* ==========================================================================
-   Kanban Board Styles — Trello Modern (Header Strip + Tinted Column BG)
+   Kanban Board Styles — Kết hợp B2B SaaS (Ảnh 1) & Modern Minimalist (Ảnh 2)
    ========================================================================== */
 
-/* 1. Container cột — bỏ padding, dùng overflow-hidden để header tràn đầy mép */
-.kanban-col-todo {
-    background-color: #f8fafc;
-    border: 1px solid #cbd5e1 !important;
-}
-
-.kanban-col-in-progress {
-    background-color: #eff6ff !important;
-    /* blue-50: nền xanh dương nhạt rõ rệt */
-    border: 1px solid #93c5fd !important;
-    /* blue-300 */
-}
-
+/* 1. Container cột — Gam màu trung tính thanh lịch, không chói gắt */
+.kanban-col-todo,
+.kanban-col-in-progress,
 .kanban-col-done {
-    background-color: #f0fdf4 !important;
-    /* green-50: nền xanh lá nhạt rõ rệt */
-    border: 1px solid #6ee7b7 !important;
-    /* emerald-300 */
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
 }
 
-/* 2. Thanh tiêu đề (Header Strip) — Tông Pastel dịu mắt, chữ đậm tương phản */
-.kanban-header-todo {
-    background-color: #e2e8f0;
-    /* Xám bạc pastel */
-    border-bottom: 1px solid #cbd5e1;
-    padding: 0.85rem 1rem;
-    border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
-    /* khớp rounded-4 bên ngoài */
-}
-
-.kanban-header-in-progress {
-    background-color: #dbeafe;
-    /* Xanh dương pastel dịu mắt */
-    border-bottom: 1px solid #bfdbfe;
-    padding: 0.85rem 1rem;
+/* 2. Thanh tiêu đề (Header Strip) phong cách Ảnh 1 — Tinh gọn, tích hợp nút + nhanh */
+.kanban-header-strip {
+    padding: 0.75rem 1rem;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
     border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
 }
 
-.kanban-header-done {
-    background-color: #d1fae5;
-    /* Xanh mint pastel tươi mát */
-    border-bottom: 1px solid #a7f3d0;
-    padding: 0.85rem 1rem;
-    border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
+.kanban-header-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
-/* 3. Vùng thẻ task — padding riêng */
+.kanban-header-pill.pill-todo {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.kanban-header-pill.pill-in-progress {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+.kanban-header-pill.pill-done {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.kanban-header-pill .pill-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.pill-todo .pill-count {
+    background-color: #ffffff;
+    color: #475569;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.pill-in-progress .pill-count {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.pill-done .pill-count {
+    background-color: #059669;
+    color: #ffffff;
+}
+
+/* Nút thêm nhanh trên header cột (Ảnh 1) */
+.btn-column-add {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    transition: all 0.15s ease;
+    font-size: 0.9rem;
+}
+
+.btn-column-add:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    transform: scale(1.08);
+}
+
+/* 3. Vùng thẻ task — padding thoáng */
 .kanban-task-area {
-    padding: 0.85rem;
+    padding: 0.75rem;
 }
 
-/* Base Kanban Card */
+/* Base Kanban Card — Phẳng, bóng mềm, bo góc thanh thoát */
 .kanban-card {
     border: 1px solid #e2e8f0 !important;
     background-color: #ffffff;
+    border-radius: 12px !important;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
     transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.18s ease, border-color 0.18s ease;
     cursor: grab;
@@ -205,23 +251,54 @@ body {
     cursor: grabbing;
 }
 
+.kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04) !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* 4. Thẻ bốc nổi khi kéo (Ảnh 2: Royal Blue Gradient Floating Card) */
 .kanban-card.is-floating-drag {
     position: fixed !important;
     pointer-events: none !important;
     z-index: 99999 !important;
-    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 12px 24px -8px rgba(15, 23, 42, 0.18) !important;
-    border-color: #6366f1 !important;
-    opacity: 0.96 !important;
+    background: linear-gradient(135deg, #3730a3 0%, #4338ca 50%, #4f46e5 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 24px 48px -10px rgba(55, 48, 163, 0.48), 0 12px 24px -6px rgba(0, 0, 0, 0.18) !important;
+    opacity: 0.98 !important;
+    border-radius: 14px !important;
     transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease !important;
     will-change: transform, left, top;
 }
 
+.kanban-card.is-floating-drag h6,
+.kanban-card.is-floating-drag .text-dark,
+.kanban-card.is-floating-drag .text-secondary,
+.kanban-card.is-floating-drag .text-muted,
+.kanban-card.is-floating-drag .kanban-meta-item {
+    color: #ffffff !important;
+}
+
+.kanban-card.is-floating-drag .border-top {
+    border-top-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.kanban-card.is-floating-drag .task-progress-slim {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.kanban-card.is-floating-drag .task-progress-bar {
+    background-color: #38bdf8 !important;
+}
+
+/* Rãnh giữ chỗ (Placeholder) */
 .kanban-placeholder {
     background-color: #f1f5f9 !important;
-    border: 2px dashed #6366f1 !important;
-    border-radius: 16px !important;
+    border: 2px dashed #818cf8 !important;
+    border-radius: 12px !important;
     opacity: 0.85 !important;
-    margin-bottom: 0.85rem !important;
+    margin-bottom: 0.75rem !important;
     transition: all 0.15s ease !important;
     pointer-events: none !important;
 }
@@ -230,44 +307,115 @@ body {
     min-height: 120px;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     border: 2px dashed transparent;
-    border-radius: 16px;
+    border-radius: 14px;
 }
 
 .kanban-task-list.drag-over {
-    background-color: #f8fafc !important;
+    background-color: #f1f5f9 !important;
     border-color: #818cf8 !important;
     box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.1);
 }
 
-.kanban-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04) !important;
-    border-color: #cbd5e1 !important;
-}
-
-/* 4. Thẻ công việc trong cột In Progress (Tâm điểm thị giác) */
+/* Thẻ In Progress & Done tinh tế */
 .kanban-card-inprogress {
-    border-left: 3.5px solid #3b82f6 !important;
+    border-left: 3px solid #3b82f6 !important;
 }
 
-.kanban-card-inprogress:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.14), 0 2px 5px rgba(0, 0, 0, 0.05) !important;
-    border-color: #93c5fd !important;
-}
-
-/* 5. Thẻ công việc trong cột Done (Làm dịu thị giác) */
 .kanban-card-done {
-    background-color: #fafbfc !important;
-    border: 1px solid #e2e8f0 !important;
-    border-left: 3.5px solid #10b981 !important;
+    background-color: #fbfcfd !important;
+    border-left: 3px solid #10b981 !important;
     opacity: 0.92;
 }
 
 .kanban-card-done:hover {
     opacity: 1 !important;
+}
+
+/* 5. Priority Dots — Tinh tế thay cho Badge to (Ảnh 1 & 2) */
+.priority-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.priority-dot-high {
+    background-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.priority-dot-medium {
+    background-color: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.priority-dot-low {
+    background-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* 6. Dải Avatar xếp lớp (Stacked Avatars - Ảnh 2) */
+.avatar-group {
+    display: inline-flex;
+    align-items: center;
+}
+
+.avatar-group .avatar-circle-sm {
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: transform 0.15s ease, z-index 0.15s ease;
+    cursor: default;
+}
+
+.avatar-group .avatar-circle-sm:not(:first-child) {
+    margin-left: -7px;
+}
+
+.avatar-group .avatar-circle-sm:hover {
+    transform: translateY(-2px) scale(1.12);
+    z-index: 5;
+}
+
+/* 7. Metadata phẳng (Flat Metadata - Ảnh 2) */
+.kanban-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.725rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.kanban-meta-item i {
+    font-size: 0.825rem;
+}
+
+/* 8. Nút tạo task dạng nét đứt (Dashed Add Card - Ảnh 2) */
+.add-task-dashed-card {
+    border: 1.5px dashed #cbd5e1;
+    background-color: transparent;
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #64748b;
+    font-size: 0.775rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    width: 100%;
+}
+
+.add-task-dashed-card:hover {
+    background-color: #ffffff;
+    border-color: #4f46e5;
+    color: #4f46e5;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1) !important;
 }
 
 /* Micro Buttons & Utilities */
@@ -1358,6 +1506,507 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .label-toggle-btn.active {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================================================
+   APP LAYOUT — Left Sidebar + Main Content (Linear / Notion style)
+   ========================================================================== */
+
+/* Wrapper bao ngoài sidebar + content */
+.app-layout {
+    display: flex;
+    min-height: calc(100vh - 56px); /* 56px = navbar height */
+    position: relative;
+}
+
+/* ── LEFT SIDEBAR ── */
+.left-sidebar {
+    width: 224px;
+    min-width: 224px;
+    background-color: #0f172a;
+    border-right: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 56px; /* dưới navbar */
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                min-width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+    flex-shrink: 0;
+
+    /* Cuộn mượt, ẩn scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+}
+
+.left-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.left-sidebar::-webkit-scrollbar-track { background: transparent; }
+.left-sidebar::-webkit-scrollbar-thumb {
+    background-color: #334155;
+    border-radius: 4px;
+}
+
+/* Trạng thái thu gọn — chỉ hiện icon */
+.left-sidebar.collapsed {
+    width: 56px;
+    min-width: 56px;
+}
+
+/* ── SIDEBAR HEADER: Project info ── */
+.sidebar-project-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #1e293b;
+    flex-shrink: 0;
+}
+
+.sidebar-project-name {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    max-width: 150px;
+}
+
+.sidebar-project-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background-color: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: monospace;
+    margin-top: 3px;
+    white-space: nowrap;
+}
+
+/* Label ẩn khi sidebar thu gọn */
+.left-sidebar.collapsed .sidebar-label,
+.left-sidebar.collapsed .sidebar-project-name,
+.left-sidebar.collapsed .sidebar-project-code,
+.left-sidebar.collapsed .sidebar-section-title,
+.left-sidebar.collapsed .sidebar-filter-group,
+.left-sidebar.collapsed .sidebar-member-section,
+.left-sidebar.collapsed .sidebar-bottom-actions .btn-label,
+.left-sidebar.collapsed .sidebar-stats {
+    display: none !important;
+}
+
+/* Toggle button */
+.sidebar-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid #334155;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+.sidebar-toggle-btn:hover {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+/* ── SIDEBAR NAV LINKS (Tab dọc: Kanban/Docs/Chat/Report) ── */
+.sidebar-nav {
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-bottom: 1px solid #1e293b;
+    flex-shrink: 0;
+}
+
+.sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar-nav-link i {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+}
+
+.sidebar-nav-link:hover {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+.sidebar-nav-link.active {
+    background-color: #312e81;
+    color: #a5b4fc;
+    font-weight: 700;
+}
+
+/* ── SIDEBAR SECTION TITLE ── */
+.sidebar-section-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #475569;
+    padding: 10px 18px 4px;
+    flex-shrink: 0;
+}
+
+/* ── SIDEBAR FILTER CONTROLS ── */
+.sidebar-filter-group {
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-filter-group .form-control,
+.sidebar-filter-group .form-select {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    font-size: 0.775rem;
+    border-radius: 8px;
+    padding: 6px 10px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-filter-group .form-control::placeholder {
+    color: #475569;
+}
+
+.sidebar-filter-group .form-control:focus,
+.sidebar-filter-group .form-select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    background-color: #1e293b;
+    color: #f1f5f9;
+    outline: none;
+}
+
+.sidebar-filter-group .form-select option {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+.sidebar-filter-group .input-group-text {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-right: none;
+    color: #64748b;
+}
+
+/* ── SIDEBAR MEMBER SECTION ── */
+.sidebar-member-section {
+    padding: 4px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.sidebar-member-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 5px 8px;
+    border-radius: 7px;
+    font-size: 0.775rem;
+    font-weight: 500;
+    color: #94a3b8;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar-member-btn:hover {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+.sidebar-member-btn.active {
+    background-color: #312e81;
+    color: #a5b4fc;
+    border-color: #4338ca;
+    font-weight: 700;
+}
+
+.sidebar-member-btn .member-avatar-xs {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    color: #ffffff;
+}
+
+.sidebar-member-btn .member-count-badge {
+    margin-left: auto;
+    background-color: #1e293b;
+    color: #64748b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.sidebar-member-btn.active .member-count-badge {
+    background-color: #4338ca;
+    color: #c7d2fe;
+    border-color: #4f46e5;
+}
+
+/* ── SIDEBAR BOTTOM ACTIONS ── */
+.sidebar-bottom-actions {
+    padding: 10px 10px 14px;
+    border-top: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.sidebar-cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 9px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.sidebar-cta-btn:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    color: #ffffff;
+}
+
+.sidebar-secondary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.sidebar-secondary-btn:hover {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-color: #475569;
+}
+
+/* Sidebar collapsed — chỉ icon giữa, ẩn text */
+.left-sidebar.collapsed .sidebar-nav-link {
+    justify-content: center;
+    padding: 9px;
+}
+
+.left-sidebar.collapsed .sidebar-nav-link .sidebar-label {
+    display: none;
+}
+
+.left-sidebar.collapsed .sidebar-cta-btn,
+.left-sidebar.collapsed .sidebar-secondary-btn {
+    padding: 9px;
+    gap: 0;
+}
+
+.left-sidebar.collapsed .sidebar-nav {
+    padding: 10px 6px;
+}
+
+.left-sidebar.collapsed .sidebar-project-header {
+    padding: 10px 8px;
+    justify-content: center;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* ── COMPACT PROJECT HEADER (1 dòng, thay thế 2 dòng cũ) ── */
+.project-topbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.project-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.project-topbar-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+.project-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Stats badges trong topbar */
+.topbar-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+/* ── KANBAN WRAPPER trong main content ── */
+.kanban-wrapper {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-x: auto;
+}
+
+/* ── SIDEBAR DIVIDER ── */
+.sidebar-divider {
+    height: 1px;
+    background-color: #1e293b;
+    margin: 4px 0;
+    flex-shrink: 0;
+}
+
+/* ── MOBILE OVERLAY ── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+    .left-sidebar {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        height: calc(100vh - 56px);
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                    width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .left-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    .left-sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    .main-content {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .project-topbar-title {
+        max-width: 160px;
+    }
+    .topbar-stat {
+        display: none;
+    }
+    .kanban-wrapper {
+        padding: 10px 12px;
+    }
 }
 
 /* ==========================================================================
