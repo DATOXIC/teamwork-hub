@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
         <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
@@ -31,35 +31,15 @@
                     <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-dock-item ${currentView == 'docs' ? 'active' : ''}" title="Tài liệu dự án">
                         <i class="bi bi-journal-text"></i>
                     </a>
-                    <!-- Quả chuông thông báo -->
-                    <div class="dropdown">
-                        <a href="#" class="clickup-dock-item position-relative" data-bs-toggle="dropdown" title="Thông báo">
-                            <i class="bi bi-bell-fill text-warning"></i>
-                            <c:if test="${unreadNotifCount > 0}">
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark" style="font-size: 0.6rem; padding: 2px 4px;">
-                                    ${unreadNotifCount}
-                                </span>
-                            </c:if>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-dark shadow-lg p-2" style="width: 280px;">
-                            <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom border-secondary mb-2">
-                                <span class="fw-bold fs-8">Thông báo</span>
-                                <c:if test="${unreadNotifCount > 0}">
-                                    <span class="badge bg-danger rounded-pill fs-9">${unreadNotifCount} mới</span>
-                                </c:if>
-                            </div>
-                            <div class="fs-9 text-muted px-2 py-1">
-                                <c:choose>
-                                    <c:when test="${unreadNotifCount > 0}">
-                                        Bạn có ${unreadNotifCount} thông báo mới chưa đọc.
-                                    </c:when>
-                                    <c:otherwise>
-                                        Không có thông báo mới nào.
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Quả chuông thông báo (Mở Inbox Slide-over Drawer) -->
+                    <a href="javascript:void(0)" class="clickup-dock-item position-relative" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" title="Hộp thư thông báo (Inbox)">
+                        <i class="bi bi-bell-fill text-warning"></i>
+                        <c:if test="${unreadNotifCount > 0}">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark" style="font-size: 0.6rem; padding: 2px 4px;">
+                                ${unreadNotifCount}
+                            </span>
+                        </c:if>
+                    </a>
                 </div>
 
                 <div class="clickup-dock-bottom">
@@ -84,23 +64,38 @@
             <!-- =========================================================================
                  2. CỘT 2: WORKSPACE SIDEBAR (240PX)
                  ========================================================================= -->
-            <aside class="clickup-sidebar">
-                <!-- Header Workspace -->
-                <div class="clickup-sidebar-header">
-                    <button class="clickup-workspace-btn" type="button" title="Không gian làm việc">
-                        <span class="text-primary fs-7"><i class="bi bi-asterisk"></i></span>
-                        <span class="text-truncate" style="max-width: 140px;">TeamWork Hub</span>
-                        <i class="bi bi-chevron-down fs-9 text-muted"></i>
-                    </button>
-                    <button class="btn btn-sm btn-light border rounded-2 p-1" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Tạo nhanh công việc">
-                        <i class="bi bi-plus fs-7"></i>
+            <aside class="clickup-sidebar" id="clickupSidebar">
+                <!-- Header Workspace Dropdown & Collapse Button -->
+                <div class="clickup-sidebar-header d-flex align-items-center justify-content-between">
+                    <div class="dropdown flex-grow-1 me-1">
+                        <button class="clickup-workspace-btn w-100 text-start" type="button" id="workspaceDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Không gian làm việc: TeamWork Hub">
+                            <span class="text-primary fs-7"><i class="bi bi-asterisk"></i></span>
+                            <span class="text-truncate flex-grow-1" style="max-width: 120px;">TeamWork Hub</span>
+                            <i class="bi bi-chevron-down fs-9 text-muted ms-auto"></i>
+                        </button>
+                        <ul class="dropdown-menu shadow-lg border rounded-3 p-2 fs-8" style="min-width: 220px; z-index: 1060;">
+                            <li class="px-2 py-1 mb-1 border-bottom">
+                                <span class="fw-bold text-dark d-block">TeamWork Hub</span>
+                                <span class="fs-9 text-muted">${sessionScope.currentUser.fullName} (${sessionScope.currentUser.role})</span>
+                            </li>
+                            <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile?action=view"><i class="bi bi-person-gear me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
+                            <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/project?action=list"><i class="bi bi-grid-fill me-2 text-info"></i>Tất cả Spaces (Dự án)</a></li>
+                            <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
+                                 <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/admin?action=dashboard"><i class="bi bi-shield-check me-2 text-warning"></i>Quản trị hệ thống</a></li>
+                            </c:if>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn-sidebar-toggle" onclick="toggleClickUpSidebar()" title="Thu gọn thanh bên">
+                        <i class="bi bi-chevron-bar-left fs-8"></i>
                     </button>
                 </div>
 
                 <!-- Section Home / Cá nhân -->
                 <div class="clickup-sidebar-section">
                     <div class="clickup-section-title">Home</div>
-                    <a href="javascript:void(0)" onclick="filterClickUpTasks('INBOX')" class="clickup-nav-link" id="nav-inbox">
+                    <a href="javascript:void(0)" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" class="clickup-nav-link" id="nav-inbox">
                         <span><i class="bi bi-inbox text-secondary"></i> Inbox</span>
                         <c:if test="${unreadNotifCount > 0}">
                             <span class="badge bg-danger rounded-pill fs-9">${unreadNotifCount}</span>
@@ -176,10 +171,13 @@
                 <div class="clickup-topbar">
                     <!-- Left: Space title & Star -->
                     <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 d-none" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
+                            <i class="bi bi-chevron-bar-right fs-8"></i>
+                        </button>
                         <span class="badge bg-danger text-white rounded-2 p-1 fs-8"><i class="bi bi-pencil-fill"></i></span>
                         <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
                         <span class="text-muted fs-8"><i class="bi bi-chevron-down"></i></span>
-                        <i class="bi bi-star text-muted fs-8 ms-1" style="cursor: pointer;" title="Đánh dấu sao"></i>
+                        <i class="bi bi-star text-muted fs-8 ms-1" style="cursor: pointer;" title="Đánh dấu sao" onclick="this.classList.toggle('text-warning'); this.classList.toggle('bi-star-fill'); this.classList.toggle('bi-star');"></i>
                     </div>
 
                     <!-- Center: Universal Search -->
@@ -229,6 +227,11 @@
                                 <i class="bi bi-bar-chart-line"></i> Thống kê
                             </a>
                         </li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" class="clickup-tab-link ${currentView == 'schedule' ? 'active' : ''}" id="tab-btn-schedule">
+                                <i class="bi bi-calendar-event"></i> Schedule
+                            </a>
+                        </li>
                     </ul>
 
                     <!-- View Switcher (List vs Board) -->
@@ -246,6 +249,19 @@
                 <div class="clickup-workspace-body">
                     <!-- Toast thông báo -->
                     <jsp:include page="/includes/toast.jsp" />
+
+                    <!-- Dải Banner Phản Hồi Khi Đang Lọc Task -->
+                    <div id="activeFilterBanner" class="active-filter-banner d-none">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;">
+                                <i class="bi bi-funnel-fill"></i>
+                            </span>
+                            <span id="activeFilterText">Đang lọc: <strong>Công việc của tôi</strong></span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-primary fw-bold text-decoration-none p-0 fs-8" onclick="filterClickUpTasks('ALL')">
+                            <i class="bi bi-x-circle me-1"></i> Xóa bộ lọc (Xem tất cả)
+                        </button>
+                    </div>
 
                     <!-- =========================================================================
                          TAB 1: TASKS CONTAINER (GỒM LIST VIEW VÀ BOARD VIEW)
@@ -277,7 +293,7 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${doneTasks}" var="task">
-                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
                                                         <i class="bi bi-check-circle-fill text-success fs-7"></i>
@@ -328,7 +344,7 @@
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                <tr class="clickup-subtask-row group-done-row" data-assignee-id="${st.assignedToUserId}" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                <tr class="clickup-subtask-row group-done-row" data-parent-id="${task.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2 ps-4">
                                                             <i class="bi bi-check2 text-success fs-8"></i>
@@ -336,7 +352,7 @@
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assignedToName}</span>
+                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
                                                     </td>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
@@ -369,7 +385,7 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${inProgressTasks}" var="task">
-                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
                                                         <i class="bi bi-play-circle-fill text-primary fs-7"></i>
@@ -420,7 +436,7 @@
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                <tr class="clickup-subtask-row group-inprog-row" data-assignee-id="${st.assignedToUserId}" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                <tr class="clickup-subtask-row group-inprog-row" data-parent-id="${task.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2 ps-4">
                                                             <i class="bi bi-circle text-muted fs-8"></i>
@@ -428,7 +444,7 @@
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <span class="fs-9 text-dark text-truncate" style="max-width: 90px;">${st.assignedToName}</span>
+                                                        <span class="fs-9 text-dark text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
                                                     </td>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
@@ -461,7 +477,7 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${todoTasks}" var="task">
-                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
                                                         <i class="bi bi-circle text-secondary fs-7"></i>
@@ -512,7 +528,7 @@
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                <tr class="clickup-subtask-row group-todo-row" data-assignee-id="${st.assignedToUserId}" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                <tr class="clickup-subtask-row group-todo-row" data-parent-id="${task.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2 ps-4">
                                                             <i class="bi bi-circle text-muted fs-8"></i>
@@ -520,7 +536,7 @@
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assignedToName}</span>
+                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
                                                     </td>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
@@ -588,8 +604,7 @@
                                     data-assignee-id="${task.assigneeId}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
-                                    data-task-labels="${task.labels}" data-bs-toggle="modal"
-                                    data-bs-target="#taskDetailModal-${task.id}" style="cursor: pointer;">
+                                    data-task-labels="${task.labels}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
@@ -717,8 +732,7 @@
                                     data-assignee-id="${task.assigneeId}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
-                                    data-task-labels="${task.labels}" data-bs-toggle="modal"
-                                    data-bs-target="#taskDetailModal-${task.id}" style="cursor: pointer;">
+                                    data-task-labels="${task.labels}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
@@ -838,8 +852,7 @@
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
-                                    data-task-labels="${task.labels}" data-bs-toggle="modal"
-                                    data-bs-target="#taskDetailModal-${task.id}" style="cursor: pointer;">
+                                    data-task-labels="${task.labels}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
@@ -1219,15 +1232,256 @@
                         </table>
                     </div>
                 </div>
+            </div><!-- /clickup-view-metrics -->
+
+            <!-- =========================================================================
+                 TAB 5: SCHEDULE & DEADLINE TIMELINE VIEW (LỊCH TRÌNH THEO HẠN CHÓT)
+                 ========================================================================= -->
+            <div id="clickup-view-schedule" class="clickup-view-pane ${currentView == 'schedule' ? '' : 'd-none'}">
+                <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0 fs-7"><i class="bi bi-calendar-check me-1 text-primary"></i> Lịch Trình Công Việc (Schedule Timeline)</h6>
+                        <span class="fs-9 text-muted">Phân loại và giám sát thời hạn hoàn thành theo từng mốc thời gian</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fs-9" onclick="switchClickUpTab('tasks')">
+                            <i class="bi bi-arrow-left me-1"></i> Trở về Bảng công việc
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <!-- 1. QUÁ HẠN (OVERDUE) -->
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <div class="schedule-lane">
+                            <div class="schedule-lane-header">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-danger text-white rounded-pill px-2 py-0-5 fs-9">🔴 Quá hạn</span>
+                                </div>
+                                <span class="fs-9 text-danger fw-bold">Cần xử lý gấp</span>
+                            </div>
+                            <c:set var="hasOverdue" value="false" />
+                            <c:forEach items="${allProjectTasks}" var="t">
+                                <c:if test="${t.isOverdue()}">
+                                    <c:set var="hasOverdue" value="true" />
+                                    <div class="schedule-card schedule-card-overdue" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-2 fs-9">Trễ ${t.daysRemaining < 0 ? -t.daysRemaining : 0} ngày</span>
+                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                        </div>
+                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                            <span class="text-danger fw-semibold"><i class="bi bi-calendar-x me-1"></i>${t.dueDate}</span>
+                                        </div>
+                                    </div>
+                                </c:if>
+                            </c:forEach>
+                            <c:if test="${!hasOverdue}">
+                                <div class="text-center py-4 text-muted fs-9 fst-italic">Không có công việc quá hạn 🎉</div>
+                            </c:if>
+                        </div>
+                    </div>
+
+                    <!-- 2. HÔM NAY (DUE TODAY) -->
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <div class="schedule-lane">
+                            <div class="schedule-lane-header">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0-5 fs-9">🟠 Hôm nay</span>
+                                </div>
+                                <span class="fs-9 text-warning-emphasis fw-bold">Hạn trong ngày</span>
+                            </div>
+                            <c:set var="hasToday" value="false" />
+                            <c:forEach items="${allProjectTasks}" var="t">
+                                <c:if test="${!t.isOverdue() && t.getDeadlineStatus() == 'DUE_TODAY'}">
+                                    <c:set var="hasToday" value="true" />
+                                    <div class="schedule-card schedule-card-today" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 fs-9">Đến hạn hôm nay</span>
+                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                        </div>
+                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                            <span class="text-warning-emphasis fw-semibold"><i class="bi bi-clock-history me-1"></i>Hôm nay</span>
+                                        </div>
+                                    </div>
+                                </c:if>
+                            </c:forEach>
+                            <c:if test="${!hasToday}">
+                                <div class="text-center py-4 text-muted fs-9 fst-italic">Không có việc đến hạn hôm nay</div>
+                            </c:if>
+                        </div>
+                    </div>
+
+                    <!-- 3. TUẦN NÀY (THIS WEEK / DUE SOON) -->
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <div class="schedule-lane">
+                            <div class="schedule-lane-header">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary text-white rounded-pill px-2 py-0-5 fs-9">🔵 Tuần này</span>
+                                </div>
+                                <span class="fs-9 text-primary fw-bold">1 - 7 ngày tới</span>
+                            </div>
+                            <c:set var="hasThisWeek" value="false" />
+                            <c:forEach items="${allProjectTasks}" var="t">
+                                <c:if test="${!t.isOverdue() && t.getDeadlineStatus() != 'DUE_TODAY' && t.isDueSoon()}">
+                                    <c:set var="hasThisWeek" value="true" />
+                                    <div class="schedule-card schedule-card-thisweek" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-2 fs-9">Còn ${t.daysRemaining} ngày</span>
+                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                        </div>
+                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                            <span class="text-primary fw-semibold"><i class="bi bi-calendar3 me-1"></i>${t.dueDate}</span>
+                                        </div>
+                                    </div>
+                                </c:if>
+                            </c:forEach>
+                            <c:if test="${!hasThisWeek}">
+                                <div class="text-center py-4 text-muted fs-9 fst-italic">Không có việc đến hạn tuần này</div>
+                            </c:if>
+                        </div>
+                    </div>
+
+                    <!-- 4. SẮP TỚI & DÀI HẠN (UPCOMING & LATER) -->
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <div class="schedule-lane">
+                            <div class="schedule-lane-header">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success text-white rounded-pill px-2 py-0-5 fs-9">🟢 Sắp tới & Khác</span>
+                                </div>
+                                <span class="fs-9 text-muted">Dài hạn / Đã xong</span>
+                            </div>
+                            <c:set var="hasUpcoming" value="false" />
+                            <c:forEach items="${allProjectTasks}" var="t">
+                                <c:if test="${!t.isOverdue() && t.getDeadlineStatus() != 'DUE_TODAY' && !t.isDueSoon()}">
+                                    <c:set var="hasUpcoming" value="true" />
+                                    <div class="schedule-card schedule-card-upcoming" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                            <span class="badge ${t.statusBadgeClass} rounded-pill px-2 fs-9">${t.statusLabel}</span>
+                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                        </div>
+                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                            <span class="text-muted"><i class="bi bi-calendar me-1"></i>${not empty t.dueDate ? t.dueDate : 'Chưa đặt'}</span>
+                                        </div>
+                                    </div>
+                                </c:if>
+                            </c:forEach>
+                            <c:if test="${!hasUpcoming}">
+                                <div class="text-center py-4 text-muted fs-9 fst-italic">Chưa có công việc nào</div>
+                            </c:if>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div><!-- /clickup-workspace-body -->
     </main><!-- /clickup-main-panel -->
 </div><!-- /clickup-shell -->
 
+<!-- =========================================================================
+     INBOX SLIDE-OVER DRAWER (HỘP THƯ THÔNG BÁO THỰC TẾ)
+     ========================================================================= -->
+<div class="offcanvas offcanvas-end shadow-lg border-start-0" tabindex="-1" id="inboxDrawer" aria-labelledby="inboxDrawerLabel" style="width: 380px;">
+    <div class="offcanvas-header border-bottom py-3 px-3 bg-light">
+        <div class="d-flex align-items-center gap-2">
+            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                <i class="bi bi-inbox-fill fs-8"></i>
+            </span>
+            <div>
+                <h6 class="offcanvas-title fw-bold text-dark fs-7 mb-0" id="inboxDrawerLabel">Inbox &bull; Thông báo</h6>
+                <span class="fs-9 text-muted">${userNotifications.size()} thông báo gần đây</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <c:if test="${unreadNotifCount > 0}">
+                <a href="${pageContext.request.contextPath}/notification?action=readAll" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-1 fs-9" title="Đánh dấu tất cả là đã đọc">
+                    <i class="bi bi-check2-all me-1"></i> Đọc hết
+                </a>
+            </c:if>
+            <button type="button" class="btn-close fs-9" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+        </div>
+    </div>
+    <div class="offcanvas-body p-3 overflow-y-auto d-flex flex-column gap-2">
+        <c:choose>
+            <c:when test="${empty userNotifications}">
+                <div class="text-center py-5 my-auto text-muted">
+                    <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                    <div class="fw-semibold fs-7">Hộp thư trống</div>
+                    <div class="fs-9">Bạn không có thông báo nào cần xử lý.</div>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <c:forEach items="${userNotifications}" var="notif">
+                    <a href="${pageContext.request.contextPath}/notification?action=read&id=${notif.id}&redirect=${notif.link}" 
+                       class="notif-item ${notif.read ? '' : 'unread'}">
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <c:choose>
+                                    <c:when test="${notif.type == 'INVITE'}">
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-envelope-open me-1"></i>Lời mời</span>
+                                    </c:when>
+                                    <c:when test="${notif.type == 'TASK_ASSIGN' || notif.type == 'TASK'}">
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-check2-square me-1"></i>Công việc</span>
+                                    </c:when>
+                                    <c:when test="${notif.type == 'COMMENT' || notif.type == 'MENTION'}">
+                                        <span class="badge bg-info-subtle text-info rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-chat-quote me-1"></i>Nhắc tên</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-bell me-1"></i>Hệ thống</span>
+                                    </c:otherwise>
+                                </c:choose>
+                                <span class="fs-9 text-muted"><i class="bi bi-clock me-1"></i>${notif.createdAtStr}</span>
+                            </div>
+                            <c:if test="${!notif.read}">
+                                <span class="notif-unread-dot" title="Chưa đọc"></span>
+                            </c:if>
+                        </div>
+                        <div class="fw-bold text-dark fs-8 mb-1"><c:out value="${notif.title}" /></div>
+                        <div class="fs-9 text-secondary lh-sm text-truncate-2"><c:out value="${notif.content}" /></div>
+                    </a>
+                </c:forEach>
+            </c:otherwise>
+        </c:choose>
+    </div>
+</div>
+
 <!-- ClickUp 3.0 Interactive Controller Scripts -->
 <script>
-    // Tab switching: chat, tasks, docs, metrics
+    // 1. Sidebar Toggle & State persistence in localStorage
+    function toggleClickUpSidebar() {
+        var sidebar = document.getElementById('clickupSidebar');
+        var expandBtn = document.getElementById('btnExpandSidebar');
+        if (!sidebar) return;
+        var isCollapsed = sidebar.classList.toggle('collapsed');
+        localStorage.setItem('clickup_sidebar_collapsed', isCollapsed ? '1' : '0');
+        if (expandBtn) {
+            if (isCollapsed) {
+                expandBtn.classList.remove('d-none');
+            } else {
+                expandBtn.classList.add('d-none');
+            }
+        }
+    }
+
+    // Initialize sidebar state on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        var isCollapsed = localStorage.getItem('clickup_sidebar_collapsed') === '1';
+        var sidebar = document.getElementById('clickupSidebar');
+        var expandBtn = document.getElementById('btnExpandSidebar');
+        if (isCollapsed && sidebar) {
+            sidebar.classList.add('collapsed');
+            if (expandBtn) expandBtn.classList.remove('d-none');
+        }
+    });
+
+    // 2. Tab switching: chat, tasks, docs, metrics, schedule
     function switchClickUpTab(tab) {
         document.querySelectorAll('.clickup-tab-link').forEach(function(el) {
             el.classList.remove('active');
@@ -1262,7 +1516,7 @@
         }
     }
 
-    // Task subview switching: list vs board
+    // 3. Task subview switching: list vs board
     function switchTaskSubView(view) {
         var btnList = document.getElementById('btn-view-list');
         var btnBoard = document.getElementById('btn-view-board');
@@ -1288,7 +1542,7 @@
         } catch(e) {}
     }
 
-    // Toggle collapsing of group in List View
+    // 4. Toggle collapsing of group in List View
     function toggleClickUpGroup(groupId) {
         var tbody = document.getElementById('tbody-' + groupId);
         var icon = document.getElementById('chevron-' + groupId);
@@ -1299,9 +1553,9 @@
         }
     }
 
-    // Toggle subtasks visibility for a parent task
-    function toggleSubtasks(taskId) {
-        var subRows = document.querySelectorAll('.clickup-row-subtask[data-parent-id="' + taskId + '"]');
+    // 5. Toggle subtasks visibility for a parent task
+    window.toggleSubtasks = function(taskId) {
+        var subRows = document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]');
         var toggleBtn = document.getElementById('subtask-toggle-' + taskId);
         var isExpanded = false;
 
@@ -1321,23 +1575,23 @@
                 icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
             }
         }
-    }
+    };
 
-    // Search tasks across both views
-    function searchClickUpTasks(query) {
+    // 6. Search tasks across all views
+    window.searchClickUpTasks = function(query) {
         var q = (query || '').toLowerCase().trim();
 
-        // 1. In List View
-        var parentRows = document.querySelectorAll('.clickup-row-parent');
+        // A. In List View
+        var parentRows = document.querySelectorAll('.clickup-task-row');
         parentRows.forEach(function(pRow) {
-            var title = (pRow.getAttribute('data-task-title') || '').toLowerCase();
+            var title = (pRow.getAttribute('data-task-title') || pRow.innerText || '').toLowerCase();
             var taskId = pRow.getAttribute('data-task-id');
-            var subRows = document.querySelectorAll('.clickup-row-subtask[data-parent-id="' + taskId + '"]');
+            var subRows = taskId ? document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]') : [];
             var matchParent = !q || title.indexOf(q) > -1;
             var matchAnySub = false;
 
             subRows.forEach(function(sRow) {
-                var sTitle = (sRow.getAttribute('data-subtask-title') || '').toLowerCase();
+                var sTitle = (sRow.getAttribute('data-subtask-title') || sRow.innerText || '').toLowerCase();
                 var sMatch = !q || sTitle.indexOf(q) > -1;
                 if (sMatch) matchAnySub = true;
                 sRow.style.display = (matchParent || sMatch) ? '' : 'none';
@@ -1346,55 +1600,89 @@
             pRow.style.display = (matchParent || matchAnySub) ? '' : 'none';
         });
 
-        // 2. In Board View
+        // B. In Board View
         var kanbanCards = document.querySelectorAll('.kanban-card');
         kanbanCards.forEach(function(card) {
-            var title = (card.getAttribute('data-task-title') || '').toLowerCase();
+            var title = (card.getAttribute('data-task-title') || card.innerText || '').toLowerCase();
             card.style.display = (!q || title.indexOf(q) > -1) ? '' : 'none';
         });
-    }
 
-    // Filter tasks by Member or Scope
-    function filterClickUpTasks(mode, userId, userName) {
+        // C. In Schedule View
+        var schedCards = document.querySelectorAll('.schedule-card');
+        schedCards.forEach(function(card) {
+            var text = (card.innerText || '').toLowerCase();
+            card.style.display = (!q || text.indexOf(q) > -1) ? '' : 'none';
+        });
+    };
+
+    // 7. Filter tasks by Member or Scope (With Active Feedback Banner)
+    window.filterClickUpTasks = function(mode, userId, userName) {
         document.querySelectorAll('.clickup-sidebar .clickup-nav-link').forEach(function(el) {
             el.classList.remove('active');
         });
 
         var currentUserId = "${sessionScope.currentUser.id}";
         var filterTargetUserId = null;
+        var banner = document.getElementById('activeFilterBanner');
+        var bannerText = document.getElementById('activeFilterText');
+
+        if (mode === 'SCHEDULE') {
+            window.switchClickUpTab('schedule');
+            var navSched = document.getElementById('nav-schedule');
+            if (navSched) navSched.classList.add('active');
+            if (banner) { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
+            return;
+        }
+
+        // Switch to tasks tab when filtering
+        window.switchClickUpTab('tasks');
 
         if (mode === 'ALL') {
             var allBtn = document.getElementById('filter-all-btn');
             if (allBtn) allBtn.classList.add('active');
+            if (banner) { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
+            filterTargetUserId = null;
         } else if (mode === 'MY_TASKS') {
             var myBtn = document.getElementById('nav-mytasks');
             if (myBtn) myBtn.classList.add('active');
             filterTargetUserId = currentUserId;
+            if (banner && bannerText) {
+                bannerText.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Đang lọc: <strong>Công việc của tôi</strong>';
+                banner.classList.remove('d-none');
+                banner.classList.add('d-flex');
+            }
         } else if (mode === 'USER') {
             var memberItem = document.querySelector('.member-filter-item[data-user-id="' + userId + '"]');
             if (memberItem) memberItem.classList.add('active');
             filterTargetUserId = userId;
-        } else if (mode === 'INBOX') {
-            var inboxBtn = document.getElementById('nav-inbox');
-            if (inboxBtn) inboxBtn.classList.add('active');
-            filterTargetUserId = currentUserId;
+            if (banner && bannerText) {
+                bannerText.innerHTML = '<i class="bi bi-person me-1"></i> Đang lọc theo thành viên: <strong>' + (userName || 'Thành viên') + '</strong>';
+                banner.classList.remove('d-none');
+                banner.classList.add('d-flex');
+            }
         }
 
         // List View filtering
-        var parentRows = document.querySelectorAll('.clickup-row-parent');
+        var count = 0;
+        var parentRows = document.querySelectorAll('.clickup-task-row');
         parentRows.forEach(function(pRow) {
             var assigneeId = pRow.getAttribute('data-assignee-id');
             var taskId = pRow.getAttribute('data-task-id');
-            var subRows = document.querySelectorAll('.clickup-row-subtask[data-parent-id="' + taskId + '"]');
+            var subRows = taskId ? document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]') : [];
 
-            var show = !filterTargetUserId || assigneeId == filterTargetUserId;
-            pRow.style.display = show ? '' : 'none';
+            var matchParent = !filterTargetUserId || assigneeId == filterTargetUserId;
+            var matchSub = false;
 
             subRows.forEach(function(sRow) {
-                var sAssigneeId = sRow.getAttribute('data-subtask-assignee-id');
-                var sShow = !filterTargetUserId || sAssigneeId == filterTargetUserId || show;
-                sRow.style.display = sShow ? '' : 'none';
+                var sAssigneeId = sRow.getAttribute('data-assignee-id');
+                var sMatch = !filterTargetUserId || sAssigneeId == filterTargetUserId || matchParent;
+                if (sAssigneeId == filterTargetUserId) matchSub = true;
+                sRow.style.display = sMatch ? '' : 'none';
             });
+
+            var show = matchParent || matchSub;
+            if (show) count++;
+            pRow.style.display = show ? '' : 'none';
         });
 
         // Board View filtering
@@ -1404,1369 +1692,492 @@
             var show = !filterTargetUserId || assigneeId == filterTargetUserId;
             card.style.display = show ? '' : 'none';
         });
-    }
+
+        if (filterTargetUserId && bannerText) {
+            bannerText.innerHTML += ' <span class="badge bg-primary text-white rounded-pill ms-1">' + count + ' việc</span>';
+        }
+    };
+
+    // 8. Open Inbox Drawer safely
+    window.openInboxDrawer = function() {
+        var el = document.getElementById('inboxDrawer');
+        if (el && window.bootstrap && window.bootstrap.Offcanvas) {
+            var bsOffcanvas = bootstrap.Offcanvas.getInstance(el) || new bootstrap.Offcanvas(el);
+            bsOffcanvas.show();
+        }
+    };
+
+    // 9. ClickUp 3.0 Unified Side-Peek Task & Subtask Drawer Controller
+    window.openClickUpTask = function(taskId, subtaskId) {
+        if (!taskId) return;
+
+        // A. áº¨n toÃ n bá»™ cÃ¡c Pane Task vÃ  Subtask Ä‘ang má»Ÿ
+        var allPanes = document.querySelectorAll('.task-detail-pane, .subtask-detail-pane');
+        allPanes.forEach(function(pane) {
+            pane.classList.add('d-none');
+        });
+
+        // B. KÃ­ch hoáº¡t Pane Ä‘Æ°á»£c chá»‰ Ä‘á»‹nh
+        var targetPane = null;
+        if (subtaskId) {
+            targetPane = document.getElementById('subtaskPane-' + subtaskId);
+        } else {
+            targetPane = document.getElementById('taskPane-' + taskId);
+        }
+
+        if (targetPane) {
+            targetPane.classList.remove('d-none');
+            var drawerContent = document.getElementById('clickupDrawerContent');
+            if (drawerContent) {
+                drawerContent.scrollTop = 0;
+            }
+        }
+
+        // C. Má»Ÿ Offcanvas Drawer tá»« mÃ©p pháº£i
+        var drawerEl = document.getElementById('clickupTaskDrawer');
+        if (drawerEl && window.bootstrap && window.bootstrap.Offcanvas) {
+            var bsOffcanvas = bootstrap.Offcanvas.getInstance(drawerEl) || new bootstrap.Offcanvas(drawerEl);
+            bsOffcanvas.show();
+        }
+    };
 </script>
-
         <!-- =========================================================================
-     4. MODAL CHI TIẾT TASK 2 CỘT (TASK MINI-HUB & SUB-TASKS)
-     ========================================================================= -->
-
-        <!-- MODAL CHO CỘT CẦN LÀM (TODO) -->
-        <c:set var="allTasksToRender" value="${todoTasks}" />
-        <c:forEach items="${allTasksToRender}" var="task">
-            <div class="modal fade modal-slide-end" id="taskDetailModal-${task.id}" tabindex="-1"
-                aria-labelledby="taskDetailModalLabel-${task.id}" aria-hidden="true">
-                <div class="modal-dialog modal-xl">
-                    <div class="modal-content border-0 shadow-lg overflow-hidden">
-                        <div class="modal-header task-modal-header d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
-                                <span class="task-modal-id-badge">#${task.id}</span>
+             4. CLICKUP 3.0 UNIFIED TASK & SUBTASK SIDE-PEEK DRAWER
+             ========================================================================= -->
+        <div class="offcanvas offcanvas-end clickup-task-drawer shadow-lg" tabindex="-1" id="clickupTaskDrawer" aria-labelledby="clickupTaskDrawerLabel">
+            <div class="offcanvas-body drawer-body p-0" id="clickupDrawerContent">
+                <c:forEach items="${allProjectTasks}" var="task">
+                    <!-- =========================================================================
+                         A. PANE TASK CHA #${task.id}
+                         ========================================================================= -->
+                    <div id="taskPane-${task.id}" class="task-detail-pane d-none" data-task-id="${task.id}">
+                        <!-- DRAWER HEADER: BREADCRUMB & CONTROLS -->
+                        <div class="drawer-header d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2 flex-grow-1 me-3 text-truncate">
+                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">#${task.id}</span>
                                 <c:forEach items="${task.labelList}" var="lbl">
-                                    <span
-                                        class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                    <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
                                         ${task.getLabelDisplayName(lbl)}
                                     </span>
                                 </c:forEach>
-                                <span
-                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-8 fw-semibold">
+                                <span class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
                                     ● ${task.priorityLabel}
                                 </span>
-                                <h5 class="modal-title fw-bold text-dark mb-0 fs-6 text-truncate"
-                                    id="taskDetailModalLabel-${task.id}">
-                                    ${task.title}
-                                </h5>
+                                <span class="badge ${task.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                    ${task.statusLabel}
+                                </span>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <c:if
-                                    test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                    <button type="button"
-                                        class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
                                         data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
                                         <i class="bi bi-pencil-square"></i> Chỉnh sửa
                                     </button>
                                 </c:if>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Đóng"></button>
+                                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
                             </div>
                         </div>
-                        <div class="modal-body p-0">
-                            <div class="row g-0">
-                                <div class="col-12 col-lg-8 p-4 border-end">
-                                    <c:if
-                                        test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                        <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
-                                            <form method="post" action="${pageContext.request.contextPath}/task"
-                                                class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
-                                                <input type="hidden" name="action" value="editTask">
-                                                <input type="hidden" name="projectId" value="${project.id}">
-                                                <input type="hidden" name="taskId" value="${task.id}">
-                                                <h6 class="fw-bold text-primary fs-8 mb-3"><i
-                                                        class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công
-                                                    việc</h6>
-                                                <div class="mb-2">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu
-                                                        đề:</label>
-                                                    <input type="text" name="title"
-                                                        value="${task.title}"
-                                                        class="form-control form-control-sm" required>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi
-                                                        tiết:</label>
-                                                    <textarea name="description" class="form-control form-control-sm"
-                                                        rows="3"><c:out value="${task.description}" /></textarea>
-                                                </div>
-                                                <div class="row g-2 mb-3">
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu
-                                                            tiên:</label>
-                                                        <select name="priority" class="form-select form-select-sm">
-                                                            <option value="LOW" ${task.priority=='LOW' ? 'selected' : ''}>Thấp (Low)</option>
-                                                            <option value="MEDIUM" ${task.priority=='MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
-                                                            <option value="HIGH" ${task.priority=='HIGH' ? 'selected' : ''}>Cao (High)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn
-                                                            chót:</label>
-                                                        <input type="date" name="dueDate" value="${task.dueDate}"
-                                                            class="form-control form-control-sm">
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ
-                                                            trách:</label>
-                                                        <c:choose>
-                                                            <c:when
-                                                                test="${project.ownerId == sessionScope.currentUser.id}">
-                                                                <select name="assigneeId"
-                                                                    class="form-select form-select-sm" required>
-                                                                    <c:forEach items="${userList}" var="u">
-                                                                        <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
-                                                                    </c:forEach>
-                                                                </select>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <input type="hidden" name="assigneeId"
-                                                                    value="${task.assigneeId}">
-                                                                <input type="text"
-                                                                    class="form-control form-control-sm bg-light"
-                                                                    value="${task.assigneeName}" readonly>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="btn btn-light btn-sm fs-9"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
-                                                    <button type="submit"
-                                                        class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay
-                                                        đổi</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </c:if>
-                                    <!-- Mô tả chi tiết (Typography rõ ràng, thẻ card sạch) -->
-                                    <div class="mb-4">
-                                        <h6 class="fw-bold text-dark fs-7 mb-2">
-                                            <i class="bi bi-text-left text-primary me-1"></i> Mô tả công việc
-                                        </h6>
-                                        <div class="task-desc-card">
-                                            <c:choose>
-                                                <c:when test="${not empty task.description}">
-                                                    <div style="white-space: pre-line;">
-                                                        <c:out value="${task.description}" />
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="text-muted fst-italic fs-8">Chưa có mô tả chi tiết cho
-                                                        công việc này. Nhấn "Chỉnh sửa" ở góc trên để bổ sung.</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
-                                    </div>
 
-                                    <div class="mb-4">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                                                <i class="bi bi-list-check text-primary"></i>
-                                                <span>Danh sách việc con (Checklist)</span>
-                                            </h6>
-                                            <span
-                                                class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                ${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc
-                                            </span>
-                                        </div>
-
-                                        <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                            <!-- Thanh tiến độ hoàn thành việc con dạng Micro-bar -->
-                                            <div class="subtask-progress-card">
-                                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                                    <span class="fs-9 text-muted fw-semibold">Tiến độ hoàn thành việc
-                                                        con</span>
-                                                    <span
-                                                        class="fs-9 fw-bold text-success">${taskProgressMap[task.id]}%</span>
-                                                </div>
-                                                <div class="progress" style="height: 5px; background-color: #e2e8f0;">
-                                                    <div class="progress-bar bg-success rounded-pill" role="progressbar"
-                                                        style="width: ${taskProgressMap[task.id]}%;"
-                                                        aria-valuenow="${taskProgressMap[task.id]}" aria-valuemin="0"
-                                                        aria-valuemax="100"></div>
-                                                </div>
+                        <!-- DRAWER BODY 2 CỘT -->
+                        <div class="row g-0">
+                            <!-- CỘT TRÁI (65%): NỘI DUNG, CHECKLIST VIỆC CON, TÀI LIỆU -->
+                            <div class="col-12 col-lg-8 p-4 border-end">
+                                <!-- FORM CHỈNH SỬA TASK CHA (COLLAPSIBLE) -->
+                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
+                                        <form method="post" action="${pageContext.request.contextPath}/task"
+                                            class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
+                                            <input type="hidden" name="action" value="editTask">
+                                            <input type="hidden" name="projectId" value="${project.id}">
+                                            <input type="hidden" name="taskId" value="${task.id}">
+                                            <h6 class="fw-bold text-primary fs-8 mb-3"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công việc</h6>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề:</label>
+                                                <input type="text" name="title" value="${task.title}" class="form-control form-control-sm" required>
                                             </div>
-
-                                            <div class="d-flex flex-column gap-2 mb-3">
-                                                <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                    <div
-                                                        class="subtask-item ${st.status == 'APPROVED' ? 'subtask-approved' : ''}">
-
-                                                        <!-- DÒNG 1: CHECKBOX ICON + TIÊU ĐỀ + HUY HIỆU + NGƯỜI PHỤ TRÁCH + NÚT SỬA/XÓA -->
-                                                        <div
-                                                            class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                                                            <div class="d-flex align-items-center gap-2 flex-grow-1">
-                                                                <!-- Icon trạng thái dạng Checkbox -->
-                                                                <c:choose>
-                                                                    <c:when test="${st.status == 'APPROVED'}">
-                                                                        <i class="bi bi-check-circle-fill text-success fs-7"
-                                                                            title="Đã duyệt hoàn thành"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'SUBMITTED'}">
-                                                                        <i class="bi bi-hourglass-split text-warning fs-7"
-                                                                            title="Đang chờ duyệt"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'REVISE'}">
-                                                                        <i class="bi bi-arrow-repeat text-info fs-7"
-                                                                            title="Cần chỉnh sửa nhỏ"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'REJECTED'}">
-                                                                        <i class="bi bi-exclamation-circle-fill text-danger fs-7"
-                                                                            title="Đã bị trả về"></i>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <i class="bi bi-circle text-muted fs-7"
-                                                                            title="Chưa hoàn thành"></i>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-
-                                                                <!-- Tiêu đề việc con -->
-                                                                <span
-                                                                    class="fs-8 text-dark ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : 'fw-semibold'}">
-                                                                    ${st.title}
-                                                                </span>
-
-                                                                <!-- Huy hiệu trạng thái -->
-                                                                <span
-                                                                    class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                                    ${st.statusLabel}
-                                                                </span>
-                                                            </div>
-
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <c:if test="${not empty st.dueDate}">
-                                                                    <span
-                                                                        class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                                        title="Hạn chót việc con: ${st.dueDate}">
-                                                                        <i class="bi bi-calendar-event"></i>
-                                                                        ${st.deadlineLabel}
-                                                                    </span>
-                                                                </c:if>
-                                                                <span
-                                                                    class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9"
-                                                                    title="Người phụ trách">
-                                                                    <i class="bi bi-person-fill text-primary"></i>
-                                                                    ${st.assigneeName}
-                                                                </span>
-                                                                <!-- Nút Sửa & Xóa (Dành riêng cho Task Lead & PM) -->
-                                                                <c:if
-                                                                    test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                                                    <button type="button"
-                                                                        class="btn btn-link text-muted text-hover-primary p-0 border-0 fs-8"
-                                                                        title="Sửa việc con" data-bs-toggle="collapse"
-                                                                        data-bs-target="#editSubTaskCollapse-${st.id}">
-                                                                        <i class="bi bi-pencil-square"></i>
-                                                                    </button>
-                                                                    <form method="post"
-                                                                        action="${pageContext.request.contextPath}/task"
-                                                                        class="m-0 d-inline"
-                                                                        onsubmit="return confirm('Bạn có chắc chắn muốn xóa việc con này?');">
-                                                                        <input type="hidden" name="action"
-                                                                            value="deleteSubTask">
-                                                                        <input type="hidden" name="projectId"
-                                                                            value="${project.id}">
-                                                                        <input type="hidden" name="subTaskId"
-                                                                            value="${st.id}">
-                                                                        <button type="submit"
-                                                                            class="btn btn-link text-muted text-hover-danger p-0 border-0 fs-8"
-                                                                            title="Xóa việc con">
-                                                                            <i class="bi bi-x-circle"></i>
-                                                                        </button>
-                                                                    </form>
-                                                                </c:if>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- FORM SỬA VIỆC CON (COLLAPSE) -->
-                                                        <c:if
-                                                            test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                                            <div class="collapse mt-2"
-                                                                id="editSubTaskCollapse-${st.id}">
-                                                                <form method="post"
-                                                                    action="${pageContext.request.contextPath}/task"
-                                                                    class="p-3 bg-white rounded-3 border border-primary-subtle shadow-2xs">
-                                                                    <input type="hidden" name="action"
-                                                                        value="editSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label
-                                                                            class="form-label fs-9 fw-bold text-dark mb-1">Tiêu
-                                                                            đề việc con:</label>
-                                                                        <input type="text" name="title"
-                                                                            value="${st.title}"
-                                                                            class="form-control form-control-sm"
-                                                                            required>
-                                                                    </div>
-                                                                    <div class="row g-2 mb-2">
-                                                                        <div class="col-6">
-                                                                            <label
-                                                                                class="form-label fs-9 fw-bold text-dark mb-1">Người
-                                                                                làm:</label>
-                                                                            <select name="assigneeId"
-                                                                                class="form-select form-select-sm"
-                                                                                required>
-                                                                                <c:forEach items="${userList}" var="u">
-                                                                                    <option value="${u.id}" ${u.id==st.assigneeId ? 'selected' : ''}>
-                                                                                        ${u.fullName}</option>
-                                                                                </c:forEach>
-                                                                            </select>
-                                                                        </div>
-                                                                        <div class="col-6">
-                                                                            <label
-                                                                                class="form-label fs-9 fw-bold text-dark mb-1">Hạn
-                                                                                chót:</label>
-                                                                            <input type="date" name="dueDate"
-                                                                                value="${st.dueDate}"
-                                                                                class="form-control form-control-sm"
-                                                                                <c:if test="${not empty task.dueDate}">max="${task.dueDate}"</c:if>>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="d-flex justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light btn-sm fs-9"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#editSubTaskCollapse-${st.id}">Hủy</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu
-                                                                            việc con</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- DÒNG 2: THÔNG TIN CHI TIẾT BÀN GIAO / GÓP Ý DỰA THEO TRẠNG THÁI -->
-
-                                                        <!-- TRƯỜNG HỢP A: SUBMITTED (Đang chờ duyệt) - Hiển thị kết quả nộp bài -->
-                                                        <c:if test="${st.status == 'SUBMITTED'}">
-                                                            <div
-                                                                class="p-2 bg-white rounded-2 border fs-8 text-dark mt-2 shadow-2xs">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold text-warning fs-9">
-                                                                        <i
-                                                                            class="bi bi-file-earmark-check-fill me-1"></i>
-                                                                        Kết quả nộp bài:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 text-muted">${st.submittedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 text-secondary fs-8">
-                                                                    ${not empty st.submissionNote ? st.submissionNote : 'Đã hoàn thành công việc, mời Task Lead kiểm tra và nghiệm thu.'}
-                                                                </p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP B: REVISE (🔵 Màu Xanh Dương - Cần cân chỉnh nhỏ) -->
-                                                        <c:if test="${st.status == 'REVISE'}">
-                                                            <div
-                                                                class="p-2 bg-primary-subtle text-primary border border-primary-subtle rounded-2 fs-8 mt-2">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold fs-9">
-                                                                        <i class="bi bi-info-circle-fill me-1"></i> Dặn
-                                                                        dò từ Task Lead:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 opacity-75">${st.reviewedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP C: REJECTED (🔴 Màu Đỏ - Chưa đạt yêu cầu) -->
-                                                        <c:if test="${st.status == 'REJECTED'}">
-                                                            <div
-                                                                class="p-2 bg-danger-subtle text-danger border border-danger-subtle rounded-2 fs-8 mt-2">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold fs-9">
-                                                                        <i
-                                                                            class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                                        Lý do chưa đạt từ Task Lead:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 opacity-75">${st.reviewedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP D: APPROVED (🟢 Màu Xanh Lá - Đã nghiệm thu Đạt) -->
-                                                        <c:if test="${st.status == 'APPROVED'}">
-                                                            <div
-                                                                class="fs-9 text-success mt-1 d-flex align-items-center gap-1">
-                                                                <i class="bi bi-check-circle-fill"></i>
-                                                                <span>Đã nghiệm thu hoàn thành 100% &bull;
-                                                                    ${st.reviewedAt}</span>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- DÒNG 3: CÁC NÚT HÀNH ĐỘNG TƯƠNG TÁC (NỘP BÀI / THẨM ĐỊNH) -->
-                                                        <div
-                                                            class="mt-2 pt-2 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
-
-                                                            <!-- 1. NÚT DÀNH CHO THÀNH VIÊN ĐƯỢC GIAO VIỆC: Nộp Báo Cáo / Bàn giao kết quả -->
-                                                            <c:set var="canSubmitSubTask"
-                                                                value="${(not empty st.assigneeId && st.assigneeId > 0 && st.assigneeId == sessionScope.currentUser.id) || ((empty st.assigneeId || st.assigneeId == 0) && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id))}" />
-                                                            <div>
-                                                                <c:if
-                                                                    test="${canSubmitSubTask && st.status != 'APPROVED' && st.status != 'SUBMITTED'}">
-                                                                    <button type="button"
-                                                                        class="btn btn-outline-primary btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#submitSubTaskPanel-${st.id}">
-                                                                        <i class="bi bi-upload me-1"></i> ${st.status == 'TODO' ? 'Nộp Báo Cáo Kết Quả' : 'Nộp Lại Kết Quả Mới'}
-                                                                    </button>
-                                                                </c:if>
-                                                            </div>
-
-                                                            <!-- 2. NÚT DÀNH RIÊNG CHO TASK LEAD KHI CÓ BÀI NỘP (🟡 SUBMITTED): 3 LỰA CHỌN THẨM ĐỊNH -->
-                                                            <c:set var="isReviewer"
-                                                                value="${(task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || (task.assigneeId == 0 && project.ownerId == sessionScope.currentUser.id)}" />
-                                                            <c:if test="${isReviewer && st.status == 'SUBMITTED'}">
-                                                                <div class="d-flex align-items-center gap-1 ms-auto">
-                                                                    <!-- Nút 1: DUYỆT ĐẠT 🟢 -->
-                                                                    <form method="post"
-                                                                        action="${pageContext.request.contextPath}/task"
-                                                                        class="m-0">
-                                                                        <input type="hidden" name="action"
-                                                                            value="approveSubTask">
-                                                                        <input type="hidden" name="projectId"
-                                                                            value="${project.id}">
-                                                                        <input type="hidden" name="subTaskId"
-                                                                            value="${st.id}">
-                                                                        <button type="submit"
-                                                                            class="btn btn-success btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                            title="Nghiệm thu đạt 100%">
-                                                                            <i class="bi bi-check-lg me-1"></i> Duyệt
-                                                                            Đạt
-                                                                        </button>
-                                                                    </form>
-
-                                                                    <!-- Nút 2: CẦN CÂN CHỈNH 🔵 (Xanh Dương) -->
-                                                                    <button type="button"
-                                                                        class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#reviseSubTaskPanel-${st.id}"
-                                                                        title="Yêu cầu tinh chỉnh nhỏ">
-                                                                        <i class="bi bi-pencil me-1"></i> Cân chỉnh
-                                                                    </button>
-
-                                                                    <!-- Nút 3: CHƯA ĐẠT 🔴 (Màu Đỏ) -->
-                                                                    <button type="button"
-                                                                        class="btn btn-danger btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#rejectSubTaskPanel-${st.id}"
-                                                                        title="Trả về làm lại do chưa đạt">
-                                                                        <i class="bi bi-x-lg me-1"></i> Chưa đạt
-                                                                    </button>
-                                                                </div>
-                                                            </c:if>
-
-                                                        </div>
-
-                                                        <!-- PANEL 1: NỘP BÁO CÁO KẾT QUẢ CHO SUBTASK NÀY -->
-                                                        <div class="collapse mt-2" id="submitSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-dark fs-8 mb-2">
-                                                                    <i class="bi bi-upload text-primary me-1"></i> Nộp
-                                                                    Báo Cáo Kết Quả: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="submitSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="note-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Ghi chú hoàn thành / Link bàn giao kết quả
-                                                                            <span class="text-danger">*</span>
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="note-${st.id}" name="submissionNote"
-                                                                            rows="2"
-                                                                            placeholder="Mô tả những gì bạn đã làm, dán link pull request, link tài liệu hoặc ghi chú cho Leader..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#submitSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary-custom rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-send-fill me-1"></i> Gửi Báo
-                                                                            Cáo Cho Leader
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- PANEL 2: YÊU CẦU CÂN CHỈNH NHỎ 🔵 (MÀU XANH DƯƠNG) -->
-                                                        <div class="collapse mt-2" id="reviseSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-primary fs-8 mb-2">
-                                                                    <i class="bi bi-pencil-square me-1"></i> Dặn Dò Cân
-                                                                    Chỉnh Nhỏ: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="reviseSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="reviseNote-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Lời dặn dò tinh chỉnh cho thành viên:
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="reviseNote-${st.id}" name="feedbackNote"
-                                                                            rows="2"
-                                                                            placeholder="Ví dụ: Đã làm rất tốt, em đổi lại màu nút thành màu xanh dương và format code nhé..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#reviseSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-send-fill me-1"></i> Gửi Yêu
-                                                                            Cầu Cân Chỉnh (🔵)
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- PANEL 3: TRẢ VỀ DO CHƯA ĐẠT YÊU CẦU 🔴 (MÀU ĐỎ) -->
-                                                        <div class="collapse mt-2" id="rejectSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-danger shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-danger fs-8 mb-2">
-                                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                                    Đánh Giá Chưa Đạt Yêu Cầu: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="rejectSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="rejectNote-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Nêu rõ lý do sai sót / lỗi yêu cầu:
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="rejectNote-${st.id}" name="feedbackNote"
-                                                                            rows="2"
-                                                                            placeholder="Ví dụ: Sai kiến trúc CSDL, thiếu toàn bộ khóa ngoại bảng Users, yêu cầu làm lại..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#rejectSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-danger rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-x-circle-fill me-1"></i> Trả
-                                                                            Về Yêu Cầu Làm Lại (🔴)
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-
-                                                </c:forEach>
+                                            <div class="mb-2">
+                                                <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi tiết:</label>
+                                                <textarea name="description" class="form-control form-control-sm" rows="3"><c:out value="${task.description}" /></textarea>
                                             </div>
-                                        </c:if>
-
-                                        <c:if test="${empty taskSubTasksMap[task.id]}">
-                                            <div
-                                                class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center mb-3">
-                                                Chưa có việc con nào được tạo.
-                                            </div>
-                                        </c:if>
-
-                                        <c:if
-                                            test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                            <!-- 1. KHUNG GIAO THÊM VIỆC CON TRONG GIAI ĐOẠN LẬP KẾ HOẠCH -->
-                                            <!-- 1. KHUNG GIAO THÊM VIỆC CON TRONG GIAI ĐOẠN LẬP KẾ HOẠCH -->
-                                            <div class="subtask-add-card mb-3">
-                                                <span class="fs-9 fw-bold text-primary d-block mb-2">
-                                                    <i class="bi bi-plus-circle-fill me-1"></i> Bóc tách & Giao việc con
-                                                    (Lập kế hoạch)
-                                                </span>
-                                                <form method="post" action="${pageContext.request.contextPath}/task"
-                                                    class="d-flex flex-column gap-2">
-                                                    <input type="hidden" name="action" value="addSubTask">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-
-                                                    <div class="row g-2">
-                                                        <div class="col-12 col-md-5">
-                                                            <input type="text" name="title"
-                                                                class="form-control form-control-sm fs-8 rounded-3"
-                                                                placeholder="Nhập tên việc con cần bóc tách..."
-                                                                required>
-                                                        </div>
-                                                        <div class="col-12 col-md-3">
-                                                            <select name="assigneeId"
-                                                                class="form-select form-select-sm fs-8 rounded-3">
-                                                                <option value="0">-- Phân công --</option>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-4">
+                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu tiên:</label>
+                                                    <select name="priority" class="form-select form-select-sm">
+                                                        <option value="LOW" ${task.priority=='LOW' ? 'selected' : ''}>Thấp (Low)</option>
+                                                        <option value="MEDIUM" ${task.priority=='MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
+                                                        <option value="HIGH" ${task.priority=='HIGH' ? 'selected' : ''}>Cao (High)</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
+                                                    <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ trách:</label>
+                                                    <c:choose>
+                                                        <c:when test="${project.ownerId == sessionScope.currentUser.id}">
+                                                            <select name="assigneeId" class="form-select form-select-sm" required>
                                                                 <c:forEach items="${userList}" var="u">
-                                                                    <option value="${u.id}">${u.fullName}</option>
+                                                                    <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
                                                                 </c:forEach>
                                                             </select>
-                                                        </div>
-                                                        <div class="col-6 col-md-2">
-                                                            <input type="date" name="dueDate"
-                                                                class="form-control form-control-sm fs-8 rounded-3"
-                                                                max="${task.dueDate}"
-                                                                title="Hạn chót việc con (tối đa ${not empty task.dueDate ? task.dueDate : 'không giới hạn'})">
-                                                        </div>
-                                                        <div class="col-6 col-md-2">
-                                                            <button type="submit"
-                                                                class="btn btn-primary-custom btn-sm w-100 rounded-3 fs-8 fw-semibold shadow-2xs">
-                                                                + Thêm
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <c:if test="${not empty task.dueDate}">
-                                                        <div class="text-muted fs-9 px-1 mt-1">
-                                                            <i class="bi bi-info-circle text-primary me-1"></i>Hạn chót
-                                                            tối đa cho việc con: <strong>${task.dueDate}</strong>
-                                                        </div>
-                                                    </c:if>
-                                                </form>
-                                            </div>
-
-                                            <!-- 2. KHUNG TRÌNH KẾ HOẠCH CHO PM THẨM ĐỊNH & KHÓA PHẠM VI (CỔNG 1) -->
-                                            <div class="gate-card gate-card-primary">
-                                                <div
-                                                    class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                                    <div>
-                                                        <span class="fw-bold fs-8 text-primary d-block">
-                                                            <i class="bi bi-send-check-fill me-1"></i> Cổng 1: Hoàn tất
-                                                            bóc tách & Trình PM
-                                                        </span>
-                                                        <span class="fs-9 text-muted">
-                                                            Gửi danh mục <strong>${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc con</strong>
-                                                            lên PM để phê duyệt và khóa kế hoạch (Scope Lock).
-                                                        </span>
-                                                    </div>
-                                                    <button type="button"
-                                                        class="btn btn-primary-custom btn-sm rounded-pill px-3 py-1-5 fs-8 fw-semibold shadow-2xs ${empty taskSubTasksMap[task.id] ? 'disabled' : ''}"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#submitPlanningPanel-${task.id}">
-                                                        <i class="bi bi-send-fill me-1"></i> Trình Kế Hoạch Cho PM
-                                                    </button>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <input type="hidden" name="assigneeId" value="${task.assigneeId}">
+                                                            <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </div>
-
-                                                <!-- KHUNG COLLAPSE TRÌNH KẾ HOẠCH PHÂN RÃ (SUBMIT PLANNING PANEL) -->
-                                                <div class="collapse mt-3" id="submitPlanningPanel-${task.id}">
-                                                    <div class="p-3 bg-white rounded-3 border shadow-sm">
-                                                        <h6 class="fw-bold text-primary fs-8 mb-2">
-                                                            <i class="bi bi-diagram-3-fill me-1"></i> Trình Kế Hoạch
-                                                            Phân Rã Task: [${task.title}]
-                                                        </h6>
-                                                        <form action="${pageContext.request.contextPath}/task"
-                                                            method="post">
-                                                            <input type="hidden" name="action"
-                                                                value="submitPlanningRequest">
-                                                            <input type="hidden" name="projectId" value="${project.id}">
-                                                            <input type="hidden" name="taskId" value="${task.id}">
-
-                                                            <!-- Danh sách việc con đã bóc tách (Review trước khi gửi) -->
-                                                            <div class="p-2-5 bg-light rounded-2 border mb-3">
-                                                                <span class="fw-bold fs-9 text-dark d-block mb-1">
-                                                                    <i class="bi bi-list-task text-primary me-1"></i>
-                                                                    Danh mục ${taskSubTasksMap[task.id].size()} việc con
-                                                                    sẽ gửi PM:
-                                                                </span>
-                                                                <div class="d-flex flex-column gap-1">
-                                                                    <c:forEach items="${taskSubTasksMap[task.id]}"
-                                                                        var="st" varStatus="stStatus">
-                                                                        <div
-                                                                            class="d-flex align-items-center justify-content-between p-1-5 px-2 bg-white rounded-1 border fs-9">
-                                                                            <span><strong>${stStatus.index + 1}.</strong> ${st.title}</span>
-                                                                            <span
-                                                                                class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
-                                                                                <i
-                                                                                    class="bi bi-person-fill text-primary"></i>
-                                                                                ${st.assigneeName}
-                                                                            </span>
-                                                                        </div>
-                                                                    </c:forEach>
-                                                                </div>
-                                                            </div>
-
-                                                            <!-- Ghi chú thuyết minh kế hoạch cho PM -->
-                                                            <div class="mb-3">
-                                                                <label for="planningNote-${task.id}"
-                                                                    class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                    <i class="bi bi-chat-quote text-primary me-1"></i>
-                                                                    Ghi chú thuyết minh phương án phân rã cho PM:
-                                                                </label>
-                                                                <textarea class="form-control fs-8 rounded-3"
-                                                                    id="planningNote-${task.id}" name="planningNote"
-                                                                    rows="2"
-                                                                    placeholder="Ví dụ: Đã phân rã đầy đủ các module cần thiết theo đúng spec yêu cầu. Dự kiến hoàn thành đúng hạn..."
-                                                                    required></textarea>
-                                                            </div>
-
-                                                            <div
-                                                                class="d-flex align-items-center justify-content-end gap-2">
-                                                                <button type="button"
-                                                                    class="btn btn-light rounded-pill px-3 fs-8"
-                                                                    data-bs-toggle="collapse"
-                                                                    data-bs-target="#submitPlanningPanel-${task.id}">Đóng</button>
-                                                                <button type="submit"
-                                                                    class="btn btn-primary-custom rounded-pill px-4 fs-8 fw-semibold shadow-sm text-white">
-                                                                    <i class="bi bi-send-fill me-1"></i> Gửi Kế Hoạch
-                                                                    Lên PM Phê Duyệt
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    </div>
-                                                </div>
-
                                             </div>
-
-                                        </c:if>
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
+                                                <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay đổi</button>
+                                            </div>
+                                        </form>
                                     </div>
+                                </c:if>
 
-                                    <!-- Khối Tài liệu đính kèm Wiki -->
-                                    <div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                                                <i class="bi bi-journal-bookmark text-primary"></i>
-                                                <span>Tài liệu hướng dẫn đính kèm</span>
-                                            </h6>
-                                            <span
-                                                class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                ${not empty taskDocsMap[task.id] ? taskDocsMap[task.id].size() : 0} tài
-                                                liệu
-                                            </span>
-                                        </div>
-                                        <c:if test="${not empty taskDocsMap[task.id]}">
-                                            <div class="d-flex flex-column gap-2">
-                                                <c:forEach items="${taskDocsMap[task.id]}" var="td">
-                                                    <div class="doc-attachment-item">
-                                                        <div class="d-flex align-items-center gap-2 text-truncate">
-                                                            <i class="bi bi-file-earmark-text text-primary fs-6"></i>
-                                                            <span
-                                                                class="fw-semibold text-dark fs-8 text-truncate">${td.docTitle}</span>
-                                                        </div>
-                                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}"
-                                                            class="btn btn-outline-secondary btn-xs rounded-pill px-3 py-1 fs-9 text-nowrap"
-                                                            title="Đọc bài viết Wiki này">
-                                                            Đọc bài <i class="bi bi-arrow-right ms-1"></i>
-                                                        </a>
-                                                    </div>
-                                                </c:forEach>
-                                            </div>
-                                        </c:if>
-                                        <c:if test="${empty taskDocsMap[task.id]}">
-                                            <div
-                                                class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center">
-                                                Chưa có tài liệu Wiki nào được đính kèm cho công việc này.
-                                            </div>
-                                        </c:if>
+                                <!-- TIÊU ĐỀ & MÔ TẢ -->
+                                <div class="mb-4">
+                                    <h4 class="fw-bold text-dark mb-2 ${task.status == 'DONE' ? 'text-decoration-line-through text-muted' : ''}">${task.title}</h4>
+                                    <div class="task-desc-card">
+                                        <c:choose>
+                                            <c:when test="${not empty task.description}">
+                                                <div class="fs-8 text-secondary lh-base" style="white-space: pre-line;"><c:out value="${task.description}" /></div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="text-muted fst-italic fs-8">Chưa có mô tả chi tiết cho công việc này. Nhấn "Chỉnh sửa" ở góc trên để bổ sung.</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
 
-                                <div class="col-12 col-lg-4 task-modal-sidebar d-flex flex-column justify-content-between"
-                                    style="min-height: 520px;">
-                                    <div>
-                                        <!-- Khối Thuộc tính Meta -->
-                                        <div class="task-sidebar-section-title">
-                                            <i class="bi bi-sliders me-1"></i> Thuộc tính công việc
+                                <!-- DANH SÁCH VIỆC CON (SUBTASK CHECKLIST) - CLICKUP 3.0 STYLE -->
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
+                                            <i class="bi bi-list-check text-primary"></i>
+                                            <span>Danh sách việc con (Checklist)</span>
+                                        </h6>
+                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                            ${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc
+                                        </span>
+                                    </div>
+
+                                    <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                        <!-- Micro Progress Bar -->
+                                        <div class="subtask-progress-card mb-2">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <span class="fs-9 text-muted fw-semibold">Tiến độ hoàn thành việc con</span>
+                                                <span class="fs-9 fw-bold text-success">${taskProgressMap[task.id]}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 5px; background-color: #e2e8f0;">
+                                                <div class="progress-bar bg-success rounded-pill" role="progressbar"
+                                                    style="width: ${taskProgressMap[task.id]}%;"
+                                                    aria-valuenow="${taskProgressMap[task.id]}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
                                         </div>
 
-                                        <div class="task-property-list bg-white rounded-3 p-3 border shadow-2xs mb-3">
-                                            <!-- Trạng thái -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-arrow-repeat"></i>
-                                                    Trạng thái</span>
-                                                <span class="task-property-value">
-                                                    <span
-                                                        class="badge ${task.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                        ${task.statusLabel}
-                                                    </span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Người phụ trách -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-person"></i> Phụ
-                                                    trách</span>
-                                                <span class="task-property-value d-flex align-items-center gap-1">
-                                                    <span
-                                                        class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                                                        style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                                        ${task.assigneeName.substring(0, 1).toUpperCase()}
-                                                    </span>
-                                                    <span>${task.assigneeName}</span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Mức ưu tiên -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-flag"></i> Mức ưu
-                                                    tiên</span>
-                                                <span class="task-property-value">
-                                                    <span
-                                                        class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                        ● ${task.priorityLabel}
-                                                    </span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Hạn chót -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-calendar3"></i> Hạn
-                                                    chót</span>
-                                                <span class="task-property-value">
-                                                    <c:choose>
-                                                        <c:when test="${not empty task.dueDate}">
-                                                            <span
-                                                                class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                                <i class="bi bi-calendar-event me-1"></i>${task.dueDate}
+                                        <!-- Danh sách từng dòng Subtask -->
+                                        <div class="d-flex flex-column gap-1 mb-2">
+                                            <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
+                                                <div class="subtask-checklist-item d-flex align-items-center justify-content-between gap-2"
+                                                    onclick="openClickUpTask(${task.id}, ${st.id})">
+                                                    <div class="d-flex align-items-center gap-2 flex-grow-1 text-truncate">
+                                                        <c:choose>
+                                                            <c:when test="${st.status == 'APPROVED'}">
+                                                                <i class="bi bi-check-circle-fill text-success fs-7" title="Đã duyệt hoàn thành"></i>
+                                                            </c:when>
+                                                            <c:when test="${st.status == 'SUBMITTED'}">
+                                                                <i class="bi bi-hourglass-split text-warning fs-7" title="Đang chờ duyệt"></i>
+                                                            </c:when>
+                                                            <c:when test="${st.status == 'REVISE'}">
+                                                                <i class="bi bi-arrow-repeat text-info fs-7" title="Cần cân chỉnh"></i>
+                                                            </c:when>
+                                                            <c:when test="${st.status == 'REJECTED'}">
+                                                                <i class="bi bi-exclamation-circle-fill text-danger fs-7" title="Đã bị trả về"></i>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <i class="bi bi-circle text-muted fs-7" title="Chưa hoàn thành"></i>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                        <span class="fs-8 text-dark text-truncate ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : 'fw-medium'}">
+                                                            ${st.title}
+                                                        </span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1-5 flex-shrink-0">
+                                                        <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${st.statusLabel}</span>
+                                                        <c:if test="${not empty st.dueDate}">
+                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0 fs-9" title="${st.dueDate}">
+                                                                <i class="bi bi-calendar-event me-1"></i>${st.deadlineLabel}
                                                             </span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span class="text-muted fs-9">Chưa đặt hạn</span>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </span>
-                                            </div>
-
-                                            <!-- Dự án -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-folder2-open"></i> Dự
-                                                    án</span>
-                                                <span class="task-property-value text-truncate"
-                                                    style="max-width: 130px;" title="${project.name}">
-                                                    #${project.projectCode}
-                                                </span>
-                                            </div>
-
-                                            <!-- Tiến độ Subtasks -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-check2-circle"></i>
-                                                    Tiến độ</span>
-                                                <span class="task-property-value text-success">
-                                                    ${taskProgressMap[task.id]}%
-                                                </span>
-                                            </div>
+                                                        </c:if>
+                                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
+                                                            <i class="bi bi-person-fill text-primary me-1"></i>${st.assigneeName}
+                                                        </span>
+                                                        <i class="bi bi-chevron-right fs-9 text-muted ms-1"></i>
+                                                    </div>
+                                                </div>
+                                            </c:forEach>
                                         </div>
+                                    </c:if>
 
-                                        <!-- Thao tác nhanh -->
+                                    <c:if test="${empty taskSubTasksMap[task.id]}">
+                                        <div class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center mb-2">
+                                            Chưa có việc con nào được tạo.
+                                        </div>
+                                    </c:if>
+
+                                    <!-- INLINE QUICK ADD SUBTASK BOX (CLICKUP STYLE) -->
+                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                        <form method="post" action="${pageContext.request.contextPath}/task"
+                                            class="quick-add-subtask-box d-flex align-items-center gap-2 mt-1"
+                                            onsubmit="if (!this.title.value.trim()) return false;">
+                                            <input type="hidden" name="action" value="addSubTask">
+                                            <input type="hidden" name="projectId" value="${project.id}">
+                                            <input type="hidden" name="taskId" value="${task.id}">
+                                            <i class="bi bi-plus-circle text-primary fs-7"></i>
+                                            <input type="text" name="title"
+                                                class="form-control form-control-sm border-0 bg-transparent shadow-none fs-8 flex-grow-1 p-0"
+                                                placeholder="+ Thêm việc con mới... (nhấn Enter để tạo)" autocomplete="off" required>
+                                            <select name="assigneeId" class="form-select form-select-sm border-0 bg-transparent shadow-none fs-9 py-0 text-muted" style="width: auto; max-width: 140px;">
+                                                <option value="0">-- Phân công --</option>
+                                                <c:forEach items="${userList}" var="u">
+                                                    <option value="${u.id}">${u.fullName}</option>
+                                                </c:forEach>
+                                            </select>
+                                            <input type="date" name="dueDate" class="form-control form-control-sm border-0 bg-transparent shadow-none fs-9 py-0 text-muted"
+                                                style="width: auto; max-width: 125px;" max="${task.dueDate}" title="Hạn chót việc con (tối đa ${task.dueDate})">
+                                            <button type="submit" class="btn btn-primary-custom btn-sm rounded-pill px-3 py-0-5 fs-9 fw-semibold text-nowrap">
+                                                Tạo
+                                            </button>
+                                        </form>
+                                    </c:if>
+                                </div>
+
+                                <!-- KHỐI TÀI LIỆU WIKI ĐÍNH KÈM -->
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
+                                            <i class="bi bi-journal-bookmark text-primary"></i>
+                                            <span>Tài liệu hướng dẫn đính kèm</span>
+                                        </h6>
+                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                            ${not empty taskDocsMap[task.id] ? taskDocsMap[task.id].size() : 0} tài liệu
+                                        </span>
+                                    </div>
+                                    <c:if test="${not empty taskDocsMap[task.id]}">
+                                        <div class="d-flex flex-column gap-2">
+                                            <c:forEach items="${taskDocsMap[task.id]}" var="td">
+                                                <div class="doc-attachment-item">
+                                                    <div class="d-flex align-items-center gap-2 text-truncate">
+                                                        <i class="bi bi-file-earmark-text text-primary fs-6"></i>
+                                                        <span class="fw-semibold text-dark fs-8 text-truncate">${td.docTitle}</span>
+                                                    </div>
+                                                    <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}"
+                                                        class="btn btn-outline-secondary btn-xs rounded-pill px-3 py-1 fs-9 text-nowrap"
+                                                        title="Đọc bài viết Wiki này">
+                                                        Đọc bài <i class="bi bi-arrow-right ms-1"></i>
+                                                    </a>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${empty taskDocsMap[task.id]}">
+                                        <div class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center">
+                                            Chưa có tài liệu Wiki nào được đính kèm cho công việc này.
+                                        </div>
+                                    </c:if>
+                                </div>
+                            </div>
+
+                            <!-- CỘT PHẢI (35%): THUỘC TÍNH, QUICK ACTIONS, GATES (CỔNG 1 & CỔNG 2), HỘI THOẠI -->
+                            <div class="col-12 col-lg-4 task-modal-sidebar p-4 bg-light-subtle d-flex flex-column justify-content-between" style="min-height: 580px;">
+                                <div>
+                                    <!-- THUỘC TÍNH CÔNG VIỆC -->
+                                    <div class="task-sidebar-section-title mb-2">
+                                        <i class="bi bi-sliders me-1"></i> Thuộc tính công việc
+                                    </div>
+                                    <div class="task-property-list bg-white rounded-3 p-3 border shadow-2xs mb-3">
+                                        <div class="task-property-row">
+                                            <span class="task-property-label"><i class="bi bi-arrow-repeat"></i> Trạng thái</span>
+                                            <span class="task-property-value">
+                                                <span class="badge ${task.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">${task.statusLabel}</span>
+                                            </span>
+                                        </div>
+                                        <div class="task-property-row">
+                                            <span class="task-property-label"><i class="bi bi-person"></i> Phụ trách</span>
+                                            <span class="task-property-value d-flex align-items-center gap-1">
+                                                <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                    style="width: 18px; height: 18px; font-size: 0.65rem;">
+                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                </span>
+                                                <span>${task.assigneeName}</span>
+                                            </span>
+                                        </div>
+                                        <div class="task-property-row">
+                                            <span class="task-property-label"><i class="bi bi-flag"></i> Mức ưu tiên</span>
+                                            <span class="task-property-value">
+                                                <span class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9">● ${task.priorityLabel}</span>
+                                            </span>
+                                        </div>
+                                        <div class="task-property-row">
+                                            <span class="task-property-label"><i class="bi bi-calendar3"></i> Hạn chót</span>
+                                            <span class="task-property-value">
+                                                <c:choose>
+                                                    <c:when test="${not empty task.dueDate}">
+                                                        <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
+                                                            <i class="bi bi-calendar-event me-1"></i>${task.dueDate}
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="text-muted fs-9">Chưa đặt hạn</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </span>
+                                        </div>
+                                        <div class="task-property-row">
+                                            <span class="task-property-label"><i class="bi bi-folder2-open"></i> Dự án</span>
+                                            <span class="task-property-value text-truncate" style="max-width: 130px;" title="${project.name}">#${project.projectCode}</span>
+                                        </div>
+                                        <div class="task-property-row">
+                                            <span class="task-property-label"><i class="bi bi-check2-circle"></i> Tiến độ</span>
+                                            <span class="task-property-value text-success fw-bold">${taskProgressMap[task.id]}%</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- NÚT BẮT ĐẦU (NẾU ĐANG TODO) -->
+                                    <c:if test="${task.status == 'TODO'}">
                                         <c:set var="hasAssignee" value="${task.assigneeId > 0}" />
-                                        <c:set var="subTaskCount"
-                                            value="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}" />
+                                        <c:set var="subTaskCount" value="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}" />
                                         <c:set var="canStartTask" value="${hasAssignee && subTaskCount > 0}" />
-
-                                        <div
-                                            class="task-sidebar-section-title d-flex align-items-center justify-content-between mb-2">
-                                            <span><i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh</span>
+                                        <div class="mb-3">
+                                            <div class="task-sidebar-section-title d-flex align-items-center justify-content-between mb-2">
+                                                <span><i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh</span>
+                                                <c:choose>
+                                                    <c:when test="${canStartTask}">
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 fs-9">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Đủ điều kiện
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 fs-9">
+                                                            <i class="bi bi-lock-fill me-1"></i> Chưa đủ điều kiện
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
                                             <c:choose>
                                                 <c:when test="${canStartTask}">
-                                                    <span
-                                                        class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 fs-9">
-                                                        <i class="bi bi-check-circle-fill me-1"></i> Đủ điều kiện
-                                                    </span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span
-                                                        class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 fs-9">
-                                                        <i class="bi bi-lock-fill me-1"></i> Chưa đủ điều kiện
-                                                    </span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
-
-                                        <div class="d-flex flex-column gap-2 mb-3">
-                                            <c:choose>
-                                                <c:when test="${canStartTask}">
-                                                    <!-- NÚT BỪNG SÁNG: Đầy đủ Task Lead & Việc con -->
-                                                    <form method="post" action="${pageContext.request.contextPath}/task"
-                                                        class="m-0">
+                                                    <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
                                                         <input type="hidden" name="action" value="updateStatus">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
                                                         <input type="hidden" name="newStatus" value="IN_PROGRESS">
-                                                        <button type="submit"
-                                                            class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
+                                                        <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
                                                             style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
-                                                            <i class="bi bi-play-circle-fill fs-7"></i> Bắt đầu làm việc
-                                                            (→ In Progress) ✨
+                                                            <i class="bi bi-play-circle-fill fs-7"></i> Bắt đầu làm việc (→ In Progress) ✨
                                                         </button>
                                                     </form>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <!-- NÚT MỜ / VÔ HIỆU HÓA KHI THIẾU ĐIỀU KIỆN -->
-                                                    <button type="button"
-                                                        class="btn btn-light text-muted border border-secondary-subtle btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1 opacity-75"
-                                                        disabled
-                                                        title="Cần thỏa mãn các điều kiện bên dưới để mở khóa nút này">
-                                                        <i class="bi bi-lock-fill text-secondary"></i> Bắt đầu làm việc
-                                                        (→ In Progress)
+                                                    <button type="button" class="btn btn-light text-muted border border-secondary-subtle btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1 opacity-75" disabled>
+                                                        <i class="bi bi-lock-fill text-secondary"></i> Bắt đầu làm việc (→ In Progress)
                                                     </button>
-
-                                                    <!-- Bảng kiểm tra điều kiện tường minh -->
-                                                    <div
-                                                        class="p-2.5 bg-light rounded-3 border fs-9 text-secondary mt-1">
-                                                        <div class="fw-bold text-dark mb-1 pb-1 border-bottom fs-9">
-                                                            <i class="bi bi-shield-lock text-primary me-1"></i> Ràng
-                                                            buộc để mở khóa:
+                                                    <div class="p-2.5 bg-light rounded-3 border fs-9 text-secondary mt-1">
+                                                        <div class="fw-bold text-dark mb-1 pb-1 border-bottom fs-9"><i class="bi bi-shield-lock text-primary me-1"></i> Ràng buộc:</div>
+                                                        <div class="d-flex align-items-center gap-1.5 ${hasAssignee ? 'text-success fw-semibold' : 'text-danger'}">
+                                                            <i class="bi ${hasAssignee ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                                            <span>${hasAssignee ? 'Đã gán người phụ trách' : 'Chưa phân công (Bấm "Chỉnh sửa")'}</span>
                                                         </div>
-                                                        <div
-                                                            class="d-flex align-items-center gap-1.5 ${hasAssignee ? 'text-success fw-semibold' : 'text-danger'}">
-                                                            <i
-                                                                class="bi ${hasAssignee ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
-                                                            <span>${hasAssignee ? 'Đã gán người phụ trách (' : 'Chưa phân công (Bấm nút "Chỉnh sửa" ở trên)'}${hasAssignee ? task.assigneeName : ''}${hasAssignee ? ')' : ''}</span>
-                                                        </div>
-                                                        <div
-                                                            class="d-flex align-items-center gap-1.5 ${subTaskCount > 0 ? 'text-success fw-semibold' : 'text-danger'} mt-1">
-                                                            <i
-                                                                class="bi ${subTaskCount > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
-                                                            <span>${subTaskCount > 0 ? 'Đã có kế hoạch (' : 'Chưa có việc con (Tạo ít nhất 1 việc con ở mục dưới)'}${subTaskCount > 0 ? subTaskCount : ''}${subTaskCount > 0 ? ' việc con)' : ''}</span>
+                                                        <div class="d-flex align-items-center gap-1.5 ${subTaskCount > 0 ? 'text-success fw-semibold' : 'text-danger'} mt-1">
+                                                            <i class="bi ${subTaskCount > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                                            <span>${subTaskCount > 0 ? 'Đã có việc con' : 'Chưa có việc con (Tạo ít nhất 1 việc con)'}</span>
                                                         </div>
                                                     </div>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
-
-                                        <!-- Hội thoại của Task -->
-                                        <div
-                                            class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                            <div class="d-flex align-items-center gap-1">
-                                                <i class="bi bi-chat-square-dots-fill text-primary fs-8"></i>
-                                                <span class="fw-bold text-dark fs-8">Hội thoại (${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0})</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 overflow-y-auto d-flex flex-column gap-2 mb-3 pe-1"
-                                            style="max-height: 240px;">
-                                            <c:forEach items="${taskCommentsMap[task.id]}" var="comment">
-                                                <div
-                                                    class="p-2 px-3 rounded-3 border shadow-2xs ${comment.authorName == 'Hệ Thống' ? 'bg-success-subtle border-success-subtle' : 'bg-white'}">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <span
-                                                            class="fw-bold fs-9 ${comment.authorName == 'Hệ Thống' ? 'text-success' : 'text-dark'}">
-                                                            <c:choose>
-                                                                <c:when test="${comment.authorName == 'Hệ Thống'}">
-                                                                    <i class="bi bi-robot me-1"></i> Hệ Thống
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    ${comment.authorName}
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </span>
-                                                        <span class="text-muted fs-9">${comment.sentAt}</span>
-                                                    </div>
-                                                    <div class="fs-9 text-dark lh-base"
-                                                        style="word-break: break-word; white-space: pre-line;">
-                                                        <c:out value="${comment.content}" />
-                                                    </div>
-                                                </div>
-                                            </c:forEach>
-                                            <c:if test="${empty taskCommentsMap[task.id]}">
-                                                <div class="text-center text-muted my-auto py-3">
-                                                    <i class="bi bi-chat-left-dots fs-5 d-block mb-1 opacity-50"></i>
-                                                    <span class="fs-9">Chưa có bình luận nào.</span>
-                                                </div>
-                                            </c:if>
-                                        </div>
-                                        <div class="pt-2 border-top">
-                                            <form method="post" action="${pageContext.request.contextPath}/chat"
-                                                class="d-flex flex-column gap-2">
-                                                <input type="hidden" name="action" value="sendTaskComment">
-                                                <input type="hidden" name="projectId" value="${project.id}">
-                                                <input type="hidden" name="taskId" value="${task.id}">
-                                                <div class="input-group">
-                                                    <input type="text"
-                                                        class="form-control fs-9 py-1 rounded-start-pill ps-3 shadow-none border-secondary-subtle"
-                                                        name="content" placeholder="Bình luận..." autocomplete="off"
-                                                        required>
-                                                    <button type="submit"
-                                                        class="btn btn-primary-custom rounded-end-pill px-3 fs-9 fw-semibold shadow-sm">
-                                                        <i class="bi bi-send-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-
-                                    <!-- Footer Sidebar: Xóa Task nếu có quyền -->
-                                    <c:if
-                                        test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                        <div class="pt-2 mt-2 border-top text-end">
-                                            <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
-                                                class="text-danger fs-9 text-decoration-none d-inline-flex align-items-center gap-1 opacity-75 hover-opacity-100"
-                                                onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn công việc này không?');">
-                                                <i class="bi bi-trash3"></i> Xóa thẻ này
-                                            </a>
-                                        </div>
                                     </c:if>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </c:forEach>
 
-        <!-- MODAL CHO CỘT ĐANG LÀM (IN_PROGRESS) -->
-        <c:set var="allTasksToRender" value="${inProgressTasks}" />
-        <c:forEach items="${allTasksToRender}" var="task">
-            <div class="modal fade modal-slide-end" id="taskDetailModal-${task.id}" tabindex="-1"
-                aria-labelledby="taskDetailModalLabel-${task.id}" aria-hidden="true">
-                <div class="modal-dialog modal-xl">
-                    <div class="modal-content border-0 shadow-lg overflow-hidden">
-                        <div class="modal-header task-modal-header d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
-                                <span class="task-modal-id-badge">#${task.id}</span>
-                                <c:forEach items="${task.labelList}" var="lbl">
-                                    <span
-                                        class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                        ${task.getLabelDisplayName(lbl)}
-                                    </span>
-                                </c:forEach>
-                                <span
-                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-8 fw-semibold">
-                                    ● ${task.priorityLabel}
-                                </span>
-                                <h5 class="modal-title fw-bold text-dark mb-0 fs-6 text-truncate"
-                                    id="taskDetailModalLabel-${task.id}">
-                                    ${task.title}
-                                </h5>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <c:if
-                                    test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                    <button type="button"
-                                        class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
-                                        data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
-                                        <i class="bi bi-pencil-square"></i> Chỉnh sửa
-                                    </button>
-                                </c:if>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Đóng"></button>
-                            </div>
-                        </div>
-                        <div class="modal-body p-0">
-                            <div class="row g-0">
-                                <div class="col-12 col-lg-8 p-4 border-end">
-                                    <c:if
-                                        test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                        <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
-                                            <form method="post" action="${pageContext.request.contextPath}/task"
-                                                class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
-                                                <input type="hidden" name="action" value="editTask">
-                                                <input type="hidden" name="projectId" value="${project.id}">
-                                                <input type="hidden" name="taskId" value="${task.id}">
-                                                <h6 class="fw-bold text-primary fs-8 mb-3"><i
-                                                        class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công
-                                                    việc</h6>
-                                                <div class="mb-2">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu
-                                                        đề:</label>
-                                                    <input type="text" name="title"
-                                                        value="${task.title}"
-                                                        class="form-control form-control-sm" required>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi
-                                                        tiết:</label>
-                                                    <textarea name="description" class="form-control form-control-sm"
-                                                        rows="3"><c:out value="${task.description}" /></textarea>
-                                                </div>
-                                                <div class="row g-2 mb-3">
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu
-                                                            tiên:</label>
-                                                        <select name="priority" class="form-select form-select-sm">
-                                                            <option value="LOW" ${task.priority=='LOW' ? 'selected' : ''}>Thấp (Low)</option>
-                                                            <option value="MEDIUM" ${task.priority=='MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
-                                                            <option value="HIGH" ${task.priority=='HIGH' ? 'selected' : ''}>Cao (High)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn
-                                                            chót:</label>
-                                                        <input type="date" name="dueDate" value="${task.dueDate}"
-                                                            class="form-control form-control-sm">
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ
-                                                            trách:</label>
-                                                        <c:choose>
-                                                            <c:when
-                                                                test="${project.ownerId == sessionScope.currentUser.id}">
-                                                                <select name="assigneeId"
-                                                                    class="form-select form-select-sm" required>
-                                                                    <c:forEach items="${userList}" var="u">
-                                                                        <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
-                                                                    </c:forEach>
-                                                                </select>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <input type="hidden" name="assigneeId"
-                                                                    value="${task.assigneeId}">
-                                                                <input type="text"
-                                                                    class="form-control form-control-sm bg-light"
-                                                                    value="${task.assigneeName}" readonly>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="btn btn-light btn-sm fs-9"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
-                                                    <button type="submit"
-                                                        class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay
-                                                        đổi</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </c:if>
-                                    <!-- Mô tả chi tiết (Typography rõ ràng, thẻ card sạch) -->
-                                    <div class="mb-4">
-                                        <h6 class="fw-bold text-dark fs-7 mb-2">
-                                            <i class="bi bi-text-left text-primary me-1"></i> Mô tả công việc
-                                        </h6>
-                                        <div class="task-desc-card">
-                                            <c:choose>
-                                                <c:when test="${not empty task.description}">
-                                                    <div style="white-space: pre-line;">
-                                                        <c:out value="${task.description}" />
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="text-muted fst-italic fs-8">Chưa có mô tả chi tiết cho
-                                                        công việc này. Nhấn "Chỉnh sửa" ở góc trên để bổ sung.</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
-                                    </div>
-
-                                    <!-- =========================================================================
-                                 CỔNG 1: THẨM ĐỊNH & KHÓA KẾ HOẠCH PHÂN RÃ (SCOPE LOCK)
-                                 ========================================================================= -->
+                                    <!-- CỔNG 1: THẨM ĐỊNH & KHÓA KẾ HOẠCH PHÂN RÃ (SCOPE LOCK) -->
                                     <c:if test="${task.status == 'PLANNING'}">
-                                        <div class="gate-card gate-card-primary mb-4">
-                                            <div
-                                                class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                        <div class="gate-card gate-card-primary mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <span class="p-1-5 bg-white text-primary rounded-2 shadow-2xs lh-1">
-                                                        <i class="bi bi-diagram-3-fill fs-6"></i>
-                                                    </span>
+                                                    <span class="p-1 bg-white text-primary rounded-2 shadow-2xs lh-1"><i class="bi bi-diagram-3-fill fs-6"></i></span>
                                                     <div>
-                                                        <h6 class="fw-bold text-primary fs-7 mb-0">Cổng 1: Hồ Sơ Kế
-                                                            Hoạch Phân Rã (Chờ PM Phê Duyệt & Khóa)</h6>
-                                                        <span class="fs-9 text-muted">Task Lead đã bóc tách
-                                                            <strong>${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc con</strong>
-                                                            &bull; Nộp lúc: ${task.submittedAt}</span>
+                                                        <h6 class="fw-bold text-primary fs-8 mb-0">Cổng 1: Hồ Sơ Kế Hoạch</h6>
+                                                        <span class="fs-9 text-muted">${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc con &bull; ${task.submittedAt}</span>
                                                     </div>
                                                 </div>
-                                                <span
-                                                    class="badge bg-primary text-white rounded-pill px-2-5 py-1 fs-9 fw-semibold">
-                                                    🟣 Chờ PM duyệt kế hoạch
-                                                </span>
+                                                <span class="badge bg-primary text-white rounded-pill px-2 py-0-5 fs-9 fw-semibold">Chờ PM duyệt</span>
                                             </div>
 
                                             <c:if test="${not empty task.planningNote}">
-                                                <div
-                                                    class="p-3 bg-white rounded-3 border fs-8 text-dark mb-3 shadow-2xs">
-                                                    <strong class="text-primary d-block mb-1 fs-8">
-                                                        <i class="bi bi-chat-left-quote-fill me-1"></i> Thuyết minh
-                                                        phương án phân rã từ Task Lead:
-                                                    </strong>
-                                                    <div class="text-secondary lh-base" style="white-space: pre-line;">
-                                                        <c:out value="${task.planningNote}" />
-                                                    </div>
+                                                <div class="p-2 bg-white rounded-2 border fs-9 text-dark mb-2 shadow-2xs">
+                                                    <strong class="text-primary d-block mb-1 fs-9"><i class="bi bi-chat-left-quote-fill me-1"></i> Thuyết minh từ Task Lead:</strong>
+                                                    <div class="text-secondary lh-base" style="white-space: pre-line;"><c:out value="${task.planningNote}" /></div>
                                                 </div>
                                             </c:if>
 
-                                            <!-- NÚT DUYỆT / TRẢ VỀ DÀNH CHO PM -->
-                                            <div
-                                                class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top border-primary-subtle">
-                                                <c:choose>
-                                                    <c:when test="${project.ownerId == sessionScope.currentUser.id}">
-                                                        <span class="fs-9 text-secondary"><i
-                                                                class="bi bi-shield-check text-success me-1"></i>Trưởng
-                                                            Dự Án thẩm định danh mục việc con trước khi khóa kế
-                                                            hoạch:</span>
-                                                        <div class="d-flex align-items-center gap-2 ms-auto">
-                                                            <!-- Nút 1: Yêu cầu bổ sung -->
-                                                            <button type="button"
-                                                                class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#rejectPlanningPanel-${task.id}">
-                                                                <i class="bi bi-arrow-counterclockwise me-1"></i> Yêu
-                                                                Cầu Bổ Sung
-                                                            </button>
-                                                            <!-- Nút 2: PM Phê duyệt & Khóa -->
-                                                            <button type="button"
-                                                                class="btn btn-primary btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs text-white"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#approvePlanningPanel-${task.id}">
-                                                                <i class="bi bi-lock-fill me-1"></i> PM Phê Duyệt & Khóa
-                                                                Kế Hoạch 🔒
-                                                            </button>
-                                                        </div>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <div
-                                                            class="alert alert-info py-1-5 px-3 rounded-pill fs-9 d-flex align-items-center gap-2 mb-0 ms-auto shadow-2xs">
-                                                            <i class="bi bi-hourglass-split text-primary fs-8"></i>
-                                                            <span>Đã trình kế hoạch lên PM. Vui lòng chờ PM phê duyệt
-                                                                khóa phạm vi để bắt đầu thực thi!</span>
-                                                        </div>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </div>
+                                            <!-- Nút Duyệt / Trả Về Dành Cho PM -->
+                                            <c:choose>
+                                                <c:when test="${project.ownerId == sessionScope.currentUser.id}">
+                                                    <div class="d-flex align-items-center gap-1-5 pt-1 border-top border-primary-subtle">
+                                                        <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold flex-fill shadow-2xs"
+                                                            data-bs-toggle="collapse" data-bs-target="#rejectPlanningPanel-${task.id}">
+                                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Yêu Cầu Bổ Sung
+                                                        </button>
+                                                        <button type="button" class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold flex-fill shadow-2xs text-white"
+                                                            data-bs-toggle="collapse" data-bs-target="#approvePlanningPanel-${task.id}">
+                                                            <i class="bi bi-lock-fill me-1"></i> Phê Duyệt & Khóa 🔒
+                                                        </button>
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <div class="alert alert-info py-1 px-2 rounded-2 fs-9 d-flex align-items-center gap-1 mb-0">
+                                                        <i class="bi bi-hourglass-split text-primary fs-8"></i>
+                                                        <span>Đã trình kế hoạch lên PM. Chờ PM phê duyệt!</span>
+                                                    </div>
+                                                </c:otherwise>
+                                            </c:choose>
 
-                                            <!-- KHUNG COLLAPSE PM PHÊ DUYỆT & KHÓA KẾ HOẠCH (SCOPE LOCK) -->
-                                            <div class="collapse mt-3" id="approvePlanningPanel-${task.id}">
-                                                <div class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                    <h6 class="modal-title fw-bold text-primary fs-8 mb-2">
-                                                        <i class="bi bi-lock-fill text-primary me-2"></i>PM Phê Duyệt &
-                                                        Khóa Kế Hoạch: [${task.title}]
-                                                    </h6>
-                                                    <form action="${pageContext.request.contextPath}/task"
-                                                        method="post">
+                                            <!-- PANEL PM DUYỆT KẾ HOẠCH -->
+                                            <div class="collapse mt-2" id="approvePlanningPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
+                                                    <h6 class="fw-bold text-primary fs-8 mb-2"><i class="bi bi-lock-fill me-1"></i> PM Phê Duyệt & Khóa Kế Hoạch</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="pmApprovePlanning">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
-
-                                                        <!-- DANH SÁCH VIỆC CON SẼ ĐƯỢC KHÓA -->
-                                                        <div class="p-2-5 bg-light rounded-2 border mb-3">
-                                                            <span class="fw-bold fs-9 text-dark d-block mb-1">
-                                                                <i class="bi bi-card-checklist text-primary me-1"></i>
-                                                                Danh mục ${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc con sẽ được
-                                                                chốt khóa:
-                                                            </span>
-                                                            <div class="d-flex flex-column gap-1">
-                                                                <c:forEach items="${taskSubTasksMap[task.id]}" var="st"
-                                                                    varStatus="stStatus">
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-between p-1-5 px-2 bg-white rounded-1 border fs-9">
-                                                                        <span><strong>${stStatus.index + 1}.</strong>
-                                                                            ${st.title}</span>
-                                                                        <span
-                                                                            class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
-                                                                            <i
-                                                                                class="bi bi-person-fill text-primary"></i>
-                                                                            ${st.assigneeName}
-                                                                        </span>
-                                                                    </div>
-                                                                </c:forEach>
-                                                            </div>
+                                                        <div class="mb-2">
+                                                            <label for="feedback-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Dặn dò của PM:</label>
+                                                            <textarea class="form-control fs-9 rounded-2" id="feedback-${task.id}" name="feedback" rows="2" placeholder="Ý kiến chỉ đạo của PM..."></textarea>
                                                         </div>
-
-                                                        <!-- CHECKLIST THẨM ĐỊNH KẾ HOẠCH CỦA PM -->
-                                                        <div
-                                                            class="p-2-5 bg-primary-subtle rounded-2 border border-primary-subtle mb-3">
-                                                            <span class="fw-bold fs-9 text-primary d-block mb-1">
-                                                                <i class="bi bi-shield-check text-primary me-1"></i>
-                                                                Tiêu chí chấp thuận kế hoạch:
-                                                            </span>
-                                                            <div class="form-check fs-9 mb-1">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    id="planCheck1-${task.id}" checked>
-                                                                <label class="form-check-label text-dark fw-medium"
-                                                                    for="planCheck1-${task.id}">
-                                                                    Đã đối chiếu danh mục việc con bao quát toàn bộ yêu
-                                                                    cầu đặc tả (Spec)
-                                                                </label>
-                                                            </div>
-                                                            <div class="form-check fs-9">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    id="planCheck2-${task.id}" checked>
-                                                                <label class="form-check-label text-dark fw-medium"
-                                                                    for="planCheck2-${task.id}">
-                                                                    Đồng ý Khóa Kế Hoạch (Scope Lock) — Task Lead tự chủ
-                                                                    phân bổ và nghiệm thu nội bộ
-                                                                </label>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="mb-3">
-                                                            <label for="feedback-${task.id}"
-                                                                class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                Ý kiến chỉ đạo / Dặn dò của PM (Tùy chọn):
-                                                            </label>
-                                                            <textarea class="form-control fs-8 rounded-3"
-                                                                id="feedback-${task.id}" name="feedback" rows="2"
-                                                                placeholder="Ví dụ: Kế hoạch phân rã rất chi tiết và hợp lý. Đội ngũ tập trung làm đúng tiến độ!"></textarea>
-                                                        </div>
-
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-end gap-2">
-                                                            <button type="button"
-                                                                class="btn btn-light rounded-pill px-3 fs-8"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#approvePlanningPanel-${task.id}">Đóng</button>
-                                                            <button type="submit"
-                                                                class="btn btn-primary rounded-pill px-4 fs-8 fw-semibold shadow-sm text-white">
-                                                                <i class="bi bi-lock-fill me-1"></i> Phê Duyệt & Khóa Kế
-                                                                Hoạch (Bắt Đầu Thực Thi)
-                                                            </button>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#approvePlanningPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-3 py-0-5 fs-9 fw-semibold text-white">Khóa Kế Hoạch</button>
                                                         </div>
                                                     </form>
                                                 </div>
                                             </div>
 
-                                            <!-- KHUNG COLLAPSE PM YÊU CẦU BỔ SUNG KẾ HOẠCH -->
-                                            <div class="collapse mt-3" id="rejectPlanningPanel-${task.id}">
-                                                <div class="p-3 bg-white rounded-3 border border-warning shadow-sm">
-                                                    <h6 class="modal-title fw-bold text-dark fs-8 mb-2">
-                                                        <i
-                                                            class="bi bi-arrow-counterclockwise text-warning me-2"></i>Yêu
-                                                        Cầu Bổ Sung Kế Hoạch: [${task.title}]
-                                                    </h6>
-                                                    <form action="${pageContext.request.contextPath}/task"
-                                                        method="post">
+                                            <!-- PANEL PM TRẢ VỀ KẾ HOẠCH -->
+                                            <div class="collapse mt-2" id="rejectPlanningPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
+                                                    <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-arrow-counterclockwise text-warning me-1"></i> Yêu Cầu Bổ Sung</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="pmRejectPlanning">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
-                                                        <div class="mb-3">
-                                                            <label for="rejectFeedback-${task.id}"
-                                                                class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                Nêu rõ các hạng mục việc con cần bổ sung <span
-                                                                    class="text-danger">*</span>:
-                                                            </label>
-                                                            <textarea class="form-control fs-8 rounded-3"
-                                                                id="rejectFeedback-${task.id}" name="feedback" rows="2"
-                                                                placeholder="Ví dụ: Task này thiếu module kiểm thử bảo mật SQL Injection, em bóc tách thêm việc con này nhé..."
-                                                                required></textarea>
+                                                        <div class="mb-2">
+                                                            <label for="rejectFeedback-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Các hạng mục cần bổ sung <span class="text-danger">*</span>:</label>
+                                                            <textarea class="form-control fs-9 rounded-2" id="rejectFeedback-${task.id}" name="feedback" rows="2" placeholder="Ví dụ: Thiếu module kiểm thử..." required></textarea>
                                                         </div>
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-end gap-2">
-                                                            <button type="button"
-                                                                class="btn btn-light rounded-pill px-3 fs-8"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#rejectPlanningPanel-${task.id}">Đóng</button>
-                                                            <button type="submit"
-                                                                class="btn btn-warning rounded-pill px-4 fs-8 fw-semibold shadow-sm text-dark">
-                                                                <i class="bi bi-arrow-counterclockwise me-1"></i> Trả Về
-                                                                Yêu Cầu Bổ Sung
-                                                            </button>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#rejectPlanningPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-warning rounded-pill px-3 py-0-5 fs-9 fw-semibold text-dark">Gửi Yêu Cầu</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -2774,2540 +2185,568 @@
                                         </div>
                                     </c:if>
 
-                                    <!-- =========================================================================
-                                 KHỐI BÀN GIAO & PHÊ DUYỆT NGHIỆM THU TASK LỚN (TASK LEAD ➔ PM)
-                                 ========================================================================= -->
-                                    <div class="gate-card gate-card-success mb-4">
-                                        <div
-                                            class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1">
-                                                    <i class="bi bi-box-seam-fill fs-7"></i>
-                                                </span>
-                                                <h6 class="fw-bold text-dark fs-7 mb-0">Hồ Sơ Nghiệm Thu & Thẩm Định Dự
-                                                    Án (Task Lead ➔ PM)</h6>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-1">
+                                    <!-- CỔNG 2: BÀN GIAO & NGHIỆM THU TASK LỚN (TASK LEAD ➔ PM) -->
+                                    <c:if test="${task.status == 'IN_PROGRESS' || task.status == 'SUBMITTED' || task.status == 'REVISE' || task.status == 'REJECTED' || task.status == 'DONE'}">
+                                        <div class="gate-card gate-card-success mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                                <div class="d-flex align-items-center gap-1.5">
+                                                    <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1"><i class="bi bi-box-seam-fill fs-8"></i></span>
+                                                    <h6 class="fw-bold text-dark fs-8 mb-0">Hồ Sơ Nghiệm Thu (Cổng 2)</h6>
+                                                </div>
                                                 <c:if test="${task.status == 'DONE' && task.qualityRating > 0}">
-                                                    <span
-                                                        class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-1 fs-9 fw-bold">
-                                                        <i
-                                                            class="bi bi-star-fill text-warning me-1"></i>${task.qualityRating}/5
-                                                        ⭐
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0-5 fs-9 fw-bold">
+                                                        <i class="bi bi-star-fill text-warning me-1"></i>${task.qualityRating}/5 ⭐
                                                     </span>
                                                 </c:if>
-                                                <span
-                                                    class="badge ${task.statusBadgeClass} rounded-pill px-2 py-1 fs-9">
-                                                    ${task.statusLabel}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <!-- 1. MA TRẬN PHÂN RÃ VIỆC CON & NĂNG SUẤT TỰ ĐỘNG -->
-                                        <div class="bg-white p-3 rounded-3 border mb-3 shadow-2xs">
-                                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="fs-9 fw-bold text-uppercase text-secondary tracking-wider">
-                                                    <i class="bi bi-diagram-3-fill text-primary me-1"></i> Ma Trận Phân
-                                                    Rã Việc Con (${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc con):
-                                                </span>
-                                                <span
-                                                    class="badge bg-success-subtle text-success rounded-pill px-2 py-1 fs-9">
-                                                    <i class="bi bi-check2-circle me-1"></i>
-                                                    ${taskProgressMap[task.id]}% Hoàn Thành
-                                                </span>
                                             </div>
 
-                                            <!-- 4 Thẻ chỉ số Metrics Grid -->
-                                            <div class="row g-2 text-center mb-2">
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Phân rã</span>
-                                                        <strong class="fs-7 text-dark">${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} sub-tasks</strong>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Task Lead</span>
-                                                        <strong
-                                                            class="fs-7 text-dark text-truncate d-block">${task.assigneeName}</strong>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Tài liệu Wiki</span>
-                                                        <strong class="fs-7 text-dark">${not empty taskDocsMap[task.id] ? taskDocsMap[task.id].size() : 0} docs</strong>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Thảo luận</span>
-                                                        <strong class="fs-7 text-dark">${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0} tin nhắn</strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Danh sách đóng góp của thành viên -->
-                                            <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                <div class="p-2 bg-light-subtle rounded-2 border fs-9 mt-2">
-                                                    <span class="fw-semibold text-secondary d-block mb-1">
-                                                        <i class="bi bi-people-fill text-primary me-1"></i> Chi tiết các
-                                                        hạng mục việc con do Task Lead phân rã:
-                                                    </span>
-                                                    <div class="d-flex flex-column gap-1">
-                                                        <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                            <div
-                                                                class="d-flex align-items-center justify-content-between text-secondary">
-                                                                <span>&bull; <strong>${st.assigneeName}</strong>:
-                                                                    ${st.title}</span>
-                                                                <span
-                                                                    class="badge ${st.statusBadgeClass} rounded-pill px-1-5 py-0 fs-9">${st.statusLabel}</span>
-                                                            </div>
-                                                        </c:forEach>
-                                                    </div>
-                                                </div>
-                                            </c:if>
-                                        </div>
-
-                                        <!-- 2. HIỂN THỊ BÁO CÁO BÀN GIAO CÓ CẤU TRÚC & TỆP ĐÍNH KÈM CỦA TASK LEAD (NẾU CÓ) -->
-                                        <c:if test="${not empty task.finalDeliverableNote}">
-                                            <div class="p-3 bg-white rounded-3 border fs-8 text-dark mb-3 shadow-2xs">
-                                                <div
-                                                    class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                                    <span class="fw-bold text-warning fs-8">
-                                                        <i class="bi bi-file-earmark-check-fill me-1"></i> Báo Cáo Tổng
-                                                        Kết Bàn Giao Của Task Lead:
-                                                    </span>
-                                                    <span class="fs-9 text-muted"><i
-                                                            class="bi bi-clock-history me-1"></i>${task.submittedAt}</span>
-                                                </div>
-                                                <div class="text-secondary fs-8 lh-base" style="white-space: pre-line;">
-                                                    <c:out value="${task.finalDeliverableNote}" />
-                                                </div>
-
-                                                <!-- TỆP ĐÍNH KÈM BÁO CÁO NGHIỆM THU -->
-                                                <c:if test="${not empty task.deliverableFile}">
-                                                    <div
-                                                        class="mt-3 p-2-5 bg-warning-subtle border border-warning-subtle rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <div class="p-2 bg-white rounded-2 text-danger shadow-2xs">
-                                                                <i class="bi bi-file-earmark-pdf-fill fs-6"></i>
-                                                            </div>
-                                                            <div>
-                                                                <span
-                                                                    class="fw-bold fs-8 text-dark d-block">${task.deliverableFile}</span>
-                                                                <span class="fs-9 text-secondary"><i
-                                                                        class="bi bi-check2-circle text-success me-1"></i>Tệp
-                                                                    đính kèm nghiệm thu chính thức từ Task Lead</span>
-                                                            </div>
-                                                        </div>
-                                                        <a href="${pageContext.request.contextPath}/uploads/deliverables/${task.deliverableFile}"
-                                                            class="btn btn-warning btn-sm rounded-pill fs-9 fw-semibold text-dark shadow-2xs px-3"
-                                                            download="${task.deliverableFile}" target="_blank">
-                                                            <i class="bi bi-download me-1"></i> Tải File Báo Cáo Nghiệm
-                                                            Thu
-                                                        </a>
-                                                    </div>
-                                                </c:if>
-                                            </div>
-                                        </c:if>
-
-                                        <!-- 3. HIỂN THỊ PHẢN HỒI / ĐÁNH GIÁ CỦA PM (NẾU CÓ) -->
-                                        <c:if test="${not empty task.pmFeedback}">
-                                            <c:choose>
-                                                <c:when test="${task.status == 'REVISE'}">
-                                                    <div
-                                                        class="p-2 bg-primary-subtle text-primary border border-primary-subtle rounded-3 fs-8 mb-3">
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="fw-bold fs-9">
-                                                                <i class="bi bi-info-circle-fill me-1"></i> Dặn dò cân
-                                                                chỉnh từ Trưởng Dự Án (PM):
-                                                            </span>
-                                                            <span class="fs-9 opacity-75">${task.reviewedAt}</span>
-                                                        </div>
-                                                        <p class="mb-0 fs-8">"${task.pmFeedback}"</p>
-                                                    </div>
-                                                </c:when>
-                                                <c:when test="${task.status == 'REJECTED'}">
-                                                    <div
-                                                        class="p-2 bg-danger-subtle text-danger border border-danger-subtle rounded-3 fs-8 mb-3">
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="fw-bold fs-9">
-                                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Lý
-                                                                do chưa đạt từ Trưởng Dự Án (PM):
-                                                            </span>
-                                                            <span class="fs-9 opacity-75">${task.reviewedAt}</span>
-                                                        </div>
-                                                        <p class="mb-0 fs-8">"${task.pmFeedback}"</p>
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div
-                                                        class="p-2 bg-success-subtle text-success border border-success-subtle rounded-3 fs-8 mb-3">
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="fw-bold fs-9">
-                                                                <i class="bi bi-patch-check-fill me-1"></i> Đánh giá
-                                                                nghiệm thu từ Trưởng Dự Án (PM)
-                                                                <c:if test="${task.qualityRating > 0}">
-                                                                    <span
-                                                                        class="text-warning ms-1">(${task.qualityRating}
-                                                                        ⭐)</span>
-                                                                </c:if>:
-                                                            </span>
-                                                            <span class="fs-9 opacity-75">${task.reviewedAt}</span>
-                                                        </div>
-                                                        <p class="mb-0 fs-8">"${task.pmFeedback}"</p>
-                                                    </div>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </c:if>
-
-                                        <!-- 4. CÁC NÚT TƯƠNG TÁC (TASK LEAD NỘP BÀN GIAO / PM PHÊ DUYỆT 3 LỰA CHỌN) -->
-                                        <div
-                                            class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
-
-                                            <!-- A. NÚT DÀNH CHO TASK LEAD: Nộp bàn giao Task lớn lên cho PM -->
-                                            <c:set var="canSubmitParentTask"
-                                                value="${(not empty task.assigneeId && task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || ((empty task.assigneeId || task.assigneeId == 0) && project.ownerId == sessionScope.currentUser.id)}" />
-                                            <c:if test="${canSubmitParentTask && task.status != 'DONE'}">
-                                                <button type="button"
-                                                    class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#submitParentTaskPanel-${task.id}">
-                                                    <i class="bi bi-box-seam me-1"></i> ${task.status == 'SUBMITTED' ? 'Cập Nhật Báo Cáo Bàn Giao' : 'Bàn Giao & Nộp Cho PM'}
-                                                </button>
-                                            </c:if>
-
-                                            <!-- B. NÚT DÀNH RIÊNG CHO TRƯỞNG DỰ ÁN (PM) KHI CÓ BÀN GIAO (SUBMITTED) -->
-                                            <c:if
-                                                test="${project.ownerId == sessionScope.currentUser.id && task.status == 'SUBMITTED'}">
-                                                <c:choose>
-                                                    <c:when
-                                                        test="${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100}">
-                                                        <div
-                                                            class="alert alert-warning py-1-5 px-3 rounded-pill fs-9 d-flex align-items-center gap-2 mb-0 ms-auto shadow-2xs">
-                                                            <i
-                                                                class="bi bi-exclamation-triangle-fill text-warning fs-8"></i>
-                                                            <span><strong>Chưa đủ điều kiện duyệt:</strong> Việc con mới
-                                                                đạt <strong>${taskProgressMap[task.id]}%</strong>. Cần
-                                                                hoàn thành 100% việc con trước!</span>
-                                                        </div>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <div class="d-flex align-items-center gap-2 ms-auto">
-                                                            <!-- 1. Mở Duyệt Đạt Kèm DoD & Sao 🟢 -->
-                                                            <button type="button"
-                                                                class="btn btn-success btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#pmApprovePanel-${task.id}"
-                                                                title="Thẩm định tiêu chí DoD & Duyệt 100%">
-                                                                <i class="bi bi-check-circle-fill me-1"></i> PM Duyệt
-                                                                Đạt (🟢)
-                                                            </button>
-
-                                                            <!-- 2. Cần Cân Chỉnh 🔵 (Xanh Dương) -->
-                                                            <button type="button"
-                                                                class="btn btn-primary btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#pmRevisePanel-${task.id}">
-                                                                <i class="bi bi-pencil-square me-1"></i> Cân Chỉnh (🔵)
-                                                            </button>
-
-                                                            <!-- 3. Chưa Đạt 🔴 (Màu Đỏ) -->
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#pmRejectPanel-${task.id}">
-                                                                <i class="bi bi-x-circle-fill me-1"></i> Chưa Đạt (🔴)
-                                                            </button>
-                                                        </div>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:if>
-
-                                        </div>
-
-                                        <!-- PANEL 1: TASK LEAD NỘP BÁO CÁO BÀN GIAO CÓ CẤU TRÚC CHO PM -->
-                                        <div class="collapse mt-3" id="submitParentTaskPanel-${task.id}">
-                                            <div class="p-3 bg-white rounded-3 border border-warning shadow-sm">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <h6 class="modal-title fw-bold text-dark fs-8 mb-0">
-                                                        <i class="bi bi-box-seam-fill text-warning me-2"></i>Hồ Sơ Bàn
-                                                        Giao Task: [${task.title}]
-                                                    </h6>
-                                                    <span class="fs-9 text-muted">Gửi Trưởng Dự Án (PM) để nghiệm
-                                                        thu</span>
-                                                </div>
-                                                <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="submitParentTask">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-
-                                                    <c:if
-                                                        test="${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100}">
-                                                        <div
-                                                            class="alert alert-warning py-2 px-3 rounded-3 fs-9 d-flex align-items-center mb-3">
-                                                            <i
-                                                                class="bi bi-exclamation-triangle-fill me-2 fs-7 text-warning"></i>
-                                                            <div>
-                                                                <strong>Chưa thể nộp bàn giao:</strong> Thẻ này có
-                                                                ${taskSubTasksMap[task.id].size()} việc con nhưng mới
-                                                                đạt <strong>${taskProgressMap[task.id]}%</strong>. Bạn
-                                                                cần nghiệm thu đạt 100% tất cả việc con trước khi gửi
-                                                                PM.
-                                                            </div>
+                                            <!-- Tóm tắt bàn giao nếu có -->
+                                            <c:if test="${not empty task.finalDeliverableNote}">
+                                                <div class="p-2 bg-white rounded-2 border fs-9 text-dark mb-2 shadow-2xs">
+                                                    <span class="fw-bold text-warning fs-9 d-block mb-1"><i class="bi bi-file-earmark-check-fill me-1"></i> Báo Cáo Bàn Giao:</span>
+                                                    <div class="text-secondary fs-9 lh-base" style="white-space: pre-line;"><c:out value="${task.finalDeliverableNote}" /></div>
+                                                    <c:if test="${not empty task.deliverableFile}">
+                                                        <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
+                                                            <span class="fs-9 text-truncate fw-medium">${task.deliverableFile}</span>
+                                                            <a href="${pageContext.request.contextPath}/uploads/deliverables/${task.deliverableFile}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
+                                                                <i class="bi bi-download"></i> Tải
+                                                            </a>
                                                         </div>
                                                     </c:if>
-
-                                                    <!-- Mục 1: Tóm tắt kết quả tính năng -->
-                                                    <div class="mb-3">
-                                                        <label for="summary-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-file-text text-primary me-1"></i> 1. Tóm tắt
-                                                            kết quả tính năng <span class="text-danger">*</span>
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="summary-${task.id}" name="summary" rows="2"
-                                                            placeholder="Mô tả tóm tắt những gì đội ngũ đã hoàn thành, giải quyết được bài toán gì..."
-                                                            required></textarea>
-                                                    </div>
-
-                                                    <!-- Mục 2 & 3: Link Demo & Link PR/Code (2 cột) -->
-                                                    <div class="row g-2 mb-3">
-                                                        <div class="col-12 col-md-6">
-                                                            <label for="demoUrl-${task.id}"
-                                                                class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                <i class="bi bi-globe text-success me-1"></i> 2. Đường
-                                                                dẫn Demo / Sản phẩm
-                                                            </label>
-                                                            <input type="text" class="form-control fs-8 rounded-3"
-                                                                id="demoUrl-${task.id}" name="demoUrl"
-                                                                placeholder="https://demo.example.com/... hoặc link Google Drive, Figma">
-                                                        </div>
-                                                        <div class="col-12 col-md-6">
-                                                            <label for="codeUrl-${task.id}"
-                                                                class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                <i class="bi bi-github text-dark me-1"></i> 3. Đường dẫn
-                                                                Pull Request / Mã nguồn
-                                                            </label>
-                                                            <input type="text" class="form-control fs-8 rounded-3"
-                                                                id="codeUrl-${task.id}" name="codeUrl"
-                                                                placeholder="https://github.com/.../pull/18">
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Mục 4: Bằng chứng kiểm thử -->
-                                                    <div class="mb-3">
-                                                        <label for="testResult-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-patch-check text-info me-1"></i> 4. Kết quả
-                                                            kiểm thử & Bằng chứng (Test Report)
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="testResult-${task.id}" name="testResult" rows="2"
-                                                            placeholder="Đã test các trường hợp nào? Tỷ lệ pass? Có gặp sự cố gì không..."></textarea>
-                                                    </div>
-
-                                                    <!-- Mục 5: Hướng dẫn PM nghiệm thu -->
-                                                    <div class="mb-3">
-                                                        <label for="testingGuide-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-compass text-warning me-1"></i> 5. Hướng dẫn
-                                                            các bước cho PM kiểm chứng / nghiệm thu
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="testingGuide-${task.id}" name="testingGuide" rows="2"
-                                                            placeholder="Ví dụ: 1. Đăng nhập tài khoản test@abc.com; 2. Nhấn nút thanh toán; 3. Kiểm tra console mã giao dịch..."></textarea>
-                                                    </div>
-
-                                                    <!-- Mục 6: Tệp đính kèm Báo Cáo Nghiệm Thu / Bàn Giao -->
-                                                    <div class="mb-3">
-                                                        <label for="deliverableFile-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-paperclip text-danger me-1"></i> 6. Tệp đính
-                                                            kèm Báo Cáo / Biên Bản Nghiệm Thu (PDF, Word, ZIP, Excel)
-                                                        </label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span
-                                                                class="input-group-text bg-light text-secondary fs-8"><i
-                                                                    class="bi bi-file-earmark-arrow-up"></i></span>
-                                                            <input type="text" class="form-control fs-8 rounded-end-3"
-                                                                id="deliverableFile-${task.id}" name="deliverableFile"
-                                                                placeholder="Ví dụ: Bao_Cao_Nghiem_Thu_Thanh_Toan_VNPAY.pdf"
-                                                                value="${not empty task.deliverableFile ? task.deliverableFile : ''}">
-                                                        </div>
-                                                        <span class="fs-9 text-muted mt-1 d-block">Tệp đính kèm chính
-                                                            thức để Trưởng Dự Án (PM) tải về đọc trước khi ký duyệt đóng
-                                                            Task.</span>
-                                                    </div>
-
-                                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#submitParentTaskPanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-warning rounded-pill px-4 fs-8 fw-semibold shadow-sm text-dark ${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100 ? 'disabled' : ''}">
-                                                            <i class="bi bi-send-fill me-1"></i> Gửi Hồ Sơ Bàn Giao Cho
-                                                            PM
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-
-                                        <!-- PANEL 1.5: PM THẨM ĐỊNH CHECKLIST DOD & CHẤM ĐIỂM SAO DUYỆT ĐẠT 🟢 -->
-                                        <div class="collapse mt-3" id="pmApprovePanel-${task.id}">
-                                            <div class="p-3 bg-white rounded-3 border border-success shadow-sm">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <h6 class="modal-title fw-bold text-success fs-8 mb-0">
-                                                        <i class="bi bi-patch-check-fill text-success me-2"></i>Thẩm
-                                                        Định & Nghiệm Thu Task: [${task.title}]
-                                                    </h6>
-                                                    <span class="fs-9 text-muted">Kiểm tra Danh mục tiêu chí (DoD) &
-                                                        chấm điểm sao</span>
                                                 </div>
-                                                <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="pmApproveTask">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
+                                            </c:if>
 
-                                                    <!-- CHECKLIST TIÊU CHÍ CHẤP THUẬN (DEFINITION OF DONE & SLA) -->
-                                                    <div class="p-2-5 bg-light rounded-2 border mb-3">
-                                                        <span class="fw-bold fs-9 text-dark d-block mb-1">
-                                                            <i class="bi bi-card-checklist text-primary me-1"></i> Tiêu
-                                                            chí chấp thuận & Tuân thủ thời hạn (SLA & DoD):
-                                                        </span>
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between p-2 bg-white rounded border mb-2 fs-9">
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <i class="bi bi-calendar2-check text-success fs-7"></i>
-                                                                <div>
-                                                                    <span class="fw-bold d-block text-dark">Hạn cam kết:
-                                                                        ${not empty task.dueDate ? task.dueDate : 'Không đặt'}</span>
-                                                                    <span class="text-muted fs-9">Thời điểm bàn giao:
-                                                                        ${not empty task.submittedAt ? task.submittedAt : 'Chưa ghi nhận'}</span>
-                                                                </div>
-                                                            </div>
-                                                            <span
-                                                                class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9">${task.deadlineLabel}</span>
-                                                        </div>
-                                                        <div class="form-check fs-9 mb-1">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                id="dod1-${task.id}" checked>
-                                                            <label class="form-check-label text-secondary"
-                                                                for="dod1-${task.id}">
-                                                                Đã kiểm tra đường dẫn Demo / Mã nguồn sản phẩm của Task
-                                                                Lead
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check fs-9 mb-1">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                id="dod2-${task.id}" checked>
-                                                            <label class="form-check-label text-secondary"
-                                                                for="dod2-${task.id}">
-                                                                Đã đối chiếu đủ
-                                                                <strong>${taskSubTasksMap[task.id].size()}/${taskSubTasksMap[task.id].size()}
-                                                                    việc con</strong> do Task Lead phân rã (100% Đạt)
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check fs-9">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                id="dod3-${task.id}" checked>
-                                                            <label class="form-check-label text-secondary"
-                                                                for="dod3-${task.id}">
-                                                                Đã tải và thẩm định tệp đính kèm Báo cáo nghiệm thu của
-                                                                Task Lead
-                                                            </label>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- CHẤM ĐIỂM SAO CHẤT LƯỢNG -->
-                                                    <div class="mb-3">
-                                                        <label for="qualityRating-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-star-fill text-warning me-1"></i> Đánh giá
-                                                            chất lượng hoàn thành (Quality Rating):
-                                                        </label>
-                                                        <select class="form-select form-select-sm rounded-3 fs-8"
-                                                            id="qualityRating-${task.id}" name="qualityRating">
-                                                            <option value="5" selected>⭐⭐⭐⭐⭐ 5 Sao - Xuất Sắc (Vượt kỳ
-                                                                vọng, đúng tiến độ)</option>
-                                                            <option value="4">⭐⭐⭐⭐ 4 Sao - Tốt (Đạt chuẩn chất lượng kỹ
-                                                                thuật)</option>
-                                                            <option value="3">⭐⭐⭐ 3 Sao - Đạt Yêu Cầu (Hoàn thành cơ
-                                                                bản)</option>
-                                                            <option value="2">⭐⭐ 2 Sao - Cần Cải Thiện</option>
-                                                            <option value="1">⭐ 1 Sao - Yếu</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- LỜI NHẬN XÉT / KHEN THƯỞNG CỦA PM -->
-                                                    <div class="mb-3">
-                                                        <label for="feedback-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-chat-quote text-success me-1"></i> Lời nhận
-                                                            xét & Ghi nhận đóng góp của PM:
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="feedback-${task.id}" name="feedback" rows="2"
-                                                            placeholder="Nhận xét ghi nhận nỗ lực của Task Lead và toàn đội..."></textarea>
-                                                    </div>
-
-                                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#pmApprovePanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-success rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                            <i class="bi bi-trophy-fill me-1"></i> Xác Nhận Nghiệm Thu &
-                                                            Trao Cúp 🏆
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-
-                                        <!-- PANEL 2: PM YÊU CẦU CÂN CHỈNH NHỎ 🔵 (MÀU XANH DƯƠNG) -->
-                                        <div class="collapse mt-3" id="pmRevisePanel-${task.id}">
-                                            <div class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                <h6 class="modal-title fw-bold text-primary fs-8 mb-2"
-                                                    id="pmReviseModalLabel-${task.id}">
-                                                    <i class="bi bi-pencil-square me-2"></i>PM Dặn Dò Cân Chỉnh Nhỏ (Cơ
-                                                    bản đã tốt)
-                                                </h6>
-                                                <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="pmReviseTask">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-                                                    <div class="mb-3">
-                                                        <label for="pmReviseNote-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            Ý kiến dặn dò tinh chỉnh cho Task Lead:
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="pmReviseNote-${task.id}" name="feedback" rows="2"
-                                                            placeholder="Ví dụ: Tính năng chạy rất mượt, em cân chỉnh lại màu sắc nút bấm và chuẩn hóa thông báo lỗi nhé..."
-                                                            required></textarea>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#pmRevisePanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-primary rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                            <i class="bi bi-send-fill me-1"></i> Gửi Yêu Cầu Cân Chỉnh
-                                                            (🔵)
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-
-                                        <!-- PANEL 3: PM TRẢ VỀ DO CHƯA ĐẠT 🔴 (MÀU ĐỎ) -->
-                                        <div class="collapse mt-3" id="pmRejectPanel-${task.id}">
-                                            <div class="p-3 bg-white rounded-3 border border-danger shadow-sm">
-                                                <h6 class="modal-title fw-bold text-danger fs-8 mb-2"
-                                                    id="pmRejectModalLabel-${task.id}">
-                                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>PM Đánh Giá Chưa
-                                                    Đạt Yêu Cầu
-                                                </h6>
-                                                <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="pmRejectTask">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-                                                    <div class="mb-3">
-                                                        <label for="pmRejectNote-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            Nêu rõ lý do sai sót / yêu cầu làm lại:
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="pmRejectNote-${task.id}" name="feedback" rows="2"
-                                                            placeholder="Ví dụ: Tính năng chưa đúng spec yêu cầu, thiếu bảo mật phân quyền Servlet, yêu cầu làm lại..."
-                                                            required></textarea>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#pmRejectPanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-danger rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                            <i class="bi bi-x-circle-fill me-1"></i> Trả Về Làm Lại (🔴)
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
-
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                                                <i class="bi bi-list-check text-primary"></i>
-                                                <span>Danh sách việc con (Checklist)</span>
-                                            </h6>
-                                            <span
-                                                class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                ${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc
-                                            </span>
-                                        </div>
-
-                                        <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                            <!-- Thanh tiến độ hoàn thành việc con dạng Micro-bar -->
-                                            <div class="subtask-progress-card">
-                                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                                    <span class="fs-9 text-muted fw-semibold">Tiến độ hoàn thành việc
-                                                        con</span>
-                                                    <span
-                                                        class="fs-9 fw-bold text-success">${taskProgressMap[task.id]}%</span>
+                                            <!-- Đánh giá / Dặn dò của PM nếu có -->
+                                            <c:if test="${not empty task.pmFeedback}">
+                                                <div class="p-2 ${task.status == 'REVISE' ? 'bg-primary-subtle text-primary border-primary-subtle' : (task.status == 'REJECTED' ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-success-subtle text-success border-success-subtle')} rounded-2 border fs-9 mb-2">
+                                                    <div class="fw-bold fs-9 mb-1"><i class="bi bi-info-circle-fill me-1"></i> Đánh giá từ PM:</div>
+                                                    <p class="mb-0 fs-9">"${task.pmFeedback}"</p>
                                                 </div>
-                                                <div class="progress" style="height: 5px; background-color: #e2e8f0;">
-                                                    <div class="progress-bar bg-success rounded-pill" role="progressbar"
-                                                        style="width: ${taskProgressMap[task.id]}%;"
-                                                        aria-valuenow="${taskProgressMap[task.id]}" aria-valuemin="0"
-                                                        aria-valuemax="100"></div>
-                                                </div>
-                                            </div>
+                                            </c:if>
 
-                                            <div class="d-flex flex-column gap-2 mb-3">
-                                                <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                    <div
-                                                        class="subtask-item ${st.status == 'APPROVED' ? 'subtask-approved' : ''}">
+                                            <!-- Nút Hành Động Nghiệm Thu -->
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 pt-1 border-top">
+                                                <c:set var="canSubmitParentTask" value="${(not empty task.assigneeId && task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || ((empty task.assigneeId || task.assigneeId == 0) && project.ownerId == sessionScope.currentUser.id)}" />
+                                                <c:if test="${canSubmitParentTask && task.status != 'DONE'}">
+                                                    <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-9 py-1 px-2.5 fw-semibold shadow-2xs"
+                                                        data-bs-toggle="collapse" data-bs-target="#submitParentTaskPanel-${task.id}">
+                                                        <i class="bi bi-box-seam me-1"></i> ${task.status == 'SUBMITTED' ? 'Cập Nhật Bàn Giao' : 'Bàn Giao Cho PM'}
+                                                    </button>
+                                                </c:if>
 
-                                                        <!-- DÒNG 1: CHECKBOX ICON + TIÊU ĐỀ + HUY HIỆU + NGƯỜI PHỤ TRÁCH -->
-                                                        <div
-                                                            class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                                                            <div class="d-flex align-items-center gap-2 flex-grow-1">
-                                                                <!-- Icon trạng thái dạng Checkbox -->
-                                                                <c:choose>
-                                                                    <c:when test="${st.status == 'APPROVED'}">
-                                                                        <i class="bi bi-check-circle-fill text-success fs-7"
-                                                                            title="Đã duyệt hoàn thành"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'SUBMITTED'}">
-                                                                        <i class="bi bi-hourglass-split text-warning fs-7"
-                                                                            title="Đang chờ duyệt"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'REVISE'}">
-                                                                        <i class="bi bi-arrow-repeat text-info fs-7"
-                                                                            title="Cần chỉnh sửa nhỏ"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'REJECTED'}">
-                                                                        <i class="bi bi-exclamation-circle-fill text-danger fs-7"
-                                                                            title="Đã bị trả về"></i>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <i class="bi bi-circle text-muted fs-7"
-                                                                            title="Chưa hoàn thành"></i>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-
-                                                                <!-- Tiêu đề việc con -->
-                                                                <span
-                                                                    class="fs-8 text-dark ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : 'fw-semibold'}">
-                                                                    ${st.title}
-                                                                </span>
-
-                                                                <!-- Huy hiệu trạng thái -->
-                                                                <span
-                                                                    class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                                    ${st.statusLabel}
-                                                                </span>
-                                                            </div>
-
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <c:if test="${not empty st.dueDate}">
-                                                                    <span
-                                                                        class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                                        title="Hạn chót việc con: ${st.dueDate}">
-                                                                        <i class="bi bi-calendar-event"></i>
-                                                                        ${st.deadlineLabel}
-                                                                    </span>
-                                                                </c:if>
-                                                                <span
-                                                                    class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9"
-                                                                    title="Người phụ trách">
-                                                                    <i class="bi bi-person-fill text-primary"></i>
-                                                                    ${st.assigneeName}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- DÒNG 2: THÔNG TIN CHI TIẾT BÀN GIAO / GÓP Ý DỰA THEO TRẠNG THÁI -->
-
-                                                        <!-- TRƯỜNG HỢP A: SUBMITTED (Đang chờ duyệt) - Hiển thị kết quả nộp bài -->
-                                                        <c:if test="${st.status == 'SUBMITTED'}">
-                                                            <div
-                                                                class="p-2 bg-white rounded-2 border fs-8 text-dark mt-2 shadow-2xs">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold text-warning fs-9">
-                                                                        <i
-                                                                            class="bi bi-file-earmark-check-fill me-1"></i>
-                                                                        Kết quả nộp bài:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 text-muted">${st.submittedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 text-secondary fs-8">
-                                                                    ${not empty st.submissionNote ? st.submissionNote : 'Đã hoàn thành công việc, mời Task Lead kiểm tra và nghiệm thu.'}
-                                                                </p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP B: REVISE (🔵 Màu Xanh Dương - Cần cân chỉnh nhỏ) -->
-                                                        <c:if test="${st.status == 'REVISE'}">
-                                                            <div
-                                                                class="p-2 bg-primary-subtle text-primary border border-primary-subtle rounded-2 fs-8 mt-2">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold fs-9">
-                                                                        <i class="bi bi-info-circle-fill me-1"></i> Dặn
-                                                                        dò từ Task Lead:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 opacity-75">${st.reviewedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP C: REJECTED (🔴 Màu Đỏ - Chưa đạt yêu cầu) -->
-                                                        <c:if test="${st.status == 'REJECTED'}">
-                                                            <div
-                                                                class="p-2 bg-danger-subtle text-danger border border-danger-subtle rounded-2 fs-8 mt-2">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold fs-9">
-                                                                        <i
-                                                                            class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                                        Lý do chưa đạt từ Task Lead:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 opacity-75">${st.reviewedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP D: APPROVED (🟢 Màu Xanh Lá - Đã nghiệm thu Đạt) -->
-                                                        <c:if test="${st.status == 'APPROVED'}">
-                                                            <div
-                                                                class="fs-9 text-success mt-1 d-flex align-items-center gap-1">
-                                                                <i class="bi bi-check-circle-fill"></i>
-                                                                <span>Đã nghiệm thu hoàn thành 100% &bull;
-                                                                    ${st.reviewedAt}</span>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- DÒNG 3: CÁC NÚT HÀNH ĐỘNG TƯƠNG TÁC (NỘP BÀI / THẨM ĐỊNH) -->
-                                                        <div
-                                                            class="mt-2 pt-2 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
-
-                                                            <!-- 1. NÚT DÀNH CHO THÀNH VIÊN ĐƯỢC GIAO VIỆC: Nộp Báo Cáo / Bàn giao kết quả -->
-                                                            <c:set var="canSubmitSubTask"
-                                                                value="${(not empty st.assigneeId && st.assigneeId > 0 && st.assigneeId == sessionScope.currentUser.id) || ((empty st.assigneeId || st.assigneeId == 0) && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id))}" />
-                                                            <div>
-                                                                <c:if
-                                                                    test="${canSubmitSubTask && st.status != 'APPROVED' && st.status != 'SUBMITTED' && task.status != 'PLANNING'}">
-                                                                    <button type="button"
-                                                                        class="btn btn-outline-primary btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#submitSubTaskPanel-${st.id}">
-                                                                        <i class="bi bi-upload me-1"></i> ${st.status == 'TODO' ? 'Nộp Báo Cáo Kết Quả' : 'Nộp Lại Kết Quả Mới'}
-                                                                    </button>
-                                                                </c:if>
-                                                            </div>
-
-                                                            <!-- 2. NÚT DÀNH RIÊNG CHO TASK LEAD KHI CÓ BÀI NỘP (🟡 SUBMITTED): 3 LỰA CHỌN THẨM ĐỊNH -->
-                                                            <c:set var="isReviewer"
-                                                                value="${(task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || (task.assigneeId == 0 && project.ownerId == sessionScope.currentUser.id)}" />
-                                                            <c:if test="${isReviewer && st.status == 'SUBMITTED'}">
-                                                                <div class="d-flex align-items-center gap-1 ms-auto">
-                                                                    <!-- Nút 1: DUYỆT ĐẠT 🟢 -->
-                                                                    <form method="post"
-                                                                        action="${pageContext.request.contextPath}/task"
-                                                                        class="m-0">
-                                                                        <input type="hidden" name="action"
-                                                                            value="approveSubTask">
-                                                                        <input type="hidden" name="projectId"
-                                                                            value="${project.id}">
-                                                                        <input type="hidden" name="subTaskId"
-                                                                            value="${st.id}">
-                                                                        <button type="submit"
-                                                                            class="btn btn-success btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                            title="Nghiệm thu đạt 100%">
-                                                                            <i class="bi bi-check-lg me-1"></i> Duyệt
-                                                                            Đạt
-                                                                        </button>
-                                                                    </form>
-
-                                                                    <!-- Nút 2: CẦN CÂN CHỈNH 🔵 (Xanh Dương) -->
-                                                                    <button type="button"
-                                                                        class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#reviseSubTaskPanel-${st.id}"
-                                                                        title="Yêu cầu tinh chỉnh nhỏ">
-                                                                        <i class="bi bi-pencil me-1"></i> Cân chỉnh
-                                                                    </button>
-
-                                                                    <!-- Nút 3: CHƯA ĐẠT 🔴 (Màu Đỏ) -->
-                                                                    <button type="button"
-                                                                        class="btn btn-danger btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#rejectSubTaskPanel-${st.id}"
-                                                                        title="Trả về làm lại do chưa đạt">
-                                                                        <i class="bi bi-x-lg me-1"></i> Chưa đạt
-                                                                    </button>
-                                                                </div>
-                                                            </c:if>
-
-                                                        </div>
-
-                                                        <!-- PANEL 1: NỘP BÁO CÁO KẾT QUẢ CHO SUBTASK NÀY -->
-                                                        <div class="collapse mt-2" id="submitSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-dark fs-8 mb-2">
-                                                                    <i class="bi bi-upload text-primary me-1"></i> Nộp
-                                                                    Báo Cáo Kết Quả: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="submitSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="note-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Ghi chú hoàn thành / Link bàn giao kết quả
-                                                                            <span class="text-danger">*</span>
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="note-${st.id}" name="submissionNote"
-                                                                            rows="2"
-                                                                            placeholder="Mô tả những gì bạn đã làm, dán link pull request, link tài liệu hoặc ghi chú cho Leader..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#submitSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary-custom rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-send-fill me-1"></i> Gửi Báo
-                                                                            Cáo Cho Leader
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                        <!-- PANEL 2: YÊU CẦU CÂN CHỈNH NHỎ 🔵 (MÀU XANH DƯƠNG) -->
-                                                        <div class="collapse mt-2" id="reviseSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-primary fs-8 mb-2">
-                                                                    <i class="bi bi-pencil-square me-1"></i> Dặn Dò Cân
-                                                                    Chỉnh Nhỏ: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="reviseSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="reviseNote-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Lời dặn dò tinh chỉnh cho thành viên:
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="reviseNote-${st.id}" name="feedbackNote"
-                                                                            rows="2"
-                                                                            placeholder="Ví dụ: Đã làm rất tốt, em đổi lại màu nút thành màu xanh dương và format code nhé..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#reviseSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-send-fill me-1"></i> Gửi Yêu
-                                                                            Cầu Cân Chỉnh (🔵)
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- PANEL 3: TRẢ VỀ DO CHƯA ĐẠT YÊU CẦU 🔴 (MÀU ĐỎ) -->
-                                                        <div class="collapse mt-2" id="rejectSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-danger shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-danger fs-8 mb-2">
-                                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                                    Đánh Giá Chưa Đạt Yêu Cầu: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="rejectSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="rejectNote-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Nêu rõ lý do sai sót / lỗi yêu cầu:
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="rejectNote-${st.id}" name="feedbackNote"
-                                                                            rows="2"
-                                                                            placeholder="Ví dụ: Sai kiến trúc CSDL, thiếu toàn bộ khóa ngoại bảng Users, yêu cầu làm lại..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#rejectSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-danger rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-x-circle-fill me-1"></i> Trả
-                                                                            Về Yêu Cầu Làm Lại (🔴)
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-
-                                                </c:forEach>
-                                            </div>
-                                        </c:if>
-
-                                        <c:if test="${empty taskSubTasksMap[task.id]}">
-                                            <div
-                                                class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center mb-3">
-                                                Chưa có việc con nào được tạo.
-                                            </div>
-                                        </c:if>
-
-                                        <c:choose>
-                                            <c:when test="${task.status == 'PLANNING'}">
-                                                <div
-                                                    class="p-2-5 bg-primary-subtle rounded-3 text-primary fs-9 border border-primary-subtle text-center mb-3">
-                                                    <i class="bi bi-hourglass-split me-1"></i> Kế hoạch phân rã đang chờ
-                                                    PM xem xét và phê duyệt khóa phạm vi.
-                                                </div>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <div
-                                                    class="p-2-5 bg-light rounded-3 text-muted fs-9 border text-center mb-3">
-                                                    <i class="bi bi-lock-fill text-secondary me-1"></i> Phạm vi công
-                                                    việc đã được khóa (Scope Lock) &bull; Đội ngũ tập trung hoàn thiện
-                                                    ${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc con.
-                                                </div>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
-
-                                    <!-- Khối Tài liệu đính kèm Wiki -->
-                                    <div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                                                <i class="bi bi-journal-bookmark text-primary"></i>
-                                                <span>Tài liệu hướng dẫn đính kèm</span>
-                                            </h6>
-                                            <span
-                                                class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                ${not empty taskDocsMap[task.id] ? taskDocsMap[task.id].size() : 0} tài
-                                                liệu
-                                            </span>
-                                        </div>
-                                        <c:if test="${not empty taskDocsMap[task.id]}">
-                                            <div class="d-flex flex-column gap-2">
-                                                <c:forEach items="${taskDocsMap[task.id]}" var="td">
-                                                    <div class="doc-attachment-item">
-                                                        <div class="d-flex align-items-center gap-2 text-truncate">
-                                                            <i class="bi bi-file-earmark-text text-primary fs-6"></i>
-                                                            <span
-                                                                class="fw-semibold text-dark fs-8 text-truncate">${td.docTitle}</span>
-                                                        </div>
-                                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}"
-                                                            class="btn btn-outline-secondary btn-xs rounded-pill px-3 py-1 fs-9 text-nowrap"
-                                                            title="Đọc bài viết Wiki này">
-                                                            Đọc bài <i class="bi bi-arrow-right ms-1"></i>
-                                                        </a>
-                                                    </div>
-                                                </c:forEach>
-                                            </div>
-                                        </c:if>
-                                        <c:if test="${empty taskDocsMap[task.id]}">
-                                            <div
-                                                class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center">
-                                                Chưa có tài liệu Wiki nào được đính kèm cho công việc này.
-                                            </div>
-                                        </c:if>
-                                    </div>
-                                </div>
-
-                                <div class="col-12 col-lg-4 task-modal-sidebar d-flex flex-column justify-content-between"
-                                    style="min-height: 520px;">
-                                    <div>
-                                        <!-- Khối Thuộc tính Meta -->
-                                        <div class="task-sidebar-section-title">
-                                            <i class="bi bi-sliders me-1"></i> Thuộc tính công việc
-                                        </div>
-
-                                        <div class="task-property-list bg-white rounded-3 p-3 border shadow-2xs mb-3">
-                                            <!-- Trạng thái -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-arrow-repeat"></i>
-                                                    Trạng thái</span>
-                                                <span class="task-property-value">
-                                                    <span
-                                                        class="badge ${task.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                        ${task.statusLabel}
-                                                    </span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Người phụ trách -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-person"></i> Phụ
-                                                    trách</span>
-                                                <span class="task-property-value d-flex align-items-center gap-1">
-                                                    <span
-                                                        class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                                                        style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                                        ${task.assigneeName.substring(0, 1).toUpperCase()}
-                                                    </span>
-                                                    <span>${task.assigneeName}</span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Mức ưu tiên -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-flag"></i> Mức ưu
-                                                    tiên</span>
-                                                <span class="task-property-value">
-                                                    <span
-                                                        class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                        ● ${task.priorityLabel}
-                                                    </span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Hạn chót -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-calendar3"></i> Hạn
-                                                    chót</span>
-                                                <span class="task-property-value">
+                                                <c:if test="${project.ownerId == sessionScope.currentUser.id && task.status == 'SUBMITTED'}">
                                                     <c:choose>
-                                                        <c:when test="${not empty task.dueDate}">
-                                                            <span
-                                                                class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                                <i class="bi bi-calendar-event me-1"></i>${task.dueDate}
+                                                        <c:when test="${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100}">
+                                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 fs-9">
+                                                                Việc con chưa 100% (${taskProgressMap[task.id]}%)
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span class="text-muted fs-9">Chưa đặt hạn</span>
+                                                            <div class="d-flex align-items-center gap-1 ms-auto">
+                                                                <button type="button" class="btn btn-success btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
+                                                                    data-bs-toggle="collapse" data-bs-target="#pmApprovePanel-${task.id}" title="Duyệt 100% Đạt">
+                                                                    <i class="bi bi-check-circle-fill me-1"></i> Duyệt Đạt
+                                                                </button>
+                                                                <button type="button" class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
+                                                                    data-bs-toggle="collapse" data-bs-target="#pmRevisePanel-${task.id}" title="Cần Cân Chỉnh">
+                                                                    <i class="bi bi-pencil-square"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-danger btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
+                                                                    data-bs-toggle="collapse" data-bs-target="#pmRejectPanel-${task.id}" title="Chưa Đạt">
+                                                                    <i class="bi bi-x-circle-fill"></i>
+                                                                </button>
+                                                            </div>
                                                         </c:otherwise>
                                                     </c:choose>
-                                                </span>
+                                                </c:if>
                                             </div>
 
-                                            <!-- Dự án -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-folder2-open"></i> Dự
-                                                    án</span>
-                                                <span class="task-property-value text-truncate"
-                                                    style="max-width: 130px;" title="${project.name}">
-                                                    #${project.projectCode}
-                                                </span>
-                                            </div>
-
-                                            <!-- Tiến độ Subtasks -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-check2-circle"></i>
-                                                    Tiến độ</span>
-                                                <span class="task-property-value text-success">
-                                                    ${taskProgressMap[task.id]}%
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Thao tác nhanh -->
-                                        <c:set var="currentProgress"
-                                            value="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}" />
-                                        <c:set var="canCompleteTask" value="${currentProgress == 100}" />
-
-                                        <div
-                                            class="task-sidebar-section-title d-flex align-items-center justify-content-between mb-2">
-                                            <span><i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh</span>
-                                            <c:choose>
-                                                <c:when test="${canCompleteTask}">
-                                                    <span class="badge bg-success text-white rounded-pill px-2 fs-9">
-                                                        <i class="bi bi-check-all me-1"></i> Đủ 100%
-                                                    </span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span
-                                                        class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 fs-9">
-                                                        <i class="bi bi-clock-history me-1"></i> Đạt ${currentProgress}%
-                                                    </span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
-
-                                        <div class="d-flex flex-column gap-2 mb-3">
-                                            <c:choose>
-                                                <c:when test="${canCompleteTask}">
-                                                    <!-- NÚT BỪNG SÁNG XANH LÁ: Đã hoàn thành 100% -->
-                                                    <form method="post" action="${pageContext.request.contextPath}/task"
-                                                        class="m-0">
-                                                        <input type="hidden" name="action" value="updateStatus">
+                                            <!-- PANEL 1: TASK LEAD NỘP BÀN GIAO -->
+                                            <div class="collapse mt-2" id="submitParentTaskPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
+                                                    <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-box-seam-fill text-warning me-1"></i> Báo Cáo Bàn Giao Cho PM</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="submitParentTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
-                                                        <input type="hidden" name="newStatus" value="DONE">
-                                                        <button type="submit"
-                                                            class="btn btn-success btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
-                                                            style="background: linear-gradient(135deg, #16a34a, #15803d);">
-                                                            <i class="bi bi-check-circle-fill fs-7"></i> Đánh dấu Hoàn
-                                                            thành (→ Done) 🎉
-                                                        </button>
+                                                        <div class="mb-2">
+                                                            <label for="summary-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Tóm tắt kết quả tính năng <span class="text-danger">*</span>:</label>
+                                                            <textarea class="form-control fs-9 rounded-2" id="summary-${task.id}" name="summary" rows="2" placeholder="Mô tả tóm tắt kết quả hoàn thành..." required></textarea>
+                                                        </div>
+                                                        <div class="row g-2 mb-2">
+                                                            <div class="col-6">
+                                                                <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="demoUrl-${task.id}" name="demoUrl" placeholder="Link Demo/Figma...">
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="codeUrl-${task.id}" name="codeUrl" placeholder="Link PR/Mã nguồn...">
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="deliverableFile-${task.id}" name="deliverableFile"
+                                                                placeholder="Tên file báo cáo (PDF, ZIP...)" value="${not empty task.deliverableFile ? task.deliverableFile : ''}">
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#submitParentTaskPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-warning rounded-pill px-3 py-0-5 fs-9 fw-semibold text-dark ${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100 ? 'disabled' : ''}">
+                                                                Gửi Bàn Giao
+                                                            </button>
+                                                        </div>
                                                     </form>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <!-- NÚT MỜ / VÔ HIỆU HÓA: Chưa đủ 100% -->
-                                                    <button type="button"
-                                                        class="btn btn-light text-muted border border-secondary-subtle btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1 opacity-75"
-                                                        disabled
-                                                        title="Cần hoàn thành và nghiệm thu đủ 100% việc con để mở khóa">
-                                                        <i class="bi bi-lock-fill text-secondary"></i> Đánh dấu Hoàn
-                                                        thành (→ Done)
-                                                    </button>
-                                                    <div
-                                                        class="p-2.5 bg-light rounded-3 border fs-9 text-secondary mt-1">
-                                                        <div
-                                                            class="d-flex align-items-center gap-1.5 text-warning fw-semibold mb-1">
-                                                            <i class="bi bi-exclamation-triangle-fill"></i>
-                                                            <span>Tiến độ hiện tại: ${currentProgress}%</span>
-                                                        </div>
-                                                        <div class="text-muted fs-9">
-                                                            Cần hoàn thành và nghiệm thu đủ <strong>100% việc
-                                                                con</strong> để mở khóa nút hoàn tất công việc.
-                                                        </div>
-                                                    </div>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </div>
+                                                </div>
+                                            </div>
 
-                                        <!-- Hội thoại của Task -->
-                                        <div
-                                            class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                            <div class="d-flex align-items-center gap-1">
-                                                <i class="bi bi-chat-square-dots-fill text-primary fs-8"></i>
-                                                <span class="fw-bold text-dark fs-8">Hội thoại (${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0})</span>
+                                            <!-- PANEL 2: PM DUYỆT ĐẠT & CHẤM SAO -->
+                                            <div class="collapse mt-2" id="pmApprovePanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-success shadow-sm">
+                                                    <h6 class="fw-bold text-success fs-8 mb-2"><i class="bi bi-patch-check-fill me-1"></i> Nghiệm Thu & Chấm Điểm Sao</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmApproveTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <label for="qualityRating-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Đánh giá chất lượng:</label>
+                                                            <select class="form-select form-select-sm rounded-2 fs-9" id="qualityRating-${task.id}" name="qualityRating">
+                                                                <option value="5" selected>⭐⭐⭐⭐⭐ 5 Sao - Xuất Sắc</option>
+                                                                <option value="4">⭐⭐⭐⭐ 4 Sao - Tốt</option>
+                                                                <option value="3">⭐⭐⭐ 3 Sao - Đạt Yêu Cầu</option>
+                                                                <option value="2">⭐⭐ 2 Sao - Cần Cải Thiện</option>
+                                                                <option value="1">⭐ 1 Sao - Yếu</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <textarea class="form-control fs-9 rounded-2" id="feedback-${task.id}" name="feedback" rows="2" placeholder="Lời nhận xét của PM..."></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmApprovePanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-success rounded-pill px-3 py-0-5 fs-9 fw-semibold">Xác Nhận Duyệt Đạt 🏆</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- PANEL 3: PM CÂN CHỈNH -->
+                                            <div class="collapse mt-2" id="pmRevisePanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
+                                                    <h6 class="fw-bold text-primary fs-8 mb-2"><i class="bi bi-pencil-square me-1"></i> PM Dặn Dò Cân Chỉnh</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmReviseTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <textarea class="form-control fs-9 rounded-2" id="pmReviseNote-${task.id}" name="feedback" rows="2" placeholder="Dặn dò tinh chỉnh cho Task Lead..." required></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmRevisePanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-3 py-0-5 fs-9 fw-semibold">Gửi Cân Chỉnh</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- PANEL 4: PM CHƯA ĐẠT -->
+                                            <div class="collapse mt-2" id="pmRejectPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-danger shadow-sm">
+                                                    <h6 class="fw-bold text-danger fs-8 mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Đánh Giá Chưa Đạt</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmRejectTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <textarea class="form-control fs-9 rounded-2" id="pmRejectNote-${task.id}" name="feedback" rows="2" placeholder="Lý do chưa đạt / yêu cầu làm lại..." required></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmRejectPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-danger rounded-pill px-3 py-0-5 fs-9 fw-semibold">Trả Về Làm Lại</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="flex-grow-1 overflow-y-auto d-flex flex-column gap-2 mb-3 pe-1"
-                                            style="max-height: 240px;">
-                                            <c:forEach items="${taskCommentsMap[task.id]}" var="comment">
-                                                <div
-                                                    class="p-2 px-3 rounded-3 border shadow-2xs ${comment.authorName == 'Hệ Thống' ? 'bg-success-subtle border-success-subtle' : 'bg-white'}">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <span
-                                                            class="fw-bold fs-9 ${comment.authorName == 'Hệ Thống' ? 'text-success' : 'text-dark'}">
-                                                            <c:choose>
-                                                                <c:when test="${comment.authorName == 'Hệ Thống'}">
-                                                                    <i class="bi bi-robot me-1"></i> Hệ Thống
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    ${comment.authorName}
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </span>
-                                                        <span class="text-muted fs-9">${comment.sentAt}</span>
-                                                    </div>
-                                                    <div class="fs-9 text-dark lh-base"
-                                                        style="word-break: break-word; white-space: pre-line;">
-                                                        <c:out value="${comment.content}" />
-                                                    </div>
-                                                </div>
-                                            </c:forEach>
-                                            <c:if test="${empty taskCommentsMap[task.id]}">
-                                                <div class="text-center text-muted my-auto py-3">
-                                                    <i class="bi bi-chat-left-dots fs-5 d-block mb-1 opacity-50"></i>
-                                                    <span class="fs-9">Chưa có bình luận nào.</span>
-                                                </div>
-                                            </c:if>
-                                        </div>
-                                        <div class="pt-2 border-top">
-                                            <form method="post" action="${pageContext.request.contextPath}/chat"
-                                                class="d-flex flex-column gap-2">
-                                                <input type="hidden" name="action" value="sendTaskComment">
-                                                <input type="hidden" name="projectId" value="${project.id}">
-                                                <input type="hidden" name="taskId" value="${task.id}">
-                                                <div class="input-group">
-                                                    <input type="text"
-                                                        class="form-control fs-9 py-1 rounded-start-pill ps-3 shadow-none border-secondary-subtle"
-                                                        name="content" placeholder="Bình luận..." autocomplete="off"
-                                                        required>
-                                                    <button type="submit"
-                                                        class="btn btn-primary-custom rounded-end-pill px-3 fs-9 fw-semibold shadow-sm">
-                                                        <i class="bi bi-send-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </form>
+                                    </c:if>
+
+                                    <!-- HỘI THOẠI & BÌNH LUẬN -->
+                                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                        <div class="d-flex align-items-center gap-1">
+                                            <i class="bi bi-chat-square-dots-fill text-primary fs-8"></i>
+                                            <span class="fw-bold text-dark fs-8">Hội thoại (${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0})</span>
                                         </div>
                                     </div>
-
-                                    <!-- Footer Sidebar: Xóa Task nếu có quyền -->
-                                    <c:if
-                                        test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                        <div class="pt-2 mt-2 border-top text-end">
-                                            <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
-                                                class="text-danger fs-9 text-decoration-none d-inline-flex align-items-center gap-1 opacity-75 hover-opacity-100"
-                                                onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn công việc này không?');">
-                                                <i class="bi bi-trash3"></i> Xóa thẻ này
-                                            </a>
-                                        </div>
-                                    </c:if>
+                                    <div class="flex-grow-1 overflow-y-auto d-flex flex-column gap-2 mb-3 pe-1" style="max-height: 220px;">
+                                        <c:forEach items="${taskCommentsMap[task.id]}" var="comment">
+                                            <div class="p-2 px-2.5 rounded-2 border shadow-2xs ${comment.authorName == 'Hệ Thống' ? 'bg-success-subtle border-success-subtle' : 'bg-white'}">
+                                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                                    <span class="fw-bold fs-9 ${comment.authorName == 'Hệ Thống' ? 'text-success' : 'text-dark'}">
+                                                        <c:choose>
+                                                            <c:when test="${comment.authorName == 'Hệ Thống'}"><i class="bi bi-robot me-1"></i> Hệ Thống</c:when>
+                                                            <c:otherwise>${comment.authorName}</c:otherwise>
+                                                        </c:choose>
+                                                    </span>
+                                                    <span class="text-muted fs-9">${comment.sentAt}</span>
+                                                </div>
+                                                <div class="fs-9 text-dark lh-base" style="word-break: break-word; white-space: pre-line;">
+                                                    <c:out value="${comment.content}" />
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                        <c:if test="${empty taskCommentsMap[task.id]}">
+                                            <div class="text-center text-muted my-auto py-3">
+                                                <i class="bi bi-chat-left-dots fs-6 d-block mb-1 opacity-50"></i>
+                                                <span class="fs-9">Chưa có bình luận nào.</span>
+                                            </div>
+                                        </c:if>
+                                    </div>
+                                    <div class="pt-2 border-top">
+                                        <form method="post" action="${pageContext.request.contextPath}/chat" class="d-flex flex-column gap-2">
+                                            <input type="hidden" name="action" value="sendTaskComment">
+                                            <input type="hidden" name="projectId" value="${project.id}">
+                                            <input type="hidden" name="taskId" value="${task.id}">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control fs-9 rounded-start-pill ps-3 shadow-none border-secondary-subtle"
+                                                    name="content" placeholder="Bình luận..." autocomplete="off" required>
+                                                <button type="submit" class="btn btn-primary-custom rounded-end-pill px-3 fs-9 fw-semibold shadow-sm">
+                                                    <i class="bi bi-send-fill"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
+
+                                <!-- FOOTER: XÓA TASK NẾU CÓ QUYỀN -->
+                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <div class="pt-2 mt-2 border-top text-end">
+                                        <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
+                                            class="text-danger fs-9 text-decoration-none d-inline-flex align-items-center gap-1 opacity-75 hover-opacity-100"
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn công việc này không?');">
+                                            <i class="bi bi-trash3"></i> Xóa thẻ này
+                                        </a>
+                                    </div>
+                                </c:if>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </c:forEach>
 
-        <!-- MODAL CHO CỘT ĐÃ XONG (DONE) -->
-        <c:set var="allTasksToRender" value="${doneTasks}" />
-        <c:forEach items="${allTasksToRender}" var="task">
-            <div class="modal fade modal-slide-end" id="taskDetailModal-${task.id}" tabindex="-1"
-                aria-labelledby="taskDetailModalLabel-${task.id}" aria-hidden="true">
-                <div class="modal-dialog modal-xl">
-                    <div class="modal-content border-0 shadow-lg overflow-hidden">
-                        <div class="modal-header task-modal-header d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
-                                <span class="task-modal-id-badge">#${task.id}</span>
-                                <c:forEach items="${task.labelList}" var="lbl">
-                                    <span
-                                        class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                        ${task.getLabelDisplayName(lbl)}
-                                    </span>
-                                </c:forEach>
-                                <span
-                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-8 fw-semibold">
-                                    ● ${task.priorityLabel}
-                                </span>
-                                <h5 class="modal-title fw-bold text-dark mb-0 fs-6 text-truncate text-decoration-line-through opacity-75"
-                                    id="taskDetailModalLabel-${task.id}">
-                                    ${task.title}
-                                </h5>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <c:if
-                                    test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                    <button type="button"
-                                        class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
-                                        data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
-                                        <i class="bi bi-pencil-square"></i> Chỉnh sửa
+                    <!-- =========================================================================
+                         B. PANE SUBTASKS CỦA TASK CHA #${task.id}
+                         ========================================================================= -->
+                    <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
+                        <div id="subtaskPane-${st.id}" class="subtask-detail-pane d-none" data-parent-id="${task.id}" data-subtask-id="${st.id}">
+                            <!-- SUBTASK HEADER: BREADCRUMB QUAY LẠI TASK CHA & CONTROLS -->
+                            <div class="drawer-header d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1 me-3 text-truncate">
+                                    <button type="button" class="breadcrumb-back-btn border-0" onclick="openClickUpTask(${task.id})">
+                                        <i class="bi bi-arrow-left"></i> Quay lại: <span class="text-truncate d-inline-block align-bottom" style="max-width: 220px;">${task.title}</span>
                                     </button>
-                                </c:if>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Đóng"></button>
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">#SUB-${st.id}</span>
+                                    <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">${st.statusLabel}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                        <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
+                                            data-bs-toggle="collapse" data-bs-target="#editSubTaskCollapse-${st.id}">
+                                            <i class="bi bi-pencil-square"></i> Sửa việc con
+                                        </button>
+                                    </c:if>
+                                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="modal-body p-0">
+
+                            <!-- SUBTASK BODY 2 CỘT -->
                             <div class="row g-0">
+                                <!-- CỘT TRÁI (65%): THÔNG TIN VIỆC CON, TIẾN ĐỘ 5 BƯỚC, BÀN GIAO, NGHIỆM THU -->
                                 <div class="col-12 col-lg-8 p-4 border-end">
-                                    <c:if
-                                        test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                        <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
+                                    <!-- FORM SỬA SUBTASK (COLLAPSIBLE) -->
+                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                        <div class="collapse mb-3" id="editSubTaskCollapse-${st.id}">
                                             <form method="post" action="${pageContext.request.contextPath}/task"
-                                                class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
-                                                <input type="hidden" name="action" value="editTask">
+                                                class="p-3 bg-white rounded-3 border border-primary-subtle shadow-2xs">
+                                                <input type="hidden" name="action" value="editSubTask">
                                                 <input type="hidden" name="projectId" value="${project.id}">
-                                                <input type="hidden" name="taskId" value="${task.id}">
-                                                <h6 class="fw-bold text-primary fs-8 mb-3"><i
-                                                        class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công
-                                                    việc</h6>
+                                                <input type="hidden" name="subTaskId" value="${st.id}">
                                                 <div class="mb-2">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu
-                                                        đề:</label>
-                                                    <input type="text" name="title"
-                                                        value="${task.title}"
-                                                        class="form-control form-control-sm" required>
+                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề việc con:</label>
+                                                    <input type="text" name="title" value="${st.title}" class="form-control form-control-sm" required>
                                                 </div>
-                                                <div class="mb-2">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi
-                                                        tiết:</label>
-                                                    <textarea name="description" class="form-control form-control-sm"
-                                                        rows="3"><c:out value="${task.description}" /></textarea>
-                                                </div>
-                                                <div class="row g-2 mb-3">
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu
-                                                            tiên:</label>
-                                                        <select name="priority" class="form-select form-select-sm">
-                                                            <option value="LOW" ${task.priority=='LOW' ? 'selected' : ''}>Thấp (Low)</option>
-                                                            <option value="MEDIUM" ${task.priority=='MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
-                                                            <option value="HIGH" ${task.priority=='HIGH' ? 'selected' : ''}>Cao (High)</option>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-6">
+                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Người làm:</label>
+                                                        <select name="assigneeId" class="form-select form-select-sm" required>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <option value="${u.id}" ${u.id==st.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                            </c:forEach>
                                                         </select>
                                                     </div>
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn
-                                                            chót:</label>
-                                                        <input type="date" name="dueDate" value="${task.dueDate}"
-                                                            class="form-control form-control-sm">
-                                                    </div>
-                                                    <div class="col-4">
-                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ
-                                                            trách:</label>
-                                                        <c:choose>
-                                                            <c:when
-                                                                test="${project.ownerId == sessionScope.currentUser.id}">
-                                                                <select name="assigneeId"
-                                                                    class="form-select form-select-sm" required>
-                                                                    <c:forEach items="${userList}" var="u">
-                                                                        <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
-                                                                    </c:forEach>
-                                                                </select>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <input type="hidden" name="assigneeId"
-                                                                    value="${task.assigneeId}">
-                                                                <input type="text"
-                                                                    class="form-control form-control-sm bg-light"
-                                                                    value="${task.assigneeName}" readonly>
-                                                            </c:otherwise>
-                                                        </c:choose>
+                                                    <div class="col-6">
+                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
+                                                        <input type="date" name="dueDate" value="${st.dueDate}" class="form-control form-control-sm"
+                                                            <c:if test="${not empty task.dueDate}">max="${task.dueDate}"</c:if>>
                                                     </div>
                                                 </div>
                                                 <div class="d-flex justify-content-end gap-2">
-                                                    <button type="button" class="btn btn-light btn-sm fs-9"
-                                                        data-bs-toggle="collapse"
-                                                        data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
-                                                    <button type="submit"
-                                                        class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay
-                                                        đổi</button>
+                                                    <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editSubTaskCollapse-${st.id}">Hủy</button>
+                                                    <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay đổi</button>
                                                 </div>
                                             </form>
                                         </div>
                                     </c:if>
-                                    <!-- Mô tả chi tiết (Typography rõ ràng, thẻ card sạch) -->
-                                    <div class="mb-4">
-                                        <h6 class="fw-bold text-dark fs-7 mb-2">
-                                            <i class="bi bi-text-left text-primary me-1"></i> Mô tả công việc
-                                        </h6>
-                                        <div class="task-desc-card">
-                                            <c:choose>
-                                                <c:when test="${not empty task.description}">
-                                                    <div style="white-space: pre-line;">
-                                                        <c:out value="${task.description}" />
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="text-muted fst-italic fs-8">Chưa có mô tả chi tiết cho
-                                                        công việc này. Nhấn "Chỉnh sửa" ở góc trên để bổ sung.</span>
-                                                </c:otherwise>
-                                            </c:choose>
+
+                                    <!-- TIÊU ĐỀ SUBTASK -->
+                                    <div class="mb-3">
+                                        <h4 class="fw-bold text-dark mb-1 ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : ''}">${st.title}</h4>
+                                        <div class="fs-8 text-muted">
+                                            <i class="bi bi-diagram-2 me-1"></i> Thuộc Task Cha:
+                                            <a href="javascript:void(0)" onclick="openClickUpTask(${task.id})" class="fw-semibold text-primary text-decoration-none">${task.title}</a>
                                         </div>
                                     </div>
 
-                                    <!-- =========================================================================
-                                 KHỐI BÀN GIAO & PHÊ DUYỆT NGHIỆM THU TASK LỚN (TASK LEAD ➔ PM)
-                                 ========================================================================= -->
-                                    <div class="gate-card gate-card-success mb-4">
-                                        <div
-                                            class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1">
-                                                    <i class="bi bi-box-seam-fill fs-7"></i>
-                                                </span>
-                                                <h6 class="fw-bold text-dark fs-7 mb-0">Hồ Sơ Nghiệm Thu & Thẩm Định Dự
-                                                    Án (Task Lead ➔ PM)</h6>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-1">
-                                                <c:if test="${task.status == 'DONE' && task.qualityRating > 0}">
-                                                    <span
-                                                        class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-1 fs-9 fw-bold">
-                                                        <i
-                                                            class="bi bi-star-fill text-warning me-1"></i>${task.qualityRating}/5
-                                                        ⭐
-                                                    </span>
-                                                </c:if>
-                                                <span
-                                                    class="badge ${task.statusBadgeClass} rounded-pill px-2 py-1 fs-9">
-                                                    ${task.statusLabel}
-                                                </span>
-                                            </div>
+                                    <!-- THANH TIẾN ĐỘ 5 TRẠNG THÁI SUBTASK (STEPPER) -->
+                                    <div class="p-3 bg-light rounded-3 border mb-4">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="fs-9 fw-bold text-secondary text-uppercase tracking-wider">
+                                                <i class="bi bi-diagram-3 text-primary me-1"></i> Quy trình nghiệm thu việc con:
+                                            </span>
+                                            <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">${st.statusLabel}</span>
                                         </div>
-
-                                        <!-- 1. MA TRẬN PHÂN RÃ VIỆC CON & NĂNG SUẤT TỰ ĐỘNG -->
-                                        <div class="bg-white p-3 rounded-3 border mb-3 shadow-2xs">
-                                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="fs-9 fw-bold text-uppercase text-secondary tracking-wider">
-                                                    <i class="bi bi-diagram-3-fill text-primary me-1"></i> Ma Trận Phân
-                                                    Rã Việc Con (${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc con):
-                                                </span>
-                                                <span
-                                                    class="badge bg-success-subtle text-success rounded-pill px-2 py-1 fs-9">
-                                                    <i class="bi bi-check2-circle me-1"></i>
-                                                    ${taskProgressMap[task.id]}% Hoàn Thành
-                                                </span>
+                                        <div class="d-flex align-items-center justify-content-between gap-1 text-center">
+                                            <!-- Step 1: TODO -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'TODO' ? 'bg-secondary text-white fw-bold shadow-2xs' : 'bg-white border text-muted'} fs-9">
+                                                1. Cần làm
                                             </div>
-
-                                            <!-- 4 Thẻ chỉ số Metrics Grid -->
-                                            <div class="row g-2 text-center mb-2">
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Phân rã</span>
-                                                        <strong class="fs-7 text-dark">${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} sub-tasks</strong>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Task Lead</span>
-                                                        <strong
-                                                            class="fs-7 text-dark text-truncate d-block">${task.assigneeName}</strong>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Tài liệu Wiki</span>
-                                                        <strong class="fs-7 text-dark">${not empty taskDocsMap[task.id] ? taskDocsMap[task.id].size() : 0} docs</strong>
-                                                    </div>
-                                                </div>
-                                                <div class="col-6 col-md-3">
-                                                    <div class="p-2 bg-light rounded-3 border">
-                                                        <span class="d-block fs-9 text-muted">Thảo luận</span>
-                                                        <strong class="fs-7 text-dark">${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0} tin nhắn</strong>
-                                                    </div>
-                                                </div>
+                                            <i class="bi bi-arrow-right text-muted fs-9"></i>
+                                            <!-- Step 2: SUBMITTED -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'SUBMITTED' ? 'bg-warning text-dark fw-bold shadow-2xs' : 'bg-white border text-muted'} fs-9">
+                                                2. Chờ duyệt
                                             </div>
-
-                                            <!-- Danh sách đóng góp của thành viên -->
-                                            <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                <div class="p-2 bg-light-subtle rounded-2 border fs-9 mt-2">
-                                                    <span class="fw-semibold text-secondary d-block mb-1">
-                                                        <i class="bi bi-people-fill text-primary me-1"></i> Chi tiết các
-                                                        hạng mục việc con do Task Lead phân rã:
-                                                    </span>
-                                                    <div class="d-flex flex-column gap-1">
-                                                        <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                            <div
-                                                                class="d-flex align-items-center justify-content-between text-secondary">
-                                                                <span>&bull; <strong>${st.assigneeName}</strong>:
-                                                                    ${st.title}</span>
-                                                                <span
-                                                                    class="badge ${st.statusBadgeClass} rounded-pill px-1-5 py-0 fs-9">${st.statusLabel}</span>
-                                                            </div>
-                                                        </c:forEach>
-                                                    </div>
-                                                </div>
-                                            </c:if>
-                                        </div>
-
-                                        <!-- 2. HIỂN THỊ BÁO CÁO BÀN GIAO CÓ CẤU TRÚC & TỆP ĐÍNH KÈM CỦA TASK LEAD (NẾU CÓ) -->
-                                        <c:if test="${not empty task.finalDeliverableNote}">
-                                            <div class="p-3 bg-white rounded-3 border fs-8 text-dark mb-3 shadow-2xs">
-                                                <div
-                                                    class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                                    <span class="fw-bold text-warning fs-8">
-                                                        <i class="bi bi-file-earmark-check-fill me-1"></i> Báo Cáo Tổng
-                                                        Kết Bàn Giao Của Task Lead:
-                                                    </span>
-                                                    <span class="fs-9 text-muted"><i
-                                                            class="bi bi-clock-history me-1"></i>${task.submittedAt}</span>
-                                                </div>
-                                                <div class="text-secondary fs-8 lh-base" style="white-space: pre-line;">
-                                                    <c:out value="${task.finalDeliverableNote}" />
-                                                </div>
-
-                                                <!-- TỆP ĐÍNH KÈM BÁO CÁO NGHIỆM THU -->
-                                                <c:if test="${not empty task.deliverableFile}">
-                                                    <div
-                                                        class="mt-3 p-2-5 bg-warning-subtle border border-warning-subtle rounded-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <div class="p-2 bg-white rounded-2 text-danger shadow-2xs">
-                                                                <i class="bi bi-file-earmark-pdf-fill fs-6"></i>
-                                                            </div>
-                                                            <div>
-                                                                <span
-                                                                    class="fw-bold fs-8 text-dark d-block">${task.deliverableFile}</span>
-                                                                <span class="fs-9 text-secondary"><i
-                                                                        class="bi bi-check2-circle text-success me-1"></i>Tệp
-                                                                    đính kèm nghiệm thu chính thức từ Task Lead</span>
-                                                            </div>
-                                                        </div>
-                                                        <a href="${pageContext.request.contextPath}/uploads/deliverables/${task.deliverableFile}"
-                                                            class="btn btn-warning btn-sm rounded-pill fs-9 fw-semibold text-dark shadow-2xs px-3"
-                                                            download="${task.deliverableFile}" target="_blank">
-                                                            <i class="bi bi-download me-1"></i> Tải File Báo Cáo Nghiệm
-                                                            Thu
-                                                        </a>
-                                                    </div>
-                                                </c:if>
-                                            </div>
-                                        </c:if>
-
-                                        <!-- 3. HIỂN THỊ PHẢN HỒI / ĐÁNH GIÁ CỦA PM (NẾU CÓ) -->
-                                        <c:if test="${not empty task.pmFeedback}">
-                                            <c:choose>
-                                                <c:when test="${task.status == 'REVISE'}">
-                                                    <div
-                                                        class="p-2 bg-primary-subtle text-primary border border-primary-subtle rounded-3 fs-8 mb-3">
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="fw-bold fs-9">
-                                                                <i class="bi bi-info-circle-fill me-1"></i> Dặn dò cân
-                                                                chỉnh từ Trưởng Dự Án (PM):
-                                                            </span>
-                                                            <span class="fs-9 opacity-75">${task.reviewedAt}</span>
-                                                        </div>
-                                                        <p class="mb-0 fs-8">"${task.pmFeedback}"</p>
-                                                    </div>
-                                                </c:when>
-                                                <c:when test="${task.status == 'REJECTED'}">
-                                                    <div
-                                                        class="p-2 bg-danger-subtle text-danger border border-danger-subtle rounded-3 fs-8 mb-3">
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="fw-bold fs-9">
-                                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Lý
-                                                                do chưa đạt từ Trưởng Dự Án (PM):
-                                                            </span>
-                                                            <span class="fs-9 opacity-75">${task.reviewedAt}</span>
-                                                        </div>
-                                                        <p class="mb-0 fs-8">"${task.pmFeedback}"</p>
-                                                    </div>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <div
-                                                        class="p-2 bg-success-subtle text-success border border-success-subtle rounded-3 fs-8 mb-3">
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between mb-1">
-                                                            <span class="fw-bold fs-9">
-                                                                <i class="bi bi-patch-check-fill me-1"></i> Đánh giá
-                                                                nghiệm thu từ Trưởng Dự Án (PM)
-                                                                <c:if test="${task.qualityRating > 0}">
-                                                                    <span
-                                                                        class="text-warning ms-1">(${task.qualityRating}
-                                                                        ⭐)</span>
-                                                                </c:if>:
-                                                            </span>
-                                                            <span class="fs-9 opacity-75">${task.reviewedAt}</span>
-                                                        </div>
-                                                        <p class="mb-0 fs-8">"${task.pmFeedback}"</p>
-                                                    </div>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </c:if>
-
-                                        <!-- 4. CÁC NÚT TƯƠNG TÁC (TASK LEAD NỘP BÀN GIAO / PM PHÊ DUYỆT 3 LỰA CHỌN) -->
-                                        <div
-                                            class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
-
-                                            <!-- A. NÚT DÀNH CHO TASK LEAD: Nộp bàn giao Task lớn lên cho PM -->
-                                            <c:set var="canSubmitParentTask"
-                                                value="${(not empty task.assigneeId && task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || ((empty task.assigneeId || task.assigneeId == 0) && project.ownerId == sessionScope.currentUser.id)}" />
-                                            <c:if test="${canSubmitParentTask && task.status != 'DONE'}">
-                                                <button type="button"
-                                                    class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                    data-bs-toggle="collapse"
-                                                    data-bs-target="#submitParentTaskPanel-${task.id}">
-                                                    <i class="bi bi-box-seam me-1"></i> ${task.status == 'SUBMITTED' ? 'Cập Nhật Báo Cáo Bàn Giao' : 'Bàn Giao & Nộp Cho PM'}
-                                                </button>
-                                            </c:if>
-
-                                            <!-- B. NÚT DÀNH RIÊNG CHO TRƯỞNG DỰ ÁN (PM) KHI CÓ BÀN GIAO (SUBMITTED) -->
-                                            <c:if
-                                                test="${project.ownerId == sessionScope.currentUser.id && task.status == 'SUBMITTED'}">
+                                            <i class="bi bi-arrow-right text-muted fs-9"></i>
+                                            <!-- Step 3: REVISE or REJECTED -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'REVISE' ? 'bg-info text-dark fw-bold shadow-2xs' : (st.status == 'REJECTED' ? 'bg-danger text-white fw-bold shadow-2xs' : 'bg-white border text-muted')} fs-9">
                                                 <c:choose>
-                                                    <c:when
-                                                        test="${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100}">
-                                                        <div
-                                                            class="alert alert-warning py-1-5 px-3 rounded-pill fs-9 d-flex align-items-center gap-2 mb-0 ms-auto shadow-2xs">
-                                                            <i
-                                                                class="bi bi-exclamation-triangle-fill text-warning fs-8"></i>
-                                                            <span><strong>Chưa đủ điều kiện duyệt:</strong> Việc con mới
-                                                                đạt <strong>${taskProgressMap[task.id]}%</strong>. Cần
-                                                                hoàn thành 100% việc con trước!</span>
-                                                        </div>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <div class="d-flex align-items-center gap-2 ms-auto">
-                                                            <!-- 1. Mở Duyệt Đạt Kèm DoD & Sao 🟢 -->
-                                                            <button type="button"
-                                                                class="btn btn-success btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#pmApprovePanel-${task.id}"
-                                                                title="Thẩm định tiêu chí DoD & Duyệt 100%">
-                                                                <i class="bi bi-check-circle-fill me-1"></i> PM Duyệt
-                                                                Đạt (🟢)
-                                                            </button>
-
-                                                            <!-- 2. Cần Cân Chỉnh 🔵 (Xanh Dương) -->
-                                                            <button type="button"
-                                                                class="btn btn-primary btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#pmRevisePanel-${task.id}">
-                                                                <i class="bi bi-pencil-square me-1"></i> Cân Chỉnh (🔵)
-                                                            </button>
-
-                                                            <!-- 3. Chưa Đạt 🔴 (Màu Đỏ) -->
-                                                            <button type="button"
-                                                                class="btn btn-danger btn-sm rounded-pill fs-8 py-1 px-3 fw-semibold shadow-2xs"
-                                                                data-bs-toggle="collapse"
-                                                                data-bs-target="#pmRejectPanel-${task.id}">
-                                                                <i class="bi bi-x-circle-fill me-1"></i> Chưa Đạt (🔴)
-                                                            </button>
-                                                        </div>
-                                                    </c:otherwise>
+                                                    <c:when test="${st.status == 'REVISE'}">3. Cân chỉnh</c:when>
+                                                    <c:when test="${st.status == 'REJECTED'}">3. Chưa đạt</c:when>
+                                                    <c:otherwise>3. Cân chỉnh / Trả về</c:otherwise>
                                                 </c:choose>
-                                            </c:if>
-
-                                        </div>
-
-                                        <!-- PANEL 1: TASK LEAD NỘP BÁO CÁO BÀN GIAO CÓ CẤU TRÚC CHO PM -->
-                                        <div class="collapse mt-3" id="submitParentTaskPanel-${task.id}">
-                                            <div class="p-3 bg-white rounded-3 border border-warning shadow-sm">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <h6 class="modal-title fw-bold text-dark fs-8 mb-0">
-                                                        <i class="bi bi-box-seam-fill text-warning me-2"></i>Hồ Sơ Bàn
-                                                        Giao Task: [${task.title}]
-                                                    </h6>
-                                                    <span class="fs-9 text-muted">Gửi Trưởng Dự Án (PM) để nghiệm
-                                                        thu</span>
-                                                </div>
-                                                <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="submitParentTask">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-
-                                                    <c:if
-                                                        test="${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100}">
-                                                        <div
-                                                            class="alert alert-warning py-2 px-3 rounded-3 fs-9 d-flex align-items-center mb-3">
-                                                            <i
-                                                                class="bi bi-exclamation-triangle-fill me-2 fs-7 text-warning"></i>
-                                                            <div>
-                                                                <strong>Chưa thể nộp bàn giao:</strong> Thẻ này có
-                                                                ${taskSubTasksMap[task.id].size()} việc con nhưng mới
-                                                                đạt <strong>${taskProgressMap[task.id]}%</strong>. Bạn
-                                                                cần nghiệm thu đạt 100% tất cả việc con trước khi gửi
-                                                                PM.
-                                                            </div>
-                                                        </div>
-                                                    </c:if>
-
-                                                    <!-- Mục 1: Tóm tắt kết quả tính năng -->
-                                                    <div class="mb-3">
-                                                        <label for="summary-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-file-text text-primary me-1"></i> 1. Tóm tắt
-                                                            kết quả tính năng <span class="text-danger">*</span>
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="summary-done-${task.id}" name="summary" rows="2"
-                                                            placeholder="Mô tả tóm tắt những gì đội ngũ đã hoàn thành, giải quyết được bài toán gì..."
-                                                            required></textarea>
-                                                    </div>
-
-                                                    <!-- Mục 2 & 3: Link Demo & Link PR/Code (2 cột) -->
-                                                    <div class="row g-2 mb-3">
-                                                        <div class="col-12 col-md-6">
-                                                            <label for="demoUrl-done-${task.id}"
-                                                                class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                <i class="bi bi-globe text-success me-1"></i> 2. Đường
-                                                                dẫn Demo / Sản phẩm
-                                                            </label>
-                                                            <input type="text" class="form-control fs-8 rounded-3"
-                                                                id="demoUrl-done-${task.id}" name="demoUrl"
-                                                                placeholder="https://demo.example.com/... hoặc link Google Drive, Figma">
-                                                        </div>
-                                                        <div class="col-12 col-md-6">
-                                                            <label for="codeUrl-done-${task.id}"
-                                                                class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                <i class="bi bi-github text-dark me-1"></i> 3. Đường dẫn
-                                                                Pull Request / Mã nguồn
-                                                            </label>
-                                                            <input type="text" class="form-control fs-8 rounded-3"
-                                                                id="codeUrl-done-${task.id}" name="codeUrl"
-                                                                placeholder="https://github.com/.../pull/18">
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Mục 4: Bằng chứng kiểm thử -->
-                                                    <div class="mb-3">
-                                                        <label for="testResult-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-patch-check text-info me-1"></i> 4. Kết quả
-                                                            kiểm thử & Bằng chứng (Test Report)
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="testResult-done-${task.id}" name="testResult" rows="2"
-                                                            placeholder="Đã test các trường hợp nào? Tỷ lệ pass? Có gặp sự cố gì không..."></textarea>
-                                                    </div>
-
-                                                    <!-- Mục 5: Hướng dẫn PM nghiệm thu -->
-                                                    <div class="mb-3">
-                                                        <label for="testingGuide-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-compass text-warning me-1"></i> 5. Hướng dẫn
-                                                            các bước cho PM kiểm chứng / nghiệm thu
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="testingGuide-done-${task.id}" name="testingGuide"
-                                                            rows="2"
-                                                            placeholder="Ví dụ: 1. Đăng nhập tài khoản test@abc.com; 2. Nhấn nút thanh toán; 3. Kiểm tra console mã giao dịch..."></textarea>
-                                                    </div>
-
-                                                    <!-- Mục 6: Tệp đính kèm Báo Cáo Nghiệm Thu / Bàn Giao -->
-                                                    <div class="mb-3">
-                                                        <label for="deliverableFile-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-paperclip text-danger me-1"></i> 6. Tệp đính
-                                                            kèm Báo Cáo / Biên Bản Nghiệm Thu (PDF, Word, ZIP, Excel)
-                                                        </label>
-                                                        <div class="input-group input-group-sm">
-                                                            <span
-                                                                class="input-group-text bg-light text-secondary fs-8"><i
-                                                                    class="bi bi-file-earmark-arrow-up"></i></span>
-                                                            <input type="text" class="form-control fs-8 rounded-end-3"
-                                                                id="deliverableFile-done-${task.id}"
-                                                                name="deliverableFile"
-                                                                placeholder="Ví dụ: Bao_Cao_Nghiem_Thu_Thanh_Toan_VNPAY.pdf"
-                                                                value="${not empty task.deliverableFile ? task.deliverableFile : ''}">
-                                                        </div>
-                                                        <span class="fs-9 text-muted mt-1 d-block">Tệp đính kèm chính
-                                                            thức để Trưởng Dự Án (PM) tải về đọc trước khi ký duyệt đóng
-                                                            Task.</span>
-                                                    </div>
-
-                                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#submitParentTaskPanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-warning rounded-pill px-4 fs-8 fw-semibold shadow-sm text-dark ${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100 ? 'disabled' : ''}">
-                                                            <i class="bi bi-send-fill me-1"></i> Gửi Hồ Sơ Bàn Giao Cho
-                                                            PM
-                                                        </button>
-                                                    </div>
-                                                </form>
+                                            </div>
+                                            <i class="bi bi-arrow-right text-muted fs-9"></i>
+                                            <!-- Step 4: APPROVED -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'APPROVED' ? 'bg-success text-white fw-bold shadow-2xs' : 'bg-white border text-muted'} fs-9">
+                                                4. Đã duyệt 🟢
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <!-- PANEL 1.5: PM THẨM ĐỊNH CHECKLIST DOD & CHẤM ĐIỂM SAO DUYỆT ĐẠT 🟢 -->
-                                        <div class="collapse mt-3" id="pmApprovePanel-${task.id}">
-                                            <div class="p-3 bg-white rounded-3 border border-success shadow-sm">
-                                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                                    <h6 class="modal-title fw-bold text-success fs-8 mb-0">
-                                                        <i class="bi bi-patch-check-fill text-success me-2"></i>Thẩm
-                                                        Định & Nghiệm Thu Task: [${task.title}]
-                                                    </h6>
-                                                    <span class="fs-9 text-muted">Kiểm tra Danh mục tiêu chí (DoD) &
-                                                        chấm điểm sao</span>
-                                                </div>
-                                                <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="pmApproveTask">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-
-                                                    <!-- CHECKLIST TIÊU CHÍ CHẤP THUẬN (DEFINITION OF DONE & SLA) -->
-                                                    <div class="p-2-5 bg-light rounded-2 border mb-3">
-                                                        <span class="fw-bold fs-9 text-dark d-block mb-1">
-                                                            <i class="bi bi-card-checklist text-primary me-1"></i> Tiêu
-                                                            chí chấp thuận & Tuân thủ thời hạn (SLA & DoD):
-                                                        </span>
-                                                        <div
-                                                            class="d-flex align-items-center justify-content-between p-2 bg-white rounded border mb-2 fs-9">
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <i class="bi bi-calendar2-check text-success fs-7"></i>
-                                                                <div>
-                                                                    <span class="fw-bold d-block text-dark">Hạn cam kết:
-                                                                        ${not empty task.dueDate ? task.dueDate : 'Không đặt'}</span>
-                                                                    <span class="text-muted fs-9">Thời điểm bàn giao:
-                                                                        ${not empty task.submittedAt ? task.submittedAt : 'Chưa ghi nhận'}</span>
-                                                                </div>
-                                                            </div>
-                                                            <span
-                                                                class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-1 fs-9">${task.deadlineLabel}</span>
-                                                        </div>
-                                                        <div class="form-check fs-9 mb-1">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                id="dod1-done-${task.id}" checked>
-                                                            <label class="form-check-label text-secondary"
-                                                                for="dod1-done-${task.id}">
-                                                                Đã kiểm tra đường dẫn Demo / Mã nguồn sản phẩm của Task
-                                                                Lead
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check fs-9 mb-1">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                id="dod2-done-${task.id}" checked>
-                                                            <label class="form-check-label text-secondary"
-                                                                for="dod2-done-${task.id}">
-                                                                Đã đối chiếu đủ
-                                                                <strong>${taskSubTasksMap[task.id].size()}/${taskSubTasksMap[task.id].size()}
-                                                                    việc con</strong> do Task Lead phân rã (100% Đạt)
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check fs-9">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                id="dod3-done-${task.id}" checked>
-                                                            <label class="form-check-label text-secondary"
-                                                                for="dod3-done-${task.id}">
-                                                                Đã tải và thẩm định tệp đính kèm Báo cáo nghiệm thu của
-                                                                Task Lead
-                                                            </label>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- CHẤM ĐIỂM SAO CHẤT LƯỢNG -->
-                                                    <div class="mb-3">
-                                                        <label for="qualityRating-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-star-fill text-warning me-1"></i> Đánh giá
-                                                            chất lượng hoàn thành (Quality Rating):
-                                                        </label>
-                                                        <select class="form-select form-select-sm rounded-3 fs-8"
-                                                            id="qualityRating-done-${task.id}" name="qualityRating">
-                                                            <option value="5" selected>⭐⭐⭐⭐⭐ 5 Sao - Xuất Sắc (Vượt kỳ
-                                                                vọng, đúng tiến độ)</option>
-                                                            <option value="4">⭐⭐⭐⭐ 4 Sao - Tốt (Đạt chuẩn chất lượng kỹ
-                                                                thuật)</option>
-                                                            <option value="3">⭐⭐⭐ 3 Sao - Đạt Yêu Cầu (Hoàn thành cơ
-                                                                bản)</option>
-                                                            <option value="2">⭐⭐ 2 Sao - Cần Cải Thiện</option>
-                                                            <option value="1">⭐ 1 Sao - Yếu</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <!-- LỜI NHẬN XÉT / KHEN THƯỞNG CỦA PM -->
-                                                    <div class="mb-3">
-                                                        <label for="feedback-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            <i class="bi bi-chat-quote text-success me-1"></i> Lời nhận
-                                                            xét & Ghi nhận đóng góp của PM:
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="feedback-done-${task.id}" name="feedback" rows="2"
-                                                            placeholder="Nhận xét ghi nhận nỗ lực của Task Lead và toàn đội..."></textarea>
-                                                    </div>
-
-                                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#pmApprovePanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-success rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                            <i class="bi bi-trophy-fill me-1"></i> Xác Nhận Nghiệm Thu &
-                                                            Trao Cúp 🏆
-                                                        </button>
-                                                    </div>
-                                                </form>
+                                    <!-- KẾT QUẢ NỘP BÀI CỦA THÀNH VIÊN (NẾU CÓ) -->
+                                    <c:if test="${st.status == 'SUBMITTED' || not empty st.submissionNote}">
+                                        <div class="p-3 bg-white rounded-3 border fs-8 text-dark mb-3 shadow-2xs">
+                                            <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                                <span class="fw-bold text-warning fs-9">
+                                                    <i class="bi bi-file-earmark-check-fill me-1"></i> Báo cáo kết quả nộp bài của thành viên:
+                                                </span>
+                                                <span class="fs-9 text-muted">${st.submittedAt}</span>
                                             </div>
+                                            <p class="mb-0 text-secondary fs-8" style="white-space: pre-line;">
+                                                ${not empty st.submissionNote ? st.submissionNote : 'Đã hoàn thành công việc, mời Task Lead kiểm tra và nghiệm thu.'}
+                                            </p>
                                         </div>
+                                    </c:if>
 
-                                        <!-- PANEL 2: PM YÊU CẦU CÂN CHỈNH NHỎ 🔵 (MÀU XANH DƯƠNG) -->
-                                        <div class="collapse mt-3" id="pmRevisePanel-${task.id}">
+                                    <!-- Ý KIẾN ĐÁNH GIÁ TỪ TASK LEAD -->
+                                    <c:if test="${st.status == 'REVISE'}">
+                                        <div class="p-3 bg-primary-subtle text-primary border border-primary-subtle rounded-3 fs-8 mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <span class="fw-bold fs-9"><i class="bi bi-info-circle-fill me-1"></i> Dặn dò từ Task Lead:</span>
+                                                <span class="fs-9 opacity-75">${st.reviewedAt}</span>
+                                            </div>
+                                            <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${st.status == 'REJECTED'}">
+                                        <div class="p-3 bg-danger-subtle text-danger border border-danger-subtle rounded-3 fs-8 mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <span class="fw-bold fs-9"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lý do chưa đạt từ Task Lead:</span>
+                                                <span class="fs-9 opacity-75">${st.reviewedAt}</span>
+                                            </div>
+                                            <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${st.status == 'APPROVED'}">
+                                        <div class="p-3 bg-success-subtle text-success border border-success-subtle rounded-3 fs-8 mb-3 d-flex align-items-center gap-2">
+                                            <i class="bi bi-check-circle-fill fs-6"></i>
+                                            <span>Đã nghiệm thu hoàn thành 100% &bull; ${st.reviewedAt}</span>
+                                        </div>
+                                    </c:if>
+
+                                    <!-- NÚT NỘP BÀI CHO THÀNH VIÊN ĐƯỢC GIAO -->
+                                    <c:set var="canSubmitSubTask" value="${(not empty st.assigneeId && st.assigneeId > 0 && st.assigneeId == sessionScope.currentUser.id) || ((empty st.assigneeId || st.assigneeId == 0) && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id))}" />
+                                    <c:if test="${canSubmitSubTask && st.status != 'APPROVED' && st.status != 'SUBMITTED'}">
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-primary btn-sm rounded-pill fs-8 py-1-5 px-3 fw-semibold shadow-2xs"
+                                                data-bs-toggle="collapse" data-bs-target="#submitSubTaskPanel-${st.id}">
+                                                <i class="bi bi-upload me-1"></i> ${st.status == 'TODO' ? 'Nộp Báo Cáo Kết Quả' : 'Nộp Lại Kết Quả Mới'}
+                                            </button>
+                                        </div>
+                                        <!-- Collapse Form nộp bài -->
+                                        <div class="collapse mb-3" id="submitSubTaskPanel-${st.id}">
                                             <div class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                <h6 class="modal-title fw-bold text-primary fs-8 mb-2"
-                                                    id="pmReviseModalLabel-done-${task.id}">
-                                                    <i class="bi bi-pencil-square me-2"></i>PM Dặn Dò Cân Chỉnh Nhỏ (Cơ
-                                                    bản đã tốt)
-                                                </h6>
+                                                <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-upload text-primary me-1"></i> Nộp Báo Cáo Kết Quả: [${st.title}]</h6>
                                                 <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="pmReviseTask">
+                                                    <input type="hidden" name="action" value="submitSubTask">
                                                     <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-                                                    <div class="mb-3">
-                                                        <label for="pmReviseNote-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            Ý kiến dặn dò tinh chỉnh cho Task Lead:
+                                                    <input type="hidden" name="subTaskId" value="${st.id}">
+                                                    <div class="mb-2">
+                                                        <label for="note-${st.id}" class="form-label fw-semibold fs-9 text-dark mb-1">
+                                                            Ghi chú hoàn thành / Link sản phẩm bàn giao <span class="text-danger">*</span>:
                                                         </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="pmReviseNote-done-${task.id}" name="feedback" rows="2"
-                                                            placeholder="Ví dụ: Tính năng chạy rất mượt, em cân chỉnh lại màu sắc nút bấm và chuẩn hóa thông báo lỗi nhé..."
-                                                            required></textarea>
+                                                        <textarea class="form-control fs-8 rounded-3" id="note-${st.id}" name="submissionNote" rows="2"
+                                                            placeholder="Mô tả công việc đã làm, link pull request, link tài liệu cho Leader..." required></textarea>
                                                     </div>
                                                     <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#pmRevisePanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-primary rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                            <i class="bi bi-send-fill me-1"></i> Gửi Yêu Cầu Cân Chỉnh
-                                                            (🔵)
+                                                        <button type="button" class="btn btn-light rounded-pill px-3 fs-9" data-bs-toggle="collapse" data-bs-target="#submitSubTaskPanel-${st.id}">Đóng</button>
+                                                        <button type="submit" class="btn btn-primary-custom rounded-pill px-4 fs-9 fw-semibold shadow-sm">
+                                                            <i class="bi bi-send-fill me-1"></i> Gửi Báo Cáo Cho Leader
                                                         </button>
                                                     </div>
                                                 </form>
                                             </div>
                                         </div>
+                                    </c:if>
 
-                                        <!-- PANEL 3: PM TRẢ VỀ DO CHƯA ĐẠT 🔴 (MÀU ĐỎ) -->
-                                        <div class="collapse mt-3" id="pmRejectPanel-${task.id}">
-                                            <div class="p-3 bg-white rounded-3 border border-danger shadow-sm">
-                                                <h6 class="modal-title fw-bold text-danger fs-8 mb-2"
-                                                    id="pmRejectModalLabel-done-${task.id}">
-                                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>PM Đánh Giá Chưa
-                                                    Đạt Yêu Cầu
-                                                </h6>
-                                                <form action="${pageContext.request.contextPath}/task" method="post">
-                                                    <input type="hidden" name="action" value="pmRejectTask">
+                                    <!-- NÚT DUYỆT 3 LỰA CHỌN CHO TASK LEAD (KHI SUBMITTED) -->
+                                    <c:set var="isReviewer" value="${(task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || (task.assigneeId == 0 && project.ownerId == sessionScope.currentUser.id)}" />
+                                    <c:if test="${isReviewer && st.status == 'SUBMITTED'}">
+                                        <div class="p-3 bg-light rounded-3 border mb-3">
+                                            <span class="fs-9 fw-bold text-dark d-block mb-2"><i class="bi bi-shield-check text-primary me-1"></i> Quyền Thẩm Định Của Task Lead:</span>
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <!-- Duyệt Đạt -->
+                                                <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                    <input type="hidden" name="action" value="approveSubTask">
                                                     <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="taskId" value="${task.id}">
-                                                    <div class="mb-3">
-                                                        <label for="pmRejectNote-done-${task.id}"
-                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                            Nêu rõ lý do sai sót / yêu cầu làm lại:
-                                                        </label>
-                                                        <textarea class="form-control fs-8 rounded-3"
-                                                            id="pmRejectNote-done-${task.id}" name="feedback" rows="2"
-                                                            placeholder="Ví dụ: Tính năng chưa đúng spec yêu cầu, thiếu bảo mật phân quyền Servlet, yêu cầu làm lại..."
-                                                            required></textarea>
-                                                    </div>
-                                                    <div class="d-flex align-items-center justify-content-end gap-2">
-                                                        <button type="button"
-                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                            data-bs-toggle="collapse"
-                                                            data-bs-target="#pmRejectPanel-${task.id}">Đóng</button>
-                                                        <button type="submit"
-                                                            class="btn btn-danger rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                            <i class="bi bi-x-circle-fill me-1"></i> Trả Về Làm Lại (🔴)
-                                                        </button>
-                                                    </div>
+                                                    <input type="hidden" name="subTaskId" value="${st.id}">
+                                                    <button type="submit" class="btn btn-success btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs">
+                                                        <i class="bi bi-check-lg me-1"></i> Duyệt Đạt (🟢)
+                                                    </button>
                                                 </form>
+                                                <!-- Cân Chỉnh -->
+                                                <button type="button" class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs"
+                                                    data-bs-toggle="collapse" data-bs-target="#reviseSubTaskPanel-${st.id}">
+                                                    <i class="bi bi-pencil me-1"></i> Cân Chỉnh (🔵)
+                                                </button>
+                                                <!-- Chưa Đạt -->
+                                                <button type="button" class="btn btn-danger btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs"
+                                                    data-bs-toggle="collapse" data-bs-target="#rejectSubTaskPanel-${st.id}">
+                                                    <i class="bi bi-x-lg me-1"></i> Chưa Đạt (🔴)
+                                                </button>
                                             </div>
-                                        </div>
 
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                                                <i class="bi bi-list-check text-primary"></i>
-                                                <span>Danh sách việc con (Checklist)</span>
-                                            </h6>
-                                            <span
-                                                class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                ${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc
-                                            </span>
-                                        </div>
-
-                                        <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                            <!-- Thanh tiến độ hoàn thành việc con dạng Micro-bar -->
-                                            <div class="subtask-progress-card">
-                                                <div class="d-flex align-items-center justify-content-between mb-1">
-                                                    <span class="fs-9 text-muted fw-semibold">Tiến độ hoàn thành việc
-                                                        con</span>
-                                                    <span
-                                                        class="fs-9 fw-bold text-success">${taskProgressMap[task.id]}%</span>
-                                                </div>
-                                                <div class="progress" style="height: 5px; background-color: #e2e8f0;">
-                                                    <div class="progress-bar bg-success rounded-pill" role="progressbar"
-                                                        style="width: ${taskProgressMap[task.id]}%;"
-                                                        aria-valuenow="${taskProgressMap[task.id]}" aria-valuemin="0"
-                                                        aria-valuemax="100"></div>
+                                            <!-- Form Cân Chỉnh -->
+                                            <div class="collapse mt-2" id="reviseSubTaskPanel-${st.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
+                                                    <h6 class="fw-bold text-primary fs-9 mb-1"><i class="bi bi-pencil-square me-1"></i> Lời dặn dò cân chỉnh nhỏ:</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="reviseSubTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="subTaskId" value="${st.id}">
+                                                        <textarea class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Ví dụ: Format lại code, kiểm tra css..." required></textarea>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#reviseSubTaskPanel-${st.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-3 py-0-5 fs-9 fw-semibold">Gửi Cân Chỉnh</button>
+                                                        </div>
+                                                    </form>
                                                 </div>
                                             </div>
 
-                                            <div class="d-flex flex-column gap-2 mb-3">
-                                                <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                    <div
-                                                        class="subtask-item ${st.status == 'APPROVED' ? 'subtask-approved' : ''}">
-
-                                                        <!-- DÒNG 1: CHECKBOX ICON + TIÊU ĐỀ + HUY HIỆU + NGƯỜI PHỤ TRÁCH -->
-                                                        <div
-                                                            class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                                                            <div class="d-flex align-items-center gap-2 flex-grow-1">
-                                                                <!-- Icon trạng thái dạng Checkbox -->
-                                                                <c:choose>
-                                                                    <c:when test="${st.status == 'APPROVED'}">
-                                                                        <i class="bi bi-check-circle-fill text-success fs-7"
-                                                                            title="Đã duyệt hoàn thành"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'SUBMITTED'}">
-                                                                        <i class="bi bi-hourglass-split text-warning fs-7"
-                                                                            title="Đang chờ duyệt"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'REVISE'}">
-                                                                        <i class="bi bi-arrow-repeat text-info fs-7"
-                                                                            title="Cần chỉnh sửa nhỏ"></i>
-                                                                    </c:when>
-                                                                    <c:when test="${st.status == 'REJECTED'}">
-                                                                        <i class="bi bi-exclamation-circle-fill text-danger fs-7"
-                                                                            title="Đã bị trả về"></i>
-                                                                    </c:when>
-                                                                    <c:otherwise>
-                                                                        <i class="bi bi-circle text-muted fs-7"
-                                                                            title="Chưa hoàn thành"></i>
-                                                                    </c:otherwise>
-                                                                </c:choose>
-
-                                                                <!-- Tiêu đề việc con -->
-                                                                <span
-                                                                    class="fs-8 text-dark ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : 'fw-semibold'}">
-                                                                    ${st.title}
-                                                                </span>
-
-                                                                <!-- Huy hiệu trạng thái -->
-                                                                <span
-                                                                    class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                                    ${st.statusLabel}
-                                                                </span>
-                                                            </div>
-
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <c:if test="${not empty st.dueDate}">
-                                                                    <span
-                                                                        class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                                        title="Hạn chót việc con: ${st.dueDate}">
-                                                                        <i class="bi bi-calendar-event"></i>
-                                                                        ${st.deadlineLabel}
-                                                                    </span>
-                                                                </c:if>
-                                                                <span
-                                                                    class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9"
-                                                                    title="Người phụ trách">
-                                                                    <i class="bi bi-person-fill text-primary"></i>
-                                                                    ${st.assigneeName}
-                                                                </span>
-                                                            </div>
+                                            <!-- Form Chưa Đạt -->
+                                            <div class="collapse mt-2" id="rejectSubTaskPanel-${st.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-danger shadow-sm">
+                                                    <h6 class="fw-bold text-danger fs-9 mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lý do chưa đạt yêu cầu:</h6>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="rejectSubTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="subTaskId" value="${st.id}">
+                                                        <textarea class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Nêu rõ lỗi hoặc yêu cầu làm lại..." required></textarea>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#rejectSubTaskPanel-${st.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-danger rounded-pill px-3 py-0-5 fs-9 fw-semibold">Trả Về Làm Lại</button>
                                                         </div>
-
-                                                        <!-- DÒNG 2: THÔNG TIN CHI TIẾT BÀN GIAO / GÓP Ý DỰA THEO TRẠNG THÁI -->
-
-                                                        <!-- TRƯỜNG HỢP A: SUBMITTED (Đang chờ duyệt) - Hiển thị kết quả nộp bài -->
-                                                        <c:if test="${st.status == 'SUBMITTED'}">
-                                                            <div
-                                                                class="p-2 bg-white rounded-2 border fs-8 text-dark mt-2 shadow-2xs">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold text-warning fs-9">
-                                                                        <i
-                                                                            class="bi bi-file-earmark-check-fill me-1"></i>
-                                                                        Kết quả nộp bài:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 text-muted">${st.submittedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 text-secondary fs-8">
-                                                                    ${not empty st.submissionNote ? st.submissionNote : 'Đã hoàn thành công việc, mời Task Lead kiểm tra và nghiệm thu.'}
-                                                                </p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP B: REVISE (🔵 Màu Xanh Dương - Cần cân chỉnh nhỏ) -->
-                                                        <c:if test="${st.status == 'REVISE'}">
-                                                            <div
-                                                                class="p-2 bg-primary-subtle text-primary border border-primary-subtle rounded-2 fs-8 mt-2">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold fs-9">
-                                                                        <i class="bi bi-info-circle-fill me-1"></i> Dặn
-                                                                        dò từ Task Lead:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 opacity-75">${st.reviewedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP C: REJECTED (🔴 Màu Đỏ - Chưa đạt yêu cầu) -->
-                                                        <c:if test="${st.status == 'REJECTED'}">
-                                                            <div
-                                                                class="p-2 bg-danger-subtle text-danger border border-danger-subtle rounded-2 fs-8 mt-2">
-                                                                <div
-                                                                    class="d-flex align-items-center justify-content-between mb-1">
-                                                                    <span class="fw-bold fs-9">
-                                                                        <i
-                                                                            class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                                        Lý do chưa đạt từ Task Lead:
-                                                                    </span>
-                                                                    <span
-                                                                        class="fs-9 opacity-75">${st.reviewedAt}</span>
-                                                                </div>
-                                                                <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- TRƯỜNG HỢP D: APPROVED (🟢 Màu Xanh Lá - Đã nghiệm thu Đạt) -->
-                                                        <c:if test="${st.status == 'APPROVED'}">
-                                                            <div
-                                                                class="fs-9 text-success mt-1 d-flex align-items-center gap-1">
-                                                                <i class="bi bi-check-circle-fill"></i>
-                                                                <span>Đã nghiệm thu hoàn thành 100% &bull;
-                                                                    ${st.reviewedAt}</span>
-                                                            </div>
-                                                        </c:if>
-
-                                                        <!-- DÒNG 3: CÁC NÚT HÀNH ĐỘNG TƯƠNG TÁC (NỘP BÀI / THẨM ĐỊNH) -->
-                                                        <div
-                                                            class="mt-2 pt-2 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
-
-                                                            <!-- 1. NÚT DÀNH CHO THÀNH VIÊN ĐƯỢC GIAO VIỆC: Nộp Báo Cáo / Bàn giao kết quả -->
-                                                            <c:set var="canSubmitSubTask"
-                                                                value="${(not empty st.assigneeId && st.assigneeId > 0 && st.assigneeId == sessionScope.currentUser.id) || ((empty st.assigneeId || st.assigneeId == 0) && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id))}" />
-                                                            <div>
-                                                                <c:if
-                                                                    test="${canSubmitSubTask && st.status != 'APPROVED' && st.status != 'SUBMITTED'}">
-                                                                    <button type="button"
-                                                                        class="btn btn-outline-primary btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#submitSubTaskPanel-${st.id}">
-                                                                        <i class="bi bi-upload me-1"></i> ${st.status == 'TODO' ? 'Nộp Báo Cáo Kết Quả' : 'Nộp Lại Kết Quả Mới'}
-                                                                    </button>
-                                                                </c:if>
-                                                            </div>
-
-                                                            <!-- 2. NÚT DÀNH RIÊNG CHO TASK LEAD KHI CÓ BÀI NỘP (🟡 SUBMITTED): 3 LỰA CHỌN THẨM ĐỊNH -->
-                                                            <c:set var="isReviewer"
-                                                                value="${(task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || (task.assigneeId == 0 && project.ownerId == sessionScope.currentUser.id)}" />
-                                                            <c:if test="${isReviewer && st.status == 'SUBMITTED'}">
-                                                                <div class="d-flex align-items-center gap-1 ms-auto">
-                                                                    <!-- Nút 1: DUYỆT ĐẠT 🟢 -->
-                                                                    <form method="post"
-                                                                        action="${pageContext.request.contextPath}/task"
-                                                                        class="m-0">
-                                                                        <input type="hidden" name="action"
-                                                                            value="approveSubTask">
-                                                                        <input type="hidden" name="projectId"
-                                                                            value="${project.id}">
-                                                                        <input type="hidden" name="subTaskId"
-                                                                            value="${st.id}">
-                                                                        <button type="submit"
-                                                                            class="btn btn-success btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                            title="Nghiệm thu đạt 100%">
-                                                                            <i class="bi bi-check-lg me-1"></i> Duyệt
-                                                                            Đạt
-                                                                        </button>
-                                                                    </form>
-
-                                                                    <!-- Nút 2: CẦN CÂN CHỈNH 🔵 (Xanh Dương) -->
-                                                                    <button type="button"
-                                                                        class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#reviseSubTaskPanel-${st.id}"
-                                                                        title="Yêu cầu tinh chỉnh nhỏ">
-                                                                        <i class="bi bi-pencil me-1"></i> Cân chỉnh
-                                                                    </button>
-
-                                                                    <!-- Nút 3: CHƯA ĐẠT 🔴 (Màu Đỏ) -->
-                                                                    <button type="button"
-                                                                        class="btn btn-danger btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
-                                                                        data-bs-toggle="collapse"
-                                                                        data-bs-target="#rejectSubTaskPanel-${st.id}"
-                                                                        title="Trả về làm lại do chưa đạt">
-                                                                        <i class="bi bi-x-lg me-1"></i> Chưa đạt
-                                                                    </button>
-                                                                </div>
-                                                            </c:if>
-
-                                                        </div>
-
-                                                        <!-- PANEL 1: NỘP BÁO CÁO KẾT QUẢ CHO SUBTASK NÀY -->
-                                                        <div class="collapse mt-2" id="submitSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-dark fs-8 mb-2">
-                                                                    <i class="bi bi-upload text-primary me-1"></i> Nộp
-                                                                    Báo Cáo Kết Quả: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="submitSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="note-done-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Ghi chú hoàn thành / Link bàn giao kết quả
-                                                                            <span class="text-danger">*</span>
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="note-done-${st.id}"
-                                                                            name="submissionNote" rows="2"
-                                                                            placeholder="Mô tả những gì bạn đã làm, dán link pull request, link tài liệu hoặc ghi chú cho Leader..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#submitSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary-custom rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-send-fill me-1"></i> Gửi Báo
-                                                                            Cáo Cho Leader
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- PANEL 2: YÊU CẦU CÂN CHỈNH NHỎ 🔵 (MÀU XANH DƯƠNG) -->
-                                                        <div class="collapse mt-2" id="reviseSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-primary fs-8 mb-2">
-                                                                    <i class="bi bi-pencil-square me-1"></i> Dặn Dò Cân
-                                                                    Chỉnh Nhỏ: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="reviseSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="reviseNote-done-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Lời dặn dò tinh chỉnh cho thành viên:
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="reviseNote-done-${st.id}"
-                                                                            name="feedbackNote" rows="2"
-                                                                            placeholder="Ví dụ: Đã làm rất tốt, em đổi lại màu nút thành màu xanh dương và format code nhé..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#reviseSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-primary rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-send-fill me-1"></i> Gửi Yêu
-                                                                            Cầu Cân Chỉnh (🔵)
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- PANEL 3: TRẢ VỀ DO CHƯA ĐẠT YÊU CẦU 🔴 (MÀU ĐỎ) -->
-                                                        <div class="collapse mt-2" id="rejectSubTaskPanel-${st.id}">
-                                                            <div
-                                                                class="p-3 bg-white rounded-3 border border-danger shadow-sm">
-                                                                <h6 class="modal-title fw-bold text-danger fs-8 mb-2">
-                                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                                    Đánh Giá Chưa Đạt Yêu Cầu: [${st.title}]
-                                                                </h6>
-                                                                <form action="${pageContext.request.contextPath}/task"
-                                                                    method="post">
-                                                                    <input type="hidden" name="action"
-                                                                        value="rejectSubTask">
-                                                                    <input type="hidden" name="projectId"
-                                                                        value="${project.id}">
-                                                                    <input type="hidden" name="subTaskId"
-                                                                        value="${st.id}">
-                                                                    <div class="mb-2">
-                                                                        <label for="rejectNote-done-${st.id}"
-                                                                            class="form-label fw-semibold fs-8 text-dark mb-1">
-                                                                            Nêu rõ lý do sai sót / lỗi yêu cầu:
-                                                                        </label>
-                                                                        <textarea class="form-control fs-8 rounded-3"
-                                                                            id="rejectNote-done-${st.id}"
-                                                                            name="feedbackNote" rows="2"
-                                                                            placeholder="Ví dụ: Sai kiến trúc CSDL, thiếu toàn bộ khóa ngoại bảng Users, yêu cầu làm lại..."
-                                                                            required></textarea>
-                                                                    </div>
-                                                                    <div
-                                                                        class="d-flex align-items-center justify-content-end gap-2">
-                                                                        <button type="button"
-                                                                            class="btn btn-light rounded-pill px-3 fs-8"
-                                                                            data-bs-toggle="collapse"
-                                                                            data-bs-target="#rejectSubTaskPanel-${st.id}">Đóng</button>
-                                                                        <button type="submit"
-                                                                            class="btn btn-danger rounded-pill px-4 fs-8 fw-semibold shadow-sm">
-                                                                            <i class="bi bi-x-circle-fill me-1"></i> Trả
-                                                                            Về Yêu Cầu Làm Lại (🔴)
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-
-                                                </c:forEach>
+                                                    </form>
+                                                </div>
                                             </div>
-                                        </c:if>
-
-                                        <c:if test="${empty taskSubTasksMap[task.id]}">
-                                            <div
-                                                class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center mb-3">
-                                                Chưa có việc con nào được tạo.
-                                            </div>
-                                        </c:if>
-
-                                        <div
-                                            class="p-2-5 bg-success-subtle rounded-3 text-success fs-9 border border-success-subtle text-center mb-3">
-                                            <i class="bi bi-check2-all me-1"></i> Nhiệm vụ đã hoàn thành xuất sắc và
-                                            được PM nghiệm thu & đóng thẻ.
                                         </div>
-                                    </div>
-
-                                    <!-- Khối Tài liệu đính kèm Wiki -->
-                                    <div>
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                                                <i class="bi bi-journal-bookmark text-primary"></i>
-                                                <span>Tài liệu hướng dẫn đính kèm</span>
-                                            </h6>
-                                            <span
-                                                class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                ${not empty taskDocsMap[task.id] ? taskDocsMap[task.id].size() : 0} tài
-                                                liệu
-                                            </span>
-                                        </div>
-                                        <c:if test="${not empty taskDocsMap[task.id]}">
-                                            <div class="d-flex flex-column gap-2">
-                                                <c:forEach items="${taskDocsMap[task.id]}" var="td">
-                                                    <div class="doc-attachment-item">
-                                                        <div class="d-flex align-items-center gap-2 text-truncate">
-                                                            <i class="bi bi-file-earmark-text text-primary fs-6"></i>
-                                                            <span
-                                                                class="fw-semibold text-dark fs-8 text-truncate">${td.docTitle}</span>
-                                                        </div>
-                                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}"
-                                                            class="btn btn-outline-secondary btn-xs rounded-pill px-3 py-1 fs-9 text-nowrap"
-                                                            title="Đọc bài viết Wiki này">
-                                                            Đọc bài <i class="bi bi-arrow-right ms-1"></i>
-                                                        </a>
-                                                    </div>
-                                                </c:forEach>
-                                            </div>
-                                        </c:if>
-                                        <c:if test="${empty taskDocsMap[task.id]}">
-                                            <div
-                                                class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center">
-                                                Chưa có tài liệu Wiki nào được đính kèm cho công việc này.
-                                            </div>
-                                        </c:if>
-                                    </div>
+                                    </c:if>
                                 </div>
 
-                                <div class="col-12 col-lg-4 task-modal-sidebar d-flex flex-column justify-content-between"
-                                    style="min-height: 520px;">
+                                <!-- CỘT PHẢI (35%): THUỘC TÍNH VIỆC CON & ĐIỀU HƯỚNG -->
+                                <div class="col-12 col-lg-4 p-4 bg-light-subtle d-flex flex-column justify-content-between" style="min-height: 480px;">
                                     <div>
-                                        <!-- Khối Thuộc tính Meta -->
-                                        <div class="task-sidebar-section-title">
-                                            <i class="bi bi-sliders me-1"></i> Thuộc tính công việc
+                                        <div class="task-sidebar-section-title mb-2">
+                                            <i class="bi bi-sliders me-1"></i> Thuộc tính việc con
                                         </div>
-
                                         <div class="task-property-list bg-white rounded-3 p-3 border shadow-2xs mb-3">
-                                            <!-- Trạng thái -->
                                             <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-arrow-repeat"></i>
-                                                    Trạng thái</span>
-                                                <span class="task-property-value">
-                                                    <span
-                                                        class="badge ${task.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                        ${task.statusLabel}
-                                                    </span>
-                                                </span>
-                                            </div>
-
-                                            <!-- Người phụ trách -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-person"></i> Phụ
-                                                    trách</span>
+                                                <span class="task-property-label"><i class="bi bi-person"></i> Người làm</span>
                                                 <span class="task-property-value d-flex align-items-center gap-1">
-                                                    <span
-                                                        class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                    <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
                                                         style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                                        ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                        ${st.assigneeName.substring(0, 1).toUpperCase()}
                                                     </span>
-                                                    <span>${task.assigneeName}</span>
+                                                    <span>${st.assigneeName}</span>
                                                 </span>
                                             </div>
-
-                                            <!-- Mức ưu tiên -->
                                             <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-flag"></i> Mức ưu
-                                                    tiên</span>
+                                                <span class="task-property-label"><i class="bi bi-arrow-repeat"></i> Trạng thái</span>
                                                 <span class="task-property-value">
-                                                    <span
-                                                        class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                        ● ${task.priorityLabel}
-                                                    </span>
+                                                    <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">${st.statusLabel}</span>
                                                 </span>
                                             </div>
-
-                                            <!-- Hạn chót -->
                                             <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-calendar3"></i> Hạn
-                                                    chót</span>
+                                                <span class="task-property-label"><i class="bi bi-calendar3"></i> Hạn chót</span>
                                                 <span class="task-property-value">
                                                     <c:choose>
-                                                        <c:when test="${not empty task.dueDate}">
-                                                            <span
-                                                                class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                                <i class="bi bi-calendar-event me-1"></i>${task.dueDate}
+                                                        <c:when test="${not empty st.dueDate}">
+                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
+                                                                <i class="bi bi-calendar-event me-1"></i>${st.dueDate}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span class="text-muted fs-9">Chưa đặt hạn</span>
+                                                            <span class="text-muted fs-9">Chưa đặt</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </span>
                                             </div>
-
-                                            <!-- Dự án -->
                                             <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-folder2-open"></i> Dự
-                                                    án</span>
-                                                <span class="task-property-value text-truncate"
-                                                    style="max-width: 130px;" title="${project.name}">
-                                                    #${project.projectCode}
-                                                </span>
-                                            </div>
-
-                                            <!-- Tiến độ Subtasks -->
-                                            <div class="task-property-row">
-                                                <span class="task-property-label"><i class="bi bi-check2-circle"></i>
-                                                    Tiến độ</span>
-                                                <span class="task-property-value text-success">
-                                                    ${taskProgressMap[task.id]}%
+                                                <span class="task-property-label"><i class="bi bi-diagram-2"></i> Task Cha</span>
+                                                <span class="task-property-value text-truncate" style="max-width: 130px;" title="${task.title}">
+                                                    #${task.id}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <!-- Thao tác nhanh -->
-                                        <div class="task-sidebar-section-title">
-                                            <i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh
-                                        </div>
-                                        <div class="d-flex flex-column gap-2 mb-3">
-                                            <form method="post" action="${pageContext.request.contextPath}/task"
-                                                class="m-0">
-                                                <input type="hidden" name="action" value="updateStatus">
-                                                <input type="hidden" name="projectId" value="${project.id}">
-                                                <input type="hidden" name="taskId" value="${task.id}">
-                                                <input type="hidden" name="status" value="IN_PROGRESS">
-                                                <button type="submit"
-                                                    class="btn btn-outline-secondary btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1">
-                                                    <i class="bi bi-arrow-counterclockwise"></i> Mở lại công việc (→ In
-                                                    Progress)
-                                                </button>
-                                            </form>
-                                        </div>
-
-                                        <!-- Hội thoại của Task -->
-                                        <div
-                                            class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                            <div class="d-flex align-items-center gap-1">
-                                                <i class="bi bi-chat-square-dots-fill text-primary fs-8"></i>
-                                                <span class="fw-bold text-dark fs-8">Hội thoại (${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0})</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex-grow-1 overflow-y-auto d-flex flex-column gap-2 mb-3 pe-1"
-                                            style="max-height: 240px;">
-                                            <c:forEach items="${taskCommentsMap[task.id]}" var="comment">
-                                                <div
-                                                    class="p-2 px-3 rounded-3 border shadow-2xs ${comment.authorName == 'Hệ Thống' ? 'bg-success-subtle border-success-subtle' : 'bg-white'}">
-                                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                                        <span
-                                                            class="fw-bold fs-9 ${comment.authorName == 'Hệ Thống' ? 'text-success' : 'text-dark'}">
-                                                            <c:choose>
-                                                                <c:when test="${comment.authorName == 'Hệ Thống'}">
-                                                                    <i class="bi bi-robot me-1"></i> Hệ Thống
-                                                                </c:when>
-                                                                <c:otherwise>
-                                                                    ${comment.authorName}
-                                                                </c:otherwise>
-                                                            </c:choose>
-                                                        </span>
-                                                        <span class="text-muted fs-9">${comment.sentAt}</span>
-                                                    </div>
-                                                    <div class="fs-9 text-dark lh-base"
-                                                        style="word-break: break-word; white-space: pre-line;">
-                                                        <c:out value="${comment.content}" />
-                                                    </div>
-                                                </div>
-                                            </c:forEach>
-                                            <c:if test="${empty taskCommentsMap[task.id]}">
-                                                <div class="text-center text-muted my-auto py-3">
-                                                    <i class="bi bi-chat-left-dots fs-5 d-block mb-1 opacity-50"></i>
-                                                    <span class="fs-9">Chưa có bình luận nào.</span>
-                                                </div>
-                                            </c:if>
-                                        </div>
-                                        <div class="pt-2 border-top">
-                                            <form method="post" action="${pageContext.request.contextPath}/chat"
-                                                class="d-flex flex-column gap-2">
-                                                <input type="hidden" name="action" value="sendTaskComment">
-                                                <input type="hidden" name="projectId" value="${project.id}">
-                                                <input type="hidden" name="taskId" value="${task.id}">
-                                                <div class="input-group">
-                                                    <input type="text"
-                                                        class="form-control fs-9 py-1 rounded-start-pill ps-3 shadow-none border-secondary-subtle"
-                                                        name="content" placeholder="Bình luận..." autocomplete="off"
-                                                        required>
-                                                    <button type="submit"
-                                                        class="btn btn-primary-custom rounded-end-pill px-3 fs-9 fw-semibold shadow-sm">
-                                                        <i class="bi bi-send-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
+                                        <!-- Nút quay lại Task Cha -->
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 rounded-pill fs-8 fw-semibold py-2 shadow-2xs mb-2"
+                                            onclick="openClickUpTask(${task.id})">
+                                            <i class="bi bi-arrow-left me-1"></i> Xem Chi Tiết Task Cha
+                                        </button>
                                     </div>
 
-                                    <!-- Footer Sidebar: Xóa Task nếu có quyền -->
-                                    <c:if
-                                        test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <!-- Footer: Xóa việc con nếu có quyền -->
+                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
                                         <div class="pt-2 mt-2 border-top text-end">
-                                            <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
-                                                class="text-danger fs-9 text-decoration-none d-inline-flex align-items-center gap-1 opacity-75 hover-opacity-100"
-                                                onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn công việc này không?');">
-                                                <i class="bi bi-trash3"></i> Xóa thẻ này
-                                            </a>
+                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-inline"
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn xóa việc con này?');">
+                                                <input type="hidden" name="action" value="deleteSubTask">
+                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                <input type="hidden" name="subTaskId" value="${st.id}">
+                                                <button type="submit" class="btn btn-link text-danger p-0 border-0 fs-9 text-decoration-none opacity-75 hover-opacity-100">
+                                                    <i class="bi bi-trash3 me-1"></i> Xóa việc con này
+                                                </button>
+                                            </form>
                                         </div>
                                     </c:if>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </c:forEach>
+                </c:forEach>
             </div>
-        </c:forEach>
+        </div>
 
         <!-- =========================================================================
      5. MODAL THẺ HỒ SƠ ĐỒNG ĐỘI (SOCIAL PROFILE CARD MODAL - PHẦN B.3.3)

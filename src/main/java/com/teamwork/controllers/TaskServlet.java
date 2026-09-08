@@ -3,6 +3,7 @@ package com.teamwork.controllers;
 import com.teamwork.business.Doc;
 import com.teamwork.business.Label;
 import com.teamwork.business.Message;
+import com.teamwork.business.Notification;
 import com.teamwork.business.Project;
 import com.teamwork.business.SubTask;
 import com.teamwork.business.Task;
@@ -391,6 +392,7 @@ public class TaskServlet extends HttpServlet {
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
         List<Project> userProjects = (currentUser != null) ? ProjectMemberDB.selectProjectsByUserId(currentUser.getId()) : new ArrayList<>();
         int unreadNotifCount = (currentUser != null) ? NotificationDB.countUnread(currentUser.getId()) : 0;
+        List<Notification> userNotifications = (currentUser != null) ? NotificationDB.selectByRecipientId(currentUser.getId()) : new ArrayList<>();
 
         // 8.9. Lấy tin nhắn chat dự án (cho tab # Chat tích hợp)
         List<Message> projectChatMessages = MessageDB.selectRecentByProjectId(projectId, 50);
@@ -426,6 +428,7 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("inviteCandidates", inviteCandidates);
         request.setAttribute("userProjects", userProjects);
         request.setAttribute("unreadNotifCount", unreadNotifCount);
+        request.setAttribute("userNotifications", userNotifications);
         request.setAttribute("projectChatMessages", projectChatMessages);
         request.setAttribute("currentView", currentView);
         request.setAttribute("taskView", taskView);

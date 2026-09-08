@@ -49,6 +49,37 @@ public class UserWorkload implements Serializable {
         return this.leadTaskCount + this.subTaskCount;
     }
 
+    public int getTotalTasks() {
+        return this.leadTaskCount + this.subTaskCount;
+    }
+
+    public int getInProgressTasks() {
+        return Math.max(0, (this.leadTaskCount + this.subTaskCount) - this.completedSubTaskCount);
+    }
+
+    public int getDoneTasks() {
+        return this.completedSubTaskCount;
+    }
+
+    public int getOverdueTasks() {
+        int count = 0;
+        if (this.leadTasks != null) {
+            for (Task t : this.leadTasks) {
+                if (t != null && t.isOverdue()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public int getCompletionRate() {
+        int total = getTotalTasks();
+        if (total <= 0) return 0;
+        int rate = (this.completedSubTaskCount * 100) / total;
+        return Math.min(100, Math.max(0, rate));
+    }
+
     public String getRelatedTaskIdsJoined() {
         if (this.relatedTaskIds == null || this.relatedTaskIds.isEmpty()) {
             return "";
