@@ -387,11 +387,32 @@ public class TaskServlet extends HttpServlet {
             }
         }
 
+        // 8.8. Lấy danh sách toàn bộ dự án của User (cho Sidebar Spaces chuẩn ClickUp)
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        List<Project> userProjects = (currentUser != null) ? ProjectMemberDB.selectProjectsByUserId(currentUser.getId()) : new ArrayList<>();
+        int unreadNotifCount = (currentUser != null) ? NotificationDB.countUnread(currentUser.getId()) : 0;
+
+        // 8.9. Lấy tin nhắn chat dự án (cho tab # Chat tích hợp)
+        List<Message> projectChatMessages = MessageDB.selectRecentByProjectId(projectId, 50);
+
+        // 8.10. Xác định tab đang xem (view: tasks, chat, docs, metrics)
+        String currentView = request.getParameter("view");
+        if (currentView == null || currentView.trim().isEmpty()) {
+            currentView = "tasks";
+        }
+
+        // Chế độ xem task (taskView: list hoặc board)
+        String taskView = request.getParameter("taskView");
+        if (taskView == null || taskView.trim().isEmpty()) {
+            taskView = "list"; // Mặc định mở List View phân cấp chuẩn ClickUp
+        }
+
         // 9. Đóng gói dữ liệu gửi sang tasks.jsp
         request.setAttribute("project", project);
         request.setAttribute("todoTasks", todoTasks);
         request.setAttribute("inProgressTasks", inProgressTasks);
         request.setAttribute("doneTasks", doneTasks);
+        request.setAttribute("allProjectTasks", allProjectTasks);
         request.setAttribute("userList", userList);
         request.setAttribute("docList", docList);
         request.setAttribute("taskDocsMap", taskDocsMap);
@@ -403,6 +424,11 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("projectInviteList", projectInviteList);
         request.setAttribute("memberCount", memberCount);
         request.setAttribute("inviteCandidates", inviteCandidates);
+        request.setAttribute("userProjects", userProjects);
+        request.setAttribute("unreadNotifCount", unreadNotifCount);
+        request.setAttribute("projectChatMessages", projectChatMessages);
+        request.setAttribute("currentView", currentView);
+        request.setAttribute("taskView", taskView);
         request.setAttribute("activeNav", "projects");
 
         // 10. Forward sang giao diện tasks.jsp

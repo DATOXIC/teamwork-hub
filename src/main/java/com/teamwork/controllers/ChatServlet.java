@@ -241,8 +241,13 @@ public class ChatServlet extends HttpServlet {
         // Lưu vào kho dữ liệu RAM
         MessageDB.insert(newMessage);
 
-        // Áp dụng chuẩn PRG: Redirect về lại kênh chat để tải tin nhắn mới nhất
-        response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
+        // Áp dụng chuẩn PRG: Redirect về lại kênh chat (hoặc ClickUp Shell nếu gửi từ tab Chat của TaskServlet)
+        String source = request.getParameter("source");
+        if ("taskShell".equalsIgnoreCase(source)) {
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId + "&view=chat");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
+        }
     }
 
     // =========================================================================
@@ -347,7 +352,12 @@ public class ChatServlet extends HttpServlet {
             }
         }
 
-        // Redirect về lại trang chat
-        response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
+        // Redirect về lại trang chat (hoặc ClickUp Shell nếu thao tác từ tab Chat của TaskServlet)
+        String source = request.getParameter("source");
+        if ("taskShell".equalsIgnoreCase(source)) {
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId + "&view=chat");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
+        }
     }
 }

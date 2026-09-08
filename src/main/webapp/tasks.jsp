@@ -2,254 +2,558 @@
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
         <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
+        <!-- 1. NẠP HEADER CHUNG -->
         <jsp:include page="/includes/header.jsp" />
-        <jsp:include page="/includes/navbar.jsp" />
 
-        <!-- ================================================================
-             APP LAYOUT: Left Sidebar + Main Content
-             ================================================================ -->
-        <!-- Mobile sidebar overlay -->
-        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <!-- =========================================================================
+             CLICKUP 3.0 UNIFIED APP SHELL ARCHITECTURE (1 TRANG HỢP NHẤT)
+             ========================================================================= -->
+        <div class="clickup-shell">
 
-        <div class="app-layout">
-
-            <!-- ==========================================
-                 LEFT SIDEBAR (Dark Navy, Collapsible)
-                 ========================================== -->
-            <aside class="left-sidebar" id="leftSidebar">
-
-                <!-- 1. PROJECT HEADER trong sidebar -->
-                <div class="sidebar-project-header d-flex align-items-start justify-content-between">
-                    <div class="min-w-0 flex-grow-1 overflow-hidden">
-                        <div class="sidebar-project-name" title="${project.name}">${project.name}</div>
-                        <div class="sidebar-project-code sidebar-label">
-                            <i class="bi bi-hash"></i> ${project.projectCode}
-                        </div>
-                    </div>
-                    <button class="sidebar-toggle-btn ms-2 flex-shrink-0" id="sidebarToggleBtn"
-                        onclick="toggleSidebar()" title="Thu gọn sidebar">
-                        <i class="bi bi-layout-sidebar-reverse fs-8" id="sidebarToggleIcon"></i>
-                    </button>
-                </div>
-
-                <!-- 2. TAB NAVIGATION DỌC -->
-                <nav class="sidebar-nav">
-                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
-                        class="sidebar-nav-link active" title="Bảng Kanban">
-                        <i class="bi bi-kanban-fill text-indigo-400"></i>
-                        <span class="sidebar-label">Kanban Board</span>
+            <!-- =========================================================================
+                 1. CỘT 1: APP RAIL (DOCK SIÊU MỎNG NGOÀI CÙNG BÊN TRÁI - 56PX)
+                 ========================================================================= -->
+            <aside class="clickup-dock">
+                <div class="clickup-dock-top">
+                    <!-- Brand Icon -->
+                    <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-dock-item active" title="TeamWork Hub">
+                        <i class="bi bi-grid-1x2-fill text-white"></i>
                     </a>
-                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}"
-                        class="sidebar-nav-link" title="Tài liệu dự án">
+                    <!-- Home / Workspace -->
+                    <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-dock-item" title="Tất cả dự án (Workspace)">
+                        <i class="bi bi-house-door-fill"></i>
+                    </a>
+                    <!-- Chat -->
+                    <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-dock-item ${currentView == 'chat' ? 'active' : ''}" title="Thảo luận nhóm">
+                        <i class="bi bi-chat-left-dots-fill"></i>
+                    </a>
+                    <!-- Docs -->
+                    <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-dock-item ${currentView == 'docs' ? 'active' : ''}" title="Tài liệu dự án">
                         <i class="bi bi-journal-text"></i>
-                        <span class="sidebar-label">Tài liệu</span>
                     </a>
-                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}"
-                        class="sidebar-nav-link" title="Thảo luận nhóm">
-                        <i class="bi bi-chat-dots"></i>
-                        <span class="sidebar-label">Thảo luận</span>
-                    </a>
-                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}"
-                        class="sidebar-nav-link" title="Báo cáo tiến độ">
-                        <i class="bi bi-file-earmark-bar-graph"></i>
-                        <span class="sidebar-label">Báo cáo</span>
-                    </a>
-                </nav>
-
-                <!-- 3. BỘ LỌC: Tìm kiếm + Ưu tiên + Nhãn -->
-                <div class="sidebar-section-title">Bộ lọc</div>
-                <div class="sidebar-filter-group">
-                    <!-- Search -->
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text border-end-0">
-                            <i class="bi bi-search fs-8"></i>
-                        </span>
-                        <input type="text" id="taskSearchInput"
-                            class="form-control border-start-0 ps-0"
-                            placeholder="Tìm kiếm..." autocomplete="off">
-                    </div>
-                    <!-- Priority -->
-                    <select id="taskPriorityFilter" class="form-select">
-                        <option value="ALL">Mọi ưu tiên</option>
-                        <option value="HIGH">Ưu tiên Cao</option>
-                        <option value="MEDIUM">Ưu tiên Trung bình</option>
-                        <option value="LOW">Ưu tiên Thấp</option>
-                    </select>
-                    <!-- Label -->
-                    <select id="taskLabelFilter" class="form-select">
-                        <option value="ALL">Mọi nhãn</option>
-                        <option value="BUG">Bug</option>
-                        <option value="FEATURE">Feature</option>
-                        <option value="UI">UI/UX</option>
-                        <option value="BACKEND">Backend</option>
-                        <option value="DOCS">Docs</option>
-                    </select>
-                </div>
-
-                <div class="sidebar-divider"></div>
-
-                <!-- 4. LỌC THÀNH VIÊN (dọc) -->
-                <div class="sidebar-section-title">Thành viên</div>
-                <div class="sidebar-member-section" id="memberFilterBar">
-
-                    <!-- Tất cả -->
-                    <button type="button"
-                        class="sidebar-member-btn active member-filter-btn"
-                        data-filter-mode="ALL" data-related-tasks="ALL"
-                        title="Tất cả công việc">
-                        <span class="member-avatar-xs">
-                            <i class="bi bi-people-fill" style="font-size:0.6rem;"></i>
-                        </span>
-                        <span class="sidebar-label">Tất cả</span>
-                        <span class="member-count-badge">${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</span>
-                    </button>
-
-                    <!-- Việc của tôi -->
-                    <c:forEach items="${userWorkloadList}" var="uw">
-                        <c:if test="${uw.user.id == sessionScope.currentUser.id}">
-                            <button type="button"
-                                class="sidebar-member-btn member-filter-btn"
-                                data-filter-mode="MY_TASKS"
-                                data-related-tasks="${uw.relatedTaskIdsJoined}"
-                                title="Việc của tôi">
-                                <span class="member-avatar-xs" style="background: linear-gradient(135deg,#f59e0b,#ef4444);">
-                                    <i class="bi bi-lightning-charge-fill" style="font-size:0.6rem;"></i>
+                    <!-- Quả chuông thông báo -->
+                    <div class="dropdown">
+                        <a href="#" class="clickup-dock-item position-relative" data-bs-toggle="dropdown" title="Thông báo">
+                            <i class="bi bi-bell-fill text-warning"></i>
+                            <c:if test="${unreadNotifCount > 0}">
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-dark" style="font-size: 0.6rem; padding: 2px 4px;">
+                                    ${unreadNotifCount}
                                 </span>
-                                <span class="sidebar-label">Việc của tôi</span>
-                                <span class="member-count-badge">${uw.totalWorkCount}</span>
-                            </button>
-                        </c:if>
-                    </c:forEach>
-
-                    <div class="sidebar-divider my-1"></div>
-
-                    <!-- Từng thành viên -->
-                    <c:forEach items="${userWorkloadList}" var="uw">
-                        <button type="button"
-                            class="sidebar-member-btn member-filter-btn"
-                            data-filter-mode="USER"
-                            data-user-id="${uw.user.id}"
-                            data-user-name="${uw.user.fullName}"
-                            data-related-tasks="${uw.relatedTaskIdsJoined}"
-                            title="Lọc việc của ${uw.user.fullName}">
-                            <span class="member-avatar-xs">
-                                ${uw.user.fullName.substring(0, 1).toUpperCase()}
-                            </span>
-                            <span class="sidebar-label text-truncate" style="max-width:100px;">
-                                ${uw.user.fullName}
-                            </span>
-                            <span class="member-count-badge">${uw.totalWorkCount}</span>
-                        </button>
-                    </c:forEach>
-                </div>
-
-                <!-- 5. CTA BUTTONS ở đáy sidebar -->
-                <div class="sidebar-bottom-actions">
-                    <!-- Nút Thêm công việc -->
-                    <button type="button"
-                        class="sidebar-cta-btn"
-                        data-bs-toggle="modal" data-bs-target="#addTaskModal"
-                        title="Thêm công việc mới">
-                        <i class="bi bi-plus-lg"></i>
-                        <span class="btn-label sidebar-label">Thêm công việc</span>
-                    </button>
-
-                    <!-- Nút Đội ngũ -->
-                    <button type="button"
-                        class="sidebar-secondary-btn"
-                        data-bs-toggle="modal" data-bs-target="#projectTeamModal"
-                        title="Xem đội ngũ dự án">
-                        <i class="bi bi-people"></i>
-                        <span class="btn-label sidebar-label">Đội ngũ (${memberCount}/10)</span>
-                    </button>
-
-                    <!-- Nút Mời thành viên (chỉ PM) -->
-                    <c:if test="${project.ownerId == sessionScope.currentUser.id}">
-                        <button type="button"
-                            class="sidebar-secondary-btn"
-                            data-bs-toggle="modal" data-bs-target="#inviteMemberModal"
-                            title="Mời thành viên mới">
-                            <i class="bi bi-person-plus"></i>
-                            <span class="btn-label sidebar-label">Mời thành viên</span>
-                        </button>
-                    </c:if>
-                </div>
-
-            </aside>
-            <!-- /LEFT SIDEBAR -->
-
-            <!-- ==========================================
-                 MAIN CONTENT AREA
-                 ========================================== -->
-            <div class="main-content">
-
-                <!-- PROJECT TOPBAR (tinh gọn 1 dòng) -->
-                <div class="project-topbar">
-                    <div class="project-topbar-left">
-                        <!-- Mobile sidebar toggle -->
-                        <button class="btn btn-sm btn-outline-secondary border-0 shadow-none d-lg-none p-1 me-1"
-                            onclick="openSidebar()" title="Mở menu">
-                            <i class="bi bi-list fs-5"></i>
-                        </button>
-
-                        <!-- Back button -->
-                        <a href="${pageContext.request.contextPath}/project?action=list"
-                            class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none fs-8"
-                            title="Quay về danh sách dự án">
-                            <i class="bi bi-arrow-left me-1"></i>Dashboard
+                            </c:if>
                         </a>
-
-                        <!-- Divider -->
-                        <div class="vr text-secondary opacity-25 mx-1 d-none d-sm-block"></div>
-
-                        <!-- Project name + description -->
-                        <div class="min-w-0">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="project-topbar-title">${project.name}</span>
-                                <c:if test="${not empty project.description}">
-                                    <span class="text-muted fs-9 d-none d-md-inline text-truncate" style="max-width:300px;">
-                                        — ${project.description}
-                                    </span>
+                        <div class="dropdown-menu dropdown-menu-dark shadow-lg p-2" style="width: 280px;">
+                            <div class="d-flex align-items-center justify-content-between px-2 py-1 border-bottom border-secondary mb-2">
+                                <span class="fw-bold fs-8">Thông báo</span>
+                                <c:if test="${unreadNotifCount > 0}">
+                                    <span class="badge bg-danger rounded-pill fs-9">${unreadNotifCount} mới</span>
                                 </c:if>
+                            </div>
+                            <div class="fs-9 text-muted px-2 py-1">
+                                <c:choose>
+                                    <c:when test="${unreadNotifCount > 0}">
+                                        Bạn có ${unreadNotifCount} thông báo mới chưa đọc.
+                                    </c:when>
+                                    <c:otherwise>
+                                        Không có thông báo mới nào.
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Stats + Sync badge bên phải -->
-                    <div class="project-topbar-right">
-                        <span class="topbar-stat">
-                            <i class="bi bi-kanban text-primary" style="font-size:0.75rem;"></i>
-                            ${todoTasks.size() + inProgressTasks.size() + doneTasks.size()} task
-                        </span>
-                        <span class="topbar-stat d-none d-md-inline-flex">
-                            <i class="bi bi-check-circle text-success" style="font-size:0.75rem;"></i>
-                            ${doneTasks.size()} hoàn thành
-                        </span>
-                        <span id="cloudSyncBadge"
-                            class="topbar-stat"
-                            title="Trạng thái đồng bộ">
-                            <span class="priority-dot priority-dot-low" style="width:6px;height:6px;"></span>
-                            <span id="cloudSyncText">Đã đồng bộ</span>
-                        </span>
+                <div class="clickup-dock-bottom">
+                    <!-- User Profile Avatar & Dropdown -->
+                    <div class="dropdown dropup">
+                        <a href="#" class="d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown" title="${sessionScope.currentUser.fullName}">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 34px; height: 34px; font-size: 0.8rem;">
+                                ${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark shadow-lg fs-8">
+                            <li><h6 class="dropdown-header text-white">${sessionScope.currentUser.fullName}</h6></li>
+                            <li><span class="dropdown-item-text text-muted fs-9">${sessionScope.currentUser.email}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2"></i>Tài khoản cá nhân</a></li>
+                            <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- =========================================================================
+                 2. CỘT 2: WORKSPACE SIDEBAR (240PX)
+                 ========================================================================= -->
+            <aside class="clickup-sidebar">
+                <!-- Header Workspace -->
+                <div class="clickup-sidebar-header">
+                    <button class="clickup-workspace-btn" type="button" title="Không gian làm việc">
+                        <span class="text-primary fs-7"><i class="bi bi-asterisk"></i></span>
+                        <span class="text-truncate" style="max-width: 140px;">TeamWork Hub</span>
+                        <i class="bi bi-chevron-down fs-9 text-muted"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light border rounded-2 p-1" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Tạo nhanh công việc">
+                        <i class="bi bi-plus fs-7"></i>
+                    </button>
+                </div>
+
+                <!-- Section Home / Cá nhân -->
+                <div class="clickup-sidebar-section">
+                    <div class="clickup-section-title">Home</div>
+                    <a href="javascript:void(0)" onclick="filterClickUpTasks('INBOX')" class="clickup-nav-link" id="nav-inbox">
+                        <span><i class="bi bi-inbox text-secondary"></i> Inbox</span>
+                        <c:if test="${unreadNotifCount > 0}">
+                            <span class="badge bg-danger rounded-pill fs-9">${unreadNotifCount}</span>
+                        </c:if>
+                    </a>
+                    <a href="javascript:void(0)" onclick="filterClickUpTasks('MY_TASKS')" class="clickup-nav-link" id="nav-mytasks">
+                        <span><i class="bi bi-check2-circle text-primary"></i> My Tasks</span>
+                        <span class="badge bg-light text-muted border rounded-pill fs-9">${todoTasks.size() + inProgressTasks.size()}</span>
+                    </a>
+                    <a href="javascript:void(0)" onclick="filterClickUpTasks('SCHEDULE')" class="clickup-nav-link" id="nav-schedule">
+                        <span><i class="bi bi-calendar-event text-warning"></i> Schedule</span>
+                    </a>
+                </div>
+
+                <!-- Section Đội ngũ (Creative Team) -->
+                <div class="clickup-sidebar-section">
+                    <div class="clickup-section-title">
+                        <span>Đội ngũ (${memberCount})</span>
+                        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#inviteMemberModal" class="text-muted" title="Mời thành viên"><i class="bi bi-person-plus"></i></a>
+                        </c:if>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                        <!-- Tất cả thành viên -->
+                        <a href="javascript:void(0)" onclick="filterClickUpTasks('ALL')" class="clickup-nav-link active py-1" id="filter-all-btn">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="avatar-circle-sm bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center border" style="width: 22px; height: 22px; font-size: 0.65rem;">
+                                    <i class="bi bi-people-fill"></i>
+                                </span>
+                                <span class="fs-8 fw-semibold">Tất cả thành viên</span>
+                            </div>
+                        </a>
+                        <c:forEach items="${userList}" var="u">
+                            <a href="javascript:void(0)" onclick="filterClickUpTasks('USER', '${u.id}', '${u.fullName}')" class="clickup-nav-link member-filter-item py-1" data-user-id="${u.id}">
+                                <div class="d-flex align-items-center gap-2 text-truncate">
+                                    <span class="position-relative d-inline-block">
+                                        <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;">
+                                            ${u.fullName.substring(0, 1).toUpperCase()}
+                                        </span>
+                                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 6px; height: 6px;"></span>
+                                    </span>
+                                    <span class="text-truncate fs-8">${u.fullName}</span>
+                                </div>
+                            </a>
+                        </c:forEach>
                     </div>
                 </div>
 
-                <!-- Toast thông báo -->
-                <jsp:include page="/includes/toast.jsp" />
+                <!-- Section Spaces (Danh sách Dự án) -->
+                <div class="clickup-sidebar-section flex-grow-1">
+                    <div class="clickup-section-title">
+                        <span>Spaces</span>
+                        <a href="${pageContext.request.contextPath}/project?action=list" class="text-muted" title="Quản lý dự án"><i class="bi bi-gear fs-9"></i></a>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                        <c:forEach items="${userProjects}" var="p">
+                            <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" class="clickup-space-item ${p.id == project.id ? 'active' : ''}">
+                                <span class="clickup-space-icon ${p.id == project.id ? 'bg-danger-subtle text-danger' : 'bg-light text-secondary'}">
+                                    <i class="bi ${p.id == project.id ? 'bi-pencil-fill' : 'bi-folder2'}"></i>
+                                </span>
+                                <span class="text-truncate flex-grow-1 fs-8 fw-semibold">${p.name}</span>
+                            </a>
+                        </c:forEach>
+                    </div>
+                </div>
+            </aside>
 
-                <!-- Dòng phụ kết quả lọc -->
-                <div class="d-flex align-items-center justify-content-between px-5 py-1-5 border-bottom bg-white fs-9 text-muted" style="min-height:32px;">
-                    <span id="filterResultCount">
-                        Hiển thị tất cả <strong>${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong> công việc
-                    </span>
-                    <span class="text-secondary opacity-75 d-none d-md-inline">
-                        <i class="bi bi-cursor me-1"></i>Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái
-                    </span>
+            <!-- =========================================================================
+                 3. CỘT 3: MAIN WORKSPACE PANEL
+                 ========================================================================= -->
+            <main class="clickup-main-panel">
+                <!-- Top Bar -->
+                <div class="clickup-topbar">
+                    <!-- Left: Space title & Star -->
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-danger text-white rounded-2 p-1 fs-8"><i class="bi bi-pencil-fill"></i></span>
+                        <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
+                        <span class="text-muted fs-8"><i class="bi bi-chevron-down"></i></span>
+                        <i class="bi bi-star text-muted fs-8 ms-1" style="cursor: pointer;" title="Đánh dấu sao"></i>
+                    </div>
+
+                    <!-- Center: Universal Search -->
+                    <div class="clickup-search-box d-none d-md-block">
+                        <i class="bi bi-search position-absolute text-muted fs-8" style="top: 10px; left: 12px;"></i>
+                        <input type="text" id="clickupSearchInput" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm công việc..." autocomplete="off">
+                        <i class="bi bi-stars position-absolute text-primary fs-8" style="top: 10px; right: 12px;" title="Tra cứu nhanh"></i>
+                    </div>
+
+                    <!-- Right: Actions & Badges -->
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="cloudSyncBadge" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
+                            <i class="bi bi-lightning-charge-fill text-warning"></i>
+                            <span id="cloudSyncText">Đã đồng bộ</span>
+                        </span>
+                        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                                <i class="bi bi-person-plus"></i> Mời bạn
+                            </button>
+                        </c:if>
+                        <button type="button" class="btn btn-sm btn-primary-custom rounded-pill px-3 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                            <i class="bi bi-plus-lg"></i> Thêm việc
+                        </button>
+                    </div>
                 </div>
 
-                <!-- 3. KHÔNG GIAN BẢNG KANBAN 3 CỘT (BOOTSTRAP GRID) -->
-                <div class="kanban-wrapper">
-                <div class="row g-4 kanban-board">
+                <!-- Multi-View Bar -->
+                <div class="clickup-multiview-bar">
+                    <ul class="clickup-tabs">
+                        <li>
+                            <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-tab-link ${currentView == 'chat' ? 'active' : ''}" id="tab-btn-chat">
+                                <i class="bi bi-hash"></i> Chat
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" class="clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" id="tab-btn-tasks">
+                                <i class="bi bi-list-task"></i> Tasks
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-tab-link ${currentView == 'docs' ? 'active' : ''}" id="tab-btn-docs">
+                                <i class="bi bi-journal-text"></i> Docs
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" id="tab-btn-metrics">
+                                <i class="bi bi-bar-chart-line"></i> Thống kê
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- View Switcher (List vs Board) -->
+                    <div class="clickup-view-switcher" id="taskViewSwitcher">
+                        <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
+                            <i class="bi bi-list-ul"></i> List
+                        </button>
+                        <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
+                            <i class="bi bi-kanban"></i> Board
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Workspace Content Area (Scrollable) -->
+                <div class="clickup-workspace-body">
+                    <!-- Toast thông báo -->
+                    <jsp:include page="/includes/toast.jsp" />
+
+                    <!-- =========================================================================
+                         TAB 1: TASKS CONTAINER (GỒM LIST VIEW VÀ BOARD VIEW)
+                         ========================================================================= -->
+                    <div id="clickup-view-tasks" class="clickup-view-pane ${currentView == 'tasks' ? '' : 'd-none'}">
+
+                        <!-- A. HIERARCHICAL LIST VIEW (CLICKUP 3.0 LIST VIEW PHÂN CẤP CHA - CON) -->
+                        <div id="task-subview-list" class="${taskView == 'list' ? '' : 'd-none'}">
+                            <div class="table-responsive">
+                                <table class="clickup-list-table">
+                                    <thead>
+                                        <tr class="clickup-list-header-row">
+                                            <th style="width: 44%;">Name</th>
+                                            <th style="width: 16%;">Assignee</th>
+                                            <th style="width: 14%;">Priority</th>
+                                            <th style="width: 14%;">Team / Nhãn</th>
+                                            <th style="width: 12%; text-align: right;">Hạn chót</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- NHÓM 1: DONE (ĐÃ HOÀN THÀNH) -->
+                                        <tr class="clickup-group-header-row">
+                                            <td colspan="5">
+                                                <div class="clickup-group-banner text-success" onclick="toggleClickUpGroup('done')">
+                                                    <i class="bi bi-chevron-down" id="chevron-done"></i>
+                                                    <span class="clickup-group-badge bg-success text-white">DONE</span>
+                                                    <span class="text-secondary fs-8">${doneTasks.size()}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <c:forEach items="${doneTasks}" var="task">
+                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2 ps-2">
+                                                        <i class="bi bi-check-circle-fill text-success fs-7"></i>
+                                                        <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" style="max-width: 320px;">${task.title}</span>
+                                                        <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                                            <span class="badge bg-light text-secondary border rounded-pill fs-9" title="${taskSubTasksMap[task.id].size()} việc con">
+                                                                <i class="bi bi-link-45deg"></i> ${taskSubTasksMap[task.id].size()}
+                                                            </span>
+                                                        </c:if>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-1-5">
+                                                        <span class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                        </span>
+                                                        <span class="fs-9 text-secondary text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${task.priority == 'HIGH'}">
+                                                            <span class="clickup-priority-flag flag-urgent"><i class="bi bi-flag-fill"></i> Urgent</span>
+                                                        </c:when>
+                                                        <c:when test="${task.priority == 'MEDIUM'}">
+                                                            <span class="clickup-priority-flag flag-normal"><i class="bi bi-flag-fill"></i> Normal</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="clickup-priority-flag flag-low"><i class="bi bi-flag-fill"></i> Low</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${not empty task.labelList}">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">
+                                                                ${task.getLabelDisplayName(task.labelList[0])}
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9">Design</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td style="text-align: right;">
+                                                    <span class="fs-9 text-muted">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                </td>
+                                            </tr>
+                                            <!-- Subtasks -->
+                                            <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
+                                                <tr class="clickup-subtask-row group-done-row" data-assignee-id="${st.assignedToUserId}" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2 ps-4">
+                                                            <i class="bi bi-check2 text-success fs-8"></i>
+                                                            <span class="text-secondary text-truncate fs-8 text-decoration-line-through" style="max-width: 300px;">${st.title}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assignedToName}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fs-9 text-muted">Subtask</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-1-5 py-0 fs-9">Done</span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span class="fs-9 text-muted">—</span>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:forEach>
+                                        <tr class="group-done-row">
+                                            <td colspan="5" class="py-1">
+                                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#addTaskModal" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
+                                                    <i class="bi bi-plus-lg"></i> Add task
+                                                </a>
+                                            </td>
+                                        </tr>
+
+                                        <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
+                                        <tr class="clickup-group-header-row">
+                                            <td colspan="5">
+                                                <div class="clickup-group-banner text-primary mt-3" onclick="toggleClickUpGroup('inprog')">
+                                                    <i class="bi bi-chevron-down" id="chevron-inprog"></i>
+                                                    <span class="clickup-group-badge bg-primary text-white">IN PROGRESS</span>
+                                                    <span class="text-secondary fs-8">${inProgressTasks.size()}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <c:forEach items="${inProgressTasks}" var="task">
+                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2 ps-2">
+                                                        <i class="bi bi-play-circle-fill text-primary fs-7"></i>
+                                                        <span class="fw-semibold text-dark text-truncate" style="max-width: 320px;">${task.title}</span>
+                                                        <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill fs-9" title="${taskSubTasksMap[task.id].size()} việc con (${taskProgressMap[task.id]}%)">
+                                                                <i class="bi bi-link-45deg"></i> ${taskSubTasksMap[task.id].size()}
+                                                            </span>
+                                                        </c:if>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-1-5">
+                                                        <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                        </span>
+                                                        <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${task.priority == 'HIGH'}">
+                                                            <span class="clickup-priority-flag flag-urgent"><i class="bi bi-flag-fill"></i> Urgent</span>
+                                                        </c:when>
+                                                        <c:when test="${task.priority == 'MEDIUM'}">
+                                                            <span class="clickup-priority-flag flag-normal"><i class="bi bi-flag-fill"></i> Normal</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="clickup-priority-flag flag-low"><i class="bi bi-flag-fill"></i> Low</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${not empty task.labelList}">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">
+                                                                ${task.getLabelDisplayName(task.labelList[0])}
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-0-5 fs-9">PMM</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td style="text-align: right;">
+                                                    <span class="fs-9 text-dark fw-medium">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                </td>
+                                            </tr>
+                                            <!-- Subtasks -->
+                                            <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
+                                                <tr class="clickup-subtask-row group-inprog-row" data-assignee-id="${st.assignedToUserId}" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2 ps-4">
+                                                            <i class="bi bi-circle text-muted fs-8"></i>
+                                                            <span class="text-dark text-truncate fs-8" style="max-width: 300px;">${st.title}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fs-9 text-dark text-truncate" style="max-width: 90px;">${st.assignedToName}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fs-9 text-muted">Subtask</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-9">${st.status}</span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span class="fs-9 text-muted">—</span>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:forEach>
+                                        <tr class="group-inprog-row">
+                                            <td colspan="5" class="py-1">
+                                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#addTaskModal" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
+                                                    <i class="bi bi-plus-lg"></i> Add task
+                                                </a>
+                                            </td>
+                                        </tr>
+
+                                        <!-- NHÓM 3: TO DO (CẦN LÀM) -->
+                                        <tr class="clickup-group-header-row">
+                                            <td colspan="5">
+                                                <div class="clickup-group-banner text-secondary mt-3" onclick="toggleClickUpGroup('todo')">
+                                                    <i class="bi bi-chevron-down" id="chevron-todo"></i>
+                                                    <span class="clickup-group-badge bg-secondary text-white">TO DO</span>
+                                                    <span class="text-secondary fs-8">${todoTasks.size()}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <c:forEach items="${todoTasks}" var="task">
+                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2 ps-2">
+                                                        <i class="bi bi-circle text-secondary fs-7"></i>
+                                                        <span class="fw-semibold text-dark text-truncate" style="max-width: 320px;">${task.title}</span>
+                                                        <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                                            <span class="badge bg-light text-secondary border rounded-pill fs-9" title="${taskSubTasksMap[task.id].size()} việc con">
+                                                                <i class="bi bi-link-45deg"></i> ${taskSubTasksMap[task.id].size()}
+                                                            </span>
+                                                        </c:if>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-1-5">
+                                                        <span class="avatar-circle-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                        </span>
+                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${task.priority == 'HIGH'}">
+                                                            <span class="clickup-priority-flag flag-urgent"><i class="bi bi-flag-fill"></i> Urgent</span>
+                                                        </c:when>
+                                                        <c:when test="${task.priority == 'MEDIUM'}">
+                                                            <span class="clickup-priority-flag flag-normal"><i class="bi bi-flag-fill"></i> Normal</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="clickup-priority-flag flag-low"><i class="bi bi-flag-fill"></i> Low</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${not empty task.labelList}">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">
+                                                                ${task.getLabelDisplayName(task.labelList[0])}
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9">General</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td style="text-align: right;">
+                                                    <span class="fs-9 text-muted">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                </td>
+                                            </tr>
+                                            <!-- Subtasks -->
+                                            <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
+                                                <tr class="clickup-subtask-row group-todo-row" data-assignee-id="${st.assignedToUserId}" onclick="event.stopPropagation();" data-bs-toggle="modal" data-bs-target="#taskDetailModal-${task.id}">
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-2 ps-4">
+                                                            <i class="bi bi-circle text-muted fs-8"></i>
+                                                            <span class="text-dark text-truncate fs-8" style="max-width: 300px;">${st.title}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assignedToName}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="fs-9 text-muted">Subtask</span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-9">${st.status}</span>
+                                                    </td>
+                                                    <td style="text-align: right;">
+                                                        <span class="fs-9 text-muted">—</span>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:forEach>
+                                        <tr class="group-todo-row">
+                                            <td colspan="5" class="py-1">
+                                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#addTaskModal" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
+                                                    <i class="bi bi-plus-lg"></i> Add task
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- B. KANBAN BOARD VIEW -->
+                        <div id="task-subview-board" class="${taskView == 'board' ? '' : 'd-none'}">
+                            <div class="d-flex align-items-center justify-content-between mb-3 px-2 fs-9 text-muted">
+                                <span>Hiển thị tất cả <strong>${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong> công việc</span>
+                                <span><i class="bi bi-cursor me-1"></i> Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái</span>
+                            </div>
+                            <div class="kanban-wrapper">
+                            <div class="row g-4 kanban-board">
 
 
                 <!-- ==========================================
@@ -623,66 +927,485 @@
                                 </div>
                             </c:if>
 
-                        </div>
-                    </div>
+                        </div><!-- /kanban-task-area -->
+                    </div><!-- /kanban-column -->
+                </div><!-- /col-12 col-md-6 col-lg-4 (Cột 3) -->
 
                 </div><!-- /row kanban-board -->
                 </div><!-- /kanban-wrapper -->
+                </div><!-- /task-subview-board -->
 
-            </div><!-- /main-content -->
-        </div><!-- /app-layout -->
+            </div><!-- /clickup-view-tasks -->
 
-        <!-- Sidebar Toggle Script -->
-        <script>
-            (function() {
-                var SIDEBAR_KEY = 'twh_sidebar_collapsed';
-                var sidebar = document.getElementById('leftSidebar');
-                var toggleIcon = document.getElementById('sidebarToggleIcon');
+            <!-- =========================================================================
+                 TAB 2: PROJECT CHAT VIEW (# CHAT)
+                 ========================================================================= -->
+            <div id="clickup-view-chat" class="clickup-view-pane ${currentView == 'chat' ? '' : 'd-none'}">
+                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden d-flex flex-column" style="height: calc(100vh - 180px);">
+                    <!-- Chat Channel Header -->
+                    <div class="px-3 py-2-5 border-bottom bg-white d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="avatar-circle-sm bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-weight: 700;">
+                                #
+                            </span>
+                            <div>
+                                <div class="fw-bold text-dark fs-8">kênh-thảo-luận-chung</div>
+                                <div class="fs-9 text-muted">Kênh trao đổi nội bộ cho dự án "${project.name}" &bull; ${projectChatMessages.size()} tin nhắn</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> Mở trang Chat riêng
+                            </a>
+                        </div>
+                    </div>
 
-                // Khởi tạo trạng thái đã lưu
-                if (sidebar && localStorage.getItem(SIDEBAR_KEY) === '1') {
-                    sidebar.classList.add('collapsed');
-                    if (toggleIcon) toggleIcon.className = 'bi bi-layout-sidebar fs-8';
-                }
+                    <!-- Chat Messages Body -->
+                    <div class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-3 bg-light-subtle" id="clickupChatMessages" style="background-color: #f8f9fc;">
+                        <c:if test="${empty projectChatMessages}">
+                            <div class="text-center py-5 my-auto text-muted">
+                                <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                <div class="fw-semibold fs-7">Chưa có tin nhắn nào trong kênh này</div>
+                                <div class="fs-9">Hãy bắt đầu cuộc trò chuyện với nhóm của bạn ngay bên dưới!</div>
+                            </div>
+                        </c:if>
+                        <c:forEach items="${projectChatMessages}" var="msg">
+                            <c:choose>
+                                <c:when test="${msg.authorId == sessionScope.currentUser.id}">
+                                    <div class="chat-row-me" id="shell-msg-${msg.id}">
+                                        <c:if test="${msg.authorId == sessionScope.currentUser.id || sessionScope.currentUser.role == 'ADMIN' || project.ownerId == sessionScope.currentUser.id}">
+                                            <a href="${pageContext.request.contextPath}/chat?action=delete&projectId=${project.id}&messageId=${msg.id}&source=taskShell" 
+                                               class="text-muted text-hover-danger fs-9 text-decoration-none opacity-50 hover-opacity-100 me-1"
+                                               onclick="return confirm('Bạn có chắc chắn muốn xóa tin nhắn này không?');"
+                                               title="Xóa tin nhắn">
+                                                <i class="bi bi-trash3"></i>
+                                            </a>
+                                        </c:if>
+                                        <div class="chat-bubble-me">
+                                            <div class="message-body fs-8 lh-base text-white" style="word-break: break-word; white-space: pre-line;"><c:out value="${msg.content}" /></div>
+                                            <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
+                                                <span class="chat-time-me"><i class="bi bi-clock me-1"></i>${msg.sentAt}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="chat-row-other" id="shell-msg-${msg.id}">
+                                        <div class="avatar-circle bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-8 flex-shrink-0 shadow-2xs"
+                                             style="width: 32px; height: 32px;">
+                                            ${msg.authorInitial}
+                                        </div>
+                                        <div class="chat-bubble-other">
+                                            <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
+                                                <span class="fw-bold text-dark fs-8">${msg.authorName}</span>
+                                                <span class="chat-time-other fs-9 text-muted"><i class="bi bi-clock me-1"></i>${msg.sentAt}</span>
+                                            </div>
+                                            <div class="message-body fs-8 lh-base text-secondary" style="word-break: break-word; white-space: pre-line;"><c:out value="${msg.content}" /></div>
+                                        </div>
+                                        <c:if test="${sessionScope.currentUser.role == 'ADMIN' || project.ownerId == sessionScope.currentUser.id}">
+                                            <a href="${pageContext.request.contextPath}/chat?action=delete&projectId=${project.id}&messageId=${msg.id}&source=taskShell" 
+                                               class="text-muted text-hover-danger fs-9 text-decoration-none opacity-50 hover-opacity-100 ms-1"
+                                               onclick="return confirm('Xóa tin nhắn này của thành viên?');"
+                                               title="Xóa tin nhắn">
+                                                <i class="bi bi-trash3"></i>
+                                            </a>
+                                        </c:if>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:forEach>
+                    </div>
 
-                window.toggleSidebar = function() {
-                    if (!sidebar) return;
-                    var isCollapsed = sidebar.classList.toggle('collapsed');
-                    localStorage.setItem(SIDEBAR_KEY, isCollapsed ? '1' : '0');
-                    if (toggleIcon) {
-                        toggleIcon.className = isCollapsed
-                            ? 'bi bi-layout-sidebar fs-8'
-                            : 'bi bi-layout-sidebar-reverse fs-8';
-                    }
-                };
+                    <!-- Chat Input Form -->
+                    <div class="p-2-5 bg-white border-top">
+                        <form method="post" action="${pageContext.request.contextPath}/chat" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="action" value="sendProjectMessage">
+                            <input type="hidden" name="projectId" value="${project.id}">
+                            <input type="hidden" name="source" value="taskShell">
+                            <div class="input-group">
+                                <input type="text" name="content" class="form-control fs-8 border-end-0 rounded-start-pill ps-3" placeholder="Nhập tin nhắn... (Gõ #task-id hoặc #doc-id để liên kết)" autocomplete="off" required>
+                                <button type="submit" class="btn btn-primary-custom rounded-end-pill px-3 fs-8">
+                                    <i class="bi bi-send-fill me-1"></i> Gửi
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
-                window.openSidebar = function() {
-                    if (!sidebar) return;
-                    sidebar.classList.remove('collapsed');
-                    sidebar.classList.add('mobile-open');
-                    var overlay = document.getElementById('sidebarOverlay');
-                    if (overlay) overlay.classList.add('active');
-                };
+            <!-- =========================================================================
+                 TAB 3: PROJECT DOCS VIEW (DOCS)
+                 ========================================================================= -->
+            <div id="clickup-view-docs" class="clickup-view-pane ${currentView == 'docs' ? '' : 'd-none'}">
+                <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0 fs-7">Tài liệu & Wiki dự án</h6>
+                        <span class="fs-9 text-muted">Tổng hợp tài liệu yêu cầu, phân tích và hướng dẫn kỹ thuật</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fs-9">
+                            <i class="bi bi-journal-text me-1"></i> Mở không gian Wiki đầy đủ
+                        </a>
+                    </div>
+                </div>
 
-                window.closeSidebar = function() {
-                    if (!sidebar) return;
-                    sidebar.classList.remove('mobile-open');
-                    var overlay = document.getElementById('sidebarOverlay');
-                    if (overlay) overlay.classList.remove('active');
-                };
+                <c:if test="${empty docList}">
+                    <div class="card border-0 shadow-2xs rounded-3 p-5 text-center bg-white my-3">
+                        <i class="bi bi-file-earmark-text text-muted fs-1 mb-2"></i>
+                        <h6 class="fw-bold text-dark fs-7">Chưa có tài liệu nào trong dự án này</h6>
+                        <p class="text-muted fs-9 mb-3">Tạo tài liệu mới để chia sẻ kiến thức và gắn kèm vào các công việc liên quan.</p>
+                        <div>
+                            <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="btn btn-sm btn-primary-custom rounded-pill px-3 py-1 fs-8">
+                                <i class="bi bi-pencil-square me-1"></i> Mở trang tài liệu để tạo
+                            </a>
+                        </div>
+                    </div>
+                </c:if>
 
-                // Sync active state cho member filter buttons trong sidebar
-                document.addEventListener('DOMContentLoaded', function() {
-                    var memberBtns = document.querySelectorAll('.sidebar-member-btn.member-filter-btn');
-                    memberBtns.forEach(function(btn) {
-                        btn.addEventListener('click', function() {
-                            memberBtns.forEach(function(b) { b.classList.remove('active'); });
-                            btn.classList.add('active');
-                        });
-                    });
-                });
-            })();
-        </script>
+                <c:if test="${not empty docList}">
+                    <div class="row g-3">
+                        <c:forEach items="${docList}" var="doc">
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <div class="card border-0 shadow-2xs rounded-3 p-3 h-100 bg-white hover-shadow-sm transition-all position-relative">
+                                    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="avatar-circle-sm bg-info-subtle text-info rounded-2 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                                <i class="bi bi-file-earmark-richtext fs-7"></i>
+                                            </span>
+                                            <span class="badge bg-light text-muted border rounded-pill fs-9">#doc-${doc.id}</span>
+                                        </div>
+                                        <span class="fs-9 text-muted"><i class="bi bi-clock me-1"></i>${doc.updatedAt}</span>
+                                    </div>
+                                    <h6 class="fw-bold text-dark fs-7 mb-1 text-truncate-2">
+                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${doc.id}" class="text-dark text-decoration-none hover-primary">
+                                            ${doc.title}
+                                        </a>
+                                    </h6>
+                                    <p class="text-muted fs-8 text-truncate-3 mb-3 flex-grow-1" style="min-height: 48px;">
+                                        <c:choose>
+                                            <c:when test="${not empty doc.content}">
+                                                ${doc.content}
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="fst-italic text-muted opacity-75">(Chưa có nội dung chi tiết)</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </p>
+                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9">
+                                        <span class="text-muted"><i class="bi bi-person me-1"></i>${doc.authorName}</span>
+                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${doc.id}" class="text-primary fw-semibold text-decoration-none">
+                                            Đọc bài <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </c:if>
+            </div>
+
+            <!-- =========================================================================
+                 TAB 4: METRICS & WORKLOAD VIEW (THỐNG KÊ)
+                 ========================================================================= -->
+            <div id="clickup-view-metrics" class="clickup-view-pane ${currentView == 'metrics' ? '' : 'd-none'}">
+                <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0 fs-7">Tổng quan & Phân bổ Công việc</h6>
+                        <span class="fs-9 text-muted">Báo cáo hiệu suất, tiến độ hoàn thành và khối lượng công việc của các thành viên</span>
+                    </div>
+                    <div>
+                        <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" class="btn btn-sm btn-primary-custom rounded-pill px-3 py-1 fs-9">
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i> Xem Báo cáo Toàn diện
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4 Stat Summary Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
+                            <div class="fs-9 text-muted text-uppercase fw-bold mb-1">Tổng công việc</div>
+                            <div class="fs-3 fw-bold text-dark">${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</div>
+                            <div class="fs-9 text-secondary mt-1">Toàn bộ dự án</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
+                            <div class="fs-9 text-muted text-uppercase fw-bold mb-1">Cần làm (To Do)</div>
+                            <div class="fs-3 fw-bold text-secondary">${todoTasks.size()}</div>
+                            <div class="fs-9 text-muted mt-1">Chưa bắt đầu thực hiện</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
+                            <div class="fs-9 text-primary text-uppercase fw-bold mb-1">Đang làm (In Progress)</div>
+                            <div class="fs-3 fw-bold text-primary">${inProgressTasks.size()}</div>
+                            <div class="fs-9 text-muted mt-1">Đang xử lý tích cực</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
+                            <div class="fs-9 text-success text-uppercase fw-bold mb-1">Đã hoàn thành</div>
+                            <div class="fs-3 fw-bold text-success">${doneTasks.size()}</div>
+                            <div class="fs-9 text-success mt-1">
+                                <c:set var="totalT" value="${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}" />
+                                <c:choose>
+                                    <c:when test="${totalT > 0}">
+                                        Đạt ${Math.round((doneTasks.size() * 100.0) / totalT)}% tiến độ
+                                    </c:when>
+                                    <c:otherwise>0%</c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workload Distribution Table -->
+                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden bg-white mb-4">
+                    <div class="px-3 py-2-5 border-bottom d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold text-dark mb-0 fs-8"><i class="bi bi-people me-1 text-primary"></i> Phân bổ khối lượng công việc (Workload)</h6>
+                        <span class="badge bg-light text-muted border rounded-pill fs-9">${userWorkloadList.size()} người</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 fs-8">
+                            <thead class="table-light fs-9 text-muted text-uppercase">
+                                <tr>
+                                    <th class="ps-3 py-2">Thành viên</th>
+                                    <th class="py-2 text-center">Tổng việc</th>
+                                    <th class="py-2 text-center">Đang làm</th>
+                                    <th class="py-2 text-center">Hoàn thành</th>
+                                    <th class="py-2 text-center">Quá hạn</th>
+                                    <th class="pe-3 py-2" style="width: 220px;">Tỷ lệ hoàn thành</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${userWorkloadList}" var="wl">
+                                    <tr>
+                                        <td class="ps-3 py-2-5">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.7rem;">
+                                                    ${wl.user.fullName.substring(0, 1).toUpperCase()}
+                                                </span>
+                                                <div>
+                                                    <div class="fw-semibold text-dark">${wl.user.fullName}</div>
+                                                    <div class="fs-9 text-muted">${wl.user.role}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center fw-bold">${wl.totalTasks}</td>
+                                        <td class="text-center text-primary fw-semibold">${wl.inProgressTasks}</td>
+                                        <td class="text-center text-success fw-semibold">${wl.doneTasks}</td>
+                                        <td class="text-center">
+                                            <c:choose>
+                                                <c:when test="${wl.overdueTasks > 0}">
+                                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2 fs-9">${wl.overdueTasks} trễ</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-muted fs-9">-</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td class="pe-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress flex-grow-1" style="height: 6px;">
+                                                    <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: ${wl.completionRate}%;"></div>
+                                                </div>
+                                                <span class="fs-9 text-muted fw-semibold" style="min-width: 35px;">${wl.completionRate}%</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /clickup-workspace-body -->
+    </main><!-- /clickup-main-panel -->
+</div><!-- /clickup-shell -->
+
+<!-- ClickUp 3.0 Interactive Controller Scripts -->
+<script>
+    // Tab switching: chat, tasks, docs, metrics
+    function switchClickUpTab(tab) {
+        document.querySelectorAll('.clickup-tab-link').forEach(function(el) {
+            el.classList.remove('active');
+        });
+        var activeBtn = document.getElementById('tab-btn-' + tab);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        document.querySelectorAll('.clickup-view-pane').forEach(function(el) {
+            el.classList.add('d-none');
+        });
+        var targetPane = document.getElementById('clickup-view-' + tab);
+        if (targetPane) targetPane.classList.remove('d-none');
+
+        var switcher = document.getElementById('taskViewSwitcher');
+        if (switcher) {
+            if (tab === 'tasks') {
+                switcher.classList.remove('d-none');
+            } else {
+                switcher.classList.add('d-none');
+            }
+        }
+
+        try {
+            var url = new URL(window.location.href);
+            url.searchParams.set('view', tab);
+            window.history.replaceState({}, '', url);
+        } catch(e) {}
+
+        if (tab === 'chat') {
+            var chatBox = document.getElementById('clickupChatMessages');
+            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    // Task subview switching: list vs board
+    function switchTaskSubView(view) {
+        var btnList = document.getElementById('btn-view-list');
+        var btnBoard = document.getElementById('btn-view-board');
+        var viewList = document.getElementById('task-subview-list');
+        var viewBoard = document.getElementById('task-subview-board');
+
+        if (view === 'list') {
+            if (btnList) btnList.classList.add('active');
+            if (btnBoard) btnBoard.classList.remove('active');
+            if (viewList) viewList.classList.remove('d-none');
+            if (viewBoard) viewBoard.classList.add('d-none');
+        } else {
+            if (btnList) btnList.classList.remove('active');
+            if (btnBoard) btnBoard.classList.add('active');
+            if (viewList) viewList.classList.add('d-none');
+            if (viewBoard) viewBoard.classList.remove('d-none');
+        }
+
+        try {
+            var url = new URL(window.location.href);
+            url.searchParams.set('taskView', view);
+            window.history.replaceState({}, '', url);
+        } catch(e) {}
+    }
+
+    // Toggle collapsing of group in List View
+    function toggleClickUpGroup(groupId) {
+        var tbody = document.getElementById('tbody-' + groupId);
+        var icon = document.getElementById('chevron-' + groupId);
+        if (!tbody) return;
+        var isHidden = tbody.classList.toggle('d-none');
+        if (icon) {
+            icon.className = isHidden ? 'bi bi-chevron-right me-1' : 'bi bi-chevron-down me-1';
+        }
+    }
+
+    // Toggle subtasks visibility for a parent task
+    function toggleSubtasks(taskId) {
+        var subRows = document.querySelectorAll('.clickup-row-subtask[data-parent-id="' + taskId + '"]');
+        var toggleBtn = document.getElementById('subtask-toggle-' + taskId);
+        var isExpanded = false;
+
+        subRows.forEach(function(row) {
+            if (row.classList.contains('d-none')) {
+                row.classList.remove('d-none');
+                isExpanded = true;
+            } else {
+                row.classList.add('d-none');
+                isExpanded = false;
+            }
+        });
+
+        if (toggleBtn) {
+            var icon = toggleBtn.querySelector('i');
+            if (icon) {
+                icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+            }
+        }
+    }
+
+    // Search tasks across both views
+    function searchClickUpTasks(query) {
+        var q = (query || '').toLowerCase().trim();
+
+        // 1. In List View
+        var parentRows = document.querySelectorAll('.clickup-row-parent');
+        parentRows.forEach(function(pRow) {
+            var title = (pRow.getAttribute('data-task-title') || '').toLowerCase();
+            var taskId = pRow.getAttribute('data-task-id');
+            var subRows = document.querySelectorAll('.clickup-row-subtask[data-parent-id="' + taskId + '"]');
+            var matchParent = !q || title.indexOf(q) > -1;
+            var matchAnySub = false;
+
+            subRows.forEach(function(sRow) {
+                var sTitle = (sRow.getAttribute('data-subtask-title') || '').toLowerCase();
+                var sMatch = !q || sTitle.indexOf(q) > -1;
+                if (sMatch) matchAnySub = true;
+                sRow.style.display = (matchParent || sMatch) ? '' : 'none';
+            });
+
+            pRow.style.display = (matchParent || matchAnySub) ? '' : 'none';
+        });
+
+        // 2. In Board View
+        var kanbanCards = document.querySelectorAll('.kanban-card');
+        kanbanCards.forEach(function(card) {
+            var title = (card.getAttribute('data-task-title') || '').toLowerCase();
+            card.style.display = (!q || title.indexOf(q) > -1) ? '' : 'none';
+        });
+    }
+
+    // Filter tasks by Member or Scope
+    function filterClickUpTasks(mode, userId, userName) {
+        document.querySelectorAll('.clickup-sidebar .clickup-nav-link').forEach(function(el) {
+            el.classList.remove('active');
+        });
+
+        var currentUserId = "${sessionScope.currentUser.id}";
+        var filterTargetUserId = null;
+
+        if (mode === 'ALL') {
+            var allBtn = document.getElementById('filter-all-btn');
+            if (allBtn) allBtn.classList.add('active');
+        } else if (mode === 'MY_TASKS') {
+            var myBtn = document.getElementById('nav-mytasks');
+            if (myBtn) myBtn.classList.add('active');
+            filterTargetUserId = currentUserId;
+        } else if (mode === 'USER') {
+            var memberItem = document.querySelector('.member-filter-item[data-user-id="' + userId + '"]');
+            if (memberItem) memberItem.classList.add('active');
+            filterTargetUserId = userId;
+        } else if (mode === 'INBOX') {
+            var inboxBtn = document.getElementById('nav-inbox');
+            if (inboxBtn) inboxBtn.classList.add('active');
+            filterTargetUserId = currentUserId;
+        }
+
+        // List View filtering
+        var parentRows = document.querySelectorAll('.clickup-row-parent');
+        parentRows.forEach(function(pRow) {
+            var assigneeId = pRow.getAttribute('data-assignee-id');
+            var taskId = pRow.getAttribute('data-task-id');
+            var subRows = document.querySelectorAll('.clickup-row-subtask[data-parent-id="' + taskId + '"]');
+
+            var show = !filterTargetUserId || assigneeId == filterTargetUserId;
+            pRow.style.display = show ? '' : 'none';
+
+            subRows.forEach(function(sRow) {
+                var sAssigneeId = sRow.getAttribute('data-subtask-assignee-id');
+                var sShow = !filterTargetUserId || sAssigneeId == filterTargetUserId || show;
+                sRow.style.display = sShow ? '' : 'none';
+            });
+        });
+
+        // Board View filtering
+        var kanbanCards = document.querySelectorAll('.kanban-card');
+        kanbanCards.forEach(function(card) {
+            var assigneeId = card.getAttribute('data-assignee-id');
+            var show = !filterTargetUserId || assigneeId == filterTargetUserId;
+            card.style.display = show ? '' : 'none';
+        });
+    }
+</script>
 
         <!-- =========================================================================
      4. MODAL CHI TIẾT TASK 2 CỘT (TASK MINI-HUB & SUB-TASKS)

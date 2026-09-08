@@ -1515,6 +1515,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* Wrapper bao ngoài sidebar + content */
 .app-layout {
     display: flex;
+    width: 100%;
     min-height: calc(100vh - 56px); /* 56px = navbar height */
     position: relative;
 }
@@ -1884,7 +1885,8 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 /* ── MAIN CONTENT ── */
 .main-content {
-    flex: 1;
+    flex: 1 1 0%;
+    width: 0;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -1902,6 +1904,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     gap: 12px;
     flex-shrink: 0;
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .project-topbar-left {
@@ -1946,6 +1949,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* ── KANBAN WRAPPER trong main content ── */
 .kanban-wrapper {
     flex: 1;
+    width: 100%;
     padding: 16px 20px;
     overflow-x: auto;
 }
@@ -2039,3 +2043,408 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
         margin: 0 !important;
     }
 }
+
+/* ==========================================================================
+   CLICKUP 3.0 UNIFIED APP SHELL & HIERARCHICAL LIST VIEW
+   ========================================================================== */
+
+/* 1. App Shell Container */
+.clickup-shell {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background-color: #ffffff;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 2. Left App Rail (Dock siêu mỏng - 56px) */
+.clickup-dock {
+    width: 56px;
+    min-width: 56px;
+    background-color: #0b0f19;
+    border-right: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    z-index: 1050;
+}
+
+.clickup-dock-top, .clickup-dock-bottom {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.clickup-dock-item {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-size: 1.15rem;
+    position: relative;
+}
+
+.clickup-dock-item:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.clickup-dock-item.active {
+    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
+/* 3. Second Sidebar (Cột điều hướng - 240px) */
+.clickup-sidebar {
+    width: 240px;
+    min-width: 240px;
+    background-color: #f8fafc;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    font-size: 0.85rem;
+}
+
+.clickup-sidebar-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.clickup-workspace-btn {
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+
+.clickup-workspace-btn:hover {
+    background-color: #e2e8f0;
+}
+
+.clickup-sidebar-section {
+    padding: 12px 8px 4px 8px;
+}
+
+.clickup-section-title {
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    padding: 6px 10px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.clickup-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    color: #475569;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.84rem;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+}
+
+.clickup-nav-link:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.clickup-nav-link.active {
+    background-color: #e2e8f0;
+    color: #0f172a;
+    font-weight: 650;
+}
+
+.clickup-nav-link i {
+    font-size: 0.95rem;
+    width: 20px;
+    text-align: center;
+}
+
+.clickup-space-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: #334155;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.84rem;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+}
+
+.clickup-space-item:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.clickup-space-item.active {
+    background-color: #ede9fe;
+    color: #6d28d9;
+    font-weight: 650;
+}
+
+.clickup-space-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* 4. Main Panel */
+.clickup-main-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+/* 5. Top Bar in Main Panel */
+.clickup-topbar {
+    height: 52px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+    background-color: #ffffff;
+}
+
+.clickup-search-box {
+    position: relative;
+    width: 280px;
+}
+
+.clickup-search-box input {
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 4px 32px 4px 32px;
+    font-size: 0.82rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.clickup-search-box input:focus {
+    background-color: #ffffff;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    outline: none;
+}
+
+/* 6. Multi-View Bar */
+.clickup-multiview-bar {
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background-color: #ffffff;
+    flex-shrink: 0;
+}
+
+.clickup-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.clickup-tab-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    font-size: 0.84rem;
+    font-weight: 550;
+    color: #64748b;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.18s;
+}
+
+.clickup-tab-link:hover {
+    color: #0f172a;
+}
+
+.clickup-tab-link.active {
+    color: #7c3aed;
+    border-bottom: 2px solid #7c3aed;
+    font-weight: 650;
+}
+
+.clickup-view-switcher {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    padding: 3px;
+}
+
+.clickup-view-btn {
+    border: none;
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748b;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+
+.clickup-view-btn.active {
+    background-color: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* 7. Workspace Content Area */
+.clickup-workspace-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px 60px 24px;
+}
+
+/* 8. ClickUp Hierarchical List View */
+.clickup-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+}
+
+.clickup-list-header-row {
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+    height: 36px;
+}
+
+.clickup-group-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin: 16px 0 6px 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.clickup-group-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 750;
+    letter-spacing: 0.03em;
+}
+
+.clickup-task-row {
+    border-bottom: 1px solid #f1f5f9;
+    height: 42px;
+    transition: background 0.12s;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.clickup-task-row:hover {
+    background-color: #f8fafc;
+}
+
+.clickup-subtask-row {
+    border-bottom: 1px solid #f8fafc;
+    height: 38px;
+    background-color: #fafbfc;
+    font-size: 0.82rem;
+    transition: background 0.12s;
+}
+
+.clickup-subtask-row:hover {
+    background-color: #f1f5f9;
+}
+
+.clickup-priority-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.flag-urgent { color: #e11d48; }
+.flag-high { color: #f59e0b; }
+.flag-normal { color: #3b82f6; }
+.flag-low { color: #94a3b8; }
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.hover-shadow-sm {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.hover-shadow-sm:hover {
+    box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+}
+
+.hover-primary:hover {
+    color: #7b68ee !important;
+}
+
+.transition-all {
+    transition: all 0.2s ease;
+}
