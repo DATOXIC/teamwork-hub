@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
         <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
@@ -241,6 +241,71 @@
                         </button>
                         <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
                             <i class="bi bi-kanban"></i> Board
+                        </button>
+                    </div>
+                </div>
+
+                <!-- =========================================================================
+                     CLICKUP 3.0 VISUAL PROGRESS & STATUS BREAKDOWN BAR + CONFETTI CELEBRATION
+                     ========================================================================= -->
+                <c:set var="progTotal" value="${not empty allProjectTasks ? allProjectTasks.size() : 0}" />
+                <c:set var="progDone" value="${not empty doneTasks ? doneTasks.size() : 0}" />
+                <c:set var="progInProg" value="${not empty inProgressTasks ? inProgressTasks.size() : 0}" />
+                <c:set var="progTodo" value="${not empty todoTasks ? todoTasks.size() : 0}" />
+                <c:set var="pctDone" value="${progTotal > 0 ? ((progDone * 100 - (progDone * 100 % progTotal)) / progTotal) : 0}" />
+                <c:set var="pctInProg" value="${progTotal > 0 ? ((progInProg * 100 - (progInProg * 100 % progTotal)) / progTotal) : 0}" />
+                <c:set var="pctTodo" value="${progTotal > 0 ? (100 - pctDone - pctInProg) : 0}" />
+
+                <div class="clickup-progress-strip d-flex align-items-center justify-content-between">
+                    <!-- Trái: Thanh Tiến Độ Đa Sắc Màu & Thống Kê -->
+                    <div class="d-flex align-items-center gap-3 flex-grow-1 me-3">
+                        <div class="d-flex align-items-center gap-1 fs-9 text-muted fw-semibold text-uppercase" style="letter-spacing: 0.04em;">
+                            <i class="bi bi-pie-chart-fill text-primary fs-8"></i> Tiến độ:
+                            <span class="text-dark fw-bold tabular-nums fs-8">${pctDone}%</span>
+                        </div>
+                        <!-- Thanh Bar Phân Bổ Màu Sắc (ClickUp Segmented Bar) -->
+                        <div class="clickup-progress-bar flex-grow-1 shadow-2xs" id="projectProgressBar">
+                            <c:if test="${progDone > 0}">
+                                <div class="progress-segment progress-segment-done" style="width: ${pctDone}%;" 
+                                    data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                                    title="Đã nghiệm thu (DONE): ${progDone} việc (${pctDone}%) — Click để lọc"
+                                    onclick="filterClickUpTasks('STATUS_DONE')"></div>
+                            </c:if>
+                            <c:if test="${progInProg > 0}">
+                                <div class="progress-segment progress-segment-progress" style="width: ${pctInProg}%;" 
+                                    data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                                    title="Đang thực hiện (IN PROGRESS): ${progInProg} việc (${pctInProg}%) — Click để lọc"
+                                    onclick="filterClickUpTasks('STATUS_IN_PROGRESS')"></div>
+                            </c:if>
+                            <c:if test="${progTodo > 0}">
+                                <div class="progress-segment progress-segment-todo" style="width: ${pctTodo}%;" 
+                                    data-bs-toggle="tooltip" data-bs-placement="bottom" 
+                                    title="Chờ thực hiện (TO DO): ${progTodo} việc (${pctTodo}%) — Click để lọc"
+                                    onclick="filterClickUpTasks('STATUS_TODO')"></div>
+                            </c:if>
+                        </div>
+                        <!-- Legend Nhãn Trạng Thái Nhanh -->
+                        <div class="d-flex align-items-center gap-3 fs-9 text-muted d-none d-lg-flex">
+                            <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_DONE')" title="Lọc công việc Đã hoàn thành">
+                                <span class="badge-dot" style="background-color: #10b981;"></span>
+                                <span><strong class="text-dark tabular-nums">${progDone}</strong> Hoàn thành</span>
+                            </span>
+                            <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_IN_PROGRESS')" title="Lọc công việc Đang làm">
+                                <span class="badge-dot" style="background-color: #3b82f6;"></span>
+                                <span><strong class="text-dark tabular-nums">${progInProg}</strong> Đang làm</span>
+                            </span>
+                            <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_TODO')" title="Lọc công việc Chờ làm">
+                                <span class="badge-dot" style="background-color: #94a3b8;"></span>
+                                <span><strong class="text-dark tabular-nums">${progTodo}</strong> Chờ làm</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Phải: Nút Pháo Hoa Chúc Mừng Demo -->
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <button type="button" class="btn btn-xs celebration-btn rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
+                            onclick="fireConfettiCelebration()" title="Bắn pháo hoa chúc mừng (ClickUp Celebration Demo)">
+                            <span>🎉</span> <span class="d-none d-sm-inline">Bắn pháo hoa</span>
                         </button>
                     </div>
                 </div>
@@ -1615,7 +1680,7 @@
         });
     };
 
-    // 7. Filter tasks by Member or Scope (With Active Feedback Banner)
+    // 7. Filter tasks by Member, Status, or Scope (With Active Feedback Banner)
     window.filterClickUpTasks = function(mode, userId, userName) {
         document.querySelectorAll('.clickup-sidebar .clickup-nav-link').forEach(function(el) {
             el.classList.remove('active');
@@ -1623,6 +1688,7 @@
 
         var currentUserId = "${sessionScope.currentUser.id}";
         var filterTargetUserId = null;
+        var filterTargetStatus = null;
         var banner = document.getElementById('activeFilterBanner');
         var bannerText = document.getElementById('activeFilterText');
 
@@ -1642,6 +1708,7 @@
             if (allBtn) allBtn.classList.add('active');
             if (banner) { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
             filterTargetUserId = null;
+            filterTargetStatus = null;
         } else if (mode === 'MY_TASKS') {
             var myBtn = document.getElementById('nav-mytasks');
             if (myBtn) myBtn.classList.add('active');
@@ -1660,6 +1727,27 @@
                 banner.classList.remove('d-none');
                 banner.classList.add('d-flex');
             }
+        } else if (mode === 'STATUS_DONE') {
+            filterTargetStatus = 'DONE';
+            if (banner && bannerText) {
+                bannerText.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i> Đang lọc: <strong>Công việc đã nghiệm thu (DONE)</strong>';
+                banner.classList.remove('d-none');
+                banner.classList.add('d-flex');
+            }
+        } else if (mode === 'STATUS_IN_PROGRESS') {
+            filterTargetStatus = 'IN_PROGRESS';
+            if (banner && bannerText) {
+                bannerText.innerHTML = '<i class="bi bi-play-circle-fill text-primary me-1"></i> Đang lọc: <strong>Công việc đang thực hiện (IN PROGRESS)</strong>';
+                banner.classList.remove('d-none');
+                banner.classList.add('d-flex');
+            }
+        } else if (mode === 'STATUS_TODO') {
+            filterTargetStatus = 'TODO';
+            if (banner && bannerText) {
+                bannerText.innerHTML = '<i class="bi bi-circle text-secondary me-1"></i> Đang lọc: <strong>Công việc chờ thực hiện (TO DO)</strong>';
+                banner.classList.remove('d-none');
+                banner.classList.add('d-flex');
+            }
         }
 
         // List View filtering
@@ -1670,17 +1758,34 @@
             var taskId = pRow.getAttribute('data-task-id');
             var subRows = taskId ? document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]') : [];
 
-            var matchParent = !filterTargetUserId || assigneeId == filterTargetUserId;
-            var matchSub = false;
+            var show = false;
+            if (filterTargetStatus) {
+                if (filterTargetStatus === 'DONE' && pRow.classList.contains('group-done-row')) show = true;
+                else if (filterTargetStatus === 'IN_PROGRESS' && pRow.classList.contains('group-inprog-row')) show = true;
+                else if (filterTargetStatus === 'TODO' && pRow.classList.contains('group-todo-row')) show = true;
 
-            subRows.forEach(function(sRow) {
-                var sAssigneeId = sRow.getAttribute('data-assignee-id');
-                var sMatch = !filterTargetUserId || sAssigneeId == filterTargetUserId || matchParent;
-                if (sAssigneeId == filterTargetUserId) matchSub = true;
-                sRow.style.display = sMatch ? '' : 'none';
-            });
+                subRows.forEach(function(sRow) {
+                    sRow.style.display = show ? '' : 'none';
+                });
+            } else if (filterTargetUserId) {
+                var matchParent = assigneeId == filterTargetUserId;
+                var matchSub = false;
 
-            var show = matchParent || matchSub;
+                subRows.forEach(function(sRow) {
+                    var sAssigneeId = sRow.getAttribute('data-assignee-id');
+                    var sMatch = sAssigneeId == filterTargetUserId || matchParent;
+                    if (sAssigneeId == filterTargetUserId) matchSub = true;
+                    sRow.style.display = sMatch ? '' : 'none';
+                });
+
+                show = matchParent || matchSub;
+            } else {
+                show = true;
+                subRows.forEach(function(sRow) {
+                    sRow.style.display = '';
+                });
+            }
+
             if (show) count++;
             pRow.style.display = show ? '' : 'none';
         });
@@ -1688,12 +1793,20 @@
         // Board View filtering
         var kanbanCards = document.querySelectorAll('.kanban-card');
         kanbanCards.forEach(function(card) {
-            var assigneeId = card.getAttribute('data-assignee-id');
-            var show = !filterTargetUserId || assigneeId == filterTargetUserId;
+            var show = true;
+            if (filterTargetUserId) {
+                var assigneeId = card.getAttribute('data-assignee-id');
+                show = assigneeId == filterTargetUserId;
+            } else if (filterTargetStatus) {
+                var col = card.closest('.kanban-col-todo, .kanban-col-in-progress, .kanban-col-done');
+                if (filterTargetStatus === 'DONE') show = col && col.classList.contains('kanban-col-done');
+                else if (filterTargetStatus === 'IN_PROGRESS') show = col && col.classList.contains('kanban-col-in-progress');
+                else if (filterTargetStatus === 'TODO') show = col && col.classList.contains('kanban-col-todo');
+            }
             card.style.display = show ? '' : 'none';
         });
 
-        if (filterTargetUserId && bannerText) {
+        if ((filterTargetUserId || filterTargetStatus) && bannerText) {
             bannerText.innerHTML += ' <span class="badge bg-primary text-white rounded-pill ms-1">' + count + ' việc</span>';
         }
     };
@@ -1711,13 +1824,13 @@
     window.openClickUpTask = function(taskId, subtaskId) {
         if (!taskId) return;
 
-        // A. áº¨n toÃ n bá»™ cÃ¡c Pane Task vÃ  Subtask Ä‘ang má»Ÿ
+        // A. Ẩn toàn bộ các Pane Task và Subtask đang mở
         var allPanes = document.querySelectorAll('.task-detail-pane, .subtask-detail-pane');
         allPanes.forEach(function(pane) {
             pane.classList.add('d-none');
         });
 
-        // B. KÃ­ch hoáº¡t Pane Ä‘Æ°á»£c chá»‰ Ä‘á»‹nh
+        // B. Kích hoạt Pane được chỉ định
         var targetPane = null;
         if (subtaskId) {
             targetPane = document.getElementById('subtaskPane-' + subtaskId);
@@ -1733,13 +1846,55 @@
             }
         }
 
-        // C. Má»Ÿ Offcanvas Drawer tá»« mÃ©p pháº£i
+        // C. Mở Offcanvas Drawer từ mép phải
         var drawerEl = document.getElementById('clickupTaskDrawer');
         if (drawerEl && window.bootstrap && window.bootstrap.Offcanvas) {
             var bsOffcanvas = bootstrap.Offcanvas.getInstance(drawerEl) || new bootstrap.Offcanvas(drawerEl);
             bsOffcanvas.show();
         }
     };
+
+    // 10. ClickUp & Asana Style Confetti Celebration Animation
+    window.fireConfettiCelebration = function() {
+        if (typeof confetti === 'function') {
+            var count = 200;
+            var defaults = {
+                origin: { y: 0.7 },
+                zIndex: 99999
+            };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55, colors: ['#4f46e5', '#38bdf8', '#10b981', '#f59e0b', '#ec4899'] });
+            fire(0.2, { spread: 60, colors: ['#6366f1', '#06b6d4', '#34d399', '#fbbf24'] });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, colors: ['#a855f7', '#3b82f6', '#10b981'] });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        }
+    };
+
+    // Khởi tạo Bootstrap tooltips khi DOM sẵn sàng
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.bootstrap && bootstrap.Tooltip) {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(el) {
+                return new bootstrap.Tooltip(el);
+            });
+        }
+        // Tự động bắn pháo hoa khi vừa duyệt hoàn thành Gate 2 hoặc Subtask
+        <c:if test="${not empty toastSuccess}">
+            var toastMsg = "<c:out value='${toastSuccess}' />".toLowerCase();
+            if (toastMsg.indexOf('duyệt') > -1 || toastMsg.indexOf('nghiệm thu') > -1 || toastMsg.indexOf('hoàn thành') > -1) {
+                setTimeout(function() {
+                    if (window.fireConfettiCelebration) window.fireConfettiCelebration();
+                }, 500);
+            }
+        </c:if>
+    });
 </script>
         <!-- =========================================================================
              4. CLICKUP 3.0 UNIFIED TASK & SUBTASK SIDE-PEEK DRAWER

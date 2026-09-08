@@ -25,6 +25,9 @@
             <link rel="stylesheet"
                 href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+            <!-- Canvas Confetti CDN (ClickUp & Asana Celebration Animation) -->
+            <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
             <!-- Custom CSS (Phong cách Basecamp / Notion) -->
             <link rel="stylesheet"
                 href="${pageContext.request.contextPath}/styles/main.css?v=<%= System.currentTimeMillis() %>">
