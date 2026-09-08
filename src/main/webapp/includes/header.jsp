@@ -11,11 +11,11 @@
             <!-- Favicon -->
             <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/images/favicon.png">
 
-            <!-- Google Font: Inter & Plus Jakarta Sans -->
+            <!-- Google Font: Inter (Chuẩn ClickUp, Linear & Figma) -->
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link
-                href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
                 rel="stylesheet">
 
             <!-- Bootstrap 5.3.3 CSS CDN -->

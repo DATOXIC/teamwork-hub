@@ -4,6 +4,7 @@
    ========================================================================== */
 
 :root {
+    --login-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --login-primary: #4f46e5;
     --login-primary-hover: #4338ca;
     --login-navy: #0f172a;
@@ -18,6 +19,9 @@
     min-height: calc(100vh - 65px - 58px);
     background-color: #f8fafc;
     overflow: hidden;
+    font-family: var(--login-font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── CỘT TRÁI: Branding Panel (Dark Navy & Deep Indigo) ── */

@@ -11,11 +11,11 @@
             <!-- Favicon -->
             <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/images/favicon.png">
 
-            <%-- Google Fonts --%>
+            <%-- Google Font: Inter (Chuẩn ClickUp & Linear) --%>
                 <link rel="preconnect" href="https://fonts.googleapis.com">
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                 <link
-                    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+                    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
                     rel="stylesheet">
 
                 <%-- Bootstrap 5 CSS --%>
@@ -31,7 +31,7 @@
                                 href="${pageContext.request.contextPath}/styles/login.css?v=<%= System.currentTimeMillis() %>">
         </head>
 
-        <body style="margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;">
+        <body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
 
             <%-- Navbar nhỏ gọn: chỉ Brand + tên trường, không có menu đăng nhập --%>
                 <nav class="navbar navbar-dark py-2 shadow-sm"
