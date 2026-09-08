@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
         <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
@@ -89,6 +89,15 @@
                     </div>
                     <button type="button" class="btn-sidebar-toggle" onclick="toggleClickUpSidebar()" title="Thu gọn thanh bên">
                         <i class="bi bi-chevron-bar-left fs-8"></i>
+                    </button>
+                </div>
+
+                <!-- PRIMARY CREATE TASK BUTTON (CLICKUP & LINEAR STYLE) -->
+                <div class="px-3 pt-2 pb-2">
+                    <button type="button" class="sidebar-create-task-btn w-100 d-flex align-items-center justify-content-center gap-2"
+                        data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                        <i class="bi bi-plus-circle-fill fs-7"></i>
+                        <span>Tạo công việc mới</span>
                     </button>
                 </div>
 
@@ -524,10 +533,33 @@
                                             </c:forEach>
                                         </c:forEach>
                                         <tr class="group-inprog-row">
-                                            <td colspan="5" class="py-1">
-                                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#addTaskModal" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
-                                                    <i class="bi bi-plus-lg"></i> Add task
-                                                </a>
+                                            <td colspan="5" class="py-2 px-3">
+                                                <form method="post" action="${pageContext.request.contextPath}/task" class="quick-add-task-row d-flex align-items-center gap-2 m-0">
+                                                    <input type="hidden" name="action" value="add">
+                                                    <input type="hidden" name="projectId" value="${project.id}">
+                                                    <input type="hidden" name="status" value="IN_PROGRESS">
+                                                    <input type="hidden" name="priority" value="MEDIUM">
+                                                    <i class="bi bi-plus-lg text-primary fs-8 ms-1"></i>
+                                                    <input type="text" name="title" class="form-control form-control-sm border-0 bg-transparent shadow-none fs-8 px-1 text-dark"
+                                                           placeholder="ThÃªm vÃ o Äang lÃ m... (GÃµ tiÃªu Ä‘á» vÃ  nháº¥n Enter)" required autocomplete="off">
+                                                    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
+                                                        <select name="assigneeId" class="form-select form-select-sm border bg-white shadow-2xs rounded-pill fs-9 py-1 px-2 text-secondary" style="max-width: 145px;" title="Chá»‰ Ä‘á»‹nh ngÆ°á»i phá»¥ trÃ¡ch">
+                                                            <option value="${sessionScope.currentUser.id}" selected>ðŸ‘¤ TÃ´i</option>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <c:if test="${u.id != sessionScope.currentUser.id}">
+                                                                    <option value="${u.id}">${u.fullName}</option>
+                                                                </c:if>
+                                                            </c:forEach>
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm btn-primary-custom rounded-pill px-2-5 py-0-5 fs-9 fw-semibold">
+                                                            Táº¡o
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-0-5 fs-9 text-muted hover-text-dark"
+                                                                data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Má»Ÿ biá»ƒu máº«u chi tiáº¿t Ä‘áº§y Ä‘á»§">
+                                                            <i class="bi bi-arrows-angle-expand"></i>
+                                                        </button>
+                                                    </div>
+                                                </form>
                                             </td>
                                         </tr>
 
@@ -616,10 +648,33 @@
                                             </c:forEach>
                                         </c:forEach>
                                         <tr class="group-todo-row">
-                                            <td colspan="5" class="py-1">
-                                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#addTaskModal" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
-                                                    <i class="bi bi-plus-lg"></i> Add task
-                                                </a>
+                                            <td colspan="5" class="py-2 px-3">
+                                                <form method="post" action="${pageContext.request.contextPath}/task" class="quick-add-task-row d-flex align-items-center gap-2 m-0">
+                                                    <input type="hidden" name="action" value="add">
+                                                    <input type="hidden" name="projectId" value="${project.id}">
+                                                    <input type="hidden" name="status" value="TODO">
+                                                    <input type="hidden" name="priority" value="MEDIUM">
+                                                    <i class="bi bi-plus-lg text-secondary fs-8 ms-1"></i>
+                                                    <input type="text" name="title" class="form-control form-control-sm border-0 bg-transparent shadow-none fs-8 px-1 text-dark"
+                                                           placeholder="ThÃªm vÃ o Cáº§n lÃ m... (GÃµ tiÃªu Ä‘á» vÃ  nháº¥n Enter)" required autocomplete="off">
+                                                    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
+                                                        <select name="assigneeId" class="form-select form-select-sm border bg-white shadow-2xs rounded-pill fs-9 py-1 px-2 text-secondary" style="max-width: 145px;" title="Chá»‰ Ä‘á»‹nh ngÆ°á»i phá»¥ trÃ¡ch">
+                                                            <option value="${sessionScope.currentUser.id}" selected>ðŸ‘¤ TÃ´i</option>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <c:if test="${u.id != sessionScope.currentUser.id}">
+                                                                    <option value="${u.id}">${u.fullName}</option>
+                                                                </c:if>
+                                                            </c:forEach>
+                                                        </select>
+                                                        <button type="submit" class="btn btn-sm btn-primary-custom rounded-pill px-2-5 py-0-5 fs-9 fw-semibold">
+                                                            Táº¡o
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-0-5 fs-9 text-muted hover-text-dark"
+                                                                data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Má»Ÿ biá»ƒu máº«u chi tiáº¿t Ä‘áº§y Ä‘á»§">
+                                                            <i class="bi bi-arrows-angle-expand"></i>
+                                                        </button>
+                                                    </div>
+                                                </form>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -3065,12 +3120,17 @@
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
 
-                    <div class="modal-header bg-primary text-white px-4 py-3 border-0">
-                        <h5 class="modal-title fw-bold" id="addTaskModalLabel">
-                            <i class="bi bi-plus-circle-dotted me-2"></i> Thêm thẻ công việc lớn (Task Cha)
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                            aria-label="Đóng"></button>
+                    <div class="modal-header bg-white px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2-5 py-1 fs-9 fw-bold">
+                                <i class="bi bi-plus-circle-fill me-1"></i> TASK Má»šI
+                            </span>
+                            <span class="fs-8 text-muted">trong <strong>${project.name}</strong></span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fs-9 text-muted d-none d-sm-inline"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> Ä‘á»ƒ táº¡o nhanh</span>
+                            <button type="button" class="btn-close fs-9" data-bs-dismiss="modal" aria-label="ÄÃ³ng"></button>
+                        </div>
                     </div>
 
                     <form method="post" action="${pageContext.request.contextPath}/task">
@@ -3081,11 +3141,8 @@
                         <div class="modal-body px-4 py-4">
 
                             <div class="mb-3">
-                                <label for="taskTitle" class="form-label fw-semibold text-dark fs-7">
-                                    Tiêu đề công việc <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" class="form-control rounded-3 py-2 px-3 fs-7" id="taskTitle"
-                                    name="title" placeholder="Ví dụ: Xây dựng Module Thanh toán VNPAY..." required>
+                                <input type="text" class="form-control clickup-modal-title-input" id="taskTitle"
+                                    name="title" placeholder="TiÃªu Ä‘á» cÃ´ng viá»‡c..." required autocomplete="off">
                             </div>
 
                             <div class="mb-3">
@@ -3246,13 +3303,18 @@
 
                         </div>
 
-                        <div class="modal-footer px-4 py-3 bg-light border-0">
-                            <button type="button" class="btn btn-light rounded-pill px-3 fs-7 fw-medium"
-                                data-bs-dismiss="modal">Hủy</button>
-                            <button type="submit"
-                                class="btn btn-primary-custom rounded-pill px-4 py-2 fs-7 fw-semibold shadow-sm">
-                                <i class="bi bi-check-lg me-1"></i> Lưu công việc
-                            </button>
+                        <div class="modal-footer px-4 py-3 bg-light border-0 d-flex align-items-center justify-content-between">
+                            <div class="text-muted fs-9">
+                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>PhÃ­m táº¯t: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-light rounded-pill px-3 fs-7 fw-medium"
+                                    data-bs-dismiss="modal">Há»§y</button>
+                                <button type="submit"
+                                    class="btn btn-primary-custom rounded-pill px-4 py-2 fs-7 fw-semibold shadow-sm">
+                                    <i class="bi bi-check-lg me-1"></i> LÆ°u cÃ´ng viá»‡c
+                                </button>
+                            </div>
                         </div>
 
                     </form>

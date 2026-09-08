@@ -533,4 +533,36 @@ window.handleQuickCreateLabel = function() {
     window.addEventListener('beforeunload', saveKanbanSnapshot);
 })();
 
+// =========================================================================
+// CLICKUP 3.0 ADD TASK MODAL ENHANCEMENTS (AUTOFOCUS & SHORTCUTS)
+// =========================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    var addTaskModalEl = document.getElementById('addTaskModal');
+    if (addTaskModalEl) {
+        addTaskModalEl.addEventListener('shown.bs.modal', function() {
+            var titleInput = document.getElementById('taskTitle');
+            if (titleInput) {
+                titleInput.focus();
+                titleInput.select();
+            }
+        });
+
+        var addTaskForm = addTaskModalEl.querySelector('form');
+        if (addTaskForm) {
+            addTaskForm.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    var titleInput = document.getElementById('taskTitle');
+                    if (titleInput && titleInput.value.trim() !== '') {
+                        addTaskForm.submit();
+                    } else if (titleInput) {
+                        titleInput.focus();
+                    }
+                }
+            });
+        }
+    }
+});
+
+
 

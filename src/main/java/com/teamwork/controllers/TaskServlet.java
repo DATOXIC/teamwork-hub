@@ -541,12 +541,19 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
+        String status = request.getParameter("status");
+        if (!"IN_PROGRESS".equalsIgnoreCase(status) && !"DONE".equalsIgnoreCase(status)) {
+            status = "TODO";
+        } else {
+            status = status.toUpperCase();
+        }
+
         Task newTask = new Task(
             0,
             projectId,
             title.trim(),
             (description != null ? description.trim() : ""),
-            "TODO",
+            status,
             priority,
             (dueDate != null ? dueDate.trim() : ""),
             assigneeId,
