@@ -287,6 +287,15 @@
                                     <!-- 2. Tiêu đề công việc to, đậm, rõ nét -->
                                     <h6 class="fw-bold text-dark mb-2 fs-7 lh-sm text-truncate-2">${task.title}</h6>
 
+                                    <!-- 2.5. Thanh tiến độ mảnh mai (Linear style) -->
+                                    <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                        <div class="task-progress-slim-container" title="Tiến độ việc con: ${taskProgressMap[task.id]}%">
+                                            <div class="task-progress-slim ${taskProgressMap[task.id] == 100 ? 'is-complete' : ''}">
+                                                <div class="task-progress-bar" style="width: ${taskProgressMap[task.id]}%;"></div>
+                                            </div>
+                                        </div>
+                                    </c:if>
+
                                     <!-- 3. Dòng Footer vi mô: Deadline, Checklist, Tài liệu, Avatar -->
                                     <div
                                         class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
@@ -418,6 +427,15 @@
 
                                     <!-- 2. Tiêu đề công việc to, đậm, rõ nét -->
                                     <h6 class="fw-bold text-dark mb-2 fs-7 lh-sm text-truncate-2">${task.title}</h6>
+
+                                    <!-- 2.5. Thanh tiến độ mảnh mai (Linear style) -->
+                                    <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                        <div class="task-progress-slim-container" title="Tiến độ việc con: ${taskProgressMap[task.id]}%">
+                                            <div class="task-progress-slim ${taskProgressMap[task.id] == 100 ? 'is-complete' : ''}">
+                                                <div class="task-progress-bar" style="width: ${taskProgressMap[task.id]}%;"></div>
+                                            </div>
+                                        </div>
+                                    </c:if>
 
                                     <!-- 3. Dòng Footer vi mô: Deadline, Checklist, Tài liệu, Avatar -->
                                     <div
@@ -553,6 +571,15 @@
                                             ${task.title}</h6>
                                     </div>
 
+                                    <!-- 2.5. Thanh tiến độ hoàn thành 100% mảnh mai (Linear style) -->
+                                    <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                        <div class="task-progress-slim-container" title="Hoàn thành: 100%">
+                                            <div class="task-progress-slim is-complete">
+                                                <div class="task-progress-bar" style="width: 100%;"></div>
+                                            </div>
+                                        </div>
+                                    </c:if>
+
                                     <!-- 3. Dòng Footer vi mô: Đã xong, Checklist, Tài liệu, Avatar -->
                                     <div
                                         class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
@@ -614,10 +641,10 @@
         <!-- MODAL CHO CỘT CẦN LÀM (TODO) -->
         <c:set var="allTasksToRender" value="${todoTasks}" />
         <c:forEach items="${allTasksToRender}" var="task">
-            <div class="modal fade" id="taskDetailModal-${task.id}" tabindex="-1"
+            <div class="modal fade modal-slide-end" id="taskDetailModal-${task.id}" tabindex="-1"
                 aria-labelledby="taskDetailModalLabel-${task.id}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-xl">
-                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content border-0 shadow-lg overflow-hidden">
                         <div class="modal-header task-modal-header d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
                                 <span class="task-modal-id-badge">#${task.id}</span>
@@ -1632,10 +1659,10 @@
         <!-- MODAL CHO CỘT ĐANG LÀM (IN_PROGRESS) -->
         <c:set var="allTasksToRender" value="${inProgressTasks}" />
         <c:forEach items="${allTasksToRender}" var="task">
-            <div class="modal fade" id="taskDetailModal-${task.id}" tabindex="-1"
+            <div class="modal fade modal-slide-end" id="taskDetailModal-${task.id}" tabindex="-1"
                 aria-labelledby="taskDetailModalLabel-${task.id}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-xl">
-                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content border-0 shadow-lg overflow-hidden">
                         <div class="modal-header task-modal-header d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
                                 <span class="task-modal-id-badge">#${task.id}</span>
@@ -3205,10 +3232,10 @@
         <!-- MODAL CHO CỘT ĐÃ XONG (DONE) -->
         <c:set var="allTasksToRender" value="${doneTasks}" />
         <c:forEach items="${allTasksToRender}" var="task">
-            <div class="modal fade" id="taskDetailModal-${task.id}" tabindex="-1"
+            <div class="modal fade modal-slide-end" id="taskDetailModal-${task.id}" tabindex="-1"
                 aria-labelledby="taskDetailModalLabel-${task.id}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-xl">
-                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content border-0 shadow-lg overflow-hidden">
                         <div class="modal-header task-modal-header d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-2 flex-grow-1 me-3">
                                 <span class="task-modal-id-badge">#${task.id}</span>
