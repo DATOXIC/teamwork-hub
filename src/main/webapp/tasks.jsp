@@ -5,238 +5,278 @@
         <jsp:include page="/includes/header.jsp" />
         <jsp:include page="/includes/navbar.jsp" />
 
-        <div class="container-fluid px-lg-5 py-4">
+        <!-- ================================================================
+             APP LAYOUT: Left Sidebar + Main Content
+             ================================================================ -->
+        <!-- Mobile sidebar overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-            <!-- 2. THANH TIÊU ĐỀ DỰ ÁN & CÁC NÚT ĐIỀU HƯỚNG TRÊN CÙNG -->
-            <div
-                class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom bg-white p-3 rounded-4 shadow-sm">
+        <div class="app-layout">
 
-                <!-- Cụm bên trái: Nút quay lại + Tên dự án + Chuyển Tab -->
-                <div class="d-flex align-items-center gap-3">
-                    <a href="${pageContext.request.contextPath}/project?action=list"
-                        class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none"
-                        title="Quay về danh sách dự án">
-                        <i class="bi bi-arrow-left me-1"></i> Dashboard
-                    </a>
+            <!-- ==========================================
+                 LEFT SIDEBAR (Dark Navy, Collapsible)
+                 ========================================== -->
+            <aside class="left-sidebar" id="leftSidebar">
 
-                    <div class="border-start ps-3 d-flex align-items-center gap-3">
-                        <div>
-                            <div class="d-flex align-items-center gap-2">
-                                <h4 class="fw-extrabold text-dark mb-0 tracking-tight">${project.name}</h4>
-                                <span class="badge bg-dark-navy text-white rounded-pill px-2 py-1 fs-9"
-                                    title="Mã chia sẻ dự án">
-                                    <i class="bi bi-hash"></i> ${project.projectCode}
-                                </span>
-                                <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 fs-8">
-                                    <i class="bi bi-clock-history me-1"></i> ${project.createdAt}
-                                </span>
-                            </div>
-                            <c:if test="${not empty project.description}">
-                                <p class="text-muted fs-8 mb-0 mt-1">${project.description}</p>
-                            </c:if>
-                        </div>
-
-                        <!-- 4 Nút chuyển phân hệ nhanh: Kanban / Docs / Chat / Báo cáo -->
-                        <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
-                            <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
-                                class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8">
-                                <i class="bi bi-kanban me-1"></i> Kanban
-                            </a>
-                            <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}"
-                                class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
-                                <i class="bi bi-journal-text me-1"></i> Tài liệu
-                            </a>
-                            <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}"
-                                class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
-                                <i class="bi bi-chat-dots me-1"></i> Thảo luận
-                            </a>
-                            <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}"
-                                class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"
-                                title="Xem báo cáo tổng hợp tiến độ và đánh giá">
-                                <i class="bi bi-file-earmark-bar-graph me-1"></i> Báo cáo
-                            </a>
+                <!-- 1. PROJECT HEADER trong sidebar -->
+                <div class="sidebar-project-header d-flex align-items-start justify-content-between">
+                    <div class="min-w-0 flex-grow-1 overflow-hidden">
+                        <div class="sidebar-project-name" title="${project.name}">${project.name}</div>
+                        <div class="sidebar-project-code sidebar-label">
+                            <i class="bi bi-hash"></i> ${project.projectCode}
                         </div>
                     </div>
+                    <button class="sidebar-toggle-btn ms-2 flex-shrink-0" id="sidebarToggleBtn"
+                        onclick="toggleSidebar()" title="Thu gọn sidebar">
+                        <i class="bi bi-layout-sidebar-reverse fs-8" id="sidebarToggleIcon"></i>
+                    </button>
                 </div>
 
-                <!-- Cụm bên phải: Nút Đội ngũ + Mời thành viên + Thêm công việc -->
-                <div class="d-flex align-items-center gap-2">
-                    <!-- Nút Xem Đội Ngũ Dự Án (Quota X/10) -->
+                <!-- 2. TAB NAVIGATION DỌC -->
+                <nav class="sidebar-nav">
+                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
+                        class="sidebar-nav-link active" title="Bảng Kanban">
+                        <i class="bi bi-kanban-fill text-indigo-400"></i>
+                        <span class="sidebar-label">Kanban Board</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}"
+                        class="sidebar-nav-link" title="Tài liệu dự án">
+                        <i class="bi bi-journal-text"></i>
+                        <span class="sidebar-label">Tài liệu</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}"
+                        class="sidebar-nav-link" title="Thảo luận nhóm">
+                        <i class="bi bi-chat-dots"></i>
+                        <span class="sidebar-label">Thảo luận</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}"
+                        class="sidebar-nav-link" title="Báo cáo tiến độ">
+                        <i class="bi bi-file-earmark-bar-graph"></i>
+                        <span class="sidebar-label">Báo cáo</span>
+                    </a>
+                </nav>
+
+                <!-- 3. BỘ LỌC: Tìm kiếm + Ưu tiên + Nhãn -->
+                <div class="sidebar-section-title">Bộ lọc</div>
+                <div class="sidebar-filter-group">
+                    <!-- Search -->
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text border-end-0">
+                            <i class="bi bi-search fs-8"></i>
+                        </span>
+                        <input type="text" id="taskSearchInput"
+                            class="form-control border-start-0 ps-0"
+                            placeholder="Tìm kiếm..." autocomplete="off">
+                    </div>
+                    <!-- Priority -->
+                    <select id="taskPriorityFilter" class="form-select">
+                        <option value="ALL">Mọi ưu tiên</option>
+                        <option value="HIGH">Ưu tiên Cao</option>
+                        <option value="MEDIUM">Ưu tiên Trung bình</option>
+                        <option value="LOW">Ưu tiên Thấp</option>
+                    </select>
+                    <!-- Label -->
+                    <select id="taskLabelFilter" class="form-select">
+                        <option value="ALL">Mọi nhãn</option>
+                        <option value="BUG">Bug</option>
+                        <option value="FEATURE">Feature</option>
+                        <option value="UI">UI/UX</option>
+                        <option value="BACKEND">Backend</option>
+                        <option value="DOCS">Docs</option>
+                    </select>
+                </div>
+
+                <div class="sidebar-divider"></div>
+
+                <!-- 4. LỌC THÀNH VIÊN (dọc) -->
+                <div class="sidebar-section-title">Thành viên</div>
+                <div class="sidebar-member-section" id="memberFilterBar">
+
+                    <!-- Tất cả -->
                     <button type="button"
-                        class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-1"
-                        data-bs-toggle="modal" data-bs-target="#projectTeamModal"
-                        title="Xem danh sách đội ngũ và lời mời">
-                        <i class="bi bi-people-fill"></i> Đội ngũ (${memberCount}/10)
+                        class="sidebar-member-btn active member-filter-btn"
+                        data-filter-mode="ALL" data-related-tasks="ALL"
+                        title="Tất cả công việc">
+                        <span class="member-avatar-xs">
+                            <i class="bi bi-people-fill" style="font-size:0.6rem;"></i>
+                        </span>
+                        <span class="sidebar-label">Tất cả</span>
+                        <span class="member-count-badge">${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</span>
                     </button>
 
-                    <!-- Nút Mời Thành Viên (Dành riêng cho PM) -->
+                    <!-- Việc của tôi -->
+                    <c:forEach items="${userWorkloadList}" var="uw">
+                        <c:if test="${uw.user.id == sessionScope.currentUser.id}">
+                            <button type="button"
+                                class="sidebar-member-btn member-filter-btn"
+                                data-filter-mode="MY_TASKS"
+                                data-related-tasks="${uw.relatedTaskIdsJoined}"
+                                title="Việc của tôi">
+                                <span class="member-avatar-xs" style="background: linear-gradient(135deg,#f59e0b,#ef4444);">
+                                    <i class="bi bi-lightning-charge-fill" style="font-size:0.6rem;"></i>
+                                </span>
+                                <span class="sidebar-label">Việc của tôi</span>
+                                <span class="member-count-badge">${uw.totalWorkCount}</span>
+                            </button>
+                        </c:if>
+                    </c:forEach>
+
+                    <div class="sidebar-divider my-1"></div>
+
+                    <!-- Từng thành viên -->
+                    <c:forEach items="${userWorkloadList}" var="uw">
+                        <button type="button"
+                            class="sidebar-member-btn member-filter-btn"
+                            data-filter-mode="USER"
+                            data-user-id="${uw.user.id}"
+                            data-user-name="${uw.user.fullName}"
+                            data-related-tasks="${uw.relatedTaskIdsJoined}"
+                            title="Lọc việc của ${uw.user.fullName}">
+                            <span class="member-avatar-xs">
+                                ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                            </span>
+                            <span class="sidebar-label text-truncate" style="max-width:100px;">
+                                ${uw.user.fullName}
+                            </span>
+                            <span class="member-count-badge">${uw.totalWorkCount}</span>
+                        </button>
+                    </c:forEach>
+                </div>
+
+                <!-- 5. CTA BUTTONS ở đáy sidebar -->
+                <div class="sidebar-bottom-actions">
+                    <!-- Nút Thêm công việc -->
+                    <button type="button"
+                        class="sidebar-cta-btn"
+                        data-bs-toggle="modal" data-bs-target="#addTaskModal"
+                        title="Thêm công việc mới">
+                        <i class="bi bi-plus-lg"></i>
+                        <span class="btn-label sidebar-label">Thêm công việc</span>
+                    </button>
+
+                    <!-- Nút Đội ngũ -->
+                    <button type="button"
+                        class="sidebar-secondary-btn"
+                        data-bs-toggle="modal" data-bs-target="#projectTeamModal"
+                        title="Xem đội ngũ dự án">
+                        <i class="bi bi-people"></i>
+                        <span class="btn-label sidebar-label">Đội ngũ (${memberCount}/10)</span>
+                    </button>
+
+                    <!-- Nút Mời thành viên (chỉ PM) -->
                     <c:if test="${project.ownerId == sessionScope.currentUser.id}">
                         <button type="button"
-                            class="btn btn-success btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-1"
+                            class="sidebar-secondary-btn"
                             data-bs-toggle="modal" data-bs-target="#inviteMemberModal"
-                            title="Mời thành viên mới vào dự án">
-                            <i class="bi bi-person-plus-fill"></i> + Mời Đồng Đội
+                            title="Mời thành viên mới">
+                            <i class="bi bi-person-plus"></i>
+                            <span class="btn-label sidebar-label">Mời thành viên</span>
                         </button>
                     </c:if>
-
-                    <!-- Nút Thêm công việc lớn -->
-                    <button type="button"
-                        class="btn btn-primary-custom btn-sm px-3 py-2 rounded-pill fw-semibold shadow-sm fs-8 d-flex align-items-center gap-1"
-                        data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                        <i class="bi bi-plus-circle"></i> Thêm công việc
-                    </button>
                 </div>
-            </div>
 
-            <!-- Thông báo Flash — UI-04: Floating Toast -->
-            <jsp:include page="/includes/toast.jsp" />
+            </aside>
+            <!-- /LEFT SIDEBAR -->
 
+            <!-- ==========================================
+                 MAIN CONTENT AREA
+                 ========================================== -->
+            <div class="main-content">
 
-            <!-- =========================================================================
-         2.5. THANH ĐIỀU KHIỂN & LỌC CÔNG VIỆC TINH GỌN (COMPACT TOOLBAR)
-         ========================================================================= -->
-            <div class="bg-white p-3 rounded-4 shadow-2xs border mb-4">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-
-                    <!-- Cụm Trái: Ô tìm kiếm + Lọc mức ưu tiên + Lọc Nhãn dán (Labels) -->
-                    <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 580px;">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light border-end-0 text-muted fs-8">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" id="taskSearchInput"
-                                class="form-control form-control-sm border-start-0 ps-0 fs-8 shadow-none bg-light"
-                                placeholder="Tìm theo tên task, người làm..." autocomplete="off">
-                        </div>
-
-                        <select id="taskPriorityFilter"
-                            class="form-select form-select-sm fs-8 rounded-pill shadow-none bg-light"
-                            style="width: 140px;">
-                            <option value="ALL">Mọi ưu tiên</option>
-                            <option value="HIGH">🔴 Cao (High)</option>
-                            <option value="MEDIUM">🟡 Trung bình</option>
-                            <option value="LOW">🟢 Thấp (Low)</option>
-                        </select>
-
-                        <select id="taskLabelFilter"
-                            class="form-select form-select-sm fs-8 rounded-pill shadow-none bg-light"
-                            style="width: 140px;">
-                            <option value="ALL">Mọi nhãn (Tags)</option>
-                            <option value="BUG">🔴 Bug</option>
-                            <option value="FEATURE">✨ Feature</option>
-                            <option value="UI">🎨 UI/UX</option>
-                            <option value="BACKEND">⚙️ Backend</option>
-                            <option value="DOCS">📚 Docs</option>
-                        </select>
-                    </div>
-
-                    <!-- Cụm Phải: Nút lọc thành viên & Dải Avatar -->
-                    <div class="d-flex flex-wrap align-items-center gap-2" id="memberFilterBar">
-                        <!-- Nút Tất cả -->
-                        <button type="button"
-                            class="btn btn-sm btn-primary-custom text-white rounded-pill px-3 py-1 fs-8 fw-semibold member-filter-btn active"
-                            data-filter-mode="ALL" data-related-tasks="ALL" title="Tất cả công việc">
-                            <i class="bi bi-people-fill me-1"></i> Tất cả (${todoTasks.size() + inProgressTasks.size() + doneTasks.size()})
+                <!-- PROJECT TOPBAR (tinh gọn 1 dòng) -->
+                <div class="project-topbar">
+                    <div class="project-topbar-left">
+                        <!-- Mobile sidebar toggle -->
+                        <button class="btn btn-sm btn-outline-secondary border-0 shadow-none d-lg-none p-1 me-1"
+                            onclick="openSidebar()" title="Mở menu">
+                            <i class="bi bi-list fs-5"></i>
                         </button>
 
-                        <!-- Nút Việc của tôi -->
-                        <c:forEach items="${userWorkloadList}" var="uw">
-                            <c:if test="${uw.user.id == sessionScope.currentUser.id}">
-                                <button type="button"
-                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-8 fw-semibold member-filter-btn"
-                                    data-filter-mode="MY_TASKS" data-related-tasks="${uw.relatedTaskIdsJoined}"
-                                    title="Việc của tôi">
-                                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i> Việc của tôi
-                                    (${uw.totalWorkCount})
-                                </button>
-                            </c:if>
-                        </c:forEach>
+                        <!-- Back button -->
+                        <a href="${pageContext.request.contextPath}/project?action=list"
+                            class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none fs-8"
+                            title="Quay về danh sách dự án">
+                            <i class="bi bi-arrow-left me-1"></i>Dashboard
+                        </a>
 
-                        <div class="vr mx-1 d-none d-md-block text-secondary opacity-25"></div>
+                        <!-- Divider -->
+                        <div class="vr text-secondary opacity-25 mx-1 d-none d-sm-block"></div>
 
-                        <!-- Dải nút từng thành viên trong dự án -->
-                        <c:forEach items="${userWorkloadList}" var="uw">
-                            <div class="btn-group" role="group">
-                                <button type="button"
-                                    class="btn btn-sm btn-outline-secondary rounded-start-pill ps-2 pe-2 py-1 fs-8 member-filter-btn d-inline-flex align-items-center gap-1"
-                                    data-filter-mode="USER" data-user-id="${uw.user.id}"
-                                    data-user-name="${uw.user.fullName}" data-related-tasks="${uw.relatedTaskIdsJoined}"
-                                    title="Lọc việc của ${uw.user.fullName}">
-                                    <span
-                                        class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                                        style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                        ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                        <!-- Project name + description -->
+                        <div class="min-w-0">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="project-topbar-title">${project.name}</span>
+                                <c:if test="${not empty project.description}">
+                                    <span class="text-muted fs-9 d-none d-md-inline text-truncate" style="max-width:300px;">
+                                        — ${project.description}
                                     </span>
-                                    <span class="fw-medium text-truncate"
-                                        style="max-width: 80px;">${uw.user.fullName}</span>
-                                    <c:if test="${uw.totalWorkCount > 0}">
-                                        <span
-                                            class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-9">
-                                            ${uw.totalWorkCount}
-                                        </span>
-                                    </c:if>
-                                </button>
-
-                                <button type="button"
-                                    class="btn btn-sm btn-outline-secondary rounded-end-pill px-2 py-1 fs-8"
-                                    data-bs-toggle="modal" data-bs-target="#memberProfileModal-${uw.user.id}"
-                                    title="Xem Thẻ Hồ Sơ của ${uw.user.fullName}">
-                                    <i class="bi bi-info-circle"></i>
-                                </button>
+                                </c:if>
                             </div>
-                        </c:forEach>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Dòng phụ thống kê kết quả lọc -->
-                <div class="d-flex align-items-center justify-content-between mt-2 pt-2 border-top fs-9 text-muted">
-                    <span id="filterResultCount">
-                        Hiển thị tất cả <strong>${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong>
-                        công việc
-                    </span>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="text-secondary opacity-75 d-none d-md-inline">
-                            <i class="bi bi-cursor me-1"></i> Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái
+                    <!-- Stats + Sync badge bên phải -->
+                    <div class="project-topbar-right">
+                        <span class="topbar-stat">
+                            <i class="bi bi-kanban text-primary" style="font-size:0.75rem;"></i>
+                            ${todoTasks.size() + inProgressTasks.size() + doneTasks.size()} task
+                        </span>
+                        <span class="topbar-stat d-none d-md-inline-flex">
+                            <i class="bi bi-check-circle text-success" style="font-size:0.75rem;"></i>
+                            ${doneTasks.size()} hoàn thành
                         </span>
                         <span id="cloudSyncBadge"
-                            class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs"
-                            title="Tốc độ tức thì từ Bộ nhớ đệm Cache & Đám mây Supabase">
-                            <i class="bi bi-lightning-charge-fill text-warning"></i>
-                            <span id="cloudSyncText">Siêu tốc (Cache + Cloud)</span>
+                            class="topbar-stat"
+                            title="Trạng thái đồng bộ">
+                            <span class="priority-dot priority-dot-low" style="width:6px;height:6px;"></span>
+                            <span id="cloudSyncText">Đã đồng bộ</span>
                         </span>
                     </div>
                 </div>
-            </div>
 
-            <!-- 3. KHÔNG GIAN BẢNG KANBAN 3 CỘT (BOOTSTRAP GRID) -->
-            <div class="row g-4 kanban-board">
+                <!-- Toast thông báo -->
+                <jsp:include page="/includes/toast.jsp" />
+
+                <!-- Dòng phụ kết quả lọc -->
+                <div class="d-flex align-items-center justify-content-between px-5 py-1-5 border-bottom bg-white fs-9 text-muted" style="min-height:32px;">
+                    <span id="filterResultCount">
+                        Hiển thị tất cả <strong>${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong> công việc
+                    </span>
+                    <span class="text-secondary opacity-75 d-none d-md-inline">
+                        <i class="bi bi-cursor me-1"></i>Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái
+                    </span>
+                </div>
+
+                <!-- 3. KHÔNG GIAN BẢNG KANBAN 3 CỘT (BOOTSTRAP GRID) -->
+                <div class="kanban-wrapper">
+                <div class="row g-4 kanban-board">
+
 
                 <!-- ==========================================
-             CỘT 1: CẦN LÀM (TO DO)
-             ========================================== -->
+                     CỘT 1: CẦN LÀM (TO DO)
+                     ========================================== -->
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div
-                        class="kanban-column kanban-col-todo rounded-4 shadow-sm h-100 d-flex flex-column overflow-hidden">
+                    <div class="kanban-column kanban-col-todo rounded-4 shadow-sm h-100 d-flex flex-column overflow-hidden">
 
-                        <!-- Tiêu đề Cột 1 — Header Strip Xám Pastel -->
-                        <div class="kanban-header-todo d-flex align-items-center justify-content-between"
-                            style="background-color: #e2e8f0 !important; border-bottom: 1px solid #cbd5e1 !important; padding: 12px 16px; border-radius: 14px 14px 0 0;">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="p-1 bg-white text-secondary rounded-2 shadow-2xs lh-1">
-                                    <i class="bi bi-list-task fs-7"></i>
-                                </span>
-                                <h6 class="fw-bold mb-0 text-dark fs-7">Cần làm (To Do)</h6>
+                        <!-- Header Cột 1 phong cách Ảnh 1: Strip + Pill + Nút + -->
+                        <div class="kanban-header-strip d-flex align-items-center justify-content-between">
+                            <div class="kanban-header-pill pill-todo">
+                                <i class="bi bi-circle fs-9"></i>
+                                <span>Cần làm</span>
+                                <span class="pill-count">${todoTasks.size()}</span>
                             </div>
-                            <span
-                                class="badge bg-white text-secondary border rounded-pill px-2 py-1 fs-9 fw-bold shadow-2xs">${todoTasks.size()}</span>
+                            <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
+                                title="Thêm công việc vào Cần làm">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
                         </div>
 
                         <!-- Khu vực chứa các thẻ Task (Drop Zone) -->
-                        <div class="kanban-task-area kanban-task-list d-flex flex-column gap-3 flex-grow-1"
+                        <div class="kanban-task-area kanban-task-list d-flex flex-column gap-2-5 flex-grow-1"
                             id="column-TODO" data-status="TODO">
 
                             <c:forEach items="${todoTasks}" var="task">
-                                <div class="card kanban-card p-3 rounded-4 ${task.isOverdue() ? 'border-danger border-2' : ''}"
+                                <div class="card kanban-card p-3 ${task.isOverdue() ? 'border-danger border-2' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -247,40 +287,28 @@
                                     data-task-labels="${task.labels}" data-bs-toggle="modal"
                                     data-bs-target="#taskDetailModal-${task.id}" style="cursor: pointer;">
 
-                                    <!-- 1. Header thẻ: Dải Labels + Mức ưu tiên Priority vi mô -->
+                                    <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
                                             <c:forEach items="${task.labelList}" var="lbl">
-                                                <span
-                                                    class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                                <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
                                                 </span>
                                             </c:forEach>
-                                            <c:if test="${empty task.labelList}">
-                                                <span
-                                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                    ● ${task.priorityLabel}
-                                                </span>
-                                            </c:if>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1">
-                                            <c:if test="${not empty task.labelList}">
-                                                <span
-                                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold"
-                                                    title="Mức ưu tiên: ${task.priorityLabel}">
-                                                    ● ${task.priorityLabel}
-                                                </span>
-                                            </c:if>
-                                            <c:if
-                                                test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                                <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
-                                                    class="text-muted text-hover-danger text-decoration-none p-1 opacity-50"
-                                                    onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
-                                                    title="Xóa công việc">
-                                                    <i class="bi bi-trash3 fs-9"></i>
-                                                </a>
-                                            </c:if>
+                                        <div class="d-flex align-items-center gap-1-5">
+                                            <c:choose>
+                                                <c:when test="${task.priority == 'HIGH'}">
+                                                    <span class="priority-dot priority-dot-high" title="Ưu tiên: Cao (High)"></span>
+                                                </c:when>
+                                                <c:when test="${task.priority == 'MEDIUM'}">
+                                                    <span class="priority-dot priority-dot-medium" title="Ưu tiên: Trung bình (Medium)"></span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="priority-dot priority-dot-low" title="Ưu tiên: Thấp (Low)"></span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </div>
 
@@ -289,52 +317,47 @@
 
                                     <!-- 2.5. Thanh tiến độ mảnh mai (Linear style) -->
                                     <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                        <div class="task-progress-slim-container" title="Tiến độ việc con: ${taskProgressMap[task.id]}%">
+                                        <div class="task-progress-slim-container mb-2" title="Tiến độ việc con: ${taskProgressMap[task.id]}%">
                                             <div class="task-progress-slim ${taskProgressMap[task.id] == 100 ? 'is-complete' : ''}">
                                                 <div class="task-progress-bar" style="width: ${taskProgressMap[task.id]}%;"></div>
                                             </div>
                                         </div>
                                     </c:if>
 
-                                    <!-- 3. Dòng Footer vi mô: Deadline, Checklist, Tài liệu, Avatar -->
-                                    <div
-                                        class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <!-- Deadline icon -->
-                                            <c:if test="${not empty task.dueDate}">
-                                                <span
-                                                    class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                    title="Hạn: ${task.dueDate}">
-                                                    <i class="bi bi-clock"></i>
-                                                    <span>${task.dueDate}</span>
-                                                </span>
-                                            </c:if>
+                                    <!-- 3. Footer phẳng phong cách Ảnh 2: Stacked Avatars + Flat Metadata icons -->
+                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
+                                        <!-- Dải Avatar xếp lớp -->
+                                        <div class="avatar-group" title="Task Lead: ${task.assigneeName}">
+                                            <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                            </div>
+                                        </div>
 
+                                        <!-- Metadata phẳng không dùng badge -->
+                                        <div class="d-flex align-items-center gap-2-5">
                                             <!-- Checklist việc con -->
                                             <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                <span
-                                                    class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                    title="${taskSubTasksMap[task.id].size()} việc con">
-                                                    <i class="bi bi-check2-square text-success"></i>
-                                                    ${taskSubTasksMap[task.id].size()}
+                                                <span class="kanban-meta-item" title="${taskSubTasksMap[task.id].size()} việc con">
+                                                    <i class="bi bi-check2-square text-secondary"></i>
+                                                    <span>${taskSubTasksMap[task.id].size()}</span>
                                                 </span>
                                             </c:if>
 
                                             <!-- Tài liệu đính kèm -->
                                             <c:if test="${not empty taskDocsMap[task.id]}">
-                                                <span
-                                                    class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                    title="${taskDocsMap[task.id].size()} tài liệu">
-                                                    <i class="bi bi-journal-text text-primary"></i>
-                                                    ${taskDocsMap[task.id].size()}
+                                                <span class="kanban-meta-item" title="${taskDocsMap[task.id].size()} tài liệu">
+                                                    <i class="bi bi-paperclip text-secondary"></i>
+                                                    <span>${taskDocsMap[task.id].size()}</span>
                                                 </span>
                                             </c:if>
-                                        </div>
 
-                                        <!-- Avatar Task Lead -->
-                                        <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                            title="Task Lead: ${task.assigneeName}">
-                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                            <!-- Hạn chót -->
+                                            <c:if test="${not empty task.dueDate}">
+                                                <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${task.dueDate}">
+                                                    <i class="bi bi-clock ${task.isOverdue() ? 'text-danger' : 'text-secondary'}"></i>
+                                                    <span>${task.dueDate}</span>
+                                                </span>
+                                            </c:if>
                                         </div>
                                     </div>
 
@@ -349,35 +372,40 @@
                                 </div>
                             </c:if>
 
+                            <!-- Nút tạo task nhanh phong cách nét đứt (Ảnh 2) -->
+                            <button type="button" class="add-task-dashed-card mt-1" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                                <i class="bi bi-plus-lg"></i>
+                                <span>Tạo công việc mới</span>
+                            </button>
+
                         </div>
                     </div>
                 </div>
 
                 <!-- ==========================================
-             CỘT 2: ĐANG LÀM (IN PROGRESS)
-             ========================================== -->
+                     CỘT 2: ĐANG LÀM (IN PROGRESS)
+                     ========================================== -->
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div
-                        class="kanban-column kanban-col-in-progress rounded-4 shadow-sm h-100 d-flex flex-column overflow-hidden">
+                    <div class="kanban-column kanban-col-in-progress rounded-4 shadow-sm h-100 d-flex flex-column overflow-hidden">
 
-                        <!-- Tiêu đề Cột 2 — Header Strip Xanh Dương Pastel -->
-                        <div class="kanban-header-in-progress d-flex align-items-center justify-content-between"
-                            style="background-color: #dbeafe !important; border-bottom: 1px solid #bfdbfe !important; padding: 12px 16px; border-radius: 14px 14px 0 0;">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="p-1 bg-white text-primary rounded-2 shadow-2xs lh-1">
-                                    <i class="bi bi-arrow-repeat fs-7"></i>
-                                </span>
-                                <h6 class="fw-bold mb-0 text-primary-emphasis fs-7">Đang làm (In Progress)</h6>
+                        <!-- Header Cột 2 phong cách Ảnh 1: Strip + Pill + Nút + -->
+                        <div class="kanban-header-strip d-flex align-items-center justify-content-between">
+                            <div class="kanban-header-pill pill-in-progress">
+                                <i class="bi bi-arrow-repeat fs-8"></i>
+                                <span>Đang làm</span>
+                                <span class="pill-count">${inProgressTasks.size()}</span>
                             </div>
-                            <span
-                                class="badge bg-primary text-white rounded-pill px-2 py-1 fs-9 fw-bold shadow-2xs">${inProgressTasks.size()}</span>
+                            <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
+                                title="Thêm công việc vào Đang làm">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
                         </div>
 
-                        <div class="kanban-task-area kanban-task-list d-flex flex-column gap-3 flex-grow-1"
+                        <div class="kanban-task-area kanban-task-list d-flex flex-column gap-2-5 flex-grow-1"
                             id="column-IN_PROGRESS" data-status="IN_PROGRESS">
 
                             <c:forEach items="${inProgressTasks}" var="task">
-                                <div class="card kanban-card kanban-card-inprogress p-3 rounded-4 ${task.isOverdue() ? 'border-danger border-2' : ''}"
+                                <div class="card kanban-card kanban-card-inprogress p-3 ${task.isOverdue() ? 'border-danger border-2' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -388,40 +416,28 @@
                                     data-task-labels="${task.labels}" data-bs-toggle="modal"
                                     data-bs-target="#taskDetailModal-${task.id}" style="cursor: pointer;">
 
-                                    <!-- 1. Header thẻ: Dải Labels + Mức ưu tiên Priority vi mô -->
+                                    <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
                                             <c:forEach items="${task.labelList}" var="lbl">
-                                                <span
-                                                    class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                                <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
                                                 </span>
                                             </c:forEach>
-                                            <c:if test="${empty task.labelList}">
-                                                <span
-                                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                    ● ${task.priorityLabel}
-                                                </span>
-                                            </c:if>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1">
-                                            <c:if test="${not empty task.labelList}">
-                                                <span
-                                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold"
-                                                    title="Mức ưu tiên: ${task.priorityLabel}">
-                                                    ● ${task.priorityLabel}
-                                                </span>
-                                            </c:if>
-                                            <c:if
-                                                test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                                <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
-                                                    class="text-muted text-hover-danger text-decoration-none p-1 opacity-50"
-                                                    onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
-                                                    title="Xóa công việc">
-                                                    <i class="bi bi-trash3 fs-9"></i>
-                                                </a>
-                                            </c:if>
+                                        <div class="d-flex align-items-center gap-1-5">
+                                            <c:choose>
+                                                <c:when test="${task.priority == 'HIGH'}">
+                                                    <span class="priority-dot priority-dot-high" title="Ưu tiên: Cao (High)"></span>
+                                                </c:when>
+                                                <c:when test="${task.priority == 'MEDIUM'}">
+                                                    <span class="priority-dot priority-dot-medium" title="Ưu tiên: Trung bình (Medium)"></span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="priority-dot priority-dot-low" title="Ưu tiên: Thấp (Low)"></span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </div>
 
@@ -430,51 +446,48 @@
 
                                     <!-- 2.5. Thanh tiến độ mảnh mai (Linear style) -->
                                     <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                        <div class="task-progress-slim-container" title="Tiến độ việc con: ${taskProgressMap[task.id]}%">
+                                        <div class="task-progress-slim-container mb-2" title="Tiến độ việc con: ${taskProgressMap[task.id]}%">
                                             <div class="task-progress-slim ${taskProgressMap[task.id] == 100 ? 'is-complete' : ''}">
                                                 <div class="task-progress-bar" style="width: ${taskProgressMap[task.id]}%;"></div>
                                             </div>
                                         </div>
                                     </c:if>
 
-                                    <!-- 3. Dòng Footer vi mô: Deadline, Checklist, Tài liệu, Avatar -->
-                                    <div
-                                        class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <!-- Deadline icon -->
-                                            <c:if test="${not empty task.dueDate}">
-                                                <span
-                                                    class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                    title="Hạn: ${task.dueDate}">
-                                                    <i class="bi bi-clock"></i>
-                                                    <span>${task.dueDate}</span>
-                                                </span>
-                                            </c:if>
+                                    <!-- 3. Footer phẳng phong cách Ảnh 2: Stacked Avatars + Flat Metadata icons -->
+                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
+                                        <!-- Dải Avatar xếp lớp -->
+                                        <div class="avatar-group" title="Task Lead: ${task.assigneeName}">
+                                            <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                            </div>
+                                        </div>
 
-                                            <!-- Checklist việc con -->
+                                        <!-- Metadata phẳng không dùng badge -->
+                                        <div class="d-flex align-items-center gap-2-5">
+                                            <!-- Checklist việc con có % tiến độ -->
                                             <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                <span
-                                                    class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
+                                                <span class="kanban-meta-item text-primary fw-semibold"
                                                     title="${taskSubTasksMap[task.id].size()} việc con (${taskProgressMap[task.id]}%)">
-                                                    <i class="bi bi-check2-square"></i> ${taskProgressMap[task.id]}%
+                                                    <i class="bi bi-check2-square text-primary"></i>
+                                                    <span>${taskProgressMap[task.id]}%</span>
                                                 </span>
                                             </c:if>
 
                                             <!-- Tài liệu đính kèm -->
                                             <c:if test="${not empty taskDocsMap[task.id]}">
-                                                <span
-                                                    class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                    title="${taskDocsMap[task.id].size()} tài liệu">
-                                                    <i class="bi bi-journal-text text-primary"></i>
-                                                    ${taskDocsMap[task.id].size()}
+                                                <span class="kanban-meta-item" title="${taskDocsMap[task.id].size()} tài liệu">
+                                                    <i class="bi bi-paperclip text-secondary"></i>
+                                                    <span>${taskDocsMap[task.id].size()}</span>
                                                 </span>
                                             </c:if>
-                                        </div>
 
-                                        <!-- Avatar Task Lead -->
-                                        <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                            title="Task Lead: ${task.assigneeName}">
-                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                            <!-- Hạn chót -->
+                                            <c:if test="${not empty task.dueDate}">
+                                                <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${task.dueDate}">
+                                                    <i class="bi bi-clock ${task.isOverdue() ? 'text-danger' : 'text-secondary'}"></i>
+                                                    <span>${task.dueDate}</span>
+                                                </span>
+                                            </c:if>
                                         </div>
                                     </div>
 
@@ -485,8 +498,7 @@
                                 <div class="empty-state">
                                     <i class="bi bi-hourglass empty-state-icon"></i>
                                     <p class="empty-state-title">Chưa có việc đang làm</p>
-                                    <p class="empty-state-hint">Khi bắt đầu thực hiện một task, nó sẽ xuất hiện ở đây
-                                    </p>
+                                    <p class="empty-state-hint">Kéo thẻ từ "Cần làm" sang đây để bắt đầu thực hiện</p>
                                 </div>
                             </c:if>
 
@@ -495,30 +507,29 @@
                 </div>
 
                 <!-- ==========================================
-             CỘT 3: ĐÃ XONG (DONE)
-             ========================================== -->
+                     CỘT 3: ĐÃ XONG (DONE)
+                     ========================================== -->
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div
-                        class="kanban-column kanban-col-done rounded-4 shadow-sm h-100 d-flex flex-column overflow-hidden">
+                    <div class="kanban-column kanban-col-done rounded-4 shadow-sm h-100 d-flex flex-column overflow-hidden">
 
-                        <!-- Tiêu đề Cột 3 — Header Strip Xanh Mint Pastel -->
-                        <div class="kanban-header-done d-flex align-items-center justify-content-between"
-                            style="background-color: #d1fae5 !important; border-bottom: 1px solid #a7f3d0 !important; padding: 12px 16px; border-radius: 14px 14px 0 0;">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="p-1 bg-white text-success rounded-2 shadow-2xs lh-1">
-                                    <i class="bi bi-check-circle fs-7"></i>
-                                </span>
-                                <h6 class="fw-bold mb-0 text-success-emphasis fs-7">Đã xong (Done)</h6>
+                        <!-- Header Cột 3 phong cách Ảnh 1: Strip + Pill + Nút + -->
+                        <div class="kanban-header-strip d-flex align-items-center justify-content-between">
+                            <div class="kanban-header-pill pill-done">
+                                <i class="bi bi-check-circle-fill fs-8"></i>
+                                <span>Đã xong</span>
+                                <span class="pill-count">${doneTasks.size()}</span>
                             </div>
-                            <span
-                                class="badge bg-success text-white rounded-pill px-2 py-1 fs-9 fw-bold shadow-2xs">${doneTasks.size()}</span>
+                            <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
+                                title="Thêm công việc vào Đã xong">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
                         </div>
 
-                        <div class="kanban-task-area kanban-task-list d-flex flex-column gap-3 flex-grow-1"
+                        <div class="kanban-task-area kanban-task-list d-flex flex-column gap-2-5 flex-grow-1"
                             id="column-DONE" data-status="DONE">
 
                             <c:forEach items="${doneTasks}" var="task">
-                                <div class="card kanban-card kanban-card-done p-3 rounded-4" id="task-${task.id}"
+                                <div class="card kanban-card kanban-card-done p-3" id="task-${task.id}"
                                     draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -526,93 +537,78 @@
                                     data-task-labels="${task.labels}" data-bs-toggle="modal"
                                     data-bs-target="#taskDetailModal-${task.id}" style="cursor: pointer;">
 
-                                    <!-- 1. Header thẻ: Dải Labels + Mức ưu tiên Priority vi mô -->
+                                    <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
                                             <c:forEach items="${task.labelList}" var="lbl">
-                                                <span
-                                                    class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                                <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
                                                 </span>
                                             </c:forEach>
-                                            <c:if test="${empty task.labelList}">
-                                                <span
-                                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                                    ● ${task.priorityLabel}
-                                                </span>
-                                            </c:if>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1">
-                                            <c:if test="${not empty task.labelList}">
-                                                <span
-                                                    class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold"
-                                                    title="Mức ưu tiên: ${task.priorityLabel}">
-                                                    ● ${task.priorityLabel}
-                                                </span>
-                                            </c:if>
-                                            <c:if
-                                                test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                                <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
-                                                    class="text-muted text-hover-danger text-decoration-none p-1 opacity-50"
-                                                    onclick="event.stopPropagation(); return confirm('Bạn có chắc chắn muốn xóa thẻ công việc này không?');"
-                                                    title="Xóa công việc">
-                                                    <i class="bi bi-trash3 fs-9"></i>
-                                                </a>
-                                            </c:if>
+                                        <div class="d-flex align-items-center gap-1-5">
+                                            <c:choose>
+                                                <c:when test="${task.priority == 'HIGH'}">
+                                                    <span class="priority-dot priority-dot-high" title="Ưu tiên: Cao (High)"></span>
+                                                </c:when>
+                                                <c:when test="${task.priority == 'MEDIUM'}">
+                                                    <span class="priority-dot priority-dot-medium" title="Ưu tiên: Trung bình (Medium)"></span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="priority-dot priority-dot-low" title="Ưu tiên: Thấp (Low)"></span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </div>
 
                                     <!-- 2. Tiêu đề công việc đã hoàn thành -->
                                     <div class="d-flex align-items-start gap-1-5 mb-2">
                                         <i class="bi bi-check-circle-fill text-success fs-7 mt-0-5 flex-shrink-0"></i>
-                                        <h6
-                                            class="fw-semibold text-secondary mb-0 fs-7 lh-sm text-decoration-line-through text-truncate-2">
+                                        <h6 class="fw-semibold text-secondary mb-0 fs-7 lh-sm text-decoration-line-through text-truncate-2">
                                             ${task.title}</h6>
                                     </div>
 
                                     <!-- 2.5. Thanh tiến độ hoàn thành 100% mảnh mai (Linear style) -->
                                     <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                        <div class="task-progress-slim-container" title="Hoàn thành: 100%">
+                                        <div class="task-progress-slim-container mb-2" title="Hoàn thành: 100%">
                                             <div class="task-progress-slim is-complete">
                                                 <div class="task-progress-bar" style="width: 100%;"></div>
                                             </div>
                                         </div>
                                     </c:if>
 
-                                    <!-- 3. Dòng Footer vi mô: Đã xong, Checklist, Tài liệu, Avatar -->
-                                    <div
-                                        class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span
-                                                class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1">
-                                                <i class="bi bi-check2"></i> Đã xong
+                                    <!-- 3. Footer phẳng phong cách Ảnh 2: Stacked Avatars + Flat Metadata icons -->
+                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
+                                        <!-- Dải Avatar Task Lead hoàn thành -->
+                                        <div class="avatar-group" title="Người hoàn thành: ${task.assigneeName}">
+                                            <div class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                            </div>
+                                        </div>
+
+                                        <!-- Metadata phẳng -->
+                                        <div class="d-flex align-items-center gap-2-5">
+                                            <span class="kanban-meta-item text-success fw-semibold">
+                                                <i class="bi bi-check2-all text-success"></i>
+                                                <span>Hoàn tất</span>
                                             </span>
 
                                             <!-- Checklist việc con -->
                                             <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                <span
-                                                    class="badge bg-light text-success border rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                    title="Tất cả việc con đã hoàn tất">
-                                                    <i class="bi bi-check2-all"></i> ${taskSubTasksMap[task.id].size()}
+                                                <span class="kanban-meta-item text-success" title="Tất cả việc con đã hoàn tất">
+                                                    <i class="bi bi-check2-square text-success"></i>
+                                                    <span>${taskSubTasksMap[task.id].size()}</span>
                                                 </span>
                                             </c:if>
 
                                             <!-- Tài liệu đính kèm -->
                                             <c:if test="${not empty taskDocsMap[task.id]}">
-                                                <span
-                                                    class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1"
-                                                    title="${taskDocsMap[task.id].size()} tài liệu">
-                                                    <i class="bi bi-journal-text text-primary"></i>
-                                                    ${taskDocsMap[task.id].size()}
+                                                <span class="kanban-meta-item" title="${taskDocsMap[task.id].size()} tài liệu">
+                                                    <i class="bi bi-paperclip text-secondary"></i>
+                                                    <span>${taskDocsMap[task.id].size()}</span>
                                                 </span>
                                             </c:if>
-                                        </div>
-
-                                        <!-- Avatar Task Lead -->
-                                        <div class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                                            title="Người hoàn thành: ${task.assigneeName}">
-                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
                                         </div>
                                     </div>
 
@@ -623,16 +619,70 @@
                                 <div class="empty-state">
                                     <i class="bi bi-check2-circle empty-state-icon"></i>
                                     <p class="empty-state-title">Chưa có việc hoàn thành</p>
-                                    <p class="empty-state-hint">Hoàn thành một task và nó sẽ xuất hiện ở đây ✨</p>
+                                    <p class="empty-state-hint">Kéo thẻ vào đây hoặc nghiệm thu để hoàn thành task</p>
                                 </div>
                             </c:if>
 
                         </div>
                     </div>
-                </div>
 
-            </div>
-        </div>
+                </div><!-- /row kanban-board -->
+                </div><!-- /kanban-wrapper -->
+
+            </div><!-- /main-content -->
+        </div><!-- /app-layout -->
+
+        <!-- Sidebar Toggle Script -->
+        <script>
+            (function() {
+                var SIDEBAR_KEY = 'twh_sidebar_collapsed';
+                var sidebar = document.getElementById('leftSidebar');
+                var toggleIcon = document.getElementById('sidebarToggleIcon');
+
+                // Khởi tạo trạng thái đã lưu
+                if (sidebar && localStorage.getItem(SIDEBAR_KEY) === '1') {
+                    sidebar.classList.add('collapsed');
+                    if (toggleIcon) toggleIcon.className = 'bi bi-layout-sidebar fs-8';
+                }
+
+                window.toggleSidebar = function() {
+                    if (!sidebar) return;
+                    var isCollapsed = sidebar.classList.toggle('collapsed');
+                    localStorage.setItem(SIDEBAR_KEY, isCollapsed ? '1' : '0');
+                    if (toggleIcon) {
+                        toggleIcon.className = isCollapsed
+                            ? 'bi bi-layout-sidebar fs-8'
+                            : 'bi bi-layout-sidebar-reverse fs-8';
+                    }
+                };
+
+                window.openSidebar = function() {
+                    if (!sidebar) return;
+                    sidebar.classList.remove('collapsed');
+                    sidebar.classList.add('mobile-open');
+                    var overlay = document.getElementById('sidebarOverlay');
+                    if (overlay) overlay.classList.add('active');
+                };
+
+                window.closeSidebar = function() {
+                    if (!sidebar) return;
+                    sidebar.classList.remove('mobile-open');
+                    var overlay = document.getElementById('sidebarOverlay');
+                    if (overlay) overlay.classList.remove('active');
+                };
+
+                // Sync active state cho member filter buttons trong sidebar
+                document.addEventListener('DOMContentLoaded', function() {
+                    var memberBtns = document.querySelectorAll('.sidebar-member-btn.member-filter-btn');
+                    memberBtns.forEach(function(btn) {
+                        btn.addEventListener('click', function() {
+                            memberBtns.forEach(function(b) { b.classList.remove('active'); });
+                            btn.classList.add('active');
+                        });
+                    });
+                });
+            })();
+        </script>
 
         <!-- =========================================================================
      4. MODAL CHI TIẾT TASK 2 CỘT (TASK MINI-HUB & SUB-TASKS)
