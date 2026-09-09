@@ -1,4 +1,8 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
-    "css.validate": false
+    "css.validate": false,
+    "java.project.sourcePaths": [
+        "src/main/java",
+        "LUYEN_TAP"
+    ]
 }
