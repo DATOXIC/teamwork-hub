@@ -54,7 +54,23 @@ public class NotificationDB {
             ps.setString(2, title.trim());
             ps.setString(3, content != null ? content.trim() : "");
             ps.setString(4, link != null && !link.trim().isEmpty() ? link.trim() : "#");
-            ps.setString(5, type != null && !type.trim().isEmpty() ? type.trim().toUpperCase() : "GENERAL");
+            String normalizedType = type != null ? type.trim().toUpperCase() : "";
+            // Keep callers resilient: legacy icon strings and TASK are mapped to enum values.
+            if (normalizedType.contains("TASK") || normalizedType.contains("ASSIGN")) {
+                normalizedType = "TASK_ASSIGNED";
+            } else if (normalizedType.contains("COMMENT") || normalizedType.contains("PENCIL")) {
+                normalizedType = "COMMENT";
+            } else if (normalizedType.contains("PROGRESS") || normalizedType.contains("CHECK")
+                    || normalizedType.contains("HOURGLASS") || normalizedType.contains("TROPHY")
+                    || normalizedType.contains("LOCK") || normalizedType.contains("BOX-SEAM")
+                    || normalizedType.contains("DIAGRAM") || normalizedType.contains("EXCLAMATION")) {
+                normalizedType = "PROGRESS";
+            } else if (!"INVITE".equals(normalizedType) && !"TASK_ASSIGNED".equals(normalizedType)
+                    && !"PROGRESS".equals(normalizedType) && !"COMMENT".equals(normalizedType)
+                    && !"GENERAL".equals(normalizedType)) {
+                normalizedType = "GENERAL";
+            }
+            ps.setString(5, normalizedType);
 
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -119,14 +135,22 @@ public class NotificationDB {
      * Hàm 4: Đánh dấu một thông báo cụ thể là Đã Đọc
      */
     public static void markAsRead(int notificationId) {
+        markAsReadForRecipient(notificationId, 0);
+    }
+
+    /** Marks a notification only when it belongs to the active recipient. */
+    public static void markAsReadForRecipient(int notificationId, int recipientId) {
         if (notificationId <= 0) return;
 
-        String sql = "UPDATE notifications SET is_read = TRUE WHERE id = ?";
+        String sql = recipientId > 0
+                ? "UPDATE notifications SET is_read = TRUE WHERE id = ? AND recipient_id = ?"
+                : "UPDATE notifications SET is_read = TRUE WHERE id = ?";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, notificationId);
+            if (recipientId > 0) ps.setInt(2, recipientId);
             ps.executeUpdate();
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi markAsRead Notification ID: " + notificationId, e);
@@ -155,14 +179,22 @@ public class NotificationDB {
      * Hàm 6: Xóa một thông báo
      */
     public static boolean delete(int notificationId) {
+        return deleteForRecipient(notificationId, 0);
+    }
+
+    /** Deletes only a notification owned by the active recipient. */
+    public static boolean deleteForRecipient(int notificationId, int recipientId) {
         if (notificationId <= 0) return false;
 
-        String sql = "DELETE FROM notifications WHERE id = ?";
+        String sql = recipientId > 0
+                ? "DELETE FROM notifications WHERE id = ? AND recipient_id = ?"
+                : "DELETE FROM notifications WHERE id = ?";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, notificationId);
+            if (recipientId > 0) ps.setInt(2, recipientId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi xóa Notification ID: " + notificationId, e);

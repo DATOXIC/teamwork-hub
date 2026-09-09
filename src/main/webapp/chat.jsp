@@ -5,10 +5,28 @@
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
 
-<div class="container-fluid px-3 px-lg-5 py-4">
+<div class="clickup-legacy-app-layout">
+    <aside class="clickup-legacy-rail" aria-label="Điều hướng nhanh">
+        <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-legacy-rail-item" title="Workspace"><i class="bi bi-grid-1x2-fill"></i></a>
+        <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" class="clickup-legacy-rail-item" title="Tasks"><i class="bi bi-check2-square"></i></a>
+        <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="clickup-legacy-rail-item" title="Docs"><i class="bi bi-file-earmark-text"></i></a>
+        <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="clickup-legacy-rail-item active" title="Chat"><i class="bi bi-chat-dots"></i></a>
+        <span class="clickup-legacy-rail-spacer"></span>
+        <a href="${pageContext.request.contextPath}/profile" class="clickup-legacy-rail-avatar" title="Hồ sơ">${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}</a>
+    </aside>
+    <aside class="clickup-legacy-sidebar">
+        <div class="clickup-legacy-sidebar-brand"><span> T </span><strong>TeamWork Hub</strong></div>
+        <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-legacy-sidebar-link"><i class="bi bi-grid"></i> Tất cả Spaces</a>
+        <div class="clickup-legacy-sidebar-label">Không gian hiện tại</div>
+        <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" class="clickup-legacy-sidebar-link"><i class="bi bi-kanban"></i> ${project.name}</a>
+        <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="clickup-legacy-sidebar-link"><i class="bi bi-file-earmark-text"></i> Tài liệu</a>
+        <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="clickup-legacy-sidebar-link active"><i class="bi bi-chat-dots"></i> Thảo luận</a>
+    </aside>
+    <main class="clickup-legacy-app-main">
+<div class="container-fluid px-3 px-lg-5 py-4 clickup-legacy-page">
 
     <!-- 2. THANH ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN TAB (Kanban / Docs / Chat / Báo cáo) -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom bg-white p-3 rounded-4 shadow-sm">
+    <div class="clickup-legacy-header mb-3">
         
         <!-- Cụm bên trái: Nút quay lại + Tên dự án + Chuyển Tab -->
         <div class="d-flex flex-wrap align-items-center gap-3">
@@ -212,6 +230,12 @@
                             <h2 class="fw-bold mb-0 text-dark fs-6">Kênh Thảo luận chung</h2>
                             <span class="fs-8 text-muted">Trao đổi tiến độ và thắc mắc kỹ thuật của dự án</span>
                         </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span id="chatSyncStatus" class="chat-sync-status" aria-live="polite"><i class="bi bi-circle-fill"></i> Đã đồng bộ</span>
+                        <button type="button" id="chatRefreshButton" class="btn btn-sm btn-light border rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width: 30px;height:30px" title="Làm mới tin nhắn" aria-label="Làm mới tin nhắn">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -451,4 +475,7 @@
 <script src="${pageContext.request.contextPath}/js/chat.js?v=<%= System.currentTimeMillis() %>"></script>
 
 <!-- 6. NẠP FOOTER CHUNG -->
+</div>
+    </main>
+</div>
 <jsp:include page="/includes/footer.jsp" />

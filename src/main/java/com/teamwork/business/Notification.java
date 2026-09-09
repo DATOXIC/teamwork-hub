@@ -49,7 +49,8 @@ public class Notification implements Serializable {
      */
     public String getIconClass() {
         if ("INVITE".equalsIgnoreCase(type)) return "bi-envelope-paper-heart-fill text-primary";
-        if ("TASK_ASSIGNED".equalsIgnoreCase(type)) return "bi-person-badge-fill text-warning";
+        if ("TASK_ASSIGNED".equalsIgnoreCase(type) || "TASK".equalsIgnoreCase(type)
+                || "TASK_ASSIGN".equalsIgnoreCase(type)) return "bi-person-badge-fill text-warning";
         if ("PROGRESS".equalsIgnoreCase(type)) return "bi-trophy-fill text-success";
         if ("COMMENT".equalsIgnoreCase(type)) return "bi-chat-square-dots-fill text-info";
         return "bi-bell-fill text-secondary";

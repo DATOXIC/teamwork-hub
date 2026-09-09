@@ -550,7 +550,7 @@ public class TaskDB {
     public static void unlockAllTasksForSolo(int projectId, int ownerId) {
         if (projectId <= 0) return;
 
-        String sqlGate = "UPDATE tasks SET requires_gate = 0, assignee_id = ?, updated_at = NOW() WHERE project_id = ?";
+        String sqlGate = "UPDATE tasks SET requires_gate = FALSE, assignee_id = ?, updated_at = NOW() WHERE project_id = ?";
         String sqlStatus = "UPDATE tasks SET status = 'IN_PROGRESS', updated_at = NOW() WHERE project_id = ? AND status IN ('PLANNING', 'SUBMITTED')";
 
         try (Connection conn = DBUtil.getConnection()) {

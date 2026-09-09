@@ -74,7 +74,7 @@ public class NotificationServlet extends HttpServlet {
             return;
         }
 
-        NotificationDB.markAsRead(notifId);
+        NotificationDB.markAsReadForRecipient(notifId, currentUser.getId());
 
         // Lấy link mục tiêu để nhảy tới
         String targetLink = request.getParameter("redirect");
@@ -124,7 +124,7 @@ public class NotificationServlet extends HttpServlet {
             return;
         }
 
-        NotificationDB.delete(notifId);
+        NotificationDB.deleteForRecipient(notifId, currentUser.getId());
 
         String referer = request.getHeader("Referer");
         if (referer != null && !referer.trim().isEmpty()) {

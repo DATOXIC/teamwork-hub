@@ -562,3 +562,242 @@
         padding: 30px 16px;
     }
 }
+
+/* ClickUp-style authentication shell: center the credential flow and keep
+   institutional branding out of the primary login path. */
+.clickup-login-page {
+    background: #ffffff;
+    color: #1f1f21;
+}
+
+.clickup-login-page .login-topbar {
+    min-height: 56px;
+    padding: 10px 24px !important;
+    background: rgba(255,255,255,.92) !important;
+    border-bottom: 1px solid #ececf1 !important;
+    box-shadow: none !important;
+}
+
+.clickup-login-page .login-topbar .navbar-brand,
+.clickup-login-page .login-topbar .text-white {
+    color: #1f1f21 !important;
+}
+
+.clickup-login-page .login-topbar .text-info {
+    color: #7c3aed !important;
+}
+
+.clickup-login-page .login-topbar > .container-fluid > span {
+    color: #71717a !important;
+}
+
+.clickup-login-page .login-wrapper {
+    min-height: calc(100vh - 56px);
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% -10%, #f7d9ed 0, transparent 35%),
+                radial-gradient(circle at 90% 15%, #dff3ff 0, transparent 32%),
+                #ffffff;
+}
+
+.clickup-login-page .login-branding {
+    display: none;
+}
+
+.clickup-login-page .login-form-panel {
+    flex: 0 1 430px;
+    min-height: calc(100vh - 56px);
+    padding: 44px 20px;
+    background: transparent;
+}
+
+.clickup-login-page .login-card {
+    width: 400px;
+    max-width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.clickup-login-page .login-card-header h3 {
+    font-size: 22px;
+    color: #1f1f21;
+}
+
+.clickup-login-page .login-card-header p,
+.clickup-login-page .login-signup-link,
+.clickup-login-page .login-remember {
+    color: #71717a;
+}
+
+.clickup-login-page .login-card-header {
+    margin-bottom: 18px;
+}
+
+.clickup-login-mark {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 14px;
+    border-radius: 12px 12px 12px 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 20px;
+    background: linear-gradient(145deg, #ff3d8d 0%, #ff6a54 42%, #7357ff 100%);
+    box-shadow: 0 8px 18px rgba(115, 87, 255, .22);
+    transform: rotate(-2deg);
+}
+
+.clickup-login-page .login-card-header h3 {
+    font-size: 25px;
+    letter-spacing: -.55px;
+}
+
+.clickup-login-page .login-card-header p {
+    font-size: 13px;
+}
+
+.login-top-signup {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 0 0 18px;
+    color: #71717a;
+    font-size: 13px;
+}
+
+.login-top-signup a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-top-signup a:hover { text-decoration: underline; }
+
+.clickup-auth-providers {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.clickup-auth-provider {
+    min-height: 40px;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: 1px solid #d9d9df;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #27272a;
+    font-size: 13.5px;
+    font-weight: 500;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+
+.clickup-auth-provider:hover {
+    border-color: #a1a1aa;
+    background: #fafafa;
+    box-shadow: 0 3px 10px rgba(24, 24, 27, .06);
+}
+
+.clickup-auth-provider i { font-size: 16px; }
+
+.clickup-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #a1a1aa;
+    font-size: 12px;
+    margin: 2px 0 0;
+}
+
+.clickup-auth-divider::before,
+.clickup-auth-divider::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: #dedee5;
+}
+
+.clickup-login-page .login-tabs {
+    display: none;
+}
+
+.clickup-login-page .login-tab-btn.active,
+.clickup-login-page .btn-login-primary,
+.clickup-login-page .btn-register-primary {
+    background: #1f1f21;
+    box-shadow: none;
+}
+
+.clickup-login-page .login-tab-btn.active:hover,
+.clickup-login-page .btn-login-primary:hover,
+.clickup-login-page .btn-register-primary:hover {
+    background: #3b3b40;
+    transform: none;
+    box-shadow: 0 8px 18px rgba(31,31,33,.15);
+}
+
+.clickup-login-page .login-input-group input:focus {
+    border-color: #1f1f21;
+    box-shadow: 0 0 0 3px rgba(31,31,33,.1);
+}
+
+.clickup-login-page .login-tab-pane#pane-login > .login-signup-link {
+    display: none;
+}
+
+.clickup-login-page .login-tab-pane#pane-login,
+.clickup-login-page .login-tab-pane#pane-register {
+    animation: clickupLoginPaneIn .18s ease-out both;
+}
+
+@keyframes clickupLoginPaneIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.clickup-login-page .btn-login-exit {
+    display: none;
+}
+
+.clickup-login-page .quick-login-section {
+    margin-top: 22px;
+}
+
+.clickup-login-page .login-input-group:has(input:focus) .input-icon {
+    color: #1f1f21;
+}
+
+@media (max-width: 576px) {
+    .clickup-login-page .login-topbar {
+        padding-right: 14px !important;
+        padding-left: 14px !important;
+    }
+
+    .clickup-login-page .login-topbar > .container-fluid > span {
+        display: none;
+    }
+
+    .clickup-login-page .login-form-panel {
+        width: 100%;
+        max-width: 100%;
+        flex: 1 1 auto;
+        min-height: calc(100vh - 56px);
+        padding: 34px 18px;
+        box-sizing: border-box;
+    }
+
+    .clickup-login-page .login-card {
+        width: 100%;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}

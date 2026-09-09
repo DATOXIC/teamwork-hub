@@ -25,7 +25,10 @@ function convertRawTextToMentionHtml(rawText, projectId, ctxPath) {
         return "";
     }
 
-    var resultHtml = rawText;
+    // Chat content is user supplied; escape it before adding safe mention anchors.
+    var resultHtml = String(rawText).replace(/[&<>\"']/g, function(ch) {
+        return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#39;'}[ch];
+    });
 
     // 1. Chuyển đổi cú pháp #doc-X thành Link mở bài viết Wiki
     var docRegex = /#doc-(\d+)/g;
@@ -128,6 +131,39 @@ function clearDraft() {
     }
 }
 
+// Refresh the project channel without interrupting the current shell.
+function refreshChatChannel(manual) {
+    var status = document.getElementById('chatSyncStatus');
+    var button = document.getElementById('chatRefreshButton');
+    if (status) {
+        status.classList.add('is-syncing');
+        status.innerHTML = '<i class="bi bi-arrow-repeat"></i> Đang đồng bộ';
+    }
+    if (button) button.disabled = true;
+    var target = contextPath + '/chat?action=view&projectId=' + encodeURIComponent(currentProjectId);
+    fetch(target, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(response) { if (!response.ok) throw new Error('refresh failed'); return response.text(); })
+        .then(function(html) {
+            var parsed = new DOMParser().parseFromString(html, 'text/html');
+            var incoming = parsed.getElementById('chatMessageContainer');
+            var current = document.getElementById('chatMessageContainer');
+            if (incoming && current && incoming.innerHTML.trim() !== current.innerHTML.trim()) {
+                var wasNearBottom = current.scrollHeight - current.scrollTop - current.clientHeight < 80;
+                current.innerHTML = incoming.innerHTML;
+                renderAllMessages();
+                if (wasNearBottom) scrollToBottom();
+            }
+            if (status) status.innerHTML = '<i class="bi bi-circle-fill"></i> Đã đồng bộ';
+        })
+        .catch(function() {
+            if (status) status.innerHTML = '<i class="bi bi-exclamation-circle-fill"></i> Chưa đồng bộ';
+        })
+        .finally(function() {
+            if (status) status.classList.remove('is-syncing');
+            if (button) button.disabled = false;
+        });
+}
+
 // =========================================================================
 // HÀM 6: THIẾT LẬP BỘ LẮNG NGHE SỰ KIỆN FORM CHAT (ANTI-SPAM & LOADING)
 // =========================================================================
@@ -190,4 +226,11 @@ document.addEventListener("DOMContentLoaded", function() {
     if (chatInput !== null) {
         chatInput.focus();
     }
+
+    var refreshButton = document.getElementById('chatRefreshButton');
+    if (refreshButton) refreshButton.addEventListener('click', function() { refreshChatChannel(true); });
+    // ClickUp-like lightweight live polling; stop when the tab is hidden.
+    window.setInterval(function() {
+        if (!document.hidden) refreshChatChannel(false);
+    }, 15000);
 });

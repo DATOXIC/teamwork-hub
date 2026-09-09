@@ -130,7 +130,7 @@
                         <i class="bi bi-search"></i>
                     </a>
                     <!-- Reports Hub (Trung tâm Báo cáo Tiến độ) -->
-                    <a href="${pageContext.request.contextPath}/project?action=report&id=${project.id}" class="clickup-dock-item" title="Trung tâm Báo cáo & Thống kê tiến độ">
+                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" class="clickup-dock-item" title="Trung tâm Báo cáo & Thống kê tiến độ">
                         <i class="bi bi-bar-chart-fill text-info"></i>
                     </a>
                     <!-- Quả chuông thông báo (Mở Inbox Slide-over Drawer) -->
@@ -375,6 +375,12 @@
                             </button>
                             <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
                                 <i class="bi bi-kanban"></i> Board
+                            </button>
+                            <button type="button" class="clickup-view-btn ${taskView == 'calendar' ? 'active' : ''}" id="btn-view-calendar" onclick="switchTaskSubView('calendar')">
+                                <i class="bi bi-calendar3"></i> Calendar
+                            </button>
+                            <button type="button" class="clickup-view-btn ${taskView == 'timeline' ? 'active' : ''}" id="btn-view-timeline" onclick="switchTaskSubView('timeline')">
+                                <i class="bi bi-bar-chart-steps"></i> Timeline
                             </button>
                         </div>
 
@@ -938,7 +944,7 @@
 
                             <c:forEach items="${todoTasks}" var="task">
                                 <div class="card kanban-card p-3 ${task.isOverdue() ? 'border-danger border-2' : ''}"
-                                    id="task-${task.id}" draggable="false" data-task-id="${task.id}"
+                                    id="task-${task.id}" draggable="${task.status != 'DONE' && task.status != 'SUBMITTED'}" aria-grabbed="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
@@ -947,6 +953,7 @@
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                                     data-task-labels="${task.labels}"
+                                    data-due-date="${task.dueDate}"
                                     data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
@@ -1057,6 +1064,34 @@
                             </button>
 
                         </div>
+
+                        <!-- C. CALENDAR VIEW: month grid with deadline chips -->
+                        <div id="task-subview-calendar" class="${taskView == 'calendar' ? '' : 'd-none'}">
+                            <div class="clickup-calendar-toolbar">
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" class="clickup-calendar-nav" onclick="moveClickUpCalendar(-1)" aria-label="Tháng trước"><i class="bi bi-chevron-left"></i></button>
+                                    <strong id="clickupCalendarLabel" class="clickup-calendar-label"></strong>
+                                    <button type="button" class="clickup-calendar-nav" onclick="moveClickUpCalendar(1)" aria-label="Tháng sau"><i class="bi bi-chevron-right"></i></button>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fs-9" onclick="resetClickUpCalendar()">Hôm nay</button>
+                            </div>
+                            <div class="clickup-calendar-grid" id="clickupCalendarGrid">
+                                <div class="clickup-calendar-weekdays"><span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span></div>
+                                <div class="clickup-calendar-days" id="clickupCalendarDays"></div>
+                            </div>
+                        </div>
+
+                        <!-- D. TIMELINE / GANTT VIEW: deadline bars across a project horizon -->
+                        <div id="task-subview-timeline" class="${taskView == 'timeline' ? '' : 'd-none'}">
+                            <div class="clickup-timeline-toolbar">
+                                <div>
+                                    <strong class="clickup-timeline-title"><i class="bi bi-bar-chart-steps me-1 text-primary"></i> Project Timeline</strong>
+                                    <span class="clickup-timeline-hint">Theo dõi thời lượng dự kiến và hạn chót của từng task</span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fs-9" onclick="resetClickUpTimeline()">Hôm nay</button>
+                            </div>
+                            <div id="clickupTimeline" class="clickup-timeline"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -1084,7 +1119,7 @@
 
                             <c:forEach items="${inProgressTasks}" var="task">
                                 <div class="card kanban-card kanban-card-inprogress p-3 ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
-                                    id="task-${task.id}" draggable="false" data-task-id="${task.id}"
+                                    id="task-${task.id}" draggable="${task.status != 'DONE' && task.status != 'SUBMITTED'}" aria-grabbed="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
@@ -1093,6 +1128,7 @@
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                                     data-task-labels="${task.labels}"
+                                    data-due-date="${task.dueDate}"
                                     data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
@@ -1239,13 +1275,14 @@
 
                             <c:forEach items="${doneTasks}" var="task">
                                 <div class="card kanban-card kanban-card-done kanban-card-locked p-3" id="task-${task.id}"
-                                    draggable="false" data-task-id="${task.id}"
+                                    draggable="false" aria-grabbed="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
                                     data-assignee-id="${task.assigneeId}"
                                     data-task-status="${task.status}"
                                     data-task-labels="${task.labels}"
+                                    data-due-date="${task.dueDate}"
                                     data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
@@ -1815,6 +1852,23 @@
                     </div>
                 </div>
 
+                <div class="clickup-activity-filters mb-3">
+                    <div class="clickup-activity-search-wrap">
+                        <i class="bi bi-search"></i>
+                        <input type="search" id="activitySearchInput" class="clickup-activity-search" placeholder="Tìm hoạt động, task hoặc thành viên..." autocomplete="off">
+                    </div>
+                    <select id="activityTypeFilter" class="form-select form-select-sm rounded-pill">
+                        <option value="ALL">Tất cả hoạt động</option>
+                        <option value="TASK_CREATE">Tạo công việc</option>
+                        <option value="STATUS_CHANGE">Đổi trạng thái</option>
+                        <option value="SUBTASK_CREATE">Thêm việc con</option>
+                        <option value="DOC_CREATE">Tài liệu</option>
+                        <option value="PM_APPROVE">Duyệt nghiệm thu</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-light border rounded-pill" id="activityMineFilter">Của tôi</button>
+                    <span class="activity-filter-count" id="activityFilterCount"></span>
+                </div>
+
                 <div class="card border-0 shadow-2xs rounded-3 overflow-hidden">
                     <div class="card-header bg-white border-bottom py-2.5 px-3 d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
@@ -1839,7 +1893,7 @@
                                 <div class="activity-timeline position-relative ps-4 ps-md-4">
                                     <div class="activity-timeline-line position-absolute start-0 top-0 bottom-0 ms-3 border-start border-2 border-light-subtle"></div>
                                     <c:forEach items="${activityLogs}" var="act">
-                                        <div class="activity-item position-relative mb-3 pb-2">
+                                        <div class="activity-item position-relative mb-3 pb-2" data-activity-type="${act.actionType}" data-activity-user-id="${act.userId}" data-activity-search="<c:out value='${act.userName} ${act.targetTitle} ${act.description}' />">
                                             <div class="activity-badge-dot position-absolute start-0 translate-middle-x rounded-circle d-flex align-items-center justify-content-center bg-white shadow-2xs border" style="left: -16px; top: 4px; width: 30px; height: 30px; z-index: 2;">
                                                 <i class="bi ${act.iconClass} fs-8"></i>
                                             </div>
@@ -1879,6 +1933,20 @@
     </div><!-- /clickup-islands-row -->
 </div><!-- /clickup-shell -->
 
+<!-- Keyboard-first navigation palette, matching ClickUp's quick command flow. -->
+<div id="clickupCommandPalette" class="clickup-command-palette" aria-hidden="true">
+    <div class="clickup-command-dialog" role="dialog" aria-modal="true" aria-labelledby="clickupCommandTitle">
+        <div class="clickup-command-search">
+            <i class="bi bi-search"></i>
+            <input id="clickupCommandInput" type="search" autocomplete="off" placeholder="Tìm task hoặc lệnh...">
+            <kbd>ESC</kbd>
+        </div>
+        <div class="clickup-command-heading" id="clickupCommandTitle">Truy cập nhanh</div>
+        <div id="clickupCommandResults" class="clickup-command-results"></div>
+        <div class="clickup-command-footer"><span><kbd>Ctrl</kbd> <kbd>K</kbd> mở bảng lệnh</span><span><kbd>Esc</kbd> đóng</span></div>
+    </div>
+</div>
+
 <!-- =========================================================================
      INBOX SLIDE-OVER DRAWER (HỘP THƯ THÔNG BÁO THỰC TẾ)
      ========================================================================= -->
@@ -1902,6 +1970,20 @@
             <button type="button" class="btn-close fs-9" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
         </div>
     </div>
+    <div class="clickup-inbox-filters">
+        <div class="clickup-inbox-search-wrap">
+            <i class="bi bi-search"></i>
+            <input type="search" id="inboxSearchInput" placeholder="Tìm trong hộp thư..." autocomplete="off" aria-label="Tìm thông báo">
+        </div>
+        <select id="inboxTypeFilter" class="form-select form-select-sm rounded-pill" aria-label="Lọc loại thông báo">
+            <option value="ALL">Tất cả</option>
+            <option value="INVITE">Lời mời</option>
+            <option value="TASK">Công việc</option>
+            <option value="COMMENT">Nhắc tên</option>
+            <option value="GENERAL">Hệ thống</option>
+        </select>
+        <span id="inboxFilterCount" class="clickup-inbox-filter-count"></span>
+    </div>
     <div class="offcanvas-body p-3 overflow-y-auto d-flex flex-column gap-2">
         <c:choose>
             <c:when test="${empty userNotifications}">
@@ -1914,14 +1996,15 @@
             <c:otherwise>
                 <c:forEach items="${userNotifications}" var="notif">
                     <a href="${pageContext.request.contextPath}/notification?action=read&id=${notif.id}&redirect=${notif.link}" 
-                       class="notif-item ${notif.read ? '' : 'unread'}">
+                       class="notif-item ${notif.read ? '' : 'unread'}"
+                       data-notif-type="${notif.type}" data-notif-search="<c:out value='${notif.title} ${notif.content} ${notif.createdAtStr}' />">
                         <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
                             <div class="d-flex align-items-center gap-2">
                                 <c:choose>
                                     <c:when test="${notif.type == 'INVITE'}">
                                         <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-envelope-open me-1"></i>Lời mời</span>
                                     </c:when>
-                                    <c:when test="${notif.type == 'TASK_ASSIGN' || notif.type == 'TASK'}">
+                                    <c:when test="${notif.type == 'TASK_ASSIGNED' || notif.type == 'TASK_ASSIGN' || notif.type == 'TASK'}">
                                         <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-check2-square me-1"></i>Công việc</span>
                                     </c:when>
                                     <c:when test="${notif.type == 'COMMENT' || notif.type == 'MENTION'}">
@@ -2018,17 +2101,53 @@
         var btnBoard = document.getElementById('btn-view-board');
         var viewList = document.getElementById('task-subview-list');
         var viewBoard = document.getElementById('task-subview-board');
+        var viewCalendar = document.getElementById('task-subview-calendar');
+        var viewTimeline = document.getElementById('task-subview-timeline');
 
         if (view === 'list') {
             if (btnList) btnList.classList.add('active');
             if (btnBoard) btnBoard.classList.remove('active');
+            var listCalendarBtn = document.getElementById('btn-view-calendar');
+            var listTimelineBtn = document.getElementById('btn-view-timeline');
+            if (listCalendarBtn) listCalendarBtn.classList.remove('active');
+            if (listTimelineBtn) listTimelineBtn.classList.remove('active');
             if (viewList) viewList.classList.remove('d-none');
             if (viewBoard) viewBoard.classList.add('d-none');
+            if (viewCalendar) viewCalendar.classList.add('d-none');
+            if (viewTimeline) viewTimeline.classList.add('d-none');
+        } else if (view === 'calendar') {
+            if (btnList) btnList.classList.remove('active');
+            if (btnBoard) btnBoard.classList.remove('active');
+            var btnCalendar = document.getElementById('btn-view-calendar');
+            if (btnCalendar) btnCalendar.classList.add('active');
+            if (viewList) viewList.classList.add('d-none');
+            if (viewBoard) viewBoard.classList.add('d-none');
+            if (viewCalendar) viewCalendar.classList.remove('d-none');
+            if (viewTimeline) viewTimeline.classList.add('d-none');
+            renderClickUpCalendar();
+        } else if (view === 'timeline') {
+            if (btnList) btnList.classList.remove('active');
+            if (btnBoard) btnBoard.classList.remove('active');
+            var calendarBtn = document.getElementById('btn-view-calendar');
+            var timelineBtn = document.getElementById('btn-view-timeline');
+            if (calendarBtn) calendarBtn.classList.remove('active');
+            if (timelineBtn) timelineBtn.classList.add('active');
+            if (viewList) viewList.classList.add('d-none');
+            if (viewBoard) viewBoard.classList.add('d-none');
+            if (viewCalendar) viewCalendar.classList.add('d-none');
+            if (viewTimeline) viewTimeline.classList.remove('d-none');
+            renderClickUpTimeline();
         } else {
             if (btnList) btnList.classList.remove('active');
             if (btnBoard) btnBoard.classList.add('active');
             if (viewList) viewList.classList.add('d-none');
             if (viewBoard) viewBoard.classList.remove('d-none');
+            if (viewCalendar) viewCalendar.classList.add('d-none');
+            if (viewTimeline) viewTimeline.classList.add('d-none');
+            var btnCalendar = document.getElementById('btn-view-calendar');
+            if (btnCalendar) btnCalendar.classList.remove('active');
+            var btnTimeline = document.getElementById('btn-view-timeline');
+            if (btnTimeline) btnTimeline.classList.remove('active');
         }
 
         // Lưu Cookie preferred_task_view (hạn 30 ngày)
@@ -2716,6 +2835,200 @@
             card.style.display = (!q || text.indexOf(q) > -1) ? '' : 'none';
         });
     };
+
+    // ClickUp-style command palette (Ctrl/Cmd+K) for fast navigation and task access.
+    window.openClickUpCommandPalette = function() {
+        var palette = document.getElementById('clickupCommandPalette');
+        var input = document.getElementById('clickupCommandInput');
+        if (!palette) return;
+        palette.classList.add('show');
+        palette.setAttribute('aria-hidden', 'false');
+        if (input) {
+            input.value = '';
+            renderClickUpCommands('');
+            setTimeout(function() { input.focus(); }, 20);
+        }
+    };
+
+    window.closeClickUpCommandPalette = function() {
+        var palette = document.getElementById('clickupCommandPalette');
+        if (!palette) return;
+        palette.classList.remove('show');
+        palette.setAttribute('aria-hidden', 'true');
+    };
+
+    window.renderClickUpCommands = function(query) {
+        var list = document.getElementById('clickupCommandResults');
+        if (!list) return;
+        var q = (query || '').toLowerCase().trim();
+        var commands = [
+            {label: 'Mở Tasks - List', hint: 'Chuyển sang danh sách công việc', icon: 'bi-list-task', action: function(){ switchClickUpTab('tasks'); switchTaskSubView('list'); }},
+            {label: 'Mở Tasks - Board', hint: 'Chuyển sang bảng Kanban', icon: 'bi-kanban', action: function(){ switchClickUpTab('tasks'); switchTaskSubView('board'); }},
+            {label: 'Mở Tasks - Calendar', hint: 'Xem công việc theo lịch', icon: 'bi-calendar3', action: function(){ switchClickUpTab('tasks'); switchTaskSubView('calendar'); }},
+            {label: 'Mở Tasks - Timeline', hint: 'Xem tiến độ theo thời gian', icon: 'bi-bar-chart-steps', action: function(){ switchClickUpTab('tasks'); switchTaskSubView('timeline'); }},
+            {label: 'Mở Docs', hint: 'Kho tài liệu dự án', icon: 'bi-file-earmark-text', action: function(){ switchClickUpTab('docs'); }},
+            {label: 'Mở Schedule', hint: 'Lịch hạn công việc', icon: 'bi-calendar-event', action: function(){ switchClickUpTab('schedule'); }},
+            {label: 'Mở Activity', hint: 'Nhật ký hoạt động dự án', icon: 'bi-clock-history', action: function(){ switchClickUpTab('activity'); }},
+            {label: 'Tạo task mới', hint: 'Mở biểu mẫu tạo công việc', icon: 'bi-plus-circle', action: function(){ var b=document.querySelector('[data-bs-target="#addTaskModal"]'); if(b) b.click(); }}
+        ];
+        document.querySelectorAll('.clickup-task-row').forEach(function(row) {
+            var title = row.getAttribute('data-task-title') || row.innerText || '';
+            var id = row.getAttribute('data-task-id');
+            if (id && title.trim()) {
+                commands.push({label: title.trim(), hint: 'Mở task #' + id, icon: 'bi-check2-square', action: function(){ openClickUpTask(Number(id)); }});
+            }
+        });
+        var filtered = commands.filter(function(c){ return !q || (c.label + ' ' + c.hint).toLowerCase().indexOf(q) > -1; }).slice(0, 12);
+        list.innerHTML = filtered.length ? filtered.map(function(c, index){
+            return '<button type="button" class="clickup-command-item" data-command-index="' + index + '"><i class="bi ' + c.icon + '"></i><span><strong>' + escapeClickUpCommandText(c.label) + '</strong><small>' + escapeClickUpCommandText(c.hint) + '</small></span><kbd>' + (index < 9 ? (index + 1) : '') + '</kbd></button>';
+        }).join('') : '<div class="clickup-command-empty">Không tìm thấy kết quả phù hợp</div>';
+        list.querySelectorAll('.clickup-command-item').forEach(function(btn, index){ btn.addEventListener('click', function(){ closeClickUpCommandPalette(); filtered[index].action(); }); });
+    };
+
+    function escapeClickUpCommandText(value) {
+        return String(value || '').replace(/[&<>"']/g, function(ch){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; });
+    }
+
+    var clickUpCalendarDate = new Date();
+    window.moveClickUpCalendar = function(delta) {
+        clickUpCalendarDate.setMonth(clickUpCalendarDate.getMonth() + delta, 1);
+        renderClickUpCalendar();
+    };
+    window.resetClickUpCalendar = function() {
+        clickUpCalendarDate = new Date();
+        renderClickUpCalendar();
+    };
+    window.renderClickUpCalendar = function() {
+        var grid = document.getElementById('clickupCalendarDays');
+        var label = document.getElementById('clickupCalendarLabel');
+        if (!grid || !label) return;
+        var year = clickUpCalendarDate.getFullYear();
+        var month = clickUpCalendarDate.getMonth();
+        var monthNames = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+        label.textContent = monthNames[month] + ' ' + year;
+        var first = new Date(year, month, 1);
+        var offset = (first.getDay() + 6) % 7;
+        var days = new Date(year, month + 1, 0).getDate();
+        var today = new Date();
+        var html = '';
+        for (var i = 0; i < offset; i++) html += '<div class="clickup-calendar-day is-muted"></div>';
+        for (var day = 1; day <= days; day++) {
+            var iso = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+            var isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+            var tasks = [];
+            document.querySelectorAll('.kanban-card[data-task-id]').forEach(function(card) {
+                var due = card.querySelector('[data-due-date]')?.getAttribute('data-due-date') || card.getAttribute('data-due-date');
+                if (due === iso) tasks.push({id: card.getAttribute('data-task-id'), title: card.getAttribute('data-task-title') || card.innerText});
+            });
+            html += '<div class="clickup-calendar-day ' + (isToday ? 'is-today' : '') + '"><span class="clickup-calendar-date">' + day + '</span>';
+            tasks.slice(0, 3).forEach(function(task){ html += '<button type="button" class="clickup-calendar-task" onclick="openClickUpTask(' + task.id + ')">' + escapeClickUpCommandText(task.title) + '</button>'; });
+            if (tasks.length > 3) html += '<span class="clickup-calendar-more">+' + (tasks.length - 3) + ' thêm</span>';
+            html += '</div>';
+        }
+        grid.innerHTML = html;
+    };
+
+    window.resetClickUpTimeline = function() { renderClickUpTimeline(); };
+    window.renderClickUpTimeline = function() {
+        var host = document.getElementById('clickupTimeline');
+        if (!host) return;
+        var tasks = [];
+        document.querySelectorAll('.kanban-card[data-task-id]').forEach(function(card) {
+            var due = card.getAttribute('data-due-date');
+            if (!due) return;
+            tasks.push({id: card.getAttribute('data-task-id'), title: card.getAttribute('data-task-title') || card.innerText, due: due, status: card.getAttribute('data-task-status') || 'TODO', assignee: card.getAttribute('data-task-assignee') || ''});
+        });
+        tasks.sort(function(a,b){ return a.due.localeCompare(b.due); });
+        var today = new Date(); today.setHours(0,0,0,0);
+        var horizon = new Date(today); horizon.setDate(horizon.getDate() + 30);
+        var rangeStart = today.getTime(); var rangeEnd = horizon.getTime();
+        var html = '<div class="clickup-timeline-scale"><span>Task</span><div class="clickup-timeline-days">';
+        for (var d=0; d<=30; d+=5) { var mark = new Date(today); mark.setDate(mark.getDate()+d); html += '<span style="left:' + (d/30*100) + '%">' + String(mark.getDate()).padStart(2,'0') + '/' + String(mark.getMonth()+1).padStart(2,'0') + '</span>'; }
+        html += '</div></div>';
+        if (!tasks.length) { host.innerHTML = html + '<div class="clickup-timeline-empty">Chưa có task nào có hạn chót trong dự án.</div>'; return; }
+        tasks.forEach(function(task){
+            var dueDate = new Date(task.due + 'T00:00:00');
+            var end = Math.max(0, Math.min(30, Math.round((dueDate - today) / 86400000)));
+            var left = Math.min(96, Math.max(0, end - 5)) / 30 * 100;
+            var width = Math.max(4, Math.min(100-left, 5/30*100));
+            var tone = task.status === 'DONE' ? 'is-done' : (task.status === 'IN_PROGRESS' ? 'is-progress' : 'is-todo');
+            html += '<div class="clickup-timeline-row"><button type="button" class="clickup-timeline-task" onclick="openClickUpTask(' + task.id + ')" title="Mở task #' + task.id + '"><span>' + escapeClickUpCommandText(task.title) + '</span><small>' + escapeClickUpCommandText(task.assignee) + '</small></button><div class="clickup-timeline-track"><span class="clickup-timeline-bar ' + tone + '" style="left:' + left + '%;width:' + width + '%" title="Hạn: ' + task.due + '"></span><span class="clickup-timeline-due" style="left:' + (end/30*100) + '%"></span></div></div>';
+        });
+        host.innerHTML = html;
+    };
+
+    document.addEventListener('keydown', function(event) {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+            event.preventDefault();
+            openClickUpCommandPalette();
+        }
+        if (event.key === 'Escape') closeClickUpCommandPalette();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Vẽ nội dung ngay khi mở URL có taskView, không đợi người dùng bấm lại nút.
+        var initialTaskView = '${taskView}';
+        if (initialTaskView === 'calendar' || initialTaskView === 'timeline') {
+            switchTaskSubView(initialTaskView);
+        }
+
+        var commandInput = document.getElementById('clickupCommandInput');
+        var backdrop = document.getElementById('clickupCommandPalette');
+        if (commandInput) commandInput.addEventListener('input', function(){ renderClickUpCommands(this.value); });
+        if (backdrop) backdrop.addEventListener('click', function(event){ if (event.target === backdrop) closeClickUpCommandPalette(); });
+
+        var activitySearch = document.getElementById('activitySearchInput');
+        var activityType = document.getElementById('activityTypeFilter');
+        var activityMine = document.getElementById('activityMineFilter');
+        var activityCount = document.getElementById('activityFilterCount');
+        var currentUserId = '${sessionScope.currentUser.id}';
+        function filterActivity() {
+            var q = activitySearch ? activitySearch.value.trim().toLowerCase() : '';
+            var type = activityType ? activityType.value : 'ALL';
+            var mine = activityMine && activityMine.classList.contains('active');
+            var items = document.querySelectorAll('.activity-item[data-activity-type]');
+            var visible = 0;
+            items.forEach(function(item) {
+                var matchText = !q || (item.getAttribute('data-activity-search') || '').toLowerCase().indexOf(q) !== -1;
+                var matchType = type === 'ALL' || item.getAttribute('data-activity-type') === type;
+                var matchMine = !mine || item.getAttribute('data-activity-user-id') === currentUserId;
+                var show = matchText && matchType && matchMine;
+                item.classList.toggle('activity-hidden', !show);
+                if (show) visible++;
+            });
+            if (activityCount) activityCount.textContent = items.length ? (visible + '/' + items.length + ' hoạt động') : '';
+        }
+        if (activitySearch) activitySearch.addEventListener('input', filterActivity);
+        if (activityType) activityType.addEventListener('change', filterActivity);
+        if (activityMine) activityMine.addEventListener('click', function(){ this.classList.toggle('active'); filterActivity(); });
+        filterActivity();
+
+        var inboxSearch = document.getElementById('inboxSearchInput');
+        var inboxType = document.getElementById('inboxTypeFilter');
+        var inboxCount = document.getElementById('inboxFilterCount');
+        function filterInbox() {
+            var q = inboxSearch ? inboxSearch.value.trim().toLowerCase() : '';
+            var type = inboxType ? inboxType.value : 'ALL';
+            var items = document.querySelectorAll('.notif-item[data-notif-type]');
+            var visible = 0;
+            items.forEach(function(item) {
+                var matchText = !q || (item.getAttribute('data-notif-search') || '').toLowerCase().indexOf(q) !== -1;
+                var itemType = item.getAttribute('data-notif-type') || 'GENERAL';
+                // The database enum uses TASK_ASSIGNED while the UI groups it under "TASK".
+                var matchType = type === 'ALL'
+                    || itemType === type
+                    || (type === 'TASK' && (itemType === 'TASK_ASSIGNED' || itemType === 'TASK_ASSIGN'))
+                    || (type === 'COMMENT' && (itemType === 'COMMENT' || itemType === 'MENTION'));
+                var show = matchText && matchType;
+                item.classList.toggle('inbox-hidden', !show);
+                if (show) visible++;
+            });
+            if (inboxCount) inboxCount.textContent = items.length ? (visible + '/' + items.length) : '';
+        }
+        if (inboxSearch) inboxSearch.addEventListener('input', filterInbox);
+        if (inboxType) inboxType.addEventListener('change', filterInbox);
+        filterInbox();
+    });
 
     // 7. Filter tasks by Member, Status, or Scope (With Active Feedback Banner)
     window.filterClickUpTasks = function(mode, userId, userName) {

@@ -6,12 +6,37 @@
             <jsp:include page="/includes/header.jsp" />
             <jsp:include page="/includes/navbar.jsp" />
 
-            <div class="container py-4 my-auto">
+            <div class="container-fluid p-0 clickup-workspace-home">
+                <div class="clickup-workspace-layout">
+                    <aside class="clickup-home-rail" aria-label="Điều hướng nhanh">
+                        <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-home-rail-item active" title="Không gian làm việc"><i class="bi bi-grid-1x2-fill"></i></a>
+                        <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-home-rail-item" title="Trang chủ"><i class="bi bi-house-door-fill"></i></a>
+                        <a href="#projectSearchInput" class="clickup-home-rail-item" title="Tìm kiếm"><i class="bi bi-search"></i></a>
+                        <a href="javascript:void(0)" onclick="openWorkspaceInbox()" class="clickup-home-rail-item" title="Hộp thư"><i class="bi bi-inbox"></i></a>
+                        <span class="clickup-home-rail-spacer"></span>
+                        <a href="${pageContext.request.contextPath}/profile" class="clickup-home-rail-avatar" title="Hồ sơ">${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}</a>
+                    </aside>
+                    <aside class="clickup-home-sidebar">
+                        <div class="clickup-home-sidebar-head">
+                            <span class="clickup-home-workspace-dot">T</span>
+                            <strong>TeamWork Hub</strong>
+                            <span class="text-muted ms-auto fs-9">⌄</span>
+                        </div>
+                        <button type="button" class="clickup-home-create" data-bs-toggle="modal" data-bs-target="#createProjectModal"><i class="bi bi-plus-lg"></i> Tạo không gian mới</button>
+                        <div class="clickup-home-section-title">Tổng quan</div>
+                        <a class="clickup-home-nav active" href="${pageContext.request.contextPath}/project?action=list"><i class="bi bi-grid"></i> Tất cả Spaces <span>${myProjects.size()}</span></a>
+                        <a class="clickup-home-nav" href="#projectSearchInput"><i class="bi bi-search"></i> Tìm kiếm</a>
+                        <a class="clickup-home-nav" href="javascript:void(0)" onclick="openWorkspaceInbox()"><i class="bi bi-inbox"></i> Hộp thư</a>
+                        <div class="clickup-home-section-title mt-3">Spaces</div>
+                        <c:forEach items="${myProjects}" var="p">
+                            <a class="clickup-home-space" href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}"><span>${p.name.substring(0,1).toUpperCase()}</span>${p.name}</a>
+                        </c:forEach>
+                    </aside>
+                    <main class="clickup-home-main">
+                        <div class="clickup-home-content clickup-legacy-page">
 
                 <!-- 2. Header Section: Tiêu đề trang & Nút Tạo dự án mới -->
-                <div
-                    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3"
-                    style="border-bottom: 1px solid #D5DEEF;">
+                <div class="clickup-legacy-header mb-3">
                     <div>
                         <h3 class="fw-bold mb-1 d-flex align-items-center gap-2" style="color: #1E2D42;">
                             <i class="bi bi-grid-1x2-fill" style="color: #395886;"></i>
@@ -694,6 +719,19 @@
                         }
                     }
                 }
+
+                // Open the shared navbar notification center from the workspace rail.
+                function openWorkspaceInbox() {
+                    var bell = document.getElementById('notificationDropdown');
+                    if (!bell || !window.bootstrap || !window.bootstrap.Dropdown) return;
+                    var dropdown = bootstrap.Dropdown.getOrCreateInstance(bell);
+                    dropdown.show();
+                    bell.focus();
+                }
             </script>
 
+                        </div>
+                    </main>
+                </div>
+            </div>
             <jsp:include page="/includes/footer.jsp" />

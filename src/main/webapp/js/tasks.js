@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function()
     let startMouseX = 0;
     let startMouseY = 0;
     let hasJustDragged = false;
+    let nativeDragCard = null;
     const DRAG_THRESHOLD = 6; // Ngưỡng 6px di chuyển chuột để phân biệt Click xem chi tiết với Kéo thả
 
     function onMouseDown(e) 
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function()
 
         const card = e.target.closest('.kanban-card');
         if (!card) return;
+        if (card.getAttribute('draggable') !== 'true' || card.getAttribute('data-task-status') === 'DONE') return;
 
         activeCard = card;
         startMouseX = e.clientX;
@@ -238,11 +240,104 @@ document.addEventListener('DOMContentLoaded', function()
 
     document.addEventListener('mousedown', onMouseDown);
 
-    function sendDataToServer(taskId, newStatus) 
+    // Native HTML5 drag/drop fallback for keyboard automation and touchpads.
+    // The same endpoint is used by the pointer engine and the MVC servlet.
+    cards.forEach(function(card) {
+        card.addEventListener('dragstart', function(e) {
+            if (card.getAttribute('draggable') !== 'true') {
+                e.preventDefault();
+                return;
+            }
+            // A mouse gesture is handled by the richer pointer engine below;
+            // suppress only its duplicate native ghost drag.
+            if (activeCard === card) {
+                e.preventDefault();
+                return;
+            }
+            nativeDragCard = card;
+            card.setAttribute('aria-grabbed', 'true');
+            card.classList.add('opacity-75');
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.getAttribute('data-task-id') || '');
+            }
+        });
+        card.addEventListener('dragend', function() {
+            card.setAttribute('aria-grabbed', 'false');
+            card.classList.remove('opacity-75');
+            columns.forEach(function(col) { col.classList.remove('drag-over'); });
+            nativeDragCard = null;
+        });
+    });
+
+    columns.forEach(function(column) {
+        column.addEventListener('dragover', function(e) {
+            if (!nativeDragCard) return;
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            columns.forEach(function(col) { col.classList.toggle('drag-over', col === column); });
+        });
+        column.addEventListener('dragleave', function(e) {
+            if (e.target === column) column.classList.remove('drag-over');
+        });
+        column.addEventListener('drop', function(e) {
+            if (!nativeDragCard) return;
+            e.preventDefault();
+            var targetStatus = column.getAttribute('data-status');
+            var sourceStatus = nativeDragCard.closest('.kanban-task-list')?.getAttribute('data-status');
+            var taskId = nativeDragCard.getAttribute('data-task-id');
+            var card = nativeDragCard;
+            if (targetStatus && sourceStatus && taskId && targetStatus !== sourceStatus) {
+                card.classList.add('opacity-50');
+                sendDataToServer(taskId, targetStatus, true);
+            }
+            card.setAttribute('aria-grabbed', 'false');
+            card.classList.remove('opacity-75');
+            columns.forEach(function(col) { col.classList.remove('drag-over'); });
+            nativeDragCard = null;
+        });
+    });
+
+    // Keep native drag/drop state in sync when the board is re-rendered or
+    // switched away from while a gesture is in progress.
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && nativeDragCard) {
+            nativeDragCard.setAttribute('aria-grabbed', 'false');
+            nativeDragCard.classList.remove('opacity-75', 'opacity-50');
+            columns.forEach(function(col) { col.classList.remove('drag-over'); });
+            nativeDragCard = null;
+        }
+    });
+
+    function sendDataToServer(taskId, newStatus, useAjax)
     {
         const urlParams = new URLSearchParams(window.location.search);
         const projectId = urlParams.get('projectId') || '1';
         
+        if (useAjax) {
+            const params = new URLSearchParams();
+            params.append('action', 'updateStatus');
+            params.append('projectId', projectId);
+            params.append('taskId', taskId);
+            params.append('newStatus', newStatus);
+            params.append('ajax', 'true');
+            fetch(window.location.pathname, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest'},
+                body: params.toString()
+            }).then(function(res) { return res.json(); }).then(function(data) {
+                if (data.success) {
+                    if (window.showToast) window.showToast(data.message || 'Đã cập nhật trạng thái.', 'success');
+                    window.location.reload();
+                } else {
+                    if (window.showToast) window.showToast(data.message || 'Không thể cập nhật trạng thái.', 'error');
+                    else alert(data.message || 'Không thể cập nhật trạng thái.');
+                    window.location.reload();
+                }
+            }).catch(function() { window.location.reload(); });
+            return;
+        }
+
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = window.location.pathname;

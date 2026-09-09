@@ -1354,7 +1354,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .hero-scrolltelling {
     min-height: 92vh;
     background-color: #0F1726;
-    background-image: 
+    background-image:
         radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 142, 203, 0.35), transparent 70%),
         radial-gradient(circle 600px at 15% 30%, rgba(57, 88, 134, 0.30), transparent 60%),
         radial-gradient(circle 500px at 85% 35%, rgba(138, 174, 224, 0.22), transparent 60%);
@@ -1446,7 +1446,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     border: 1px solid rgba(177, 201, 239, 0.2) !important;
     border-bottom: none !important;
     background-color: #151F30;
-    box-shadow: 
+    box-shadow:
         0 -15px 45px -10px rgba(0, 0, 0, 0.5),
         0 20px 60px -15px rgba(0, 0, 0, 0.6),
         0 0 40px rgba(99, 142, 203, 0.2);
@@ -1488,7 +1488,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* Khối xen kẽ dùng tông nền tối dịu với vệt sáng Ambient Glow nhẹ, không đường viền */
 .feature-block--alt {
     background-color: #0C121E;
-    background-image: 
+    background-image:
         radial-gradient(ellipse 70% 45% at 50% 30%, rgba(99, 142, 203, 0.12), transparent 70%);
     border: none !important;
 }
@@ -1569,7 +1569,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     border-radius: 18px;
     border: 1px solid rgba(177, 201, 239, 0.16) !important;
     background-color: #151F30;
-    box-shadow: 
+    box-shadow:
         0 20px 50px -10px rgba(0, 0, 0, 0.65),
         0 0 35px rgba(99, 142, 203, 0.12);
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
@@ -1578,7 +1578,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .feature-screenshot-natural:hover {
     transform: translateY(-5px);
     border-color: rgba(138, 174, 224, 0.4) !important;
-    box-shadow: 
+    box-shadow:
         0 28px 65px -12px rgba(0, 0, 0, 0.75),
         0 0 45px rgba(99, 142, 203, 0.25);
 }
@@ -1663,7 +1663,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* ---------- CTA Block (Deep Ocean Midnight Liền Mạch — Không Viền Cắt Ngang) ---------- */
 .cta-block {
     background-color: #0C121E;
-    background-image: 
+    background-image:
         radial-gradient(ellipse 75% 65% at 50% 30%, rgba(99, 142, 203, 0.25), transparent 70%),
         radial-gradient(circle 500px at 80% 50%, rgba(57, 88, 134, 0.20), transparent 60%);
     border: none !important;
@@ -2872,6 +2872,69 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
+.clickup-calendar-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 2px 12px;
+}
+.clickup-calendar-nav {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    background: #fff;
+    color: #64748b;
+    cursor: pointer;
+}
+.clickup-calendar-nav:hover { background: #f5f3ff; color: #7c3aed; }
+.clickup-calendar-label { min-width: 118px; color: #0f172a; font-size: .86rem; text-align: center; }
+.clickup-calendar-grid { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+.clickup-calendar-weekdays,
+.clickup-calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.clickup-calendar-weekdays { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+.clickup-calendar-weekdays span { padding: 8px 6px; color: #94a3b8; font-size: .68rem; font-weight: 750; text-align: right; text-transform: uppercase; }
+.clickup-calendar-day { min-height: 94px; padding: 6px; border-right: 1px solid #eef2f7; border-bottom: 1px solid #eef2f7; background: #fff; }
+.clickup-calendar-day:nth-child(7n) { border-right: 0; }
+.clickup-calendar-day.is-muted { background: #fafbfc; }
+.clickup-calendar-day.is-today { background: #faf5ff; }
+.clickup-calendar-date { display: block; margin-bottom: 5px; color: #64748b; font-size: .72rem; font-weight: 700; text-align: right; }
+.is-today .clickup-calendar-date { color: #7c3aed; }
+.clickup-calendar-task { display: block; width: 100%; margin: 3px 0; overflow: hidden; border: 0; border-radius: 5px; padding: 4px 5px; background: #eef2ff; color: #4338ca; font-size: .67rem; font-weight: 600; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.clickup-calendar-task:hover { background: #ddd6fe; }
+.clickup-calendar-more { display: block; color: #94a3b8; font-size: .65rem; font-weight: 650; }
+
+@media (max-width: 768px) {
+    .clickup-calendar-day { min-height: 72px; padding: 4px; }
+    .clickup-calendar-task { font-size: .58rem; padding: 3px 4px; }
+    .clickup-calendar-weekdays span { padding: 6px 3px; font-size: .58rem; }
+}
+
+.clickup-timeline-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 2px 12px; }
+.clickup-timeline-title { display:block; color:#0f172a; font-size:.86rem; }
+.clickup-timeline-hint { display:block; margin-top:3px; color:#94a3b8; font-size:.7rem; }
+.clickup-timeline { overflow:auto; min-width:680px; border:1px solid #e2e8f0; border-radius:10px; background:#fff; }
+.clickup-timeline-scale, .clickup-timeline-row { display:grid; grid-template-columns:220px minmax(460px,1fr); }
+.clickup-timeline-scale { border-bottom:1px solid #e2e8f0; background:#f8fafc; }
+.clickup-timeline-scale > span { padding:9px 12px; color:#94a3b8; font-size:.68rem; font-weight:750; text-transform:uppercase; }
+.clickup-timeline-days { position:relative; min-height:32px; background:repeating-linear-gradient(to right, transparent 0, transparent calc(16.666% - 1px), #eef2f7 calc(16.666% - 1px), #eef2f7 16.666%); }
+.clickup-timeline-days span { position:absolute; top:9px; transform:translateX(-50%); color:#94a3b8; font-size:.64rem; }
+.clickup-timeline-row { min-height:46px; border-bottom:1px solid #f1f5f9; }
+.clickup-timeline-row:last-child { border-bottom:0; }
+.clickup-timeline-task { min-width:0; border:0; border-right:1px solid #eef2f7; background:#fff; padding:7px 12px; text-align:left; cursor:pointer; }
+.clickup-timeline-task:hover { background:#f8fafc; }
+.clickup-timeline-task span, .clickup-timeline-task small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.clickup-timeline-task span { color:#334155; font-size:.76rem; font-weight:650; }
+.clickup-timeline-task small { margin-top:2px; color:#94a3b8; font-size:.64rem; }
+.clickup-timeline-track { position:relative; background:repeating-linear-gradient(to right, transparent 0, transparent calc(16.666% - 1px), #f1f5f9 calc(16.666% - 1px), #f1f5f9 16.666%); }
+.clickup-timeline-bar { position:absolute; top:15px; height:14px; min-width:18px; border-radius:999px; box-shadow:0 1px 2px rgba(15,23,42,.12); }
+.clickup-timeline-bar.is-todo { background:#a78bfa; }
+.clickup-timeline-bar.is-progress { background:#3b82f6; }
+.clickup-timeline-bar.is-done { background:#10b981; }
+.clickup-timeline-due { position:absolute; top:10px; width:2px; height:24px; background:#f59e0b; border-radius:2px; }
+.clickup-timeline-empty { padding:34px 20px; color:#94a3b8; font-size:.8rem; text-align:center; }
+
 /* 6. Workspace Content Area */
 .clickup-workspace-body {
     flex: 1;
@@ -3055,9 +3118,9 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 /* 9. Sidebar Collapse / Expand Transition */
 .clickup-sidebar {
-    transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
-                min-width 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
-                padding 0.22s ease, 
+    transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                min-width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                padding 0.22s ease,
                 opacity 0.18s ease;
 }
 
@@ -3123,12 +3186,98 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     background-color: #eff6ff;
     border-color: #bfdbfe;
 }
+
+.clickup-inbox-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.clickup-inbox-search-wrap {
+    position: relative;
+    flex: 1 1 auto;
+}
+
+.clickup-inbox-search-wrap > i {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    font-size: .8rem;
+}
+
+.clickup-inbox-search-wrap input {
+    width: 100%;
+    height: 32px;
+    padding: 0 10px 0 30px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    outline: none;
+    font-size: .78rem;
+}
+
+.clickup-inbox-search-wrap input:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+}
+
+.clickup-inbox-filters select {
+    width: auto;
+    min-width: 92px;
+    height: 32px;
+    font-size: .75rem;
+}
+
+.clickup-inbox-filter-count {
+    color: #94a3b8;
+    font-size: .7rem;
+    white-space: nowrap;
+}
+
+.notif-item.inbox-hidden { display: none !important; }
+
+@media (max-width: 576px) {
+    .clickup-inbox-filters { flex-wrap: wrap; }
+    .clickup-inbox-search-wrap { flex-basis: 100%; }
+    .clickup-inbox-filter-count { margin-left: auto; }
+}
 .notif-unread-dot {
     width: 8px;
     height: 8px;
     background-color: #3b82f6;
     border-radius: 50%;
     display: inline-block;
+}
+
+.chat-sync-status {
+    color: #64748b;
+    font-size: .7rem;
+    white-space: nowrap;
+}
+
+.chat-sync-status i {
+    color: #22c55e;
+    font-size: .45rem;
+    vertical-align: middle;
+}
+
+.chat-sync-status.is-syncing i {
+    color: #f59e0b;
+    animation: chatSyncPulse 1s ease-in-out infinite;
+}
+
+@keyframes chatSyncPulse {
+    0%, 100% { opacity: .35; }
+    50% { opacity: 1; }
+}
+
+@media (max-width: 576px) {
+    .chat-sync-status { display: none; }
 }
 
 /* 12. Schedule / Deadline View */
@@ -3190,10 +3339,592 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     border-left: 1px solid #e2e8f0;
 }
 
+.clickup-task-drawer .drawer-body {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.clickup-task-drawer .drawer-body::-webkit-scrollbar {
+    width: 9px;
+}
+
+.clickup-task-drawer .drawer-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+    border: 3px solid #ffffff;
+}
+
+.clickup-task-drawer .task-detail-pane {
+    animation: clickupDrawerPaneIn .18s ease-out both;
+}
+
+@keyframes clickupDrawerPaneIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
 @media (max-width: 768px) {
     .clickup-task-drawer {
         width: 100vw !important;
         min-width: 100vw !important;
+    }
+}
+
+/* ============================================================================
+   ClickUp parity layer for legacy pages (Workspace, Docs and Chat)
+   Keeps the MVC views intact while giving every project screen one app shell.
+   ============================================================================ */
+.navbar.bg-dark-navy {
+    min-height: 44px;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    background: #111217 !important;
+    border-bottom: 0 !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.08) !important;
+}
+
+.navbar.bg-dark-navy .navbar-brand {
+    font-size: .84rem !important;
+    letter-spacing: -.01em;
+}
+
+.navbar.bg-dark-navy .brand-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    font-size: .85rem;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+.navbar.bg-dark-navy .nav-link {
+    font-size: .76rem !important;
+    color: #cbd5e1 !important;
+}
+
+.navbar.bg-dark-navy .nav-link:hover,
+.navbar.bg-dark-navy .nav-link.active {
+    color: #fff !important;
+    background: rgba(255,255,255,.1) !important;
+}
+
+.clickup-legacy-page {
+    min-height: calc(100vh - 44px);
+    background: #f7f8fa;
+    color: #1e293b;
+}
+
+/* Docs, Chat and report pages share ClickUp's light global app chrome. */
+body:has(.clickup-legacy-page) {
+    background: #f7f8fa !important;
+}
+
+body:has(.clickup-legacy-page) .navbar.bg-dark-navy {
+    background: #ffffff !important;
+    border-bottom: 1px solid #ececf1 !important;
+    box-shadow: none !important;
+}
+
+body:has(.clickup-legacy-page) .navbar.bg-dark-navy .navbar-brand,
+body:has(.clickup-legacy-page) .navbar.bg-dark-navy .navbar-brand .text-white,
+body:has(.clickup-legacy-page) .navbar.bg-dark-navy .nav-link {
+    color: #1f1f21 !important;
+}
+
+body:has(.clickup-legacy-page) .navbar.bg-dark-navy .text-info {
+    color: #7c3aed !important;
+}
+
+body:has(.clickup-legacy-page) .navbar.bg-dark-navy .brand-icon {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+body:has(.clickup-legacy-page) .navbar-user-pill {
+    background: #ffffff !important;
+    border-color: #dedee5 !important;
+}
+
+body:has(.clickup-legacy-page) .navbar-user-pill .text-white {
+    color: #3f3f46 !important;
+}
+
+body:has(.clickup-legacy-page) .navbar-bell-btn {
+    background: #ffffff !important;
+    border-color: #dedee5 !important;
+}
+
+/* Shared shell for the standalone Docs and Chat routes. */
+.clickup-legacy-app-layout {
+    display: flex;
+    min-height: calc(100vh - 44px);
+    background: #f7f8fa;
+}
+
+.clickup-legacy-rail {
+    width: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    background: #111217;
+}
+
+.clickup-legacy-rail-item,
+.clickup-legacy-rail-avatar {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    color: #94a3b8;
+    text-decoration: none;
+}
+
+.clickup-legacy-rail-item:hover,
+.clickup-legacy-rail-item.active {
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+.clickup-legacy-rail-spacer { flex: 1; }
+
+.clickup-legacy-rail-avatar {
+    border-radius: 50%;
+    background: #6366f1;
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 700;
+}
+
+.clickup-legacy-sidebar {
+    width: 220px;
+    flex: 0 0 220px;
+    padding: 14px 10px;
+    background: #fff;
+    border-right: 1px solid #e2e8f0;
+}
+
+.clickup-legacy-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px 18px;
+    color: #0f172a;
+    font-size: .86rem;
+}
+
+.clickup-legacy-sidebar-brand span {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.clickup-legacy-sidebar-label {
+    padding: 18px 8px 6px;
+    color: #94a3b8;
+    font-size: .68rem;
+    font-weight: 750;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.clickup-legacy-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: #475569;
+    font-size: .8rem;
+    text-decoration: none;
+}
+
+.clickup-legacy-sidebar-link:hover,
+.clickup-legacy-sidebar-link.active {
+    color: #4c1d95;
+    background: #f5f3ff;
+}
+
+.clickup-legacy-sidebar-link i { width: 18px; text-align: center; }
+.clickup-legacy-app-main { min-width: 0; flex: 1; }
+
+@media (max-width: 768px) {
+    .clickup-legacy-rail { width: 46px; flex-basis: 46px; padding-left: 6px; padding-right: 6px; }
+    .clickup-legacy-rail-item { width: 34px; height: 34px; }
+    .clickup-legacy-sidebar { display: none; }
+}
+
+/* Workspace landing shell mirrors the persistent ClickUp rail/sidebar. */
+.clickup-workspace-home { min-height: calc(100vh - 44px); background: #f7f8fa; }
+.clickup-workspace-layout { display: flex; min-height: calc(100vh - 44px); }
+.clickup-home-rail { width: 52px; flex: 0 0 52px; padding: 12px 8px; background: #111217; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.clickup-home-rail-item, .clickup-home-rail-avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #94a3b8; text-decoration: none; }
+.clickup-home-rail-item:hover, .clickup-home-rail-item.active { color: #fff; background: linear-gradient(135deg, #6366f1, #a855f7); }
+.clickup-home-rail-spacer { flex: 1; }
+.clickup-home-rail-avatar { border-radius: 50%; background: #6366f1; color: #fff; font-size: .8rem; font-weight: 700; }
+.clickup-home-sidebar { width: 236px; flex: 0 0 236px; padding: 14px 10px; background: #fff; border-right: 1px solid #e2e8f0; }
+.clickup-home-sidebar-head { display: flex; align-items: center; gap: 8px; padding: 4px 6px 16px; font-size: .85rem; }
+.clickup-home-workspace-dot { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg,#6366f1,#a855f7); font-size: .75rem; font-weight: 700; }
+.clickup-home-create { width: 100%; border: 0; border-radius: 8px; padding: 8px 10px; color: #fff; background: #18181b; font-size: .78rem; font-weight: 650; }
+.clickup-home-section-title { padding: 18px 8px 6px; color: #94a3b8; font-size: .68rem; font-weight: 750; text-transform: uppercase; letter-spacing: .05em; }
+.clickup-home-nav, .clickup-home-space { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 7px; color: #475569; text-decoration: none; font-size: .79rem; }
+.clickup-home-nav span { margin-left: auto; color: #94a3b8; font-size: .7rem; }
+.clickup-home-nav:hover, .clickup-home-nav.active, .clickup-home-space:hover { color: #0f172a; background: #f1f5f9; }
+.clickup-home-space span { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 6px; background: #ede9fe; color: #7c3aed; font-size: .68rem; font-weight: 700; }
+.clickup-home-main { min-width: 0; flex: 1; }
+.clickup-home-content { min-height: calc(100vh - 44px); padding: 22px clamp(16px, 3vw, 42px); }
+@media (max-width: 768px) { .clickup-home-sidebar { display: none; } .clickup-home-rail { width: 46px; flex-basis: 46px; } .clickup-home-content { padding: 14px 10px; } }
+
+/* Keep the narrow task shell usable: the wide workspace sidebar moves out of
+   the viewport while the rail and main panel remain visible. */
+@media (max-width: 768px) {
+    .clickup-global-header { padding: 0 8px; }
+    .clickup-global-header > .d-flex:first-child { min-width: 0; }
+    .clickup-global-header .text-truncate { max-width: 112px !important; }
+    .clickup-islands-row { padding: 0 4px 4px; gap: 4px; }
+    .clickup-dock { width: 46px; min-width: 46px; border-radius: 12px; }
+    .clickup-dock-item { width: 34px; height: 34px; }
+    .clickup-shell .clickup-sidebar { display: none !important; }
+    .clickup-main-panel { width: calc(100% - 50px); min-width: 0; border-radius: 12px; }
+    .clickup-main-header { padding-left: 10px; padding-right: 10px; }
+    .clickup-project-title-row { gap: 8px; }
+    .clickup-project-title-row .text-truncate { max-width: 150px; }
+    .clickup-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .clickup-tabs::-webkit-scrollbar { display: none; }
+    .clickup-tab-link { flex: 0 0 auto; padding-left: 8px; padding-right: 8px; }
+    .clickup-control-toolbar { padding-left: 10px; padding-right: 10px; }
+    .clickup-workspace-body { padding-left: 8px; padding-right: 8px; }
+}
+
+/* Keep the workspace landing page on the same light global header as the
+   authenticated task shell; the app rail remains dark below it. */
+body:has(.clickup-workspace-home) .navbar.bg-dark-navy {
+    background: #ffffff !important;
+    border-bottom: 1px solid #ececf1 !important;
+    box-shadow: none !important;
+}
+
+body:has(.clickup-workspace-home) .navbar.bg-dark-navy .navbar-brand,
+body:has(.clickup-workspace-home) .navbar.bg-dark-navy .navbar-brand .text-white,
+body:has(.clickup-workspace-home) .navbar.bg-dark-navy .nav-link {
+    color: #1f1f21 !important;
+}
+
+body:has(.clickup-workspace-home) .navbar.bg-dark-navy .text-info {
+    color: #7c3aed !important;
+}
+
+body:has(.clickup-workspace-home) .navbar.bg-dark-navy .brand-icon {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+body:has(.clickup-workspace-home) .navbar-user-pill {
+    background: #ffffff !important;
+    border-color: #dedee5 !important;
+}
+
+body:has(.clickup-workspace-home) .navbar-user-pill .text-white {
+    color: #3f3f46 !important;
+}
+
+body:has(.clickup-workspace-home) .navbar-bell-btn {
+    background: #ffffff !important;
+    border-color: #dedee5 !important;
+}
+
+.clickup-legacy-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04);
+}
+
+.clickup-legacy-header h1,
+.clickup-legacy-header h2,
+.clickup-legacy-header h3,
+.clickup-legacy-header h4 {
+    margin-bottom: 2px !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -.02em;
+}
+
+.clickup-legacy-header .subnav-tabs-scroll {
+    background: #f1f5f9 !important;
+    border-color: #e2e8f0 !important;
+}
+
+.clickup-legacy-page .card {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(15,23,42,.04) !important;
+}
+
+.clickup-legacy-page .btn-primary-custom {
+    background: #18181b;
+    border-color: #18181b;
+    box-shadow: none;
+}
+
+.clickup-legacy-page .btn-primary-custom:hover {
+    background: #27272a;
+    border-color: #27272a;
+    transform: none;
+    box-shadow: 0 3px 8px rgba(15,23,42,.14);
+}
+
+.clickup-legacy-page .wiki-doc-item,
+.clickup-legacy-page .chat-bubble-other,
+.clickup-legacy-page .chat-bubble-me,
+.clickup-legacy-page .project-card {
+    border-radius: 10px !important;
+}
+
+@media (max-width: 768px) {
+    .clickup-legacy-page {
+        min-height: calc(100vh - 44px);
+        padding-right: 10px !important;
+        padding-left: 10px !important;
+    }
+
+    .clickup-legacy-header {
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .clickup-legacy-header > * {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .clickup-legacy-header > .border-start {
+        width: 100%;
+        border-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    .clickup-legacy-header .subnav-tabs-scroll {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+    }
+
+    .clickup-legacy-header .subnav-tabs-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .clickup-legacy-header .subnav-tabs-scroll > * {
+        flex: 0 0 auto;
+    }
+
+    .clickup-legacy-page .row {
+        --bs-gutter-x: .75rem;
+        --bs-gutter-y: .75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    body:has(.hero-scrolltelling) .navbar.bg-dark-navy .navbar-brand {
+        min-width: 0;
+        max-width: calc(100vw - 84px);
+        overflow: hidden;
+    }
+
+    body:has(.hero-scrolltelling) .navbar.bg-dark-navy .navbar-brand > span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body:has(.hero-scrolltelling) .hero-scrolltelling {
+        width: 100%;
+        min-width: 0;
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    body:has(.hero-scrolltelling) .hero-badge-pill {
+        max-width: 100%;
+        white-space: normal;
+        text-align: left;
+        line-height: 1.3;
+    }
+
+    body:has(.hero-scrolltelling) .hero-scrolltelling h1 {
+        width: 100%;
+        max-width: 100%;
+        font-size: clamp(2.2rem, 11vw, 3.4rem);
+        overflow-wrap: anywhere;
+    }
+
+    body:has(.hero-scrolltelling) .hero-scrolltelling .hero-subtitle {
+        width: 100%;
+        max-width: 100%;
+        font-size: 1rem;
+    }
+
+    body:has(.hero-scrolltelling) .hero-dashboard-peek {
+        width: 100%;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .clickup-legacy-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 10px 12px;
+    }
+
+    .clickup-legacy-header .subnav-tabs-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .clickup-legacy-page {
+        min-height: calc(100vh - 44px);
+    }
+}
+
+/* Homepage fold parity: ClickUp's current marketing layout uses a light canvas,
+   oversized dark headline and a high-contrast CTA above the product preview. */
+body:has(.hero-scrolltelling) {
+    background: #ffffff !important;
+    color: #1f1f21;
+}
+
+body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
+    background: #ffffff !important;
+    border-bottom: 1px solid #ececef !important;
+    box-shadow: none !important;
+}
+
+body:has(.hero-scrolltelling) .navbar.bg-dark-navy .navbar-brand,
+body:has(.hero-scrolltelling) .navbar.bg-dark-navy .navbar-brand .text-white,
+body:has(.hero-scrolltelling) .navbar.bg-dark-navy .nav-link {
+    color: #1f1f21 !important;
+}
+
+body:has(.hero-scrolltelling) .navbar.bg-dark-navy .text-info,
+body:has(.hero-scrolltelling) .navbar.bg-dark-navy .text-light {
+    color: #1f1f21 !important;
+}
+
+body:has(.hero-scrolltelling) .hero-scrolltelling {
+    min-height: 88vh;
+    padding-top: 4.75rem;
+    background: #ffffff;
+    color: #1f1f21;
+    background-image: radial-gradient(circle at 78% 15%, rgba(238, 232, 255, .58), transparent 28%),
+                      radial-gradient(circle at 12% 48%, rgba(224, 246, 255, .5), transparent 25%);
+}
+
+body:has(.hero-scrolltelling) .hero-badge-pill {
+    color: #3f3f46;
+    background: #ffffff;
+    border-color: #dedee5;
+    box-shadow: 0 2px 8px rgba(31,31,33,.05);
+}
+
+body:has(.hero-scrolltelling) .badge-pill-dot {
+    background: #7c3aed;
+    box-shadow: 0 0 8px rgba(124,58,237,.55);
+}
+
+body:has(.hero-scrolltelling) .hero-scrolltelling h1 {
+    max-width: 980px;
+    color: #1f1f21;
+    font-size: clamp(2.65rem, 6vw, 5rem);
+    line-height: 1.02;
+    text-shadow: none;
+}
+
+body:has(.hero-scrolltelling) .hero-scrolltelling h1 .text-gradient {
+    background: none;
+    -webkit-text-fill-color: initial;
+    color: #69717c;
+}
+
+body:has(.hero-scrolltelling) .hero-scrolltelling .hero-subtitle {
+    color: #69717c;
+    max-width: 700px;
+}
+
+body:has(.hero-scrolltelling) .btn-hero-cta {
+    background: #1f1f21;
+    border-color: #1f1f21;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+body:has(.hero-scrolltelling) .btn-hero-cta:hover {
+    background: #3b3b40;
+    box-shadow: 0 8px 20px rgba(31,31,33,.18);
+}
+
+body:has(.hero-scrolltelling) .hero-dashboard-peek img,
+body:has(.hero-scrolltelling) .hero-screenshot-natural {
+    border-color: #dedee5 !important;
+    background: #ffffff;
+    box-shadow: 0 -8px 35px rgba(31,31,33,.08), 0 20px 45px rgba(31,31,33,.12);
+}
+
+@media (max-width: 768px) {
+    body:has(.hero-scrolltelling) .hero-badge-pill {
+        display: flex;
+        width: min(100%, 340px);
+        max-width: calc(100vw - 32px);
+        box-sizing: border-box;
+        justify-content: center;
+        padding: .45rem .7rem;
+        font-size: .72rem;
+    }
+
+    body:has(.hero-scrolltelling) .hero-scrolltelling h1 {
+        width: min(100%, 350px);
+        max-width: calc(100vw - 28px);
+        margin-right: auto;
+        margin-left: auto;
+        font-size: 1.9rem !important;
+        line-height: 1.08;
+        overflow-wrap: normal;
+        word-break: normal;
+        text-wrap: balance;
+    }
+
+    body:has(.hero-scrolltelling) .hero-scrolltelling .hero-subtitle {
+        width: min(100%, 350px);
+        max-width: calc(100vw - 28px);
+        font-size: .98rem;
+        line-height: 1.55;
+    }
+
+    body:has(.hero-scrolltelling) .hero-dashboard-peek {
+        max-width: calc(100vw - 28px);
+        margin-right: auto;
+        margin-left: auto;
     }
 }
 
@@ -3448,6 +4179,78 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
+.clickup-activity-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.clickup-activity-search-wrap {
+    position: relative;
+    flex: 1 1 250px;
+    min-width: 200px;
+}
+
+.clickup-activity-search-wrap > i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.clickup-activity-search {
+    width: 100%;
+    height: 34px;
+    padding: 0 12px 0 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    color: #1e293b;
+    font-size: .8rem;
+    outline: none;
+}
+
+.clickup-activity-search:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(59,130,246,.1);
+}
+
+.clickup-activity-filters select {
+    width: auto;
+    min-width: 155px;
+    height: 34px;
+    font-size: .78rem;
+    border-color: #e2e8f0;
+}
+
+.clickup-activity-filters #activityMineFilter.active {
+    color: #ffffff;
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.activity-filter-count {
+    color: #64748b;
+    font-size: .75rem;
+    margin-left: auto;
+}
+
+.activity-item.activity-hidden { display: none !important; }
+
+@media (max-width: 576px) {
+    .clickup-activity-filters { align-items: stretch; }
+    .clickup-activity-search-wrap,
+    .clickup-activity-filters select,
+    .clickup-activity-filters #activityMineFilter { flex: 1 1 100%; width: 100%; }
+    .activity-filter-count { width: 100%; margin-left: 0; }
+}
+
 /* =========================================================================
    14. ClickUp 3.0 Interactive Status Dots, Inline Rows & Subtask Chevrons
    ========================================================================= */
@@ -3665,4 +4468,138 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .clickup-group-add-btn:hover {
     background-color: rgba(0, 0, 0, 0.08);
     color: #0f172a;
-}
+}
+
+/* Ctrl/Cmd+K command palette: compact, keyboard-first navigation like ClickUp. */
+.clickup-command-palette {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: clamp(64px, 12vh, 120px) 16px 24px;
+    background: rgba(15, 23, 42, .42);
+    backdrop-filter: blur(4px);
+}
+
+.clickup-command-palette.show { display: flex; }
+
+.clickup-command-dialog {
+    width: min(620px, 100%);
+    max-height: min(680px, calc(100vh - 150px));
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, .24);
+    animation: clickupCommandIn .16s ease-out;
+}
+
+@keyframes clickupCommandIn {
+    from { opacity: 0; transform: translateY(-8px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.clickup-command-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.clickup-command-search > i { color: #7c3aed; font-size: 1rem; }
+
+.clickup-command-search input {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    outline: 0;
+    color: #0f172a;
+    font-size: .92rem;
+    font-weight: 500;
+}
+
+.clickup-command-search input::placeholder { color: #94a3b8; }
+
+.clickup-command-search kbd,
+.clickup-command-footer kbd,
+.clickup-command-item kbd {
+    border: 1px solid #dbe3ee;
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    padding: 1px 5px;
+    background: #f8fafc;
+    color: #64748b;
+    font-family: inherit;
+    font-size: .66rem;
+    font-weight: 700;
+}
+
+.clickup-command-heading {
+    padding: 10px 16px 6px;
+    color: #94a3b8;
+    font-size: .68rem;
+    font-weight: 750;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.clickup-command-results {
+    max-height: min(500px, calc(100vh - 250px));
+    overflow-y: auto;
+    padding: 4px 8px 10px;
+}
+
+.clickup-command-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #334155;
+    text-align: left;
+    cursor: pointer;
+}
+
+.clickup-command-item:hover,
+.clickup-command-item:focus-visible {
+    outline: 0;
+    background: #f5f3ff;
+    color: #4c1d95;
+}
+
+.clickup-command-item > i {
+    width: 24px;
+    color: #7c3aed;
+    text-align: center;
+    font-size: .95rem;
+}
+
+.clickup-command-item span { min-width: 0; flex: 1; }
+.clickup-command-item strong,
+.clickup-command-item small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.clickup-command-item strong { font-size: .82rem; font-weight: 650; }
+.clickup-command-item small { margin-top: 2px; color: #94a3b8; font-size: .7rem; }
+.clickup-command-item kbd { flex: 0 0 auto; min-width: 20px; text-align: center; }
+.clickup-command-empty { padding: 28px 16px; color: #94a3b8; font-size: .82rem; text-align: center; }
+
+.clickup-command-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 16px;
+    border-top: 1px solid #eef2f7;
+    color: #94a3b8;
+    font-size: .68rem;
+}
+
+@media (max-width: 576px) {
+    .clickup-command-palette { padding: 48px 10px 16px; }
+    .clickup-command-dialog { border-radius: 12px; }
+    .clickup-command-footer { font-size: .62rem; }
+}

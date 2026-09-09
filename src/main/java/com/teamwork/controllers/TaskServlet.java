@@ -437,7 +437,7 @@ public class TaskServlet extends HttpServlet {
             currentView = "tasks";
         }
 
-        // Chế độ xem task (taskView: list hoặc board)
+        // Chế độ xem task; giữ lại cả các view lịch khi reload.
         String taskView = request.getParameter("taskView");
         if (taskView == null || taskView.trim().isEmpty()) {
             // Đọc Cookie preferred_task_view nếu có
@@ -449,12 +449,12 @@ public class TaskServlet extends HttpServlet {
                     }
                 }
             }
-            if (taskView == null || (!"board".equals(taskView) && !"list".equals(taskView))) {
+            if (taskView == null || !isSupportedTaskView(taskView)) {
                 taskView = "list"; // Mặc định mở List View phân cấp chuẩn ClickUp
             }
         } else {
             taskView = taskView.trim().toLowerCase();
-            if (!"board".equals(taskView) && !"list".equals(taskView)) {
+            if (!isSupportedTaskView(taskView)) {
                 taskView = "list";
             }
             // Lưu Cookie preferred_task_view (hạn 30 ngày)
@@ -509,6 +509,13 @@ public class TaskServlet extends HttpServlet {
 
         // 10. Forward sang giao diện tasks.jsp
         request.getRequestDispatcher("/tasks.jsp").forward(request, response);
+    }
+
+    private boolean isSupportedTaskView(String taskView) {
+        return "list".equals(taskView)
+                || "board".equals(taskView)
+                || "calendar".equals(taskView)
+                || "timeline".equals(taskView);
     }
 
     /**
@@ -1236,7 +1243,7 @@ public class TaskServlet extends HttpServlet {
                             "Phân Công Nhiệm Vụ Mới",
                             "Bạn vừa được Trưởng Dự Án phân công làm Task Lead cho công việc [" + task.getTitle() + "].",
                             "/task?action=list&projectId=" + projectId,
-                            "TASK"
+                            "TASK_ASSIGNED"
                         );
                     }
                 }
@@ -1383,7 +1390,7 @@ public class TaskServlet extends HttpServlet {
                             "🟡 Báo cáo nộp việc con",
                             currentUser.getFullName() + " vừa nộp kết quả việc con [" + st.getTitle() + "], mời bạn nghiệm thu!",
                             "/task?action=list&projectId=" + projectId,
-                            "bi-hourglass-split text-warning"
+                            "PROGRESS"
                         );
                     }
 
@@ -1456,7 +1463,7 @@ public class TaskServlet extends HttpServlet {
                             "🟢 Nghiệm thu ĐẠT",
                             "Việc con [" + st.getTitle() + "] của bạn đã được Leader duyệt đạt 100%!",
                             "/task?action=list&projectId=" + projectId,
-                            "bi-check-circle-fill text-success"
+                            "PROGRESS"
                         );
                     }
 
@@ -1508,7 +1515,7 @@ public class TaskServlet extends HttpServlet {
                             "🔵 Yêu cầu cân chỉnh việc con",
                             "Leader dặn dò: \"" + (feedbackNote != null ? feedbackNote : "Cần cân chỉnh một số chi tiết") + "\" đối với việc con [" + st.getTitle() + "]",
                             "/task?action=list&projectId=" + projectId,
-                            "bi-pencil-square text-primary"
+                            "COMMENT"
                         );
                     }
 
@@ -1559,7 +1566,7 @@ public class TaskServlet extends HttpServlet {
                             "🔴 Việc con chưa đạt yêu cầu",
                             "Leader phản hồi lỗi: \"" + (feedbackNote != null ? feedbackNote : "Chưa đạt yêu cầu đề ra") + "\" đối với việc con [" + st.getTitle() + "]",
                             "/task?action=list&projectId=" + projectId,
-                            "bi-exclamation-triangle-fill text-danger"
+                            "PROGRESS"
                         );
                     }
 
@@ -1663,7 +1670,7 @@ public class TaskServlet extends HttpServlet {
                         "🟡 Bàn giao Task lớn",
                         currentUser.getFullName() + " vừa nộp báo cáo bàn giao Task [" + task.getTitle() + "] kèm tệp đính kèm, kính mời PM nghiệm thu!",
                         "/task?action=list&projectId=" + projectId,
-                        "bi-box-seam-fill text-warning"
+                        "PROGRESS"
                     );
                 }
 
@@ -1726,7 +1733,7 @@ public class TaskServlet extends HttpServlet {
                         "🟣 Trình Kế Hoạch Phân Rã Việc Con",
                         currentUser.getFullName() + " vừa trình kế hoạch phân rã " + subTasks.size() + " việc con cho Task [" + task.getTitle() + "], kính mời PM xem xét và khóa kế hoạch!",
                         "/task?action=list&projectId=" + projectId,
-                        "bi-diagram-3-fill text-primary"
+                        "PROGRESS"
                     );
                 }
 
@@ -1779,7 +1786,7 @@ public class TaskServlet extends HttpServlet {
                         "🔒 PM Đã Phê Duyệt & Khóa Kế Hoạch",
                         "Trưởng Dự Án đã duyệt ma trận phân rã " + (subTasks != null ? subTasks.size() : 0) + " việc con của Task [" + task.getTitle() + "]. Kế hoạch đã khóa (Scope Lock), đội ngũ bắt tay thực thi!",
                         "/task?action=list&projectId=" + projectId,
-                        "bi-lock-fill text-success"
+                        "PROGRESS"
                     );
                 }
 
@@ -1830,7 +1837,7 @@ public class TaskServlet extends HttpServlet {
                         "↩️ PM Yêu Cầu Chỉnh Sửa Kế Hoạch",
                         "Trưởng Dự Án yêu cầu bổ sung kế hoạch Task [" + task.getTitle() + "]: \"" + (feedback != null ? feedback : "Cần bóc tách thêm việc con") + "\"",
                         "/task?action=list&projectId=" + projectId,
-                        "bi-arrow-counterclockwise text-warning"
+                        "COMMENT"
                     );
                 }
 
@@ -1899,7 +1906,7 @@ public class TaskServlet extends HttpServlet {
                         "🏆 PM Phê Duyệt Nghiệm Thu (" + qualityRating + " ⭐)",
                         "Trưởng Dự Án đã chính thức ký duyệt nghiệm thu hoàn tất 100% và chấm " + qualityRating + " sao cho Task [" + task.getTitle() + "]!",
                         "/task?action=list&projectId=" + projectId,
-                        "bi-trophy-fill text-warning"
+                        "PROGRESS"
                     );
                 }
 
@@ -1953,7 +1960,7 @@ public class TaskServlet extends HttpServlet {
                         "🔵 PM Yêu Cầu Cân Chỉnh",
                         "Trưởng Dự Án dặn dò: \"" + (feedback != null ? feedback : "Cần cân chỉnh thêm một số chi tiết") + "\" đối với Task [" + task.getTitle() + "]",
                         "/task?action=list&projectId=" + projectId,
-                        "bi-pencil-square text-primary"
+                        "COMMENT"
                     );
                 }
 
@@ -2003,7 +2010,7 @@ public class TaskServlet extends HttpServlet {
                         "🔴 PM Chưa Đạt Yêu Cầu",
                         "Trưởng Dự Án phản hồi lỗi: \"" + (feedback != null ? feedback : "Chưa đạt chuẩn đề ra") + "\" đối với Task [" + task.getTitle() + "]",
                         "/task?action=list&projectId=" + projectId,
-                        "bi-exclamation-triangle-fill text-danger"
+                        "PROGRESS"
                     );
                 }
 

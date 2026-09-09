@@ -31,10 +31,10 @@
                                 href="${pageContext.request.contextPath}/styles/login.css?v=<%= System.currentTimeMillis() %>">
         </head>
 
-        <body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <body class="clickup-login-page" style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
 
             <%-- Navbar nhỏ gọn: chỉ Brand + tên trường, không có menu đăng nhập --%>
-                <nav class="navbar navbar-dark py-2 shadow-sm"
+                <nav class="navbar navbar-dark login-topbar py-2 shadow-sm"
                     style="background-color: #0f172a; border-bottom: 1px solid #1e293b;">
                     <div class="container-fluid px-4">
                         <a class="navbar-brand d-flex align-items-center fw-bold"
@@ -104,8 +104,11 @@
 
                                         <%-- Card Header --%>
                                             <div class="login-card-header">
-                                                <h3>Đăng Nhập</h3>
-                                                <p>Nhập tài khoản để truy cập hệ thống</p>
+                                                <div class="clickup-login-mark" aria-hidden="true">
+                                                    <i class="bi bi-grid-1x2-fill"></i>
+                                                </div>
+                                                <h3>Welcome back!</h3>
+                                                <p>Đăng nhập để tiếp tục làm việc cùng TeamWork Hub</p>
                                             </div>
 
                                             <%-- Thông báo thành công (sau khi Đăng ký) --%>
@@ -149,6 +152,21 @@
                                                             <%-- ═══════ TAB 1: FORM ĐĂNG NHẬP ═══════ --%>
                                                                 <div class="login-tab-pane ${activeTab != 'register' ? 'active' : ''}"
                                                                     id="pane-login">
+                                                                    <div class="login-top-signup">
+                                                                        <span>Chưa có tài khoản?</span>
+                                                                        <a href="javascript:void(0)" onclick="switchTab('register')">Đăng ký</a>
+                                                                    </div>
+                                                                    <div class="clickup-auth-providers" aria-label="Phương thức đăng nhập nhanh">
+                                                                        <button type="button" class="clickup-auth-provider">
+                                                                            <i class="bi bi-google text-danger"></i>
+                                                                            <span>Tiếp tục sử dụng dịch vụ bằng Google</span>
+                                                                        </button>
+                                                                        <button type="button" class="clickup-auth-provider">
+                                                                            <i class="bi bi-cloud-check"></i>
+                                                                            <span>Continue with SSO</span>
+                                                                        </button>
+                                                                        <div class="clickup-auth-divider"><span>or</span></div>
+                                                                    </div>
                                                                     <form
                                                                         action="${pageContext.request.contextPath}/auth"
                                                                         method="post" autocomplete="off">
