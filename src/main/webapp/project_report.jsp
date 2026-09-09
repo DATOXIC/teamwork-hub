@@ -53,10 +53,11 @@
                         class="btn btn-primary-custom btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-2 text-white">
                         <i class="bi bi-printer-fill"></i> In Báo Cáo / Lưu PDF
                     </button>
-                    <button type="button" onclick="exportTasksToCSV()"
-                        class="btn btn-outline-success btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-2">
-                        <i class="bi bi-file-earmark-spreadsheet-fill"></i> Xuất CSV
-                    </button>
+                    <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}"
+                        class="btn btn-outline-success btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-2"
+                        title="Tải toàn bộ danh sách công việc của dự án ra file Excel (.csv chuẩn UTF-8 BOM)">
+                        <i class="bi bi-file-earmark-spreadsheet-fill"></i> Xuất Excel (.csv)
+                    </a>
                     <a href="${pageContext.request.contextPath}/project?action=list"
                         class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold fs-8"
                         title="Về danh sách dự án">

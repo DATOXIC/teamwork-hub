@@ -31,6 +31,10 @@
                     <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-dock-item ${currentView == 'docs' ? 'active' : ''}" title="Tài liệu dự án">
                         <i class="bi bi-journal-text"></i>
                     </a>
+                    <!-- Activity Log -->
+                    <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" class="clickup-dock-item ${currentView == 'activity' ? 'active' : ''}" title="Nhật ký hoạt động dự án">
+                        <i class="bi bi-clock-history"></i>
+                    </a>
                     <!-- Quả chuông thông báo (Mở Inbox Slide-over Drawer) -->
                     <a href="javascript:void(0)" class="clickup-dock-item position-relative" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" title="Hộp thư thông báo (Inbox)">
                         <i class="bi bi-bell-fill text-warning"></i>
@@ -241,16 +245,33 @@
                                 <i class="bi bi-calendar-event"></i> Schedule
                             </a>
                         </li>
+                        <li>
+                            <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" class="clickup-tab-link ${currentView == 'activity' ? 'active' : ''}" id="tab-btn-activity">
+                                <i class="bi bi-clock-history"></i> Hoạt động
+                                <c:if test="${not empty activityLogs}">
+                                    <span class="badge bg-light text-secondary border rounded-pill fs-9 ms-1">${activityLogs.size()}</span>
+                                </c:if>
+                            </a>
+                        </li>
                     </ul>
 
-                    <!-- View Switcher (List vs Board) -->
-                    <div class="clickup-view-switcher" id="taskViewSwitcher">
-                        <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
-                            <i class="bi bi-list-ul"></i> List
-                        </button>
-                        <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
-                            <i class="bi bi-kanban"></i> Board
-                        </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- View Switcher (List vs Board) -->
+                        <div class="clickup-view-switcher" id="taskViewSwitcher">
+                            <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
+                                <i class="bi bi-list-ul"></i> List
+                            </button>
+                            <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
+                                <i class="bi bi-kanban"></i> Board
+                            </button>
+                        </div>
+                        <!-- Nút Xuất Excel (.csv UTF-8 BOM) -->
+                        <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
+                           class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-2 shadow-2xs text-nowrap"
+                           title="Tải toàn bộ danh sách công việc của dự án về máy tính (.csv chuẩn UTF-8 BOM)">
+                            <i class="bi bi-file-earmark-excel-fill text-success fs-8"></i>
+                            <span class="fs-8">Xuất Excel</span>
+                        </a>
                     </div>
                 </div>
 
@@ -1499,7 +1520,90 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div><!-- /clickup-view-schedule -->
+
+            <!-- =========================================================================
+                 CLICKUP VIEW: ACTIVITY LOG & AUDIT TRAIL (DÒNG THỜI GIAN LỊCH SỬ HOẠT ĐỘNG)
+                 ========================================================================= -->
+            <div id="clickup-view-activity" class="clickup-view-pane ${currentView == 'activity' ? '' : 'd-none'}">
+                <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0 fs-7">
+                            <i class="bi bi-clock-history me-1 text-primary"></i> Nhật Ký Hoạt Động (Project Activity Log & Audit Trail)
+                        </h6>
+                        <span class="fs-9 text-muted">Dòng thời gian ghi nhận tự động mọi biến động tạo task, chuyển trạng thái, nghiệm thu và tài liệu của dự án</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
+                           class="btn btn-sm btn-light border text-success rounded-pill px-3 py-1 fs-9 fw-semibold shadow-2xs d-flex align-items-center gap-1"
+                           title="Xuất danh sách công việc ra file Excel (.csv chuẩn UTF-8)">
+                            <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i>
+                            <span>Xuất Excel</span>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fs-9" onclick="switchClickUpTab('tasks')">
+                            <i class="bi bi-arrow-left me-1"></i> Trở về Bảng công việc
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden">
+                    <div class="card-header bg-white border-bottom py-2.5 px-3 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fs-9 fw-semibold">
+                                <i class="bi bi-activity me-1"></i> ${activityLogs.size()} hoạt động gần nhất
+                            </span>
+                            <span class="fs-9 text-muted">• Ghi vết tự động bảo toàn lịch sử</span>
+                        </div>
+                    </div>
+                    <div class="card-body p-3 p-md-4">
+                        <c:choose>
+                            <c:when test="${empty activityLogs}">
+                                <div class="text-center py-5 text-muted">
+                                    <div class="avatar-circle-lg bg-light text-secondary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                                        <i class="bi bi-clock-history fs-2 opacity-50"></i>
+                                    </div>
+                                    <h6 class="fw-semibold text-dark fs-7 mb-1">Chưa có lịch sử hoạt động nào</h6>
+                                    <p class="fs-9 text-muted mb-0">Các thao tác tạo việc, chuyển trạng thái, duyệt nghiệm thu hoặc tải tài liệu sẽ tự động xuất hiện tại đây.</p>
+                                </div>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="activity-timeline position-relative ps-4 ps-md-4">
+                                    <div class="activity-timeline-line position-absolute start-0 top-0 bottom-0 ms-3 border-start border-2 border-light-subtle"></div>
+                                    <c:forEach items="${activityLogs}" var="act">
+                                        <div class="activity-item position-relative mb-3 pb-2">
+                                            <div class="activity-badge-dot position-absolute start-0 translate-middle-x rounded-circle d-flex align-items-center justify-content-center bg-white shadow-2xs border" style="left: -16px; top: 4px; width: 30px; height: 30px; z-index: 2;">
+                                                <i class="bi ${act.iconClass} fs-8"></i>
+                                            </div>
+                                            <div class="activity-content-box bg-light-subtle rounded-3 p-2.5 border ms-3 shadow-2xs hover-shadow-xs transition">
+                                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="avatar-circle-xs bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-9" style="width: 22px; height: 22px;">
+                                                            ${not empty act.userName ? act.userName.substring(0, 1).toUpperCase() : 'U'}
+                                                        </span>
+                                                        <span class="fw-semibold text-dark fs-8">${act.userName}</span>
+                                                        <span class="badge ${act.badgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                                            ${act.actionLabel}
+                                                        </span>
+                                                    </div>
+                                                    <span class="fs-9 text-muted d-flex align-items-center gap-1" title="${act.createdAt}">
+                                                        <i class="bi bi-clock"></i> ${act.timeAgo}
+                                                    </span>
+                                                </div>
+                                                <div class="fs-8 text-dark mt-1">
+                                                    <c:if test="${not empty act.targetTitle}">
+                                                        <span class="fw-semibold text-primary">#${act.targetTitle}</span> — 
+                                                    </c:if>
+                                                    <span class="text-secondary">${act.description}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+            </div><!-- /clickup-view-activity -->
 
         </div><!-- /clickup-workspace-body -->
     </main><!-- /clickup-main-panel -->

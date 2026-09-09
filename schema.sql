@@ -29,6 +29,7 @@
 -- ==========================================
 -- DROP (theo thứ tự phụ thuộc ngược — bảng con trước, bảng cha sau)
 -- ==========================================
+DROP TABLE IF EXISTS activity_logs    CASCADE;
 DROP TABLE IF EXISTS notifications    CASCADE;
 DROP TABLE IF EXISTS task_docs        CASCADE;
 DROP TABLE IF EXISTS messages         CASCADE;
@@ -483,6 +484,39 @@ COMMENT ON COLUMN notifications.recipient_id IS 'CASCADE: xóa user thì xóa to
 COMMENT ON COLUMN notifications.link         IS 'Deep-link URL: bấm vào chuyển thẳng đến Task/Dự án';
 
 
+-- ============================================================
+-- BẢNG 12: activity_logs  (Nhật ký hoạt động & Audit Trail dự án)
+-- Truy vấn chính: lấy dòng thời gian hoạt động của dự án theo thời gian mới nhất
+-- ============================================================
+CREATE TABLE activity_logs (
+    id           SERIAL       PRIMARY KEY,
+    project_id   INT          NOT NULL,
+    user_id      INT,
+    action_type  VARCHAR(50)  NOT NULL,
+    target_type  VARCHAR(50)  NOT NULL DEFAULT 'TASK',
+    target_id    INT          NOT NULL DEFAULT 0,
+    target_title VARCHAR(255) NOT NULL DEFAULT '',
+    description  TEXT         NOT NULL DEFAULT '',
+    created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+    -- Xóa Project → xóa toàn bộ log hoạt động của dự án (CASCADE)
+    CONSTRAINT fk_activity_project
+        FOREIGN KEY (project_id) REFERENCES projects (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    -- Xóa User → giữ lại log và gán user_id = NULL (SET NULL) để bảo toàn lịch sử
+    CONSTRAINT fk_activity_user
+        FOREIGN KEY (user_id) REFERENCES users (id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE INDEX idx_activity_logs_project ON activity_logs (project_id, created_at DESC);
+CREATE INDEX idx_activity_logs_user    ON activity_logs (user_id);
+
+COMMENT ON TABLE  activity_logs              IS 'Dòng thời gian nhật ký hoạt động / Audit trail chuẩn ClickUp 3.0';
+COMMENT ON COLUMN activity_logs.action_type  IS 'TASK_CREATE, STATUS_CHANGE, TASK_SUBMIT, PM_APPROVE, PM_REVISE, PM_REJECT, DOC_CREATE';
+
+
 -- =============================================================================
 -- BẢO MẬT: BẬT ROW LEVEL SECURITY (RLS) CHO TOÀN BỘ CÁC BẢNG
 -- Mục đích: Khóa toàn bộ các API HTTP công khai (PostgREST / anon key) của Supabase.
@@ -492,6 +526,7 @@ ALTER TABLE users           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE project_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE project_invites ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subtasks        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE labels          ENABLE ROW LEVEL SECURITY;

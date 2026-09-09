@@ -39,6 +39,12 @@ import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.http.HttpSession;
 import com.teamwork.business.UserWorkload;
+import com.teamwork.business.ActivityLog;
+import com.teamwork.data.ActivityLogDB;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Controller phụ trách Bảng công việc Kanban (Tasks Module) & Cây Phân Cấp Việc Con (Sub-tasks):
@@ -133,6 +139,10 @@ public class TaskServlet extends HttpServlet {
 
             case "delete":
                 handleDeleteTask(request, response, projectId);
+                break;
+
+            case "exportCsv":
+                handleExportCsv(request, response, projectId);
                 break;
 
             default:
@@ -463,6 +473,8 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("unreadNotifCount", unreadNotifCount);
         request.setAttribute("userNotifications", userNotifications);
         request.setAttribute("projectChatMessages", projectChatMessages);
+        List<ActivityLog> activityLogs = ActivityLogDB.selectByProjectId(projectId, 60);
+        request.setAttribute("activityLogs", activityLogs);
         request.setAttribute("currentView", currentView);
         request.setAttribute("taskView", taskView);
         request.setAttribute("activeNav", "projects");
@@ -501,6 +513,84 @@ public class TaskServlet extends HttpServlet {
 
         // Xóa xong -> Redirect về lại bảng Kanban của dự án
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 2.5: Xuất toàn bộ danh sách công việc của dự án ra file CSV chuẩn UTF-8 BOM.
+     * UTF-8 BOM (\uFEFF) giúp Microsoft Excel trên Windows tự động nhận diện tiếng Việt có dấu 100% không bị vỡ font.
+     */
+    private void handleExportCsv(HttpServletRequest request, HttpServletResponse response, int projectId)
+            throws IOException {
+        Project project = ProjectDB.selectById(projectId);
+        String projectCode = (project != null && project.getProjectCode() != null && !project.getProjectCode().trim().isEmpty())
+                ? project.getProjectCode().trim().replaceAll("[^a-zA-Z0-9.-]", "_")
+                : ("project-" + projectId);
+
+        List<Task> taskList = TaskDB.selectByProjectId(projectId);
+
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        String filename = "teamwork-tasks-" + projectCode.toLowerCase() + ".csv";
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+        // Ghi mã byte UTF-8 BOM (0xEF, 0xBB, 0xBF)
+        OutputStream os = response.getOutputStream();
+        os.write(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
+
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
+
+        // Dòng tiêu đề các cột chuẩn
+        writer.println("Mã công việc,Tiêu đề công việc,Mô tả tóm tắt,Trạng thái,Mức ưu tiên,Người phụ trách,Hạn chót,Số việc con,Tiến độ hoàn thành (%),Ngày nộp bàn giao,Ngày duyệt");
+
+        for (Task t : taskList) {
+            List<SubTask> subs = SubTaskDB.selectByTaskId(t.getId());
+            int subCount = (subs != null) ? subs.size() : 0;
+            int doneSubs = 0;
+            if (subs != null) {
+                for (SubTask st : subs) {
+                    if ("DONE".equalsIgnoreCase(st.getStatus()) || "APPROVED".equalsIgnoreCase(st.getStatus())) {
+                        doneSubs++;
+                    }
+                }
+            }
+            int progress = subCount > 0 ? (int) Math.round(((double) doneSubs / subCount) * 100) : ("DONE".equalsIgnoreCase(t.getStatus()) || "APPROVED".equalsIgnoreCase(t.getStatus()) ? 100 : 0);
+
+            String statusLabel = t.getStatus();
+            if ("TODO".equalsIgnoreCase(statusLabel)) statusLabel = "Cần làm";
+            else if ("PLANNING".equalsIgnoreCase(statusLabel)) statusLabel = "Lập kế hoạch";
+            else if ("IN_PROGRESS".equalsIgnoreCase(statusLabel)) statusLabel = "Đang làm";
+            else if ("SUBMITTED".equalsIgnoreCase(statusLabel)) statusLabel = "Chờ duyệt";
+            else if ("REVISE".equalsIgnoreCase(statusLabel)) statusLabel = "Cần chỉnh sửa";
+            else if ("REJECTED".equalsIgnoreCase(statusLabel)) statusLabel = "Bị từ chối";
+            else if ("DONE".equalsIgnoreCase(statusLabel) || "APPROVED".equalsIgnoreCase(statusLabel)) statusLabel = "Hoàn thành";
+
+            String priorityLabel = t.getPriority();
+            if ("HIGH".equalsIgnoreCase(priorityLabel)) priorityLabel = "Cao";
+            else if ("MEDIUM".equalsIgnoreCase(priorityLabel)) priorityLabel = "Trung bình";
+            else if ("LOW".equalsIgnoreCase(priorityLabel)) priorityLabel = "Thấp";
+
+            writer.println(
+                csvCell("#" + t.getId()) + "," +
+                csvCell(t.getTitle()) + "," +
+                csvCell(t.getDescription()) + "," +
+                csvCell(statusLabel) + "," +
+                csvCell(priorityLabel) + "," +
+                csvCell(t.getAssigneeName()) + "," +
+                csvCell(t.getDueDate()) + "," +
+                subCount + "," +
+                progress + "%," +
+                csvCell(t.getSubmittedAt()) + "," +
+                csvCell(t.getReviewedAt())
+            );
+        }
+
+        writer.flush();
+    }
+
+    private static String csvCell(String value) {
+        if (value == null) return "\"\"";
+        String clean = value.replace("\r\n", " ").replace("\n", " ").replace("\r", " ").replace("\"", "\"\"");
+        return "\"" + clean + "\"";
     }
 
     /**
@@ -598,6 +688,11 @@ public class TaskServlet extends HttpServlet {
 
         int newTaskId = TaskDB.insert(newTask);
 
+        // Ghi nhận Activity Log
+        User curUser = getCurrentUser(request);
+        int curUserId = curUser != null ? curUser.getId() : 0;
+        ActivityLogDB.logAsync(projectId, curUserId, "TASK_CREATE", "TASK", newTaskId, newTask.getTitle(), "Tạo công việc mới: " + newTask.getTitle());
+
         if (selectedDocIds != null && selectedDocIds.length > 0) {
             for (String docIdStr : selectedDocIds) {
                 int docId = safeParseInt(docIdStr, 0);
@@ -678,6 +773,15 @@ public class TaskServlet extends HttpServlet {
                 }
 
                 TaskDB.updateStatus(taskId, status);
+
+                // Ghi nhận Activity Log
+                User curUser = getCurrentUser(request);
+                int curUserId = curUser != null ? curUser.getId() : 0;
+                String actionDesc = "Chuyển trạng thái sang: " + status;
+                if ("DONE".equalsIgnoreCase(status)) actionDesc = "Đã hoàn tất toàn bộ công việc";
+                else if ("IN_PROGRESS".equalsIgnoreCase(status)) actionDesc = "Bắt đầu thực hiện công việc";
+                else if ("TODO".equalsIgnoreCase(status)) actionDesc = "Chuyển về danh mục Cần làm";
+                ActivityLogDB.logAsync(projectId, curUserId, "STATUS_CHANGE", "TASK", taskId, task.getTitle(), actionDesc);
 
                 if ("DONE".equalsIgnoreCase(status) && session != null) {
                     session.setAttribute("toastSuccess", "🎉 Chúc mừng! Thẻ công việc đã được hoàn tất thành công.");
@@ -1374,6 +1478,9 @@ public class TaskServlet extends HttpServlet {
 
                 TaskDB.submitTaskDeliverable(taskId, finalNote, deliverableFile.trim(), now);
 
+                // Ghi nhận Activity Log
+                ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu kèm tệp [" + deliverableFile.trim() + "] lên PM");
+
                 // Bắn thông báo thời gian thực 🔔 cho Trưởng Dự Án (PM)
                 if (project.getOwnerId() > 0 && project.getOwnerId() != currentUser.getId()) {
                     NotificationDB.send(
@@ -1606,6 +1713,10 @@ public class TaskServlet extends HttpServlet {
 
                 TaskDB.pmApproveTask(taskId, feedback, qualityRating, now);
 
+                // Ghi nhận Activity Log
+                String approveDesc = "PM đã phê duyệt nghiệm thu (" + qualityRating + " ⭐): " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Đạt chất lượng xuất sắc!");
+                ActivityLogDB.logAsync(projectId, currentUser.getId(), "PM_APPROVE", "TASK", taskId, task.getTitle(), approveDesc);
+
                 // Bắn thông báo thời gian thực 🔔 cho Task Lead
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(
@@ -1657,6 +1768,10 @@ public class TaskServlet extends HttpServlet {
 
                 TaskDB.pmReviseTask(taskId, feedback, now);
 
+                // Ghi nhận Activity Log
+                String reviseDesc = "PM yêu cầu cân chỉnh nhỏ: " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Cần hoàn thiện thêm chi tiết");
+                ActivityLogDB.logAsync(projectId, currentUser.getId(), "PM_REVISE", "TASK", taskId, task.getTitle(), reviseDesc);
+
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(
                         task.getAssigneeId(),
@@ -1702,6 +1817,10 @@ public class TaskServlet extends HttpServlet {
                 String now = LocalDateTime.now().format(formatter);
 
                 TaskDB.pmRejectTask(taskId, feedback, now);
+
+                // Ghi nhận Activity Log
+                String rejectDesc = "PM từ chối nghiệm thu: " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Chưa đạt yêu cầu đề ra");
+                ActivityLogDB.logAsync(projectId, currentUser.getId(), "PM_REJECT", "TASK", taskId, task.getTitle(), rejectDesc);
 
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(

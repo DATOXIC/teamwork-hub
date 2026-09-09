@@ -2846,4 +2846,43 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .clickup-modal-title-input::placeholder {
     color: #94a3b8 !important;
     font-weight: 500 !important;
+}
+
+/* =========================================================================
+   CLICKUP 3.0 ACTIVITY LOG & AUDIT TRAIL TIMELINE
+   ========================================================================= */
+.activity-timeline {
+    position: relative;
+}
+
+.activity-timeline-line {
+    width: 2px;
+    background-color: #e2e8f0;
+    left: -1px;
+}
+
+.activity-item {
+    position: relative;
+}
+
+.activity-item:last-child .activity-content-box {
+    margin-bottom: 0;
+}
+
+.activity-content-box {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.activity-content-box:hover {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+}
+
+.activity-badge-dot {
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }

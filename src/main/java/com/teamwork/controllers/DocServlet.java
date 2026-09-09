@@ -10,6 +10,7 @@ import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectMemberDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
+import com.teamwork.data.ActivityLogDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -301,6 +302,9 @@ public class DocServlet extends HttpServlet {
         );
 
         int newDocId = DocDB.insert(newDoc);
+
+        // Ghi nhật ký hoạt động dự án
+        ActivityLogDB.logAsync(projectId, currentUser.getId(), "DOC_CREATE", "DOC", newDocId, newDoc.getTitle(), "Đã tải lên tài liệu mới: " + newDoc.getTitle());
 
         if (session != null) {
             session.setAttribute("toastSuccess", "Đã tạo tài liệu mới thành công!");
