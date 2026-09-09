@@ -4,26 +4,26 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * JavaBean Model Ä‘áº¡i diá»‡n cho má»™t NhÃ£n phÃ¢n loáº¡i (Label / Tag) trong há»‡ thá»‘ng Kanban.
- * Má»—i Label thuá»™c vá» má»™t Project cá»¥ thá»ƒ vÃ  cÃ³ mÃ u sáº¯c, biá»ƒu tÆ°á»£ng (icon) tÃ¹y biáº¿n.
+ * JavaBean Model dai dien cho mot Nhan phan loai (Label / Tag) trong he thong Kanban.
+ * Moi Label thuoc ve mot Project cu the va co mau sac, bieu tuong (icon) tuy bien.
  * 
- * Ãp dá»¥ng nguyÃªn táº¯c Backend Code Mastery:
- * - Dá»¯ liá»‡u báº¥t biáº¿n Ä‘Æ°á»£c validate cháº·t cháº½ (name, colorKey, icon).
- * - Cung cáº¥p cÃ¡c helper methods an toÃ n cho táº§ng View (JSTL / JSP).
+ * Ap dung nguyen tac Backend Code Mastery:
+ * - Du lieu bat bien duoc validate chat che (name, colorKey, icon).
+ * - Cung cap cac helper methods an toan cho tang View (JSTL / JSP).
  */
 public class Label implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // ===================== CÃC THUá»˜C TÃNH =====================
+    // ===================== CAC THUOC TINH =====================
 
-    private int id;             // KhÃ³a chÃ­nh Ä‘á»‹nh danh nhÃ£n
-    private int projectId;      // Thuá»™c dá»± Ã¡n nÃ o (KhÃ³a ngoáº¡i trá» Ä‘áº¿n Project.id)
-    private String name;        // TÃªn nhÃ£n hiá»ƒn thá»‹ (vÃ­ dá»¥: "Bug", "Hotfix", "UI/UX", "Security")
-    private String colorKey;    // MÃ£ mÃ u: "red", "blue", "purple", "amber", "green", "pink", "cyan", "slate"
-    private String icon;        // Biá»ƒu tÆ°á»£ng Bootstrap Icons (vÃ­ dá»¥: "bi-tag-fill", "bi-bug-fill")
+    private int id;             // Khoa chinh dinh danh nhan
+    private int projectId;      // Thuoc du an nao (Khoa ngoai tro den Project.id)
+    private String name;        // Ten nhan hien thi (vi du: "Bug", "Hotfix", "UI/UX", "Security")
+    private String colorKey;    // Ma mau: "red", "blue", "purple", "amber", "green", "pink", "cyan", "slate"
+    private String icon;        // Bieu tuong Bootstrap Icons (vi du: "bi-tag-fill", "bi-bug-fill")
 
-    // ===================== CONSTRUCTOR Máº¶C Äá»ŠNH =====================
+    // ===================== CONSTRUCTOR Máº¶C Ä á»ŠNH =====================
 
     public Label() {
         this.id = 0;
@@ -85,10 +85,10 @@ public class Label implements Serializable {
         this.icon = (icon != null && !icon.trim().isEmpty()) ? icon.trim() : "bi-tag-fill";
     }
 
-    // ===================== CÃC HELPER METHODS CHO VIEW (JSP/JSTL) =====================
+    // ===================== CAC HELPER METHODS CHO VIEW (JSP/JSTL) =====================
 
     /**
-     * Tráº£ vá» CSS class badge Bootstrap tÆ°Æ¡ng á»©ng vá»›i mÃ£ mÃ u Ä‘Ã£ chá»n
+     * Tra ve CSS class badge Bootstrap tuong ung voi ma mau da chon
      */
     public String getBadgeClass() {
         if (colorKey == null) return "bg-primary-subtle text-primary border border-primary-subtle";
@@ -114,7 +114,7 @@ public class Label implements Serializable {
     }
 
     /**
-     * Tráº£ vá» mÃ£ mÃ u Hex Ä‘áº¡i diá»‡n Ä‘á»ƒ dÃ¹ng khi váº½ Color Picker hoáº·c cháº¥m mÃ u
+     * Tra ve ma mau Hex dai dien de dung khi ve Color Picker hoac cham mau
      */
     public String getColorHex() {
         if (colorKey == null) return "#3b82f6";
@@ -132,20 +132,20 @@ public class Label implements Serializable {
     }
 
     /**
-     * TÃªn mÃ u sáº¯c hiá»ƒn thá»‹ báº±ng Tiáº¿ng Viá»‡t
+     * Tên màu sắc hiển thị bằng Tiếng Việt
      */
     public String getColorDisplayName() {
-        if (colorKey == null) return "Xanh dÆ°Æ¡ng";
+        if (colorKey == null) return "Xanh d\u01B0\u01A1ng";
         switch (colorKey.toLowerCase()) {
-            case "red":    return "Äá» Coral";
-            case "blue":   return "Xanh DÆ°Æ¡ng";
-            case "purple": return "TÃ­m Pastel";
-            case "amber":  return "VÃ ng Há»• PhÃ¡ch";
-            case "green":  return "Xanh LÃ¡";
-            case "pink":   return "Há»“ng";
-            case "cyan":   return "Xanh Ngá»c";
+            case "red":    return "\u0110\u1ECF Coral";
+            case "blue":   return "Xanh D\u01B0\u01A1ng";
+            case "purple": return "T\u00EDm Pastel";
+            case "amber":  return "V\u00E0ng H\u1ED5 Ph\u00E1ch";
+            case "green":  return "Xanh L\u00E1";
+            case "pink":   return "H\u1ED3ng";
+            case "cyan":   return "Xanh Ng\u1ECDc";
             case "slate":
-            default:       return "XÃ¡m Slate";
+            default:       return "X\u00E1m Slate";
         }
     }
 

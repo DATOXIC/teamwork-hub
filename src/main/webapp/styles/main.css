@@ -2885,4 +2885,207 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .activity-badge-dot {
     background-color: #ffffff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================================================
+   14. ClickUp 3.0 Interactive Status Dots, Inline Rows & Subtask Chevrons
+   ========================================================================= */
+
+/* A. Interactive Status Dots */
+.clickup-status-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    user-select: none;
+}
+
+.clickup-status-dot:hover {
+    transform: scale(1.22);
+}
+
+.clickup-status-dot.dot-todo {
+    border: 2px dashed #94a3b8;
+    background: transparent;
+}
+.clickup-status-dot.dot-todo:hover {
+    border-color: #64748b;
+    background-color: rgba(148, 163, 184, 0.15);
+}
+
+.clickup-status-dot.dot-inprog {
+    border: 2px solid #3b82f6;
+    background: transparent;
+}
+.clickup-status-dot.dot-inprog::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+}
+.clickup-status-dot.dot-inprog:hover {
+    background-color: rgba(59, 130, 246, 0.15);
+}
+
+.clickup-status-dot.dot-done {
+    border: 2px solid #10b981;
+    background-color: #10b981;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: bold;
+}
+.clickup-status-dot.dot-done:hover {
+    background-color: #059669;
+    border-color: #059669;
+}
+
+/* Status Popover Dropdown */
+.clickup-status-dropdown-menu {
+    min-width: 190px;
+    background: #ffffff;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.18), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    animation: clickupDropdownFade 0.15s ease-out;
+    z-index: 1070;
+    position: absolute;
+    display: none;
+}
+
+.clickup-status-dropdown-menu.show {
+    display: block;
+}
+
+@keyframes clickupDropdownFade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.clickup-status-dropdown-menu .dropdown-item {
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: all 0.12s ease;
+    cursor: pointer;
+}
+.clickup-status-dropdown-menu .dropdown-item:hover {
+    background-color: #f1f5f9;
+}
+
+/* B. Subtask Caret */
+.subtask-caret {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+}
+.subtask-caret:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+.subtask-caret i {
+    transition: transform 0.15s ease;
+}
+.subtask-caret.is-expanded i {
+    transform: rotate(90deg);
+}
+
+/* C. Parent Task Hover Add Subtask Button */
+.task-hover-add-subtask-btn {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.15s ease;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    margin-left: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
+.clickup-task-row:hover .task-hover-add-subtask-btn {
+    opacity: 1;
+    visibility: visible;
+}
+.task-hover-add-subtask-btn:hover {
+    background-color: #3b82f6;
+    color: #ffffff;
+    border-color: #3b82f6;
+}
+
+/* D. Inline Quick Creation Rows */
+.clickup-inline-create-row,
+.clickup-inline-subtask-row {
+    background-color: #f8fafc;
+    border-top: 1px dashed #cbd5e1;
+    border-bottom: 1px dashed #cbd5e1;
+    animation: clickupRowSlideDown 0.18s ease-out;
+}
+@keyframes clickupRowSlideDown {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.clickup-inline-create-row td,
+.clickup-inline-subtask-row td {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    vertical-align: middle;
+}
+
+.clickup-inline-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    padding: 4px 10px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    width: 100%;
+    color: #0f172a;
+    transition: all 0.15s ease;
+}
+.clickup-inline-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
+    outline: none;
+}
+
+.clickup-group-add-btn {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.75rem;
+}
+.clickup-group-add-btn:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #0f172a;
 }

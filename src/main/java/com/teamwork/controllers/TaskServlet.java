@@ -197,6 +197,14 @@ public class TaskServlet extends HttpServlet {
                 handleUpdateTaskStatus(request, response);
                 break;
 
+            case "quickAddParentTask":
+                handleQuickAddParentTask(request, response);
+                break;
+
+            case "quickAddSubTask":
+                handleQuickAddSubTask(request, response);
+                break;
+
             case "addSubTask":
                 handleAddSubTask(request, response);
                 break;
@@ -452,6 +460,20 @@ public class TaskServlet extends HttpServlet {
             response.addCookie(viewCookie);
         }
 
+        // 8.11. Đọc Cookie preferred_subtask_mode nếu có (mặc định: collapsed)
+        String subtaskMode = "collapsed";
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+                if ("preferred_subtask_mode".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                    subtaskMode = c.getValue().trim().toLowerCase();
+                    break;
+                }
+            }
+        }
+        if (!"expanded".equals(subtaskMode) && !"hidden".equals(subtaskMode)) {
+            subtaskMode = "collapsed";
+        }
+
         // 9. Đóng gói dữ liệu gửi sang tasks.jsp
         request.setAttribute("project", project);
         request.setAttribute("todoTasks", todoTasks);
@@ -477,6 +499,7 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("activityLogs", activityLogs);
         request.setAttribute("currentView", currentView);
         request.setAttribute("taskView", taskView);
+        request.setAttribute("subtaskMode", subtaskMode);
         request.setAttribute("activeNav", "projects");
 
         // 10. Forward sang giao diện tasks.jsp
@@ -720,6 +743,7 @@ public class TaskServlet extends HttpServlet {
         if (newStatus == null || newStatus.trim().isEmpty()) {
             newStatus = request.getParameter("status");
         }
+        boolean isAjax = isAjaxRequest(request);
 
         if (taskId > 0 && projectId > 0 && newStatus != null && !newStatus.trim().isEmpty()) {
             Task task = TaskDB.selectById(taskId);
@@ -734,10 +758,12 @@ public class TaskServlet extends HttpServlet {
 
                     // Ràng buộc 1: Bắt buộc phải có Người phụ trách (Task Lead)
                     if (task.getAssigneeId() <= 0) {
-                        if (session != null) {
-                            session.setAttribute("toastError", 
-                                "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.");
+                        String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.";
+                        if (isAjax) {
+                            sendJsonResponse(response, false, errMsg, null);
+                            return;
                         }
+                        if (session != null) session.setAttribute("toastError", errMsg);
                         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                         return;
                     }
@@ -745,10 +771,12 @@ public class TaskServlet extends HttpServlet {
                     // Ràng buộc 2: Bắt buộc phải có danh mục Việc con (Sub-tasks) đã phân rã
                     List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                     if (subTasks == null || subTasks.isEmpty()) {
-                        if (session != null) {
-                            session.setAttribute("toastError", 
-                                "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Chưa có danh mục việc con. Vui lòng tạo ít nhất 1 việc con (Sub-task) để lập kế hoạch trước khi bắt đầu thực hiện.");
+                        String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Chưa có danh mục việc con. Vui lòng tạo ít nhất 1 việc con (Sub-task) để lập kế hoạch trước khi bắt đầu thực hiện.";
+                        if (isAjax) {
+                            sendJsonResponse(response, false, errMsg, null);
+                            return;
                         }
+                        if (session != null) session.setAttribute("toastError", errMsg);
                         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                         return;
                     }
@@ -763,10 +791,12 @@ public class TaskServlet extends HttpServlet {
                     String taskTitle = task.getTitle();
 
                     if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
-                        if (session != null) {
-                            session.setAttribute("toastError", 
-                                "⚠️ Không thể đánh dấu hoàn thành Task [" + taskTitle + "]! Vẫn còn việc con chưa hoàn tất (Tiến độ: " + progress + "%). Hãy hoàn thành và nghiệm thu đủ 100% việc con trước.");
+                        String errMsg = "⚠️ Không thể đánh dấu hoàn thành Task [" + taskTitle + "]! Vẫn còn việc con chưa hoàn tất (Tiến độ: " + progress + "%). Hãy hoàn thành và nghiệm thu đủ 100% việc con trước.";
+                        if (isAjax) {
+                            sendJsonResponse(response, false, errMsg, null);
+                            return;
                         }
+                        if (session != null) session.setAttribute("toastError", errMsg);
                         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                         return;
                     }
@@ -783,12 +813,25 @@ public class TaskServlet extends HttpServlet {
                 else if ("TODO".equalsIgnoreCase(status)) actionDesc = "Chuyển về danh mục Cần làm";
                 ActivityLogDB.logAsync(projectId, curUserId, "STATUS_CHANGE", "TASK", taskId, task.getTitle(), actionDesc);
 
-                if ("DONE".equalsIgnoreCase(status) && session != null) {
-                    session.setAttribute("toastSuccess", "🎉 Chúc mừng! Thẻ công việc đã được hoàn tất thành công.");
-                } else if ("IN_PROGRESS".equalsIgnoreCase(status) && session != null) {
-                    session.setAttribute("toastSuccess", "🚀 Bắt đầu thực hiện công việc [" + task.getTitle() + "] thành công!");
+                String toastSuccessMsg = "DONE".equalsIgnoreCase(status) ? "🎉 Chúc mừng! Thẻ công việc đã được hoàn tất thành công."
+                        : ("IN_PROGRESS".equalsIgnoreCase(status) ? "🚀 Bắt đầu thực hiện công việc [" + task.getTitle() + "] thành công!"
+                        : "Đã chuyển công việc về danh mục Cần làm.");
+
+                if (isAjax) {
+                    sendJsonResponse(response, true, toastSuccessMsg, "{\"taskId\":" + taskId + ",\"newStatus\":\"" + escapeJson(status) + "\"}");
+                    return;
                 }
+
+                if (session != null) {
+                    session.setAttribute("toastSuccess", toastSuccessMsg);
+                }
+            } else if (isAjax) {
+                sendJsonResponse(response, false, "Không tìm thấy công việc tương ứng trong dự án!", null);
+                return;
             }
+        } else if (isAjax) {
+            sendJsonResponse(response, false, "Dữ liệu yêu cầu không hợp lệ!", null);
+            return;
         }
 
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
@@ -904,8 +947,13 @@ public class TaskServlet extends HttpServlet {
         int projectId = safeParseInt(request.getParameter("projectId"), 0);
         int subTaskId = safeParseInt(request.getParameter("subTaskId"), 0);
         boolean isCompleted = Boolean.parseBoolean(request.getParameter("completed"));
+        boolean isAjax = isAjaxRequest(request);
 
         if (projectId <= 0 || subTaskId <= 0) {
+            if (isAjax) {
+                sendJsonResponse(response, false, "Dữ liệu yêu cầu không hợp lệ!", null);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -952,7 +1000,19 @@ public class TaskServlet extends HttpServlet {
                     Message systemMessage = new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", notificationText, now);
                     MessageDB.insert(systemMessage);
                 }
+
+                if (isAjax) {
+                    String msg = isCompleted ? "Đã đánh dấu hoàn thành việc con!" : "Đã chuyển việc con về cần làm.";
+                    sendJsonResponse(response, true, msg, "{\"subTaskId\":" + subTaskId + ",\"parentTaskId\":" + st.getTaskId() + ",\"isCompleted\":" + isCompleted + ",\"newProgress\":" + newProgress + ",\"parentStatus\":\"" + escapeJson(parentTask.getStatus()) + "\"}");
+                    return;
+                }
+            } else if (isAjax) {
+                sendJsonResponse(response, false, "Bạn không có quyền thao tác trên việc con này!", null);
+                return;
             }
+        } else if (isAjax) {
+            sendJsonResponse(response, false, "Không tìm thấy việc con tương ứng!", null);
+            return;
         }
 
         // Áp dụng PRG: Redirect về lại bảng Kanban
@@ -1945,6 +2005,237 @@ public class TaskServlet extends HttpServlet {
      */
     private boolean canReviewSubTask(User user, Task parentTask, Project project) {
         return isTaskLead(user, parentTask) || (parentTask != null && parentTask.getAssigneeId() == 0 && isProjectOwner(user, project));
+    }
+
+    /**
+     * Nghiệp vụ AJAX: Tạo nhanh Task lớn trực tiếp từ dòng inline của nhóm (List View)
+     */
+    private void handleQuickAddParentTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        String title = request.getParameter("title");
+        String status = request.getParameter("status");
+        String priority = request.getParameter("priority");
+        String dueDate = request.getParameter("dueDate");
+        int assigneeId = safeParseInt(request.getParameter("assigneeId"), 0);
+
+        if (projectId <= 0 || title == null || title.trim().isEmpty()) {
+            sendJsonResponse(response, false, "Tiêu đề công việc không được để trống!", null);
+            return;
+        }
+
+        User currentUser = getCurrentUser(request);
+        if (currentUser == null || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            sendJsonResponse(response, false, "Bạn không có quyền thao tác trong dự án này!", null);
+            return;
+        }
+
+        if (status == null || status.trim().isEmpty()) {
+            status = "TODO";
+        }
+        status = status.trim().toUpperCase();
+        if (!"TODO".equals(status) && !"IN_PROGRESS".equals(status) && !"DONE".equals(status)) {
+            status = "TODO";
+        }
+
+        if (priority == null || priority.trim().isEmpty()) {
+            priority = "MEDIUM";
+        }
+        priority = priority.trim().toUpperCase();
+        if (!"HIGH".equals(priority) && !"MEDIUM".equals(priority) && !"LOW".equals(priority)) {
+            priority = "MEDIUM";
+        }
+
+        String assigneeName = "Chưa phân công";
+        if (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) {
+            User u = UserDB.selectById(assigneeId);
+            if (u != null) {
+                assigneeName = u.getFullName();
+            } else {
+                assigneeId = 0;
+            }
+        } else {
+            assigneeId = 0;
+        }
+
+        String cleanDueDate = (dueDate != null && !dueDate.trim().isEmpty()) ? dueDate.trim() : "";
+
+        Task newTask = new Task(
+            0,
+            projectId,
+            title.trim(),
+            "",
+            status,
+            priority,
+            cleanDueDate,
+            assigneeId,
+            assigneeName,
+            "",
+            "",
+            "",
+            "",
+            "",
+            5,
+            "",
+            ""
+        );
+
+        int newTaskId = TaskDB.insert(newTask);
+        if (newTaskId <= 0) {
+            sendJsonResponse(response, false, "Lỗi khi lưu công việc vào cơ sở dữ liệu!", null);
+            return;
+        }
+        newTask.setId(newTaskId);
+
+        // Ghi nhận Activity Log
+        ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_CREATE", "TASK", newTaskId, newTask.getTitle(), "Tạo nhanh công việc: " + newTask.getTitle());
+
+        String dataJson = String.format(
+            "{\"id\":%d,\"projectId\":%d,\"title\":\"%s\",\"status\":\"%s\",\"priority\":\"%s\",\"dueDate\":\"%s\",\"assigneeId\":%d,\"assigneeName\":\"%s\"}",
+            newTask.getId(),
+            projectId,
+            escapeJson(newTask.getTitle()),
+            escapeJson(newTask.getStatus()),
+            escapeJson(newTask.getPriority()),
+            escapeJson(newTask.getDueDate()),
+            newTask.getAssigneeId(),
+            escapeJson(newTask.getAssigneeName())
+        );
+
+        sendJsonResponse(response, true, "Đã tạo nhanh công việc thành công!", dataJson);
+    }
+
+    /**
+     * Nghiệp vụ AJAX: Tạo nhanh Việc con (Subtask) trực tiếp dưới Task cha (List View)
+     */
+    private void handleQuickAddSubTask(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        int taskId = safeParseInt(request.getParameter("taskId"), 0);
+        String title = request.getParameter("title");
+        String dueDateParam = request.getParameter("dueDate");
+        String subDueDate = (dueDateParam != null) ? dueDateParam.trim() : "";
+        int assigneeId = safeParseInt(request.getParameter("assigneeId"), 0);
+
+        if (projectId <= 0 || taskId <= 0 || title == null || title.trim().isEmpty()) {
+            sendJsonResponse(response, false, "Tiêu đề việc con không được để trống!", null);
+            return;
+        }
+
+        User currentUser = getCurrentUser(request);
+        if (currentUser == null || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            sendJsonResponse(response, false, "Bạn không có quyền thao tác trong dự án này!", null);
+            return;
+        }
+
+        Task parentTask = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+        if (parentTask == null || parentTask.getProjectId() != projectId) {
+            sendJsonResponse(response, false, "Không tìm thấy công việc cha!", null);
+            return;
+        }
+
+        if (!isTaskLead(currentUser, parentTask) && !isProjectOwner(currentUser, project)) {
+            sendJsonResponse(response, false, "Bạn không có quyền phân rã việc con cho Task này!", null);
+            return;
+        }
+
+        if (!"TODO".equalsIgnoreCase(parentTask.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(parentTask.getStatus())) {
+            sendJsonResponse(response, false, "Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm việc con mới!", null);
+            return;
+        }
+
+        String assigneeName = "Chưa phân công";
+        if (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) {
+            User u = UserDB.selectById(assigneeId);
+            if (u != null) {
+                assigneeName = u.getFullName();
+            } else {
+                assigneeId = 0;
+            }
+        } else {
+            assigneeId = 0;
+        }
+
+        SubTask newSubTask = new SubTask(
+            0,
+            taskId,
+            title.trim(),
+            assigneeId,
+            assigneeName,
+            "TODO",
+            subDueDate,
+            "",
+            "",
+            "",
+            ""
+        );
+        int subId = SubTaskDB.insert(newSubTask);
+        if (subId <= 0) {
+            sendJsonResponse(response, false, "Lỗi khi lưu việc con vào cơ sở dữ liệu!", null);
+            return;
+        }
+        newSubTask.setId(subId);
+
+        // Ghi nhận Activity Log
+        ActivityLogDB.logAsync(projectId, currentUser.getId(), "SUBTASK_CREATE", "SUBTASK", subId, newSubTask.getTitle(), "Thêm việc con: " + newSubTask.getTitle() + " cho Task #" + taskId);
+
+        String dataJson = String.format(
+            "{\"id\":%d,\"taskId\":%d,\"title\":\"%s\",\"status\":\"%s\",\"dueDate\":\"%s\",\"assigneeId\":%d,\"assigneeName\":\"%s\"}",
+            newSubTask.getId(),
+            newSubTask.getTaskId(),
+            escapeJson(newSubTask.getTitle()),
+            escapeJson(newSubTask.getStatus()),
+            escapeJson(newSubTask.getDueDate()),
+            newSubTask.getAssigneeId(),
+            escapeJson(newSubTask.getAssigneeName())
+        );
+
+        sendJsonResponse(response, true, "Đã thêm việc con thành công!", dataJson);
+    }
+
+    /**
+     * Nhận diện request AJAX từ Fetch API, XMLHttpRequest hoặc cờ ajax=true
+     */
+    private boolean isAjaxRequest(HttpServletRequest request) {
+        String xReq = request.getHeader("X-Requested-With");
+        String accept = request.getHeader("Accept");
+        String ajaxParam = request.getParameter("ajax");
+        return "XMLHttpRequest".equalsIgnoreCase(xReq)
+                || "true".equalsIgnoreCase(ajaxParam)
+                || (accept != null && accept.contains("application/json"));
+    }
+
+    /**
+     * Gửi phản hồi chuẩn JSON cho các tương tác Single-Page không reload
+     */
+    private void sendJsonResponse(HttpServletResponse response, boolean success, String message, String dataJson) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"success\":").append(success);
+        if (message != null) {
+            sb.append(",\"message\":\"").append(escapeJson(message)).append("\"");
+        }
+        if (dataJson != null && !dataJson.trim().isEmpty()) {
+            sb.append(",\"data\":").append(dataJson);
+        }
+        sb.append("}");
+        response.getWriter().write(sb.toString());
+    }
+
+    /**
+     * Escape ký tự đặc biệt cho chuỗi JSON an toàn
+     */
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\b", "\\b")
+                .replace("\f", "\\f")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }
 

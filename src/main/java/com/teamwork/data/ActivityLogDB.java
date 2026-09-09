@@ -16,13 +16,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Táº§ng Data Access Object (DAO): Quáº£n lÃ½ lÆ°u váº¿t vÃ  truy váº¥n Nháº­t kÃ½ hoáº¡t Ä‘á»™ng (Activity Log).
- * TÆ°Æ¡ng thÃ­ch HikariCP vÃ  Supabase PostgreSQL.
+ * Tang Data Access Object (DAO): Quan ly luu vet va truy van Nhat ky hoat dong (Activity Log).
+ * Tuong thich HikariCP va Supabase PostgreSQL.
  * 
- * Ãp dá»¥ng nguyÃªn táº¯c Backend Code Mastery:
- * - Äáº£m báº£o tÃ­nh sáºµn sÃ ng cao (High Availability): Báº£ng tá»± Ä‘á»™ng táº¡o náº¿u chÆ°a tá»“n táº¡i.
- * - Non-blocking: Ghi log cÃ³ cÆ¡ cháº¿ an toÃ n tuyá»‡t Ä‘á»‘i, lá»—i ghi log khÃ´ng lÃ m giÃ¡n Ä‘oáº¡n transaction chÃ­nh.
- * - TrÃ¡nh n+1 query: JOIN báº£ng users láº¥y tÃªn vÃ  avatar trong 1 truy váº¥n duy nháº¥t.
+ * Ap dung nguyen tac Backend Code Mastery:
+ * - Dam bao tinh san sang cao (High Availability): Bang tu dong tao neu chua ton tai.
+ * - Non-blocking: Ghi log co co che an toan tuyet doi, loi ghi log khong lam gian doan transaction chinh.
+ * - Tranh n+1 query: JOIN bang users lay ten va avatar trong 1 truy van duy nhat.
  */
 public class ActivityLogDB {
 
@@ -31,7 +31,7 @@ public class ActivityLogDB {
     private static volatile boolean tableVerified = false;
 
     /**
-     * Tá»± Ä‘á»™ng khá»Ÿi táº¡o báº£ng activity_logs vÃ  index náº¿u chÆ°a tá»“n táº¡i trÃªn PostgreSQL.
+     * Tu dong khoi tao bang activity_logs va index neu chua ton tai tren PostgreSQL.
      */
     public static synchronized void ensureTableExists() {
         if (tableVerified) return;
@@ -55,21 +55,21 @@ public class ActivityLogDB {
              Statement stmt = conn.createStatement()) {
             stmt.execute(ddl);
             tableVerified = true;
-            LOGGER.info("ActivityLogDB: Báº£ng activity_logs Ä‘Ã£ sáºµn sÃ ng.");
+            LOGGER.info("ActivityLogDB: Bang activity_logs da san sang.");
         } catch (SQLException e) {
-            LOGGER.log(Level.WARNING, "Lá»—i khi kiá»ƒm tra/táº¡o báº£ng activity_logs", e);
+            LOGGER.log(Level.WARNING, "Loi khi kiem tra hoac tao bang activity_logs", e);
         }
     }
 
     static {
-        // Tá»± Ä‘á»™ng kiá»ƒm tra schema khi náº¡p class
+        // Tu dong kiem tra schema khi nap class
         try {
             ensureTableExists();
         } catch (Exception ignored) {}
     }
 
     /**
-     * Ghi nháº­n má»™t hÃ nh Ä‘á»™ng hoáº¡t Ä‘á»™ng vÃ o nháº­t kÃ½ dá»± Ã¡n (Synchronous an toÃ n).
+     * Ghi nhan mot hanh dong hoat dong vao nhat ky du an (Synchronous an toan).
      */
     public static void log(int projectId, int userId, String actionType,
                            String targetType, int targetId, String targetTitle, String description) {
@@ -96,13 +96,13 @@ public class ActivityLogDB {
 
             ps.executeUpdate();
         } catch (Exception e) {
-            // KhÃ´ng bao giá» Ä‘á»ƒ lá»—i log lÃ m crash luá»“ng chÃ­nh
-            LOGGER.log(Level.WARNING, "KhÃ´ng thá»ƒ ghi activity log cho projectId=" + projectId, e);
+            // Khong bao gio de loi log lam crash luong chinh
+            LOGGER.log(Level.WARNING, "Khong the ghi activity log cho projectId=" + projectId, e);
         }
     }
 
     /**
-     * Ghi nháº­n hoáº¡t Ä‘á»™ng cháº¡y ná»n báº¥t Ä‘á»“ng bá»™ (Non-blocking) Ä‘á»ƒ tá»‘i Æ°u Ä‘á»™ trá»… request.
+     * Ghi nhan hoat dong chay nen bat dong bo (Non-blocking) de toi uu do tre request.
      */
     public static void logAsync(int projectId, int userId, String actionType,
                                 String targetType, int targetId, String targetTitle, String description) {
@@ -110,15 +110,15 @@ public class ActivityLogDB {
             try {
                 log(projectId, userId, actionType, targetType, targetId, targetTitle, description);
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Lá»—i khi ghi async activity log", e);
+                LOGGER.log(Level.WARNING, "Loi khi ghi async activity log", e);
             }
         });
     }
 
     /**
-     * Láº¥y danh sÃ¡ch lá»‹ch sá»­ hoáº¡t Ä‘á»™ng má»›i nháº¥t cá»§a má»™t dá»± Ã¡n.
-     * @param projectId ID cá»§a dá»± Ã¡n
-     * @param limit Sá»‘ lÆ°á»£ng báº£n ghi tá»‘i Ä‘a (vÃ­ dá»¥ 50)
+     * Lay danh sach lich su hoat dong moi nhat cua mot du an.
+     * @param projectId ID cua du an
+     * @param limit So luong ban ghi toi da (vi du 50)
      */
     public static List<ActivityLog> selectByProjectId(int projectId, int limit) {
         List<ActivityLog> list = new ArrayList<>();
@@ -128,7 +128,7 @@ public class ActivityLogDB {
         int maxRows = limit > 0 ? limit : 50;
         String sql = 
             "SELECT a.id, a.project_id, a.user_id, " +
-            "       COALESCE(u.fullname, 'ThÃ nh viÃªn') AS user_name, " +
+            "       COALESCE(u.full_name, '') AS user_name, " +
             "       COALESCE(u.avatar, '') AS user_avatar, " +
             "       a.action_type, a.target_type, a.target_id, a.target_title, a.description, " +
             "       to_char(a.created_at, 'DD/MM/YYYY HH24:MI') AS created_at_str, " +
@@ -168,7 +168,7 @@ public class ActivityLogDB {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lá»—i khi láº¥y danh sÃ¡ch ActivityLog cho projectId=" + projectId, e);
+            LOGGER.log(Level.SEVERE, "Loi khi lay danh sach ActivityLog cho projectId=" + projectId, e);
         }
         return list;
     }

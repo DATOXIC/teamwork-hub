@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * JavaBean Model Ä‘áº¡i diá»‡n cho má»™t báº£n ghi Nháº­t kÃ½ Hoáº¡t Ä‘á»™ng (Activity Log / Audit Trail).
- * LÆ°u váº¿t tá»± Ä‘á»™ng cÃ¡c sá»± kiá»‡n: táº¡o task, chuyá»ƒn tráº¡ng thÃ¡i, PM phÃª duyá»‡t/yÃªu cáº§u sá»­a, thÃªm tÃ i liá»‡u...
+ * JavaBean Model dai dien cho mot ban ghi Nhat ky Hoat dong (Activity Log / Audit Trail).
+ * Luu vet tu dong cac su kien: tao task, chuyen trang thai, PM phe duyet/yeu cau sua, them tai lieu...
  */
 public class ActivityLog implements Serializable {
 
@@ -17,19 +17,19 @@ public class ActivityLog implements Serializable {
     private int userId;
     private String userName;
     private String userAvatar;
-    private String actionType;      // TASK_CREATE, STATUS_CHANGE, TASK_SUBMIT, PM_APPROVE, PM_REVISE, PM_REJECT, DOC_CREATE
-    private String targetType;      // TASK, DOC, MEMBER, PROJECT
+    private String actionType;      // TASK_CREATE, STATUS_CHANGE, TASK_SUBMIT, PM_APPROVE, PM_REVISE, PM_REJECT, DOC_CREATE, SUBTASK_CREATE
+    private String targetType;      // TASK, DOC, MEMBER, PROJECT, SUBTASK
     private int targetId;
     private String targetTitle;
     private String description;
-    private String createdAt;       // Chuá»—i Ä‘á»‹nh dáº¡ng ngÃ y giá» dd/MM/yyyy HH:mm
-    private Timestamp rawCreatedAt; // Timestamp gá»‘c tá»« database Ä‘á»ƒ tÃ­nh toÃ¡n thá»i gian tÆ°Æ¡ng Ä‘á»‘i
+    private String createdAt;       // Chuoi dinh dang ngay gio dd/MM/yyyy HH:mm
+    private Timestamp rawCreatedAt; // Timestamp goc tu database de tinh toan thoi gian tuong doi
 
     public ActivityLog() {
         this.id = 0;
         this.projectId = 0;
         this.userId = 0;
-        this.userName = "Há»‡ thá»‘ng";
+        this.userName = "H\u1EC7 th\u1ED1ng";
         this.userAvatar = "";
         this.actionType = "";
         this.targetType = "TASK";
@@ -45,7 +45,7 @@ public class ActivityLog implements Serializable {
         this.id = id;
         this.projectId = projectId;
         this.userId = userId;
-        this.userName = userName != null && !userName.trim().isEmpty() ? userName : "ThÃ nh viÃªn";
+        this.userName = (userName != null && !userName.trim().isEmpty()) ? userName.trim() : "Th\u00E0nh vi\u00EAn";
         this.userAvatar = userAvatar != null ? userAvatar : "";
         this.actionType = actionType != null ? actionType : "";
         this.targetType = targetType != null ? targetType : "TASK";
@@ -56,15 +56,15 @@ public class ActivityLog implements Serializable {
         this.rawCreatedAt = rawCreatedAt;
     }
 
-    // ===================== CÃC HÃ€M TIá»†N ÃCH UI =====================
+    // ===================== CAC HAM TIEN ICH UI =====================
 
     /**
-     * TÃ­nh thá»i gian tÆ°Æ¡ng Ä‘á»‘i thÃ¢n thiá»‡n (Relative Time) phong cÃ¡ch ClickUp:
-     * "Vá»«a xong", "5 phÃºt trÆ°á»›c", "2 giá» trÆ°á»›c", "HÃ´m qua lÃºc HH:mm", "dd/MM/yyyy HH:mm".
+     * Tinh thoi gian tuong doi than thien (Relative Time) phong cach ClickUp:
+     * "Vua xong", "5 phut truoc", "2 gio truoc", "Hom qua luc HH:mm", "dd/MM/yyyy HH:mm".
      */
     public String getTimeAgo() {
         if (rawCreatedAt == null) {
-            return createdAt != null ? createdAt : "Vá»«a xong";
+            return (createdAt != null && !createdAt.trim().isEmpty()) ? createdAt : "V\u1EEBa xong";
         }
         try {
             LocalDateTime createdTime = rawCreatedAt.toLocalDateTime();
@@ -73,33 +73,33 @@ public class ActivityLog implements Serializable {
 
             long seconds = duration.getSeconds();
             if (seconds < 60) {
-                return "Vá»«a xong";
+                return "V\u1EEBa xong";
             }
             long minutes = duration.toMinutes();
             if (minutes < 60) {
-                return minutes + " phÃºt trÆ°á»›c";
+                return minutes + " ph\u00FAt tr\u01B0\u1EDBc";
             }
             long hours = duration.toHours();
             if (hours < 24) {
-                return hours + " giá» trÆ°á»›c";
+                return hours + " gi\u1EDD tr\u01B0\u1EDBc";
             }
             long days = duration.toDays();
             if (days == 1) {
                 DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
-                return "HÃ´m qua lÃºc " + createdTime.format(timeFmt);
+                return "H\u00F4m qua l\u00FAc " + createdTime.format(timeFmt);
             }
             if (days < 7) {
-                return days + " ngÃ y trÆ°á»›c";
+                return days + " ng\u00E0y tr\u01B0\u1EDBc";
             }
             DateTimeFormatter fullFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
             return createdTime.format(fullFmt);
         } catch (Exception e) {
-            return createdAt;
+            return (createdAt != null) ? createdAt : "V\u1EEBa xong";
         }
     }
 
     /**
-     * Tráº£ vá» class Bootstrap badge phÃ¢n loáº¡i theo hÃ nh Ä‘á»™ng
+     * Tra ve class Bootstrap badge phan loai theo hanh dong
      */
     public String getBadgeClass() {
         if (actionType == null) return "bg-secondary text-white";
@@ -118,13 +118,15 @@ public class ActivityLog implements Serializable {
                 return "bg-danger-subtle text-danger border border-danger-subtle";
             case "DOC_CREATE":
                 return "bg-purple-subtle text-primary border border-primary-subtle";
+            case "SUBTASK_CREATE":
+                return "bg-info-subtle text-info border border-info-subtle";
             default:
                 return "bg-secondary-subtle text-secondary border border-secondary-subtle";
         }
     }
 
     /**
-     * Tráº£ vá» Bootstrap Icon tÆ°Æ¡ng á»©ng vá»›i loáº¡i sá»± kiá»‡n
+     * Tra ve Bootstrap Icon tuong ung voi loai su kien
      */
     public String getIconClass() {
         if (actionType == null) return "bi-activity text-secondary";
@@ -143,37 +145,41 @@ public class ActivityLog implements Serializable {
                 return "bi-x-circle-fill text-danger";
             case "DOC_CREATE":
                 return "bi-file-earmark-text-fill text-primary";
+            case "SUBTASK_CREATE":
+                return "bi-list-check text-info";
             default:
                 return "bi-clock-history text-secondary";
         }
     }
 
     /**
-     * TÃªn nhÃ£n tiáº¿ng Viá»‡t cá»§a hÃ nh Ä‘á»™ng
+     * Ten nhan tieng Viet cua hanh dong
      */
     public String getActionLabel() {
-        if (actionType == null) return "Hoáº¡t Ä‘á»™ng";
+        if (actionType == null) return "Ho\u1EA1t \u0111\u1ED9ng";
         switch (actionType.toUpperCase()) {
             case "TASK_CREATE":
-                return "Táº¡o cÃ´ng viá»‡c";
+                return "T\u1EA1o c\u00F4ng vi\u1EC7c";
             case "STATUS_CHANGE":
-                return "Äá»•i tráº¡ng thÃ¡i";
+                return "\u0110\u1ED5i tr\u1EA1ng th\u00E1i";
             case "TASK_SUBMIT":
-                return "Ná»™p nghiá»‡m thu";
+                return "N\u1ED9p nghi\u1EC7m thu";
             case "PM_APPROVE":
-                return "Duyá»‡t nghiá»‡m thu";
+                return "Duy\u1EC7t nghi\u1EC7m thu";
             case "PM_REVISE":
-                return "YÃªu cáº§u sá»­a Ä‘á»•i";
+                return "Y\u00EAu c\u1EA7u s\u1EEDa \u0111\u1ED5i";
             case "PM_REJECT":
-                return "Tá»« chá»‘i nghiá»‡m thu";
+                return "T\u1EEB ch\u1ED1i nghi\u1EC7m thu";
             case "DOC_CREATE":
-                return "Táº£i tÃ i liá»‡u má»›i";
+                return "T\u1EA3i t\u00E0i li\u1EC7u m\u1EDBi";
+            case "SUBTASK_CREATE":
+                return "Th\u00EAm vi\u1EC7c con";
             default:
-                return "Cáº­p nháº­t";
+                return "C\u1EADp nh\u1EADt";
         }
     }
 
-    // ===================== GETTERS VÃ€ SETTERS =====================
+    // ===================== GETTERS VA SETTERS =====================
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }

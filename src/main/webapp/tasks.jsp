@@ -265,6 +265,33 @@
                                 <i class="bi bi-kanban"></i> Board
                             </button>
                         </div>
+                        <!-- Subtasks Mode Switcher (ClickUp 3.0) -->
+                        <div class="dropdown clickup-subtasks-dropdown" id="subtasksModeDropdown">
+                            <button class="btn btn-sm btn-light border dropdown-toggle d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2 shadow-2xs fs-8" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Tùy chọn hiển thị việc con (Subtasks)">
+                                <i class="bi bi-diagram-2 text-secondary"></i>
+                                <span id="currentSubtaskModeLabel">Subtasks: ${subtaskMode == 'expanded' ? 'Mở rộng' : (subtaskMode == 'hidden' ? 'Ẩn' : 'Thu gọn')}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 p-1 fs-8">
+                                <li>
+                                    <a class="dropdown-item rounded-2 d-flex align-items-center justify-content-between py-1.5 px-2" href="javascript:void(0)" onclick="setSubtaskMode('collapsed')">
+                                        <span><i class="bi bi-chevron-right me-2 text-muted"></i>Thu gọn (Mặc định)</span>
+                                        <i class="bi bi-check text-primary fs-7 ${subtaskMode == 'collapsed' ? '' : 'd-none'}" id="subtask-check-collapsed"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-2 d-flex align-items-center justify-content-between py-1.5 px-2" href="javascript:void(0)" onclick="setSubtaskMode('expanded')">
+                                        <span><i class="bi bi-chevron-down me-2 text-muted"></i>Mở rộng tất cả</span>
+                                        <i class="bi bi-check text-primary fs-7 ${subtaskMode == 'expanded' ? '' : 'd-none'}" id="subtask-check-expanded"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-2 d-flex align-items-center justify-content-between py-1.5 px-2" href="javascript:void(0)" onclick="setSubtaskMode('hidden')">
+                                        <span><i class="bi bi-eye-slash me-2 text-muted"></i>Ẩn việc con</span>
+                                        <i class="bi bi-check text-primary fs-7 ${subtaskMode == 'hidden' ? '' : 'd-none'}" id="subtask-check-hidden"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                         <!-- Nút Xuất Excel (.csv UTF-8 BOM) -->
                         <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
                            class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-2 shadow-2xs text-nowrap"
@@ -380,10 +407,47 @@
                                         <!-- NHÓM 1: DONE (ĐÃ HOÀN THÀNH) -->
                                         <tr class="clickup-group-header-row">
                                             <td colspan="5">
-                                                <div class="clickup-group-banner text-success" onclick="toggleClickUpGroup('done')">
-                                                    <i class="bi bi-chevron-down" id="chevron-done"></i>
+                                                <div class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')">
+                                                    <i class="bi bi-chevron-down me-1" id="chevron-done"></i>
                                                     <span class="clickup-group-badge bg-success text-white">DONE</span>
-                                                    <span class="text-secondary fs-8">${doneTasks.size()}</span>
+                                                    <span class="text-secondary fs-8 ms-1" id="group-count-done">${doneTasks.size()}</span>
+                                                    <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('done');" title="Thêm công việc vào DONE">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Inline Quick Task Create for DONE -->
+                                        <tr id="inline-task-row-done" class="clickup-inline-create-row d-none group-done-row">
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2 ps-2">
+                                                    <span class="clickup-status-dot dot-done"><i class="bi bi-check text-white fs-9"></i></span>
+                                                    <input type="text" id="inline-task-title-done" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc đã hoàn thành... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'done')" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <select id="inline-task-assignee-done" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
+                                                    <option value="0">Chưa gán</option>
+                                                    <c:forEach items="${userList}" var="u">
+                                                        <option value="${u.id}"><c:out value="${u.fullName}" /></option>
+                                                    </c:forEach>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select id="inline-task-priority-done" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
+                                                    <option value="MEDIUM">Normal</option>
+                                                    <option value="HIGH">Urgent</option>
+                                                    <option value="LOW">Low</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5 fs-9">DONE</span>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <div class="d-inline-flex align-items-center gap-1">
+                                                    <input type="date" id="inline-task-due-done" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
+                                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8" onclick="submitInlineCreateTask('done')" title="Lưu việc"><i class="bi bi-check-lg"></i></button>
+                                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 fs-8" onclick="cancelInlineCreateTask('done')" title="Hủy"><i class="bi bi-x-lg"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -391,13 +455,28 @@
                                             <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
-                                                        <i class="bi bi-check-circle-fill text-success fs-7"></i>
-                                                        <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" style="max-width: 320px;">${task.title}</span>
+                                                        <c:choose>
+                                                            <c:when test="${not empty taskSubTasksMap[task.id]}">
+                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''} ${subtaskMode == 'hidden' ? 'd-none' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
+                                                                    <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
+                                                                </span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span style="width: 18px; display: inline-block;"></span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                        <span class="clickup-status-dot dot-done" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)">
+                                                            <i class="bi bi-check text-white"></i>
+                                                        </span>
+                                                        <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                            <span class="badge bg-light text-secondary border rounded-pill fs-9" title="${taskSubTasksMap[task.id].size()} việc con">
-                                                                <i class="bi bi-link-45deg"></i> ${taskSubTasksMap[task.id].size()}
+                                                            <span class="badge bg-light text-secondary border rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} việc con">
+                                                                <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
                                                             </span>
                                                         </c:if>
+                                                        <button type="button" class="task-hover-add-subtask-btn" onclick="event.stopPropagation(); showInlineCreateSubtask(${task.id}, event);" title="Thêm việc con">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -439,11 +518,16 @@
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                <tr class="clickup-subtask-row group-done-row" data-parent-id="${task.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
+                                                <tr class="clickup-subtask-row group-done-row ${subtaskMode == 'collapsed' || subtaskMode == 'hidden' ? 'd-none' : ''}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
-                                                        <div class="d-flex align-items-center gap-2 ps-4">
-                                                            <i class="bi bi-check2 text-success fs-8"></i>
-                                                            <span class="text-secondary text-truncate fs-8 text-decoration-line-through" style="max-width: 300px;">${st.title}</span>
+                                                        <div class="d-flex align-items-center gap-2" style="padding-left: 36px;">
+                                                            <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
+                                                                <c:if test="${isStDone}">
+                                                                    <i class="bi bi-check text-white"></i>
+                                                                </c:if>
+                                                            </span>
+                                                            <span class="text-secondary text-truncate fs-8 ${isStDone ? 'text-decoration-line-through' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -453,18 +537,18 @@
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-1-5 py-0 fs-9">Done</span>
+                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-1-5 py-0 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
                                                     </td>
                                                     <td style="text-align: right;">
-                                                        <span class="fs-9 text-muted">—</span>
+                                                        <span class="fs-9 text-muted">${not empty st.dueDate ? st.dueDate : '—'}</span>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
                                         </c:forEach>
                                         <tr class="group-done-row">
                                             <td colspan="5" class="py-1">
-                                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#addTaskModal" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
-                                                    <i class="bi bi-plus-lg"></i> Add task
+                                                <a href="javascript:void(0)" onclick="showInlineCreateTask('done')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
+                                                    <i class="bi bi-plus-lg"></i> Thêm công việc
                                                 </a>
                                             </td>
                                         </tr>
@@ -472,10 +556,47 @@
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row">
                                             <td colspan="5">
-                                                <div class="clickup-group-banner text-primary mt-3" onclick="toggleClickUpGroup('inprog')">
-                                                    <i class="bi bi-chevron-down" id="chevron-inprog"></i>
+                                                <div class="clickup-group-banner text-primary mt-3 d-flex align-items-center" onclick="toggleClickUpGroup('inprog')">
+                                                    <i class="bi bi-chevron-down me-1" id="chevron-inprog"></i>
                                                     <span class="clickup-group-badge bg-primary text-white">IN PROGRESS</span>
-                                                    <span class="text-secondary fs-8">${inProgressTasks.size()}</span>
+                                                    <span class="text-secondary fs-8 ms-1" id="group-count-inprog">${inProgressTasks.size()}</span>
+                                                    <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('inprog');" title="Thêm công việc vào IN PROGRESS">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Inline Quick Task Create for IN PROGRESS -->
+                                        <tr id="inline-task-row-inprog" class="clickup-inline-create-row d-none group-inprog-row">
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2 ps-2">
+                                                    <span class="clickup-status-dot dot-inprog"></span>
+                                                    <input type="text" id="inline-task-title-inprog" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc đang làm mới... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'inprog')" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <select id="inline-task-assignee-inprog" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
+                                                    <option value="0">Chưa gán</option>
+                                                    <c:forEach items="${userList}" var="u">
+                                                        <option value="${u.id}"><c:out value="${u.fullName}" /></option>
+                                                    </c:forEach>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select id="inline-task-priority-inprog" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
+                                                    <option value="MEDIUM">Normal</option>
+                                                    <option value="HIGH">Urgent</option>
+                                                    <option value="LOW">Low</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">IN PROGRESS</span>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <div class="d-inline-flex align-items-center gap-1">
+                                                    <input type="date" id="inline-task-due-inprog" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
+                                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8" onclick="submitInlineCreateTask('inprog')" title="Lưu việc"><i class="bi bi-check-lg"></i></button>
+                                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 fs-8" onclick="cancelInlineCreateTask('inprog')" title="Hủy"><i class="bi bi-x-lg"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -483,13 +604,26 @@
                                             <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
-                                                        <i class="bi bi-play-circle-fill text-primary fs-7"></i>
-                                                        <span class="fw-semibold text-dark text-truncate" style="max-width: 320px;">${task.title}</span>
+                                                        <c:choose>
+                                                            <c:when test="${not empty taskSubTasksMap[task.id]}">
+                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''} ${subtaskMode == 'hidden' ? 'd-none' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
+                                                                    <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
+                                                                </span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span style="width: 18px; display: inline-block;"></span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                        <span class="clickup-status-dot dot-inprog" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
+                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill fs-9" title="${taskSubTasksMap[task.id].size()} việc con (${taskProgressMap[task.id]}%)">
-                                                                <i class="bi bi-link-45deg"></i> ${taskSubTasksMap[task.id].size()}
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} việc con (${taskProgressMap[task.id]}%)">
+                                                                <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
                                                             </span>
                                                         </c:if>
+                                                        <button type="button" class="task-hover-add-subtask-btn" onclick="event.stopPropagation(); showInlineCreateSubtask(${task.id}, event);" title="Thêm việc con">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -531,11 +665,16 @@
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                <tr class="clickup-subtask-row group-inprog-row" data-parent-id="${task.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
+                                                <tr class="clickup-subtask-row group-inprog-row ${subtaskMode == 'collapsed' || subtaskMode == 'hidden' ? 'd-none' : ''}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
-                                                        <div class="d-flex align-items-center gap-2 ps-4">
-                                                            <i class="bi bi-circle text-muted fs-8"></i>
-                                                            <span class="text-dark text-truncate fs-8" style="max-width: 300px;">${st.title}</span>
+                                                        <div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">
+                                                            <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
+                                                                <c:if test="${isStDone}">
+                                                                    <i class="bi bi-check text-white"></i>
+                                                                </c:if>
+                                                            </span>
+                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -545,7 +684,7 @@
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-9">${st.status}</span>
+                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-1-5 py-0 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
                                                     </td>
                                                     <td style="text-align: right;">
                                                         <span class="fs-9 text-muted">—</span>
@@ -554,43 +693,57 @@
                                             </c:forEach>
                                         </c:forEach>
                                         <tr class="group-inprog-row">
-                                            <td colspan="5" class="py-2 px-3">
-                                                <form method="post" action="${pageContext.request.contextPath}/task" class="quick-add-task-row d-flex align-items-center gap-2 m-0">
-                                                    <input type="hidden" name="action" value="add">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="status" value="IN_PROGRESS">
-                                                    <input type="hidden" name="priority" value="MEDIUM">
-                                                    <i class="bi bi-plus-lg text-primary fs-8 ms-1"></i>
-                                                    <input type="text" name="title" class="form-control form-control-sm border-0 bg-transparent shadow-none fs-8 px-1 text-dark"
-                                                           placeholder="ThÃªm vÃ o Äang lÃ m... (GÃµ tiÃªu Ä‘á» vÃ  nháº¥n Enter)" required autocomplete="off">
-                                                    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
-                                                        <select name="assigneeId" class="form-select form-select-sm border bg-white shadow-2xs rounded-pill fs-9 py-1 px-2 text-secondary" style="max-width: 145px;" title="Chá»‰ Ä‘á»‹nh ngÆ°á»i phá»¥ trÃ¡ch">
-                                                            <option value="${sessionScope.currentUser.id}" selected>ðŸ‘¤ TÃ´i</option>
-                                                            <c:forEach items="${userList}" var="u">
-                                                                <c:if test="${u.id != sessionScope.currentUser.id}">
-                                                                    <option value="${u.id}">${u.fullName}</option>
-                                                                </c:if>
-                                                            </c:forEach>
-                                                        </select>
-                                                        <button type="submit" class="btn btn-sm btn-primary-custom rounded-pill px-2-5 py-0-5 fs-9 fw-semibold">
-                                                            Táº¡o
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-0-5 fs-9 text-muted hover-text-dark"
-                                                                data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Má»Ÿ biá»ƒu máº«u chi tiáº¿t Ä‘áº§y Ä‘á»§">
-                                                            <i class="bi bi-arrows-angle-expand"></i>
-                                                        </button>
-                                                    </div>
-                                                </form>
+                                            <td colspan="5" class="py-1">
+                                                <a href="javascript:void(0)" onclick="showInlineCreateTask('inprog')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
+                                                    <i class="bi bi-plus-lg"></i> Thêm công việc
+                                                </a>
                                             </td>
                                         </tr>
 
                                         <!-- NHÓM 3: TO DO (CẦN LÀM) -->
                                         <tr class="clickup-group-header-row">
                                             <td colspan="5">
-                                                <div class="clickup-group-banner text-secondary mt-3" onclick="toggleClickUpGroup('todo')">
-                                                    <i class="bi bi-chevron-down" id="chevron-todo"></i>
+                                                <div class="clickup-group-banner text-secondary mt-3 d-flex align-items-center" onclick="toggleClickUpGroup('todo')">
+                                                    <i class="bi bi-chevron-down me-1" id="chevron-todo"></i>
                                                     <span class="clickup-group-badge bg-secondary text-white">TO DO</span>
-                                                    <span class="text-secondary fs-8">${todoTasks.size()}</span>
+                                                    <span class="text-secondary fs-8 ms-1" id="group-count-todo">${todoTasks.size()}</span>
+                                                    <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('todo');" title="Thêm công việc vào TO DO">
+                                                        <i class="bi bi-plus-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- Inline Quick Task Create for TO DO -->
+                                        <tr id="inline-task-row-todo" class="clickup-inline-create-row d-none group-todo-row">
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2 ps-2">
+                                                    <span class="clickup-status-dot dot-todo"></span>
+                                                    <input type="text" id="inline-task-title-todo" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc cần làm mới... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'todo')" />
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <select id="inline-task-assignee-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
+                                                    <option value="0">Chưa gán</option>
+                                                    <c:forEach items="${userList}" var="u">
+                                                        <option value="${u.id}"><c:out value="${u.fullName}" /></option>
+                                                    </c:forEach>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select id="inline-task-priority-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
+                                                    <option value="MEDIUM">Normal</option>
+                                                    <option value="HIGH">Urgent</option>
+                                                    <option value="LOW">Low</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0-5 fs-9">TO DO</span>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <div class="d-inline-flex align-items-center gap-1">
+                                                    <input type="date" id="inline-task-due-todo" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
+                                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8" onclick="submitInlineCreateTask('todo')" title="Lưu việc"><i class="bi bi-check-lg"></i></button>
+                                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 fs-8" onclick="cancelInlineCreateTask('todo')" title="Hủy"><i class="bi bi-x-lg"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -598,13 +751,26 @@
                                             <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
-                                                        <i class="bi bi-circle text-secondary fs-7"></i>
-                                                        <span class="fw-semibold text-dark text-truncate" style="max-width: 320px;">${task.title}</span>
+                                                        <c:choose>
+                                                            <c:when test="${not empty taskSubTasksMap[task.id]}">
+                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''} ${subtaskMode == 'hidden' ? 'd-none' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
+                                                                    <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
+                                                                </span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span style="width: 18px; display: inline-block;"></span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                        <span class="clickup-status-dot dot-todo" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
+                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                                            <span class="badge bg-light text-secondary border rounded-pill fs-9" title="${taskSubTasksMap[task.id].size()} việc con">
-                                                                <i class="bi bi-link-45deg"></i> ${taskSubTasksMap[task.id].size()}
+                                                            <span class="badge bg-light text-secondary border rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} việc con">
+                                                                <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
                                                             </span>
                                                         </c:if>
+                                                        <button type="button" class="task-hover-add-subtask-btn" onclick="event.stopPropagation(); showInlineCreateSubtask(${task.id}, event);" title="Thêm việc con">
+                                                            <i class="bi bi-plus"></i>
+                                                        </button>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -646,11 +812,16 @@
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                <tr class="clickup-subtask-row group-todo-row" data-parent-id="${task.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
+                                                <tr class="clickup-subtask-row group-todo-row ${subtaskMode == 'collapsed' || subtaskMode == 'hidden' ? 'd-none' : ''}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
-                                                        <div class="d-flex align-items-center gap-2 ps-4">
-                                                            <i class="bi bi-circle text-muted fs-8"></i>
-                                                            <span class="text-dark text-truncate fs-8" style="max-width: 300px;">${st.title}</span>
+                                                        <div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">
+                                                            <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
+                                                                <c:if test="${isStDone}">
+                                                                    <i class="bi bi-check text-white"></i>
+                                                                </c:if>
+                                                            </span>
+                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
                                                         </div>
                                                     </td>
                                                     <td>
@@ -660,7 +831,7 @@
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-9">${st.status}</span>
+                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-1-5 py-0 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
                                                     </td>
                                                     <td style="text-align: right;">
                                                         <span class="fs-9 text-muted">—</span>
@@ -669,37 +840,22 @@
                                             </c:forEach>
                                         </c:forEach>
                                         <tr class="group-todo-row">
-                                            <td colspan="5" class="py-2 px-3">
-                                                <form method="post" action="${pageContext.request.contextPath}/task" class="quick-add-task-row d-flex align-items-center gap-2 m-0">
-                                                    <input type="hidden" name="action" value="add">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="status" value="TODO">
-                                                    <input type="hidden" name="priority" value="MEDIUM">
-                                                    <i class="bi bi-plus-lg text-secondary fs-8 ms-1"></i>
-                                                    <input type="text" name="title" class="form-control form-control-sm border-0 bg-transparent shadow-none fs-8 px-1 text-dark"
-                                                           placeholder="ThÃªm vÃ o Cáº§n lÃ m... (GÃµ tiÃªu Ä‘á» vÃ  nháº¥n Enter)" required autocomplete="off">
-                                                    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
-                                                        <select name="assigneeId" class="form-select form-select-sm border bg-white shadow-2xs rounded-pill fs-9 py-1 px-2 text-secondary" style="max-width: 145px;" title="Chá»‰ Ä‘á»‹nh ngÆ°á»i phá»¥ trÃ¡ch">
-                                                            <option value="${sessionScope.currentUser.id}" selected>ðŸ‘¤ TÃ´i</option>
-                                                            <c:forEach items="${userList}" var="u">
-                                                                <c:if test="${u.id != sessionScope.currentUser.id}">
-                                                                    <option value="${u.id}">${u.fullName}</option>
-                                                                </c:if>
-                                                            </c:forEach>
-                                                        </select>
-                                                        <button type="submit" class="btn btn-sm btn-primary-custom rounded-pill px-2-5 py-0-5 fs-9 fw-semibold">
-                                                            Táº¡o
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-0-5 fs-9 text-muted hover-text-dark"
-                                                                data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Má»Ÿ biá»ƒu máº«u chi tiáº¿t Ä‘áº§y Ä‘á»§">
-                                                            <i class="bi bi-arrows-angle-expand"></i>
-                                                        </button>
-                                                    </div>
-                                                </form>
+                                            <td colspan="5" class="py-1">
+                                                <a href="javascript:void(0)" onclick="showInlineCreateTask('todo')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
+                                                    <i class="bi bi-plus-lg"></i> Thêm công việc
+                                                </a>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+
+                        <!-- ClickUp Floating Status Popover Menu -->
+                        <div id="clickupStatusPopover" class="clickup-status-dropdown-menu d-none" style="position: absolute; z-index: 1060;">
+                            <div class="p-1">
+                                <div class="px-2 py-1 text-muted fs-9 fw-semibold text-uppercase border-bottom mb-1" id="clickupPopoverHeader">Đổi trạng thái</div>
+                                <div id="clickupPopoverOptions"></div>
                             </div>
                         </div>
 
@@ -1772,40 +1928,505 @@
         } catch(e) {}
     }
 
+    // Project members data for dynamic selects
+    window.projectMembersList = [
+        <c:forEach items="${userList}" var="u" varStatus="loop">
+        { id: ${u.id}, name: '<c:out value="${u.fullName}" />' }<c:if test="${!loop.last}">,</c:if>
+        </c:forEach>
+    ];
+
     // 4. Toggle collapsing of group in List View
-    function toggleClickUpGroup(groupId) {
-        var tbody = document.getElementById('tbody-' + groupId);
+    window.toggleClickUpGroup = function(groupId) {
+        var rows = document.querySelectorAll('.group-' + groupId + '-row');
         var icon = document.getElementById('chevron-' + groupId);
-        if (!tbody) return;
-        var isHidden = tbody.classList.toggle('d-none');
+        if (!rows || rows.length === 0) return;
+
+        var isNowHidden = !rows[0].classList.contains('d-none');
+        rows.forEach(function(r) {
+            if (isNowHidden) {
+                r.classList.add('d-none');
+            } else {
+                r.classList.remove('d-none');
+            }
+        });
+
         if (icon) {
-            icon.className = isHidden ? 'bi bi-chevron-right me-1' : 'bi bi-chevron-down me-1';
+            icon.className = isNowHidden ? 'bi bi-chevron-right me-1' : 'bi bi-chevron-down me-1';
         }
-    }
+
+        try {
+            localStorage.setItem('clickup_group_' + groupId + '_collapsed', isNowHidden ? 'true' : 'false');
+        } catch(e) {}
+    };
 
     // 5. Toggle subtasks visibility for a parent task
-    window.toggleSubtasks = function(taskId) {
+    window.toggleSubtasks = function(taskId, event) {
+        if (event) event.stopPropagation();
         var subRows = document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]');
+        var caret = document.getElementById('caret-' + taskId);
+        var caretIcon = caret ? caret.querySelector('i') : document.getElementById('subtask-caret-icon-' + taskId);
         var toggleBtn = document.getElementById('subtask-toggle-' + taskId);
-        var isExpanded = false;
+        var isExpanding = false;
 
         subRows.forEach(function(row) {
             if (row.classList.contains('d-none')) {
                 row.classList.remove('d-none');
-                isExpanded = true;
+                isExpanding = true;
             } else {
                 row.classList.add('d-none');
-                isExpanded = false;
+                isExpanding = false;
             }
         });
 
+        if (caretIcon) {
+            caretIcon.className = isExpanding ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+        }
+        if (caret) {
+            if (isExpanding) caret.classList.add('is-expanded');
+            else caret.classList.remove('is-expanded');
+        }
         if (toggleBtn) {
             var icon = toggleBtn.querySelector('i');
             if (icon) {
-                icon.className = isExpanded ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
+                icon.className = isExpanding ? 'bi bi-chevron-down' : 'bi bi-chevron-right';
             }
         }
     };
+
+    // 5.1. Subtask Display Preference Switcher
+    window.setSubtaskMode = function(mode) {
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '/';
+        document.cookie = "preferred_subtask_mode=" + encodeURIComponent(mode) + "; path=" + basePath + "; max-age=" + (30 * 24 * 60 * 60);
+
+        var label = document.getElementById('subtasksModeLabel');
+        if (label) {
+            if (mode === 'expanded') label.innerHTML = '<i class="bi bi-list-nested me-1"></i> Subtasks: Mở rộng tất cả';
+            else if (mode === 'hidden') label.innerHTML = '<i class="bi bi-eye-slash me-1"></i> Subtasks: Ẩn việc con';
+            else label.innerHTML = '<i class="bi bi-chevron-expand me-1"></i> Subtasks: Thu gọn';
+        }
+
+        var allSubRows = document.querySelectorAll('.clickup-subtask-row');
+        var allCarets = document.querySelectorAll('.subtask-caret');
+
+        if (mode === 'expanded') {
+            allSubRows.forEach(function(r) { r.classList.remove('d-none'); });
+            allCarets.forEach(function(c) {
+                c.classList.remove('d-none');
+                c.classList.add('is-expanded');
+                var i = c.querySelector('i');
+                if (i) i.className = 'bi bi-chevron-down';
+            });
+        } else if (mode === 'hidden') {
+            allSubRows.forEach(function(r) { r.classList.add('d-none'); });
+            allCarets.forEach(function(c) { c.classList.add('d-none'); });
+        } else { // 'collapsed'
+            allSubRows.forEach(function(r) { r.classList.add('d-none'); });
+            allCarets.forEach(function(c) {
+                c.classList.remove('d-none', 'is-expanded');
+                var i = c.querySelector('i');
+                if (i) i.className = 'bi bi-chevron-right';
+            });
+        }
+    };
+
+    // 5.2. ClickUp Floating Status Popover
+    var currentStatusTarget = { id: 0, isSubtask: false, currentStatus: '', parentTaskId: 0 };
+
+    window.openStatusDropdown = function(event, id, isSubtask, currentStatus, parentTaskId) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        currentStatusTarget = {
+            id: id,
+            isSubtask: isSubtask,
+            currentStatus: currentStatus,
+            parentTaskId: parentTaskId || 0
+        };
+
+        var popover = document.getElementById('clickupStatusPopover');
+        var header = document.getElementById('clickupPopoverHeader');
+        var container = document.getElementById('clickupPopoverOptions');
+        if (!popover || !container) return;
+
+        if (isSubtask) {
+            if (header) header.textContent = 'Trạng thái việc con';
+            var isDone = (currentStatus === 'APPROVED' || currentStatus === 'DONE');
+            container.innerHTML = 
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (!isDone ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'TODO\')">' +
+                    '<span class="clickup-status-dot dot-todo"></span>' +
+                    '<span class="fs-8 text-dark">Chưa xong (TO DO)</span>' +
+                '</button>' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (isDone ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'DONE\')">' +
+                    '<span class="clickup-status-dot dot-done"><i class="bi bi-check text-white fs-9"></i></span>' +
+                    '<span class="fs-8 text-dark">Hoàn thành (DONE)</span>' +
+                '</button>';
+        } else {
+            if (header) header.textContent = 'Trạng thái công việc';
+            container.innerHTML = 
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (currentStatus === 'TODO' ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'TODO\')">' +
+                    '<span class="clickup-status-dot dot-todo"></span>' +
+                    '<span class="fs-8 text-dark">TO DO</span>' +
+                '</button>' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (currentStatus === 'IN_PROGRESS' ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'IN_PROGRESS\')">' +
+                    '<span class="clickup-status-dot dot-inprog"></span>' +
+                    '<span class="fs-8 text-dark">IN PROGRESS</span>' +
+                '</button>' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (currentStatus === 'DONE' ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'DONE\')">' +
+                    '<span class="clickup-status-dot dot-done"><i class="bi bi-check text-white fs-9"></i></span>' +
+                    '<span class="fs-8 text-dark">DONE</span>' +
+                '</button>';
+        }
+
+        var rect = event.currentTarget.getBoundingClientRect();
+        popover.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        popover.style.left = (rect.left + window.scrollX) + 'px';
+        popover.classList.remove('d-none');
+    };
+
+    window.executeInlineStatusChange = function(newStatus) {
+        var popover = document.getElementById('clickupStatusPopover');
+        if (popover) popover.classList.add('d-none');
+
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        var params = new URLSearchParams();
+
+        if (currentStatusTarget.isSubtask) {
+            var isCompleted = (newStatus === 'DONE');
+            params.append('action', 'toggleSubTask');
+            params.append('projectId', '${project.id}');
+            params.append('subTaskId', currentStatusTarget.id);
+            params.append('completed', isCompleted ? 'true' : 'false');
+            params.append('ajax', 'true');
+
+            fetch(basePath + '/task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params.toString()
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    if (window.showToast) window.showToast(data.message, 'success');
+                    var dot = document.getElementById('subtask-status-dot-' + currentStatusTarget.id);
+                    var titleEl = document.getElementById('subtask-title-text-' + currentStatusTarget.id);
+                    var badge = document.getElementById('subtask-badge-' + currentStatusTarget.id);
+                    if (dot) {
+                        dot.className = 'clickup-status-dot ' + (isCompleted ? 'dot-done' : 'dot-todo');
+                        dot.innerHTML = isCompleted ? '<i class="bi bi-check text-white"></i>' : '';
+                    }
+                    if (titleEl) {
+                        if (isCompleted) titleEl.classList.add('text-decoration-line-through', 'text-muted');
+                        else titleEl.classList.remove('text-decoration-line-through', 'text-muted');
+                    }
+                    if (badge) {
+                        badge.className = 'badge ' + (isCompleted ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border') + ' rounded-pill px-1-5 py-0 fs-9';
+                        badge.textContent = isCompleted ? 'DONE' : 'TODO';
+                    }
+                    if (data.data && data.data.parentStatus && data.data.parentStatus === 'DONE') {
+                        setTimeout(function() { window.location.reload(); }, 500);
+                    }
+                } else {
+                    if (window.showToast) window.showToast(data.message, 'error');
+                    else alert(data.message);
+                }
+            })
+            .catch(function(err) {
+                console.error(err);
+                if (window.showToast) window.showToast('Lỗi khi cập nhật trạng thái việc con!', 'error');
+            });
+        } else {
+            params.append('action', 'updateStatus');
+            params.append('projectId', '${project.id}');
+            params.append('taskId', currentStatusTarget.id);
+            params.append('newStatus', newStatus);
+            params.append('ajax', 'true');
+
+            fetch(basePath + '/task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params.toString()
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    if (window.showToast) window.showToast(data.message, 'success');
+                    setTimeout(function() { window.location.reload(); }, 400);
+                } else {
+                    if (window.showToast) window.showToast(data.message, 'error');
+                    else alert(data.message);
+                }
+            })
+            .catch(function(err) {
+                console.error(err);
+                if (window.showToast) window.showToast('Lỗi khi cập nhật trạng thái công việc!', 'error');
+            });
+        }
+    };
+
+    // 5.3. Quick Add Parent Task
+    window.showInlineCreateTask = function(groupId) {
+        var icon = document.getElementById('chevron-' + groupId);
+        if (icon && icon.classList.contains('bi-chevron-right')) {
+            window.toggleClickUpGroup(groupId);
+        }
+        var row = document.getElementById('inline-task-row-' + groupId);
+        if (row) {
+            row.classList.remove('d-none');
+            var input = document.getElementById('inline-task-title-' + groupId);
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }
+    };
+
+    window.cancelInlineCreateTask = function(groupId) {
+        var row = document.getElementById('inline-task-row-' + groupId);
+        if (row) {
+            row.classList.add('d-none');
+            var input = document.getElementById('inline-task-title-' + groupId);
+            if (input) input.value = '';
+        }
+    };
+
+    window.handleInlineTaskKey = function(event, groupId) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            window.submitInlineCreateTask(groupId);
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            window.cancelInlineCreateTask(groupId);
+        }
+    };
+
+    window.submitInlineCreateTask = function(groupId) {
+        var titleEl = document.getElementById('inline-task-title-' + groupId);
+        var assigneeEl = document.getElementById('inline-task-assignee-' + groupId);
+        var priorityEl = document.getElementById('inline-task-priority-' + groupId);
+        var dueEl = document.getElementById('inline-task-due-' + groupId);
+
+        var title = titleEl ? titleEl.value.trim() : '';
+        if (!title) {
+            if (window.showToast) window.showToast('Vui lòng nhập tiêu đề công việc!', 'error');
+            else alert('Vui lòng nhập tiêu đề công việc!');
+            if (titleEl) titleEl.focus();
+            return;
+        }
+
+        var statusMap = { 'done': 'DONE', 'inprog': 'IN_PROGRESS', 'todo': 'TODO' };
+        var status = statusMap[groupId] || 'TODO';
+        var assigneeId = assigneeEl ? assigneeEl.value : '0';
+        var priority = priorityEl ? priorityEl.value : 'MEDIUM';
+        var dueDate = dueEl ? dueEl.value : '';
+
+        var params = new URLSearchParams();
+        params.append('action', 'quickAddParentTask');
+        params.append('projectId', '${project.id}');
+        params.append('status', status);
+        params.append('title', title);
+        params.append('priority', priority);
+        params.append('assigneeId', assigneeId);
+        params.append('dueDate', dueDate);
+        params.append('ajax', 'true');
+
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        fetch(basePath + '/task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                if (window.showToast) window.showToast(data.message, 'success');
+                window.cancelInlineCreateTask(groupId);
+                setTimeout(function() { window.location.reload(); }, 400);
+            } else {
+                if (window.showToast) window.showToast(data.message || 'Lỗi khi tạo công việc', 'error');
+                else alert(data.message);
+            }
+        })
+        .catch(function(err) {
+            console.error(err);
+            if (window.showToast) window.showToast('Đã có lỗi xảy ra trong quá trình gửi yêu cầu!', 'error');
+        });
+    };
+
+    // 5.4. Quick Add Subtask
+    window.showInlineCreateSubtask = function(parentTaskId, event) {
+        if (event) event.stopPropagation();
+
+        var subRows = document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + parentTaskId + '"]');
+        subRows.forEach(function(r) { r.classList.remove('d-none'); });
+        var caret = document.getElementById('caret-' + parentTaskId);
+        var caretIcon = caret ? caret.querySelector('i') : document.getElementById('subtask-caret-icon-' + parentTaskId);
+        if (caretIcon) caretIcon.className = 'bi bi-chevron-down';
+        if (caret) caret.classList.add('is-expanded');
+
+        var existingRow = document.getElementById('inline-subtask-row-' + parentTaskId);
+        if (existingRow) {
+            existingRow.classList.remove('d-none');
+            var input = document.getElementById('inline-subtask-title-' + parentTaskId);
+            if (input) { input.focus(); input.select(); }
+            return;
+        }
+
+        var parentRow = document.querySelector('tr[data-task-id="' + parentTaskId + '"]');
+        if (!parentRow) return;
+
+        var groupClass = '';
+        parentRow.classList.forEach(function(cls) {
+            if (cls.startsWith('group-') && cls.endsWith('-row')) {
+                groupClass = cls;
+            }
+        });
+
+        var lastTarget = parentRow;
+        if (subRows && subRows.length > 0) {
+            lastTarget = subRows[subRows.length - 1];
+        }
+
+        var memberOpts = '<option value="0">Chưa gán</option>';
+        if (window.projectMembersList && window.projectMembersList.length > 0) {
+            window.projectMembersList.forEach(function(m) {
+                memberOpts += '<option value="' + m.id + '">' + m.name + '</option>';
+            });
+        }
+
+        var newRow = document.createElement('tr');
+        newRow.id = 'inline-subtask-row-' + parentTaskId;
+        newRow.className = 'clickup-inline-subtask-row ' + groupClass;
+        newRow.innerHTML = 
+            '<td>' +
+                '<div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">' +
+                    '<span class="clickup-status-dot dot-todo"></span>' +
+                    '<input type="text" id="inline-subtask-title-' + parentTaskId + '" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Tên việc con mới (Enter để lưu, Esc để hủy)..." onkeydown="handleInlineSubtaskKey(event, ' + parentTaskId + ')" />' +
+                '</div>' +
+            '</td>' +
+            '<td>' +
+                '<select id="inline-subtask-assignee-' + parentTaskId + '" class="form-select form-select-sm py-0 fs-8" style="max-width: 120px;">' +
+                    memberOpts +
+                '</select>' +
+            '</td>' +
+            '<td>' +
+                '<span class="fs-9 text-muted">Subtask</span>' +
+            '</td>' +
+            '<td>' +
+                '<span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-9">TODO</span>' +
+            '</td>' +
+            '<td style="text-align: right;">' +
+                '<button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8 me-1" onclick="submitInlineCreateSubtask(' + parentTaskId + ')"><i class="bi bi-check-lg"></i> Lưu</button>' +
+                '<button type="button" class="btn btn-sm btn-light border py-0 px-2 fs-8" onclick="cancelInlineCreateSubtask(' + parentTaskId + ')"><i class="bi bi-x-lg"></i></button>' +
+            '</td>';
+
+        lastTarget.parentNode.insertBefore(newRow, lastTarget.nextSibling);
+
+        var titleInput = document.getElementById('inline-subtask-title-' + parentTaskId);
+        if (titleInput) {
+            titleInput.focus();
+        }
+    };
+
+    window.cancelInlineCreateSubtask = function(parentTaskId) {
+        var row = document.getElementById('inline-subtask-row-' + parentTaskId);
+        if (row) {
+            row.remove();
+        }
+    };
+
+    window.handleInlineSubtaskKey = function(event, parentTaskId) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            window.submitInlineCreateSubtask(parentTaskId);
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            window.cancelInlineCreateSubtask(parentTaskId);
+        }
+    };
+
+    window.submitInlineCreateSubtask = function(parentTaskId) {
+        var titleEl = document.getElementById('inline-subtask-title-' + parentTaskId);
+        var assigneeEl = document.getElementById('inline-subtask-assignee-' + parentTaskId);
+
+        var title = titleEl ? titleEl.value.trim() : '';
+        if (!title) {
+            if (window.showToast) window.showToast('Vui lòng nhập tiêu đề việc con!', 'error');
+            else alert('Vui lòng nhập tiêu đề việc con!');
+            if (titleEl) titleEl.focus();
+            return;
+        }
+
+        var assigneeId = assigneeEl ? assigneeEl.value : '0';
+
+        var params = new URLSearchParams();
+        params.append('action', 'quickAddSubTask');
+        params.append('projectId', '${project.id}');
+        params.append('taskId', parentTaskId);
+        params.append('title', title);
+        params.append('assigneeId', assigneeId);
+        params.append('dueDate', '');
+        params.append('ajax', 'true');
+
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        fetch(basePath + '/task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                if (window.showToast) window.showToast(data.message, 'success');
+                window.cancelInlineCreateSubtask(parentTaskId);
+                setTimeout(function() { window.location.reload(); }, 400);
+            } else {
+                if (window.showToast) window.showToast(data.message || 'Lỗi khi tạo việc con', 'error');
+                else alert(data.message);
+            }
+        })
+        .catch(function(err) {
+            console.error(err);
+            if (window.showToast) window.showToast('Đã có lỗi xảy ra trong quá trình gửi yêu cầu!', 'error');
+        });
+    };
+
+    // Close status popover when clicking anywhere outside
+    document.addEventListener('click', function(e) {
+        var popover = document.getElementById('clickupStatusPopover');
+        if (popover && !popover.classList.contains('d-none')) {
+            if (!popover.contains(e.target) && !e.target.closest('.clickup-status-dot')) {
+                popover.classList.add('d-none');
+            }
+        }
+    });
+
+    // Restore group collapse states from localStorage on DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+        ['done', 'inprog', 'todo'].forEach(function(gid) {
+            try {
+                var isCollapsed = localStorage.getItem('clickup_group_' + gid + '_collapsed');
+                if (isCollapsed === 'true') {
+                    var rows = document.querySelectorAll('.group-' + gid + '-row');
+                    rows.forEach(function(r) { r.classList.add('d-none'); });
+                    var icon = document.getElementById('chevron-' + gid);
+                    if (icon) icon.className = 'bi bi-chevron-right me-1';
+                }
+            } catch(e) {}
+        });
+    });
 
     // 6. Search tasks across all views
     window.searchClickUpTasks = function(query) {
@@ -3233,13 +3854,13 @@
                     <div class="modal-header bg-white px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2-5 py-1 fs-9 fw-bold">
-                                <i class="bi bi-plus-circle-fill me-1"></i> TASK Má»šI
+                                <i class="bi bi-plus-circle-fill me-1"></i> TASK MỚI
                             </span>
                             <span class="fs-8 text-muted">trong <strong>${project.name}</strong></span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="fs-9 text-muted d-none d-sm-inline"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> Ä‘á»ƒ táº¡o nhanh</span>
-                            <button type="button" class="btn-close fs-9" data-bs-dismiss="modal" aria-label="ÄÃ³ng"></button>
+                            <span class="fs-9 text-muted d-none d-sm-inline"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> để tạo nhanh</span>
+                            <button type="button" class="btn-close fs-9" data-bs-dismiss="modal" aria-label="Đóng"></button>
                         </div>
                     </div>
 
@@ -3252,7 +3873,7 @@
 
                             <div class="mb-3">
                                 <input type="text" class="form-control clickup-modal-title-input" id="taskTitle"
-                                    name="title" placeholder="TiÃªu Ä‘á» cÃ´ng viá»‡c..." required autocomplete="off">
+                                    name="title" placeholder="Tiêu đề công việc..." required autocomplete="off">
                             </div>
 
                             <div class="mb-3">
@@ -3415,14 +4036,14 @@
 
                         <div class="modal-footer px-4 py-3 bg-light border-0 d-flex align-items-center justify-content-between">
                             <div class="text-muted fs-9">
-                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>PhÃ­m táº¯t: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Phím tắt: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <button type="button" class="btn btn-light rounded-pill px-3 fs-7 fw-medium"
-                                    data-bs-dismiss="modal">Há»§y</button>
+                                    data-bs-dismiss="modal">Hủy</button>
                                 <button type="submit"
                                     class="btn btn-primary-custom rounded-pill px-4 py-2 fs-7 fw-semibold shadow-sm">
-                                    <i class="bi bi-check-lg me-1"></i> LÆ°u cÃ´ng viá»‡c
+                                    <i class="bi bi-check-lg me-1"></i> Lưu công việc
                                 </button>
                             </div>
                         </div>
