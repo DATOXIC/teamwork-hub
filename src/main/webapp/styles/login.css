@@ -5,26 +5,28 @@
 
 :root {
     --login-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --login-primary: #4f46e5;
-    --login-primary-hover: #4338ca;
-    --login-navy: #0f172a;
-    --login-border: #e2e8f0;
-    --login-text-dark: #0f172a;
-    --login-text-muted: #64748b;
+    --login-primary: #395886;
+    --login-primary-hover: #2d456a;
+    --login-accent: #638ECB;
+    --login-accent-light: #8AAEE0;
+    --login-navy: #1E2D42;
+    --login-border: #D5DEEF;
+    --login-text-dark: #1E2D42;
+    --login-text-muted: #627D98;
 }
 
 /* ── Layout chính: 2 cột ── */
 .login-wrapper {
     display: flex;
     min-height: calc(100vh - 65px - 58px);
-    background-color: #f8fafc;
+    background-color: #F0F3FA;
     overflow: hidden;
     font-family: var(--login-font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── CỘT TRÁI: Branding Panel (Dark Navy & Deep Indigo) ── */
+/* ── CỘT TRÁI: Branding Panel (Ocean Deep Blue & Steel Slate) ── */
 .login-branding {
     width: 460px;
     min-width: 460px;
@@ -32,8 +34,8 @@
     flex-direction: column;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(165deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%);
-    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.08);
+    background: linear-gradient(165deg, #1E2D42 0%, #293E5C 50%, #395886 100%);
+    box-shadow: 4px 0 24px rgba(30, 45, 66, 0.12);
 }
 
 .branding-content {
@@ -116,10 +118,10 @@
     position: absolute;
     bottom: 12px;
     right: 12px;
-    background: rgba(15, 23, 42, 0.75);
+    background: rgba(30, 45, 66, 0.85);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     color: #ffffff;
     font-size: 11.5px;
     font-weight: 600;
@@ -152,13 +154,13 @@
 .branding-slogan-pill {
     display: inline-flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 6px 18px;
     border-radius: 50px;
     font-size: 12.5px;
     font-weight: 600;
-    color: #94a3b8;
+    color: #B1C9EF;
     letter-spacing: 0.5px;
 }
 
@@ -169,7 +171,7 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    background-color: #f8fafc;
+    background-color: #F0F3FA;
     padding: 40px 24px;
 }
 
@@ -181,9 +183,9 @@
     max-width: 100%;
     background: #ffffff;
     border-radius: 20px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #D5DEEF;
     padding: 36px 36px;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
+    box-shadow: 0 12px 30px -5px rgba(57, 88, 134, 0.08), 0 4px 12px -2px rgba(57, 88, 134, 0.04);
 }
 
 .login-card-header {
@@ -194,14 +196,14 @@
 .login-card-header h3 {
     font-size: 24px;
     font-weight: 800;
-    color: #0f172a;
+    color: #1E2D42;
     margin: 0 0 6px 0;
     letter-spacing: -0.3px;
 }
 
 .login-card-header p {
     font-size: 13.5px;
-    color: #64748b;
+    color: #627D98;
     margin: 0;
 }
 
@@ -247,12 +249,12 @@
 /* ── Tab Pills ── */
 .login-tabs {
     display: flex;
-    background: #f1f5f9;
+    background: #F0F3FA;
     border-radius: 50px;
     padding: 4px;
     margin-bottom: 22px;
     gap: 4px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #D5DEEF;
 }
 
 .login-tab-btn {
@@ -261,7 +263,7 @@
     padding: 9px 0;
     font-size: 13.5px;
     font-weight: 600;
-    color: #64748b;
+    color: #627D98;
     background: transparent;
     border: none;
     border-radius: 50px;
@@ -270,13 +272,13 @@
 }
 
 .login-tab-btn:hover {
-    color: #0f172a;
+    color: #1E2D42;
 }
 
 .login-tab-btn.active {
-    background: #4f46e5;
+    background: #395886;
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+    box-shadow: 0 4px 10px rgba(57, 88, 134, 0.25);
 }
 
 .login-tab-pane {
@@ -292,7 +294,7 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #334155;
+    color: #1E2D42;
     margin-bottom: 6px;
 }
 
@@ -306,7 +308,7 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: #8AAEE0;
     font-size: 16px;
     pointer-events: none;
     transition: color 0.2s;
@@ -318,9 +320,9 @@
     padding: 8px 14px 8px 42px;
     font-size: 13.5px;
     font-family: inherit;
-    color: #0f172a;
+    color: #1E2D42;
     background: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #D5DEEF;
     border-radius: 10px;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -328,18 +330,17 @@
 }
 
 .login-input-group input::placeholder {
-    color: #94a3b8;
+    color: #8AAEE0;
     font-size: 13px;
 }
 
 .login-input-group input:focus {
-    border-color: #4f46e5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    border-color: #395886;
+    box-shadow: 0 0 0 3px rgba(57, 88, 134, 0.15);
 }
 
-
 .login-input-group:has(input:focus) .input-icon {
-    color: #4f46e5;
+    color: #395886;
 }
 
 /* ── Options Row ── */
@@ -355,7 +356,7 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #64748b;
+    color: #627D98;
     cursor: pointer;
     user-select: none;
 }
@@ -363,20 +364,20 @@
 .login-remember input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: #4f46e5;
+    accent-color: #395886;
     cursor: pointer;
 }
 
 .login-forgot-link {
     font-size: 13px;
     font-weight: 500;
-    color: #4f46e5;
+    color: #395886;
     text-decoration: none;
     transition: color 0.2s;
 }
 
 .login-forgot-link:hover {
-    color: #4338ca;
+    color: #2d456a;
     text-decoration: underline;
 }
 
@@ -388,7 +389,7 @@
     font-size: 14px;
     font-weight: 700;
     color: #ffffff;
-    background: #4f46e5;
+    background: linear-gradient(135deg, #395886 0%, #4D71A3 100%);
     border: none;
     border-radius: 50px;
     cursor: pointer;
@@ -397,15 +398,15 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    box-shadow: 0 4px 12px rgba(57, 88, 134, 0.25);
     margin-bottom: 12px;
 }
 
 .btn-login-primary:hover,
 .btn-register-primary:hover {
-    background: #4338ca;
+    background: linear-gradient(135deg, #2d456a 0%, #395886 100%);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+    box-shadow: 0 6px 16px rgba(57, 88, 134, 0.35);
 }
 
 .btn-login-primary:active,
@@ -418,9 +419,9 @@
     height: 40px;
     font-size: 13.5px;
     font-weight: 600;
-    color: #64748b;
+    color: #627D98;
     background: transparent;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #D5DEEF;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -431,18 +432,19 @@
 }
 
 .btn-login-exit:hover {
-    background: #f1f5f9;
-    color: #0f172a;
+    background: #F0F3FA;
+    color: #1E2D42;
+    border-color: #B1C9EF;
 }
 
 .login-signup-link {
     text-align: center;
     font-size: 13px;
-    color: #64748b;
+    color: #627D98;
 }
 
 .login-signup-link a {
-    color: #4f46e5;
+    color: #395886;
     font-weight: 600;
     text-decoration: none;
     margin-left: 4px;
@@ -466,7 +468,7 @@
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #94a3b8;
+    color: #8AAEE0;
     font-size: 17px;
     cursor: pointer;
     padding: 2px 4px;
@@ -476,7 +478,7 @@
 }
 
 .toggle-password-btn:hover {
-    color: #4f46e5;
+    color: #395886;
 }
 
 /* ── Field Validation Error ── */

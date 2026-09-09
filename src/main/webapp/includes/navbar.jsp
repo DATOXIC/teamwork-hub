@@ -131,13 +131,13 @@
                 <div class="dropdown ${not empty sessionScope.currentUser ? '' : 'd-none'}">
                     <button class="btn navbar-user-pill d-flex align-items-center gap-2 px-3 py-1 dropdown-toggle shadow-sm" 
                             type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-7 shadow-sm">
+                        <div class="avatar-sm rounded-circle text-white d-flex align-items-center justify-content-center fw-bold fs-7 shadow-sm" style="background: linear-gradient(135deg, #395886 0%, #638ECB 100%);">
                             <i class="bi bi-person-fill"></i>
                         </div>
                         <span class="d-none d-md-inline text-white fw-bold fs-7">
                             ${sessionScope.currentUser.fullName}
                         </span>
-                        <span class="badge bg-primary text-white rounded-pill fs-9 px-2 py-1">
+                        <span class="badge rounded-pill fs-9 px-2 py-1 text-white" style="background-color: #638ECB;">
                             ${sessionScope.currentUser.role}
                         </span>
                     </button>
