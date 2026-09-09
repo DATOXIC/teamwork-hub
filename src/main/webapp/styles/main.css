@@ -808,6 +808,114 @@ input, select, textarea, button {
 }
 
 /* ==========================================================================
+   Workspace Bento Dashboard Enhancements (KPI, Filter, Live Search)
+   ========================================================================== */
+.workspace-kpi-card {
+    background: #ffffff;
+    border: 1px solid #D5DEEF;
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(57, 88, 134, 0.05);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    height: 100%;
+}
+
+.workspace-kpi-card:hover {
+    transform: translateY(-3px);
+    border-color: #8AAEE0;
+    box-shadow: 0 8px 20px -4px rgba(57, 88, 134, 0.12);
+}
+
+.kpi-icon-box {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.kpi-icon-primary {
+    background-color: #F0F3FA;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+}
+
+.kpi-icon-success {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+    border: 1px solid #C8E6C9;
+}
+
+.kpi-icon-warning {
+    background-color: #FFF8E1;
+    color: #F57F17;
+    border: 1px solid #FFE082;
+}
+
+.kpi-icon-accent {
+    background-color: #E8EEF8;
+    color: #638ECB;
+    border: 1px solid #B1C9EF;
+}
+
+.search-input-group {
+    background-color: #ffffff;
+    border: 1px solid #D5DEEF;
+    border-radius: 50px;
+    padding: 4px 8px 4px 16px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(57, 88, 134, 0.04);
+}
+
+.search-input-group:focus-within {
+    border-color: #395886;
+    box-shadow: 0 0 0 3px rgba(57, 88, 134, 0.15);
+}
+
+.search-input-group input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.85rem;
+    color: #1E2D42;
+    width: 100%;
+}
+
+.filter-pill-btn {
+    border: 1px solid #D5DEEF;
+    background-color: #ffffff;
+    color: #627D98;
+    border-radius: 50px;
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.filter-pill-btn:hover {
+    background-color: #F0F3FA;
+    color: #395886;
+    border-color: #B1C9EF;
+}
+
+.filter-pill-btn.active {
+    background-color: #395886;
+    color: #ffffff;
+    border-color: #395886;
+    box-shadow: 0 4px 10px rgba(57, 88, 134, 0.25);
+}
+
+/* ==========================================================================
    Wiki & Knowledge Base Styles (docs.jsp)
    ========================================================================== */
 .wiki-doc-item {
