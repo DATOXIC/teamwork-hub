@@ -25,7 +25,95 @@
         <div class="clickup-shell">
 
             <!-- =========================================================================
-                 1. CỘT 1: APP RAIL (DOCK SIÊU MỎNG NGOÀI CÙNG BÊN TRÁI - 56PX)
+                 0. GLOBAL TOPBAR (CLICKUP 3.0 PILL SEARCH & QUICK ACTIONS - 42PX)
+                 ========================================================================= -->
+            <header class="clickup-global-header">
+                <!-- Left: Workspace Switcher -->
+                <div class="d-flex align-items-center gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light border d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill shadow-2xs fs-8 fw-bold text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="badge bg-success text-white rounded-circle p-1 d-inline-flex align-items-center justify-content-center" style="width: 18px; height: 18px; font-size: 0.65rem;">
+                                ${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}
+                            </span>
+                            <span class="text-truncate" style="max-width: 140px;">TeamWork Hub</span>
+                            <i class="bi bi-chevron-down fs-9 text-muted ms-0.5"></i>
+                        </button>
+                        <ul class="dropdown-menu shadow-lg border rounded-3 p-2 fs-8" style="min-width: 220px; z-index: 1070;">
+                            <li class="px-2 py-1 mb-1 border-bottom">
+                                <span class="fw-bold text-dark d-block">TeamWork Hub</span>
+                                <span class="fs-9 text-muted">${sessionScope.currentUser.fullName} (${sessionScope.currentUser.role})</span>
+                            </li>
+                            <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile?action=view"><i class="bi bi-person-gear me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
+                            <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/project?action=list"><i class="bi bi-grid-fill me-2 text-info"></i>Tất cả Spaces (Dự án)</a></li>
+                            <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
+                                 <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/admin?action=dashboard"><i class="bi bi-shield-check me-2 text-warning"></i>Quản trị hệ thống</a></li>
+                            </c:if>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                    <span class="text-muted fs-8 d-none d-md-inline-block">
+                        <i class="bi bi-calendar3 text-secondary"></i>
+                    </span>
+                </div>
+
+                <!-- Center: Universal Search Pill Input -->
+                <div class="clickup-global-search d-none d-sm-block">
+                    <i class="bi bi-search position-absolute text-muted fs-8" style="top: 9px; left: 12px;"></i>
+                    <input type="text" id="clickupSearchInput" onkeyup="searchClickUpTasks(this.value)" placeholder="Search Ctrl K" autocomplete="off">
+                    <span class="position-absolute end-0 top-50 translate-middle-y me-2 badge bg-light text-muted border fs-9 px-1-5 py-0-5 rounded-pill d-none d-md-inline-flex align-items-center gap-1">
+                        AI Chats <i class="bi bi-stars text-primary"></i>
+                    </span>
+                </div>
+
+                <!-- Right: Quick Action Controls & User Avatar -->
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Notifications Inbox Bell -->
+                    <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 position-relative d-inline-flex align-items-center justify-content-center shadow-2xs" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" title="Hộp thư thông báo (Inbox)" style="width: 32px; height: 32px;">
+                        <i class="bi bi-bell text-secondary fs-8"></i>
+                        <c:if test="${unreadNotifCount > 0}">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" style="font-size: 0.6rem; padding: 2px 4px;">
+                                ${unreadNotifCount}
+                            </span>
+                        </c:if>
+                    </button>
+
+                    <!-- Shortcuts Modal Help (?) -->
+                    <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-2xs" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" title="Phím tắt hệ thống (?)" style="width: 32px; height: 32px;">
+                        <i class="bi bi-question-circle text-secondary fs-8"></i>
+                    </button>
+
+                    <!-- Cài đặt nhanh / Profile Avatar -->
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none position-relative" data-bs-toggle="dropdown" title="${sessionScope.currentUser.fullName}">
+                            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold shadow-2xs" style="width: 30px; height: 30px; font-size: 0.78rem;">
+                                ${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}
+                            </div>
+                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle" style="transform: translate(2px, 2px);"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border rounded-3 p-2 fs-8" style="min-width: 220px; z-index: 1070;">
+                            <li class="px-2 py-1 mb-1 border-bottom">
+                                <span class="fw-bold text-dark d-block">${sessionScope.currentUser.fullName}</span>
+                                <span class="fs-9 text-muted">${sessionScope.currentUser.email}</span>
+                            </li>
+                            <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Tài khoản cá nhân</a></li>
+                            <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
+                                <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/admin?action=dashboard"><i class="bi bi-shield-lock me-2 text-warning"></i>Quản trị hệ thống</a></li>
+                            </c:if>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <!-- =========================================================================
+                 CLICKUP 3.0 FLOATING ISLANDS ROW CONTAINER (3 ĐẢO NỔI)
+                 ========================================================================= -->
+            <div class="clickup-islands-row">
+
+            <!-- =========================================================================
+                 1. ĐẢO NỔI 1: APP RAIL (DOCK SIÊU MỎNG TỐI MÀU BO TRÒN - 52PX)
                  ========================================================================= -->
             <aside class="clickup-dock">
                 <div class="clickup-dock-top">
@@ -184,88 +272,102 @@
             </aside>
 
             <!-- =========================================================================
-                 3. CỘT 3: MAIN WORKSPACE PANEL
+                 3. ĐẢO NỔI 3: MAIN WORKSPACE PANEL (CLICKUP CARD NỔI)
                  ========================================================================= -->
             <main class="clickup-main-panel">
-                <!-- Top Bar -->
-                <div class="clickup-topbar">
-                    <!-- Left: Space title & Star -->
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
-                            <i class="bi bi-chevron-bar-right fs-8"></i>
-                        </button>
-                        <span class="badge bg-danger text-white rounded-2 p-1 fs-8"><i class="bi bi-pencil-fill"></i></span>
-                        <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
-                        <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
-                            <i class="bi ${project.projectTypeIcon}"></i> ${project.projectTypeLabel}
-                        </span>
-                        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
-                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-1 ms-1 d-inline-flex align-items-center justify-content-center shadow-2xs" data-bs-toggle="modal" data-bs-target="#projectSettingsModal" title="Cài đặt dự án & Quy trình" style="width: 24px; height: 24px;">
-                                <i class="bi bi-gear text-secondary fs-9"></i>
+                <!-- Header Đảo Nổi: Title & Tabs -->
+                <div class="clickup-main-header">
+                    <!-- Project Title Row -->
+                    <div class="clickup-project-title-row">
+                        <!-- Left: Space Breadcrumb & Title -->
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
+                                <i class="bi bi-chevron-bar-right fs-8"></i>
                             </button>
-                        </c:if>
-                        <i class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')"></i>
+                            <div class="d-flex align-items-center gap-1.5 text-muted fs-8">
+                                <span>Team Space</span>
+                                <i class="bi bi-chevron-right fs-9 text-muted"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
+                            <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
+                                <i class="bi ${project.projectTypeIcon}"></i> ${project.projectTypeLabel}
+                            </span>
+                            <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+                                <button type="button" class="btn btn-sm btn-light border rounded-circle p-1 ms-1 d-inline-flex align-items-center justify-content-center shadow-2xs" data-bs-toggle="modal" data-bs-target="#projectSettingsModal" title="Cài đặt dự án & Quy trình" style="width: 22px; height: 22px;">
+                                    <i class="bi bi-gear text-secondary fs-9"></i>
+                                </button>
+                            </c:if>
+                            <i class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')"></i>
+                        </div>
+
+                        <!-- Right: Actions & Badges -->
+                        <div class="d-flex align-items-center gap-2">
+                            <c:if test="${project.ownerId == sessionScope.currentUser.id && project.teamProject}">
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                                    <i class="bi bi-person-plus"></i> Mời bạn
+                                </button>
+                            </c:if>
+                            <!-- Nút Xuất Excel (.csv UTF-8 BOM) -->
+                            <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
+                               class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-pill shadow-2xs text-nowrap"
+                               title="Tải toàn bộ danh sách công việc của dự án về máy tính (.csv chuẩn UTF-8 BOM)">
+                                <i class="bi bi-file-earmark-excel-fill text-success fs-8"></i>
+                                <span class="fs-8">Xuất Excel</span>
+                            </a>
+                        </div>
                     </div>
 
-                    <!-- Center: Universal Search -->
-                    <div class="clickup-search-box d-none d-md-block">
-                        <i class="bi bi-search position-absolute text-muted fs-8" style="top: 10px; left: 12px;"></i>
-                        <input type="text" id="clickupSearchInput" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm công việc... (Ctrl+K)" autocomplete="off">
-                        <i class="bi bi-stars position-absolute text-primary fs-8" style="top: 10px; right: 12px;" title="Tra cứu nhanh"></i>
-                    </div>
-
-                    <!-- Right: Actions & Badges -->
-                    <div class="d-flex align-items-center gap-2">
-                        <c:if test="${project.ownerId == sessionScope.currentUser.id && project.teamProject}">
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
-                                <i class="bi bi-person-plus"></i> Mời bạn
-                            </button>
-                        </c:if>
-                        <button type="button" class="btn btn-sm btn-primary-custom rounded-pill px-3 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-                            <i class="bi bi-plus-lg"></i> Thêm việc
-                        </button>
+                    <!-- Multi-View Bar (Sleek Tab Navigation) -->
+                    <div class="clickup-multiview-bar">
+                        <ul class="clickup-tabs">
+                            <li>
+                                <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-tab-link ${currentView == 'chat' ? 'active' : ''}" id="tab-btn-chat">
+                                    <i class="bi bi-hash"></i> Chat
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" class="clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" id="tab-btn-tasks">
+                                    <i class="bi bi-list-task"></i> Tasks
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-tab-link ${currentView == 'docs' ? 'active' : ''}" id="tab-btn-docs">
+                                    <i class="bi bi-journal-text"></i> Docs
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" id="tab-btn-metrics">
+                                    <i class="bi bi-bar-chart-line"></i> Thống kê
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" class="clickup-tab-link ${currentView == 'schedule' ? 'active' : ''}" id="tab-btn-schedule">
+                                    <i class="bi bi-calendar-event"></i> Schedule
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" class="clickup-tab-link ${currentView == 'activity' ? 'active' : ''}" id="tab-btn-activity">
+                                    <i class="bi bi-clock-history"></i> Hoạt động
+                                    <c:if test="${not empty activityLogs}">
+                                        <span class="badge bg-light text-secondary border rounded-pill fs-9 ms-1">${activityLogs.size()}</span>
+                                    </c:if>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 
-                <!-- Multi-View Bar -->
-                <div class="clickup-multiview-bar">
-                    <ul class="clickup-tabs">
-                        <li>
-                            <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-tab-link ${currentView == 'chat' ? 'active' : ''}" id="tab-btn-chat">
-                                <i class="bi bi-hash"></i> Chat
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" class="clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" id="tab-btn-tasks">
-                                <i class="bi bi-list-task"></i> Tasks
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-tab-link ${currentView == 'docs' ? 'active' : ''}" id="tab-btn-docs">
-                                <i class="bi bi-journal-text"></i> Docs
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" id="tab-btn-metrics">
-                                <i class="bi bi-bar-chart-line"></i> Thống kê
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" class="clickup-tab-link ${currentView == 'schedule' ? 'active' : ''}" id="tab-btn-schedule">
-                                <i class="bi bi-calendar-event"></i> Schedule
-                            </a>
-                        </li>
-                        <li>
-                            <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" class="clickup-tab-link ${currentView == 'activity' ? 'active' : ''}" id="tab-btn-activity">
-                                <i class="bi bi-clock-history"></i> Hoạt động
-                                <c:if test="${not empty activityLogs}">
-                                    <span class="badge bg-light text-secondary border rounded-pill fs-9 ms-1">${activityLogs.size()}</span>
-                                </c:if>
-                            </a>
-                        </li>
-                    </ul>
+                <!-- ClickUp Control Toolbar (Views, Subtasks, Progress, and + Add Task) -->
+                <c:set var="progTotal" value="${not empty allProjectTasks ? allProjectTasks.size() : 0}" />
+                <c:set var="progDone" value="${not empty doneTasks ? doneTasks.size() : 0}" />
+                <c:set var="progInProg" value="${not empty inProgressTasks ? inProgressTasks.size() : 0}" />
+                <c:set var="progTodo" value="${not empty todoTasks ? todoTasks.size() : 0}" />
+                <c:set var="pctDone" value="${progTotal > 0 ? ((progDone * 100 - (progDone * 100 % progTotal)) / progTotal) : 0}" />
+                <c:set var="pctInProg" value="${progTotal > 0 ? ((progInProg * 100 - (progInProg * 100 % progTotal)) / progTotal) : 0}" />
+                <c:set var="pctTodo" value="${progTotal > 0 ? (100 - pctDone - pctInProg) : 0}" />
 
-                    <div class="d-flex align-items-center gap-2">
+                <div class="clickup-control-toolbar">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
                         <!-- View Switcher (List vs Board) -->
                         <div class="clickup-view-switcher" id="taskViewSwitcher">
                             <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
@@ -275,85 +377,40 @@
                                 <i class="bi bi-kanban"></i> Board
                             </button>
                         </div>
+
+                        <!-- Pill Badge Group: Status -->
+                        <span class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 fs-8 text-secondary fw-medium shadow-2xs">
+                            <i class="bi bi-layers text-primary me-1"></i> Group: Status
+                        </span>
+
                         <!-- Nút Chuyển Đổi 2 Chế Độ Subtasks (Đóng ⇄ Mở Rộng) -->
                         <button type="button" 
-                                class="btn btn-sm btn-light border d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2 shadow-2xs fs-8 text-dark fw-medium" 
+                                class="btn btn-sm btn-light border d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill shadow-2xs fs-8 text-dark fw-medium" 
                                 id="btnToggleSubtasks" 
                                 onclick="toggleAllSubtasks()" 
                                 title="Bấm 1 lần để chuyển đổi giữa Đóng và Mở rộng việc con (Phím tắt: S)">
                             <i class="bi ${subtaskMode == 'expanded' ? 'bi-chevron-down text-primary' : 'bi-chevron-right text-secondary'}" id="subtaskToggleIcon"></i>
                             <span id="subtaskToggleLabel">Subtasks: ${subtaskMode == 'expanded' ? 'Mở rộng' : 'Đóng'}</span>
                         </button>
-                        <!-- Nút Xuất Excel (.csv UTF-8 BOM) -->
-                        <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
-                           class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-2 shadow-2xs text-nowrap"
-                           title="Tải toàn bộ danh sách công việc của dự án về máy tính (.csv chuẩn UTF-8 BOM)">
-                            <i class="bi bi-file-earmark-excel-fill text-success fs-8"></i>
-                            <span class="fs-8">Xuất Excel</span>
-                        </a>
+
+                        <!-- Mini Progress Strip -->
+                        <div class="clickup-mini-progress" title="Tiến độ: ${pctDone}% (${progDone}/${progTotal} việc hoàn thành)">
+                            <i class="bi bi-pie-chart-fill text-primary"></i>
+                            <span class="tabular-nums">${pctDone}%</span>
+                            <div class="clickup-mini-progress-bar">
+                                <div style="width: ${pctDone}%; background-color: #10b981;"></div>
+                                <div style="width: ${pctInProg}%; background-color: #3b82f6;"></div>
+                                <div style="width: ${pctTodo}%; background-color: #cbd5e1;"></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                <!-- =========================================================================
-                     CLICKUP 3.0 VISUAL PROGRESS & STATUS BREAKDOWN BAR + CONFETTI CELEBRATION
-                     ========================================================================= -->
-                <c:set var="progTotal" value="${not empty allProjectTasks ? allProjectTasks.size() : 0}" />
-                <c:set var="progDone" value="${not empty doneTasks ? doneTasks.size() : 0}" />
-                <c:set var="progInProg" value="${not empty inProgressTasks ? inProgressTasks.size() : 0}" />
-                <c:set var="progTodo" value="${not empty todoTasks ? todoTasks.size() : 0}" />
-                <c:set var="pctDone" value="${progTotal > 0 ? ((progDone * 100 - (progDone * 100 % progTotal)) / progTotal) : 0}" />
-                <c:set var="pctInProg" value="${progTotal > 0 ? ((progInProg * 100 - (progInProg * 100 % progTotal)) / progTotal) : 0}" />
-                <c:set var="pctTodo" value="${progTotal > 0 ? (100 - pctDone - pctInProg) : 0}" />
-
-                <div class="clickup-progress-strip d-flex align-items-center justify-content-between">
-                    <!-- Trái: Thanh Tiến Độ Đa Sắc Màu & Thống Kê -->
-                    <div class="d-flex align-items-center gap-3 flex-grow-1">
-                        <div class="d-flex align-items-center gap-1 fs-9 text-muted fw-semibold text-uppercase" style="letter-spacing: 0.04em;">
-                            <i class="bi bi-pie-chart-fill text-primary fs-8"></i> Tiến độ:
-                            <span class="text-dark fw-bold tabular-nums fs-8">${pctDone}%</span>
-                        </div>
-                        <!-- Thanh Bar Phân Bổ Màu Sắc (ClickUp Segmented Bar) -->
-                        <div class="clickup-progress-bar flex-grow-1 shadow-2xs" id="projectProgressBar">
-                            <c:if test="${progDone > 0}">
-                                <div class="progress-segment progress-segment-done" style="width: ${pctDone}%;" 
-                                    data-bs-toggle="tooltip" data-bs-placement="bottom" 
-                                    title="Đã nghiệm thu (DONE): ${progDone} việc (${pctDone}%) — Click để lọc"
-                                    onclick="filterClickUpTasks('STATUS_DONE')"></div>
-                            </c:if>
-                            <c:if test="${progInProg > 0}">
-                                <div class="progress-segment progress-segment-progress" style="width: ${pctInProg}%;" 
-                                    data-bs-toggle="tooltip" data-bs-placement="bottom" 
-                                    title="Đang thực hiện (IN PROGRESS): ${progInProg} việc (${pctInProg}%) — Click để lọc"
-                                    onclick="filterClickUpTasks('STATUS_IN_PROGRESS')"></div>
-                            </c:if>
-                            <c:if test="${progTodo > 0}">
-                                <div class="progress-segment progress-segment-todo" style="width: ${pctTodo}%;" 
-                                    data-bs-toggle="tooltip" data-bs-placement="bottom" 
-                                    title="Chờ thực hiện (TO DO): ${progTodo} việc (${pctTodo}%) — Click để lọc"
-                                    onclick="filterClickUpTasks('STATUS_TODO')"></div>
-                            </c:if>
-                        </div>
-                        <!-- Legend Nhãn Trạng Thái Nhanh -->
-                        <div class="d-flex align-items-center gap-3 fs-9 text-muted d-none d-lg-flex">
-                            <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_DONE')" title="Lọc công việc Đã hoàn thành">
-                                <span class="badge-dot" style="background-color: #10b981;"></span>
-                                <span><strong class="text-dark tabular-nums">${progDone}</strong> Hoàn thành</span>
-                            </span>
-                            <c:if test="${submittedCount > 0}">
-                                <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_SUBMITTED')" title="Lọc công việc Chờ PM duyệt">
-                                    <span class="badge-dot" style="background-color: #8b5cf6;"></span>
-                                    <span><strong class="text-dark tabular-nums">${submittedCount}</strong> Chờ duyệt</span>
-                                </span>
-                            </c:if>
-                            <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_IN_PROGRESS')" title="Lọc công việc Đang làm">
-                                <span class="badge-dot" style="background-color: #3b82f6;"></span>
-                                <span><strong class="text-dark tabular-nums">${progInProg}</strong> Đang làm</span>
-                            </span>
-                            <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_TODO')" title="Lọc công việc Chờ làm">
-                                <span class="badge-dot" style="background-color: #94a3b8;"></span>
-                                <span><strong class="text-dark tabular-nums">${progTodo}</strong> Chờ làm</span>
-                            </span>
-                        </div>
+                    <!-- Right: + Add Task Dark Button -->
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="clickup-add-task-btn-dark" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Thêm công việc mới">
+                            <i class="bi bi-plus-lg"></i>
+                            <span>Add Task</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1819,6 +1876,7 @@
 
         </div><!-- /clickup-workspace-body -->
     </main><!-- /clickup-main-panel -->
+    </div><!-- /clickup-islands-row -->
 </div><!-- /clickup-shell -->
 
 <!-- =========================================================================
