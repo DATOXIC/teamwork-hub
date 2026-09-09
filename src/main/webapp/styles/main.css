@@ -10,18 +10,22 @@
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
 
-    --brand-primary: #4f46e5;
-    --brand-primary-hover: #4338ca;
-    --brand-accent: #38bdf8;
-    --brand-dark: #0f172a;
-    --brand-navy: #0f172a;
+    /* Bảng màu thiết kế mới (Ocean & Sky Blue Palette từ Twine) */
+    --brand-primary: #395886;
+    --brand-primary-hover: #2d456a;
+    --brand-accent: #638ECB;
+    --brand-accent-light: #8AAEE0;
+    --brand-accent-soft: #B1C9EF;
+    --brand-sky-light: #D5DEEF;
+    --brand-bg: #F0F3FA;
     --brand-surface: #ffffff;
-    --brand-bg: #f8fafc;
-    --brand-border: #e2e8f0;
-    --brand-text-main: #0f172a;
-    --brand-text-body: #334155;
-    --brand-text-muted: #64748b;
-    --brand-text-subtle: #94a3b8;
+    --brand-dark: #1E2D42;
+    --brand-navy: #1E2D42;
+    --brand-border: #D5DEEF;
+    --brand-text-main: #1E2D42;
+    --brand-text-body: #395886;
+    --brand-text-muted: #627D98;
+    --brand-text-subtle: #8AAEE0;
 
     /* UI-06: Hệ thống Border-radius chuẩn hóa 4 cấp */
     --radius-sm: 6px;
@@ -100,14 +104,14 @@ input, select, textarea, button {
 
 /* Navbar Styling - Tương phản mạnh */
 .bg-dark-navy {
-    background-color: #0f172a !important;
-    border-bottom: 1px solid #1e293b !important;
+    background-color: #1E2D42 !important;
+    border-bottom: 1px solid #2B3E58 !important;
 }
 
 .brand-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
     border-radius: 8px;
     color: #ffffff;
     font-size: 1.1rem;
@@ -118,8 +122,8 @@ input, select, textarea, button {
 }
 
 .bg-navy-subtle {
-    background-color: #1e293b !important;
-    border: 1px solid #334155 !important;
+    background-color: #24344B !important;
+    border: 1px solid #364B68 !important;
 }
 
 .hover-light:hover {
@@ -129,18 +133,18 @@ input, select, textarea, button {
 
 /* Buttons */
 .btn-primary-custom {
-    background-color: var(--brand-primary);
-    border-color: var(--brand-primary);
+    background: linear-gradient(135deg, #395886 0%, #4D71A3 100%);
+    border-color: #395886;
     color: #ffffff;
     transition: all 0.2s ease-in-out;
 }
 
 .btn-primary-custom:hover {
-    background-color: var(--brand-primary-hover);
-    border-color: var(--brand-primary-hover);
+    background: linear-gradient(135deg, #2d456a 0%, #395886 100%);
+    border-color: #2d456a;
     color: #ffffff;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    box-shadow: 0 6px 16px rgba(57, 88, 134, 0.35);
 }
 
 /* Avatars */
@@ -661,92 +665,146 @@ input, select, textarea, button {
    ========================================================================== */
 .project-card {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #D5DEEF;
     border-radius: var(--radius-xl);
-    padding: 22px;
+    padding: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: var(--shadow-card);
-    /* UI-07: tăng shadow mặc định */
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 4px 16px -2px rgba(57, 88, 134, 0.08), 0 2px 4px -1px rgba(57, 88, 134, 0.04);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Thanh accent gradient trên đỉnh card */
+.project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
+    opacity: 0.9;
+    transition: height 0.2s ease;
 }
 
 .project-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card-hover);
-    border-color: #cbd5e1;
+    transform: translateY(-5px);
+    box-shadow: 0 16px 32px -8px rgba(57, 88, 134, 0.16), 0 4px 12px -2px rgba(57, 88, 134, 0.08);
+    border-color: #8AAEE0;
+}
+
+.project-card:hover::before {
+    height: 5px;
+}
+
+.project-card-body {
+    padding: 22px 24px 18px 24px;
+}
+
+.project-card-footer {
+    padding: 16px 24px 22px 24px;
+    background-color: #FAFBFD;
+    border-top: 1px solid #EDF2F9;
 }
 
 .project-card-other {
-    background-color: #f8fafc;
-    border: 1px dashed #cbd5e1;
+    background-color: #FFFFFF;
+    border: 1px dashed #B1C9EF;
     border-radius: var(--radius-xl);
-    padding: 22px;
+    padding: 22px 24px;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(57, 88, 134, 0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.2s ease;
 }
 
 .project-card-other:hover {
-    transform: translateY(-2px);
-    background-color: #ffffff;
-    border-color: #94a3b8;
-    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.06);
+    transform: translateY(-3px);
+    background-color: #FFFFFF;
+    border-style: solid;
+    border-color: #638ECB;
+    box-shadow: 0 12px 24px -6px rgba(57, 88, 134, 0.12);
 }
 
 .project-code-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background-color: #f1f5f9;
-    color: #334155;
-    border: 1px solid #e2e8f0;
+    gap: 5px;
+    background-color: #F0F3FA;
+    color: #395886;
+    border: 1px solid #D5DEEF;
     border-radius: 50px;
     padding: 3px 10px;
     font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
     user-select: none;
-    transition: all 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
 }
 
 .project-code-badge:hover {
-    background-color: #e2e8f0;
-    color: #0f172a;
-    border-color: #cbd5e1;
+    background-color: #D5DEEF;
+    color: #1E2D42;
+    border-color: #B1C9EF;
+    transform: scale(1.02);
+}
+
+/* Icon Monogram đại diện dự án */
+.project-avatar-monogram {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #F0F3FA 0%, #D5DEEF 100%);
+    border: 1px solid #B1C9EF;
+    color: #395886;
+    font-weight: 800;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(57, 88, 134, 0.08);
 }
 
 .project-progress-container {
-    background-color: #f1f5f9;
+    background-color: #E6EDF8;
     border-radius: 50px;
-    height: 6px;
+    height: 7px;
     overflow: hidden;
+    position: relative;
 }
 
 .project-progress-bar {
-    background: linear-gradient(90deg, #4f46e5 0%, #06b6d4 100%);
+    background: linear-gradient(90deg, #8AAEE0 0%, #638ECB 50%, #395886 100%);
     height: 100%;
     border-radius: 50px;
     width: 0%;
     transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 8px rgba(99, 142, 203, 0.4);
 }
 
 .pending-invite-card {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-left: 4px solid #4f46e5;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-    transition: all 0.15s ease;
+    border: 1px solid #D5DEEF;
+    border-left: 4px solid #395886;
+    border-radius: 14px;
+    padding: 18px 22px;
+    box-shadow: 0 2px 8px rgba(57, 88, 134, 0.06);
+    transition: all 0.2s ease;
 }
 
 .pending-invite-card:hover {
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 8px 20px -4px rgba(57, 88, 134, 0.12);
+    border-color: #8AAEE0;
 }
 
 /* ==========================================================================
