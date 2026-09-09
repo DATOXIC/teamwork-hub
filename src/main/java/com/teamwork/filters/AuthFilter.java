@@ -1,6 +1,7 @@
 package com.teamwork.filters;
 
 import com.teamwork.business.User;
+import com.teamwork.data.UserDB;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -77,9 +78,31 @@ public class AuthFilter implements Filter {
             currentUser = (User) session.getAttribute("currentUser");
         }
 
+        // 6.5. TỰ ĐỘNG ĐĂNG NHẬP QUA COOKIE (AUTO-LOGIN / REMEMBER ME)
+        // Nếu Session chưa có hoặc vừa bị hết hạn (timeout), kiểm tra Cookie 'teamwork_remember_user'
+        if (currentUser == null && httpRequest.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie c : httpRequest.getCookies()) {
+                if ("teamwork_remember_user".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                    String rememberedUsername = c.getValue().trim();
+                    try {
+                        User userFromDb = UserDB.selectByUsername(rememberedUsername);
+                        if (userFromDb != null) {
+                            // Tự động khôi phục session đăng nhập
+                            session = httpRequest.getSession(true);
+                            session.setAttribute("currentUser", userFromDb);
+                            currentUser = userFromDb;
+                            break;
+                        }
+                    } catch (Exception ignored) {
+                        // Lỗi kết nối hoặc tài khoản không tồn tại -> Bỏ qua
+                    }
+                }
+            }
+        }
+
         // 7. KIỂM TRA KẾT QUẢ ĐĂNG NHẬP
         if (currentUser != null) {
-            // Đã đăng nhập hợp lệ -> Cho phép đi tiếp vào các Servlet / JSP nội bộ
+            // Đã đăng nhập hợp lệ (hoặc vừa Auto-Login qua Cookie) -> Cho phép đi tiếp vào các Servlet / JSP nội bộ
             chain.doFilter(request, response);
         } 
         else 

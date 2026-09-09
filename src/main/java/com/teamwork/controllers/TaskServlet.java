@@ -67,14 +67,25 @@ public class TaskServlet extends HttpServlet {
 
         if (projectIdParam == null || projectIdParam.trim().isEmpty()) {
             // Tối ưu hóa Cookie: Đọc dự án truy cập gần nhất để vào thẳng mà không cần query lại
+            HttpSession session = request.getSession(false);
+            User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+
             if (request.getCookies() != null) {
                 for (jakarta.servlet.http.Cookie c : request.getCookies()) {
                     if ("last_project_id".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
                         try {
                             int cachedProjectId = Integer.parseInt(c.getValue().trim());
-                            if (cachedProjectId > 0) {
+                            // Kiểm tra an toàn: Dự án hợp lệ VÀ người dùng hiện tại là thành viên dự án
+                            if (cachedProjectId > 0 && currentUser != null && ProjectMemberDB.isMember(cachedProjectId, currentUser.getId())) {
                                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + cachedProjectId);
                                 return;
+                            } else {
+                                // Nếu không có quyền hoặc dự án không hợp lệ -> Xóa cookie cũ
+                                jakarta.servlet.http.Cookie deleteCookie = new jakarta.servlet.http.Cookie("last_project_id", "");
+                                deleteCookie.setMaxAge(0);
+                                deleteCookie.setPath(request.getContextPath().isEmpty() ? "/" : request.getContextPath());
+                                deleteCookie.setHttpOnly(true);
+                                response.addCookie(deleteCookie);
                             }
                         } catch (Exception ignored) {}
                     }
@@ -267,6 +278,7 @@ public class TaskServlet extends HttpServlet {
         jakarta.servlet.http.Cookie lastProjectCookie = new jakarta.servlet.http.Cookie("last_project_id", String.valueOf(projectId));
         lastProjectCookie.setMaxAge(30 * 24 * 60 * 60);
         lastProjectCookie.setPath(request.getContextPath().isEmpty() ? "/" : request.getContextPath());
+        lastProjectCookie.setHttpOnly(true);
         response.addCookie(lastProjectCookie);
 
         // 2. TỐI ƯU HÓA: Lấy TẤT CẢ Task của Dự án trong 1 câu SQL duy nhất
@@ -406,7 +418,28 @@ public class TaskServlet extends HttpServlet {
         // Chế độ xem task (taskView: list hoặc board)
         String taskView = request.getParameter("taskView");
         if (taskView == null || taskView.trim().isEmpty()) {
-            taskView = "list"; // Mặc định mở List View phân cấp chuẩn ClickUp
+            // Đọc Cookie preferred_task_view nếu có
+            if (request.getCookies() != null) {
+                for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+                    if ("preferred_task_view".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                        taskView = c.getValue().trim().toLowerCase();
+                        break;
+                    }
+                }
+            }
+            if (taskView == null || (!"board".equals(taskView) && !"list".equals(taskView))) {
+                taskView = "list"; // Mặc định mở List View phân cấp chuẩn ClickUp
+            }
+        } else {
+            taskView = taskView.trim().toLowerCase();
+            if (!"board".equals(taskView) && !"list".equals(taskView)) {
+                taskView = "list";
+            }
+            // Lưu Cookie preferred_task_view (hạn 30 ngày)
+            jakarta.servlet.http.Cookie viewCookie = new jakarta.servlet.http.Cookie("preferred_task_view", taskView);
+            viewCookie.setMaxAge(30 * 24 * 60 * 60);
+            viewCookie.setPath(request.getContextPath().isEmpty() ? "/" : request.getContextPath());
+            response.addCookie(viewCookie);
         }
 
         // 9. Đóng gói dữ liệu gửi sang tasks.jsp

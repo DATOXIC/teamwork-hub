@@ -162,7 +162,7 @@
                                                                             <div class="login-input-group">
                                                                                 <i class="bi bi-person input-icon"></i>
                                                                                 <input type="text" id="login-username"
-                                                                                    name="username" value="${username}"
+                                                                                    name="username" value="${not empty username ? username : cookie.teamwork_remember_user.value}"
                                                                                     placeholder="Nhập tên đăng nhập..."
                                                                                     required autofocus>
                                                                             </div>
@@ -192,7 +192,7 @@
                                                                                     <div class="login-options-row">
                                                                                         <label class="login-remember">
                                                                                             <input type="checkbox"
-                                                                                                name="remember">
+                                                                                                name="remember" ${rememberChecked || not empty cookie.teamwork_remember_user.value ? 'checked' : ''}>
                                                                                             <span>Ghi nhớ đăng
                                                                                                 nhập</span>
                                                                                         </label>

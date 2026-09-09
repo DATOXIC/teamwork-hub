@@ -1,4 +1,4 @@
-﻿<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
         <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
@@ -64,7 +64,7 @@
             <!-- =========================================================================
                  2. CỘT 2: WORKSPACE SIDEBAR (240PX)
                  ========================================================================= -->
-            <aside class="clickup-sidebar" id="clickupSidebar">
+            <aside class="clickup-sidebar ${cookie.sidebar_collapsed.value == 'true' ? 'collapsed' : ''}" id="clickupSidebar">
                 <!-- Header Workspace Dropdown & Collapse Button -->
                 <div class="clickup-sidebar-header d-flex align-items-center justify-content-between">
                     <div class="dropdown flex-grow-1 me-1">
@@ -180,7 +180,7 @@
                 <div class="clickup-topbar">
                     <!-- Left: Space title & Star -->
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 d-none" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
+                        <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
                             <i class="bi bi-chevron-bar-right fs-8"></i>
                         </button>
                         <span class="badge bg-danger text-white rounded-2 p-1 fs-8"><i class="bi bi-pencil-fill"></i></span>
@@ -1574,13 +1574,15 @@
 
 <!-- ClickUp 3.0 Interactive Controller Scripts -->
 <script>
-    // 1. Sidebar Toggle & State persistence in localStorage
+    // 1. Sidebar Toggle & State persistence in localStorage and Cookie
     function toggleClickUpSidebar() {
         var sidebar = document.getElementById('clickupSidebar');
         var expandBtn = document.getElementById('btnExpandSidebar');
         if (!sidebar) return;
         var isCollapsed = sidebar.classList.toggle('collapsed');
         localStorage.setItem('clickup_sidebar_collapsed', isCollapsed ? '1' : '0');
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '/';
+        document.cookie = "sidebar_collapsed=" + (isCollapsed ? 'true' : 'false') + "; path=" + basePath + "; max-age=" + (30 * 24 * 60 * 60);
         if (expandBtn) {
             if (isCollapsed) {
                 expandBtn.classList.remove('d-none');
@@ -1654,6 +1656,10 @@
             if (viewList) viewList.classList.add('d-none');
             if (viewBoard) viewBoard.classList.remove('d-none');
         }
+
+        // Lưu Cookie preferred_task_view (hạn 30 ngày)
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '/';
+        document.cookie = "preferred_task_view=" + encodeURIComponent(view) + "; path=" + basePath + "; max-age=" + (30 * 24 * 60 * 60);
 
         try {
             var url = new URL(window.location.href);

@@ -49,6 +49,12 @@ public class AuthServlet extends HttpServlet {
                 HttpSession session = request.getSession(false);
                 if (session != null) 
                 {
+                    // Nếu người dùng đã đăng nhập hợp lệ, chuyển thẳng vào Dashboard
+                    if (session.getAttribute("currentUser") != null) {
+                        response.sendRedirect(request.getContextPath() + "/project?action=list");
+                        return;
+                    }
+
                     String successMsg = (String) session.getAttribute("successMessage");
                     String registeredUser = (String) session.getAttribute("registeredUsername");
                     
@@ -63,6 +69,18 @@ public class AuthServlet extends HttpServlet {
                         session.removeAttribute("registeredUsername"); // Xóa ngay sau khi dùng
                     }
                 }
+
+                // Nếu chưa có username trên request, kiểm tra Cookie 'teamwork_remember_user' để điền sẵn
+                if (request.getAttribute("username") == null && request.getCookies() != null) {
+                    for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+                        if ("teamwork_remember_user".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                            request.setAttribute("username", c.getValue().trim());
+                            request.setAttribute("rememberChecked", true);
+                            break;
+                        }
+                    }
+                }
+
                 // Chuyển tiếp về trang đăng nhập
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
                 break;
@@ -103,6 +121,8 @@ public class AuthServlet extends HttpServlet {
             throws ServletException, IOException {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
+        String remember = request.getParameter("remember");
+        boolean isRemember = "on".equalsIgnoreCase(remember) || "true".equalsIgnoreCase(remember) || "1".equals(remember);
 
         // 1. Kiểm tra rỗng (Validation)
         if (username == null || username.trim().isEmpty() ||
@@ -123,8 +143,20 @@ public class AuthServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("currentUser", user);
 
+            // 3. Xử lý Cookie Ghi nhớ đăng nhập (Remember Me - Hạn 14 ngày)
+            String cookiePath = request.getContextPath().isEmpty() ? "/" : request.getContextPath();
+            jakarta.servlet.http.Cookie rememberCookie = new jakarta.servlet.http.Cookie("teamwork_remember_user", user.getUsername());
+            rememberCookie.setPath(cookiePath);
+            rememberCookie.setHttpOnly(true);
+
+            if (isRemember) {
+                rememberCookie.setMaxAge(14 * 24 * 60 * 60); // 14 ngày
+            } else {
+                rememberCookie.setMaxAge(0); // Xóa nếu không chọn
+            }
+            response.addCookie(rememberCookie);
+
             // Điều hướng sang trang danh sách dự án (Project Dashboard)
-            // Dùng redirect để trình duyệt đổi URL, tránh việc F5 submit lại form đăng nhập
             response.sendRedirect(request.getContextPath() + "/project?action=list");
         } 
         else 
@@ -230,6 +262,22 @@ public class AuthServlet extends HttpServlet {
             session.removeAttribute("currentUser");
             session.invalidate(); // Hủy toàn bộ session trên máy chủ
         }
+
+        // Xóa sạch Cookie xác thực tự động và dự án đã lưu khi đăng xuất
+        String cookiePath = request.getContextPath().isEmpty() ? "/" : request.getContextPath();
+        
+        jakarta.servlet.http.Cookie rememberCookie = new jakarta.servlet.http.Cookie("teamwork_remember_user", "");
+        rememberCookie.setMaxAge(0);
+        rememberCookie.setPath(cookiePath);
+        rememberCookie.setHttpOnly(true);
+        response.addCookie(rememberCookie);
+
+        jakarta.servlet.http.Cookie lastProjectCookie = new jakarta.servlet.http.Cookie("last_project_id", "");
+        lastProjectCookie.setMaxAge(0);
+        lastProjectCookie.setPath(cookiePath);
+        lastProjectCookie.setHttpOnly(true);
+        response.addCookie(lastProjectCookie);
+
         // Chuyển hướng người dùng về trang đăng nhập
         response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
     }
