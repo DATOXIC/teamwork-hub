@@ -543,4 +543,28 @@ public class TaskDB {
     public static void syncAssigneeName(int userId, String newFullName) {
         // Tự động đồng bộ qua JOIN users trong Database
     }
+
+    /**
+     * HÀM 18: Tự động mở khóa toàn bộ công việc khi chuyển dự án sang chế độ Cá Nhân (Solo)
+     */
+    public static void unlockAllTasksForSolo(int projectId, int ownerId) {
+        if (projectId <= 0) return;
+
+        String sqlGate = "UPDATE tasks SET requires_gate = 0, assignee_id = ?, updated_at = NOW() WHERE project_id = ?";
+        String sqlStatus = "UPDATE tasks SET status = 'IN_PROGRESS', updated_at = NOW() WHERE project_id = ? AND status IN ('PLANNING', 'SUBMITTED')";
+
+        try (Connection conn = DBUtil.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sqlGate)) {
+                ps.setInt(1, ownerId);
+                ps.setInt(2, projectId);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = conn.prepareStatement(sqlStatus)) {
+                ps.setInt(1, projectId);
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi mở khóa tasks cho chế độ Solo: projectId=" + projectId, e);
+        }
+    }
 }

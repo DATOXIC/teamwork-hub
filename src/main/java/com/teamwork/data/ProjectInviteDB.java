@@ -228,4 +228,19 @@ public class ProjectInviteDB {
         }
         return false;
     }
+
+    /**
+     * Hàm 8: Thu hồi toàn bộ lời mời đang PENDING của dự án (khi chuyển sang Solo)
+     */
+    public static void revokeAllPendingByProjectId(int projectId) {
+        if (projectId <= 0) return;
+        String sql = "UPDATE project_invites SET status = 'REVOKED'::invite_status_enum WHERE project_id = ? AND status = 'PENDING'";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, projectId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi thu hồi invites của Project ID: " + projectId, e);
+        }
+    }
 }

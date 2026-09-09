@@ -575,5 +575,54 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// =========================================================================
+// POWER-USER KEYBOARD SHORTCUTS (CLICKUP 3.0 / LINEAR STYLE)
+// =========================================================================
+document.addEventListener('keydown', function(e) {
+    const activeTagName = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    const isInput = activeTagName === 'input' || activeTagName === 'textarea' || activeTagName === 'select' || (document.activeElement && document.activeElement.isContentEditable);
 
+    // Ctrl + K / Cmd + K: Focus Universal Search Input
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        const searchInput = document.getElementById('clickupSearchInput') || document.getElementById('taskSearchInput');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+        return;
+    }
 
+    // Ignore single-letter shortcuts when typing inside form inputs
+    if (isInput) return;
+
+    // ? : Open Shortcuts Help Modal
+    if (e.key === '?') {
+        e.preventDefault();
+        const shortcutsModalEl = document.getElementById('shortcutsHelpModal');
+        if (shortcutsModalEl && window.bootstrap && window.bootstrap.Modal) {
+            const modal = bootstrap.Modal.getInstance(shortcutsModalEl) || new bootstrap.Modal(shortcutsModalEl);
+            modal.show();
+        }
+    }
+    // L : Switch to List View
+    else if (e.key === 'l' || e.key === 'L') {
+        if (typeof window.switchTaskSubView === 'function') {
+            window.switchTaskSubView('list');
+        }
+    }
+    // B : Switch to Board View
+    else if (e.key === 'b' || e.key === 'B') {
+        if (typeof window.switchTaskSubView === 'function') {
+            window.switchTaskSubView('board');
+        }
+    }
+    // S : Quick Toggle Subtasks (Expanded <-> Collapsed)
+    else if (e.key === 's' || e.key === 'S') {
+        if (typeof window.toggleAllSubtasks === 'function') {
+            window.toggleAllSubtasks();
+        } else if (typeof window.quickToggleSubtaskMode === 'function') {
+            window.quickToggleSubtaskMode();
+        }
+    }
+});

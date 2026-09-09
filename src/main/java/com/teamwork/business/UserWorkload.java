@@ -21,6 +21,13 @@ public class UserWorkload implements Serializable {
     private List<Integer> relatedTaskIds;    // Danh sách ID các Task mà người này có tham gia
     private List<Task> leadTasks;            // Danh sách chi tiết các Task lớn mà người này làm Lead
 
+    // Thống kê phân rã trạng thái chuẩn ClickUp Workload
+    private int todoCount;                   // Số Task lớn đang ở trạng thái TODO
+    private int inProgressCount;             // Số Task lớn đang ở trạng thái IN_PROGRESS
+    private int submittedCount;              // Số Task lớn đã nộp bàn giao SUBMITTED (Chờ PM duyệt)
+    private int doneCount;                   // Số Task lớn đã hoàn thành DONE
+    private int overdueCount;                // Số Task lớn bị quá hạn
+
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
 
     public UserWorkload() {
@@ -30,6 +37,11 @@ public class UserWorkload implements Serializable {
         this.completedSubTaskCount = 0;
         this.relatedTaskIds = new ArrayList<>();
         this.leadTasks = new ArrayList<>();
+        this.todoCount = 0;
+        this.inProgressCount = 0;
+        this.submittedCount = 0;
+        this.doneCount = 0;
+        this.overdueCount = 0;
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
@@ -41,6 +53,11 @@ public class UserWorkload implements Serializable {
         this.completedSubTaskCount = completedSubTaskCount;
         this.relatedTaskIds = (relatedTaskIds != null) ? relatedTaskIds : new ArrayList<>();
         this.leadTasks = (leadTasks != null) ? leadTasks : new ArrayList<>();
+        this.todoCount = 0;
+        this.inProgressCount = 0;
+        this.submittedCount = 0;
+        this.doneCount = 0;
+        this.overdueCount = 0;
     }
 
     // ===================== CÁC HÀM TIỆN ÍCH TÍNH TOÁN =====================
@@ -136,5 +153,53 @@ public class UserWorkload implements Serializable {
     }
     public void setLeadTasks(List<Task> leadTasks) {
         this.leadTasks = leadTasks;
+    }
+
+    public int getTodoCount() {
+        return this.todoCount;
+    }
+    public void setTodoCount(int todoCount) {
+        this.todoCount = todoCount;
+    }
+
+    public int getInProgressCount() {
+        return this.inProgressCount;
+    }
+    public void setInProgressCount(int inProgressCount) {
+        this.inProgressCount = inProgressCount;
+    }
+
+    public int getSubmittedCount() {
+        return this.submittedCount;
+    }
+    public void setSubmittedCount(int submittedCount) {
+        this.submittedCount = submittedCount;
+    }
+
+    public int getDoneCount() {
+        return this.doneCount;
+    }
+    public void setDoneCount(int doneCount) {
+        this.doneCount = doneCount;
+    }
+
+    public int getOverdueCount() {
+        return this.overdueCount;
+    }
+    public void setOverdueCount(int overdueCount) {
+        this.overdueCount = overdueCount;
+    }
+
+    /**
+     * Tỷ lệ hoàn thành % thực tế của thành viên (Ưu tiên theo số task hoàn thành)
+     */
+    public int getMemberProgressPercentage() {
+        if (this.leadTaskCount > 0) {
+            return (this.doneCount * 100) / this.leadTaskCount;
+        }
+        if (this.subTaskCount > 0) {
+            return (this.completedSubTaskCount * 100) / this.subTaskCount;
+        }
+        return 0;
     }
 }

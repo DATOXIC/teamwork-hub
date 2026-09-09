@@ -1,9 +1,23 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+    <c:set var="subtaskMode" value="${cookie.preferred_subtask_mode != null && cookie.preferred_subtask_mode.value == 'expanded' ? 'expanded' : 'collapsed'}" />
 
         <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
         <!-- 1. NẠP HEADER CHUNG -->
         <jsp:include page="/includes/header.jsp" />
+
+        <style>
+            /* Khóa cứng Viewport SaaS: Triệt tiêu hoàn toàn thanh cuộn cấp độ trang web */
+            html, body {
+                overflow: hidden !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        </style>
 
         <!-- =========================================================================
              CLICKUP 3.0 UNIFIED APP SHELL ARCHITECTURE (1 TRANG HỢP NHẤT)
@@ -23,17 +37,13 @@
                     <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-dock-item" title="Tất cả dự án (Workspace)">
                         <i class="bi bi-house-door-fill"></i>
                     </a>
-                    <!-- Chat -->
-                    <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-dock-item ${currentView == 'chat' ? 'active' : ''}" title="Thảo luận nhóm">
-                        <i class="bi bi-chat-left-dots-fill"></i>
+                    <!-- Quick Search Trigger (Ctrl+K) -->
+                    <a href="javascript:void(0)" class="clickup-dock-item" onclick="var inp = document.getElementById('clickupSearchInput'); if(inp){inp.focus(); inp.select();}" title="Tìm kiếm nhanh (Ctrl+K)">
+                        <i class="bi bi-search"></i>
                     </a>
-                    <!-- Docs -->
-                    <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-dock-item ${currentView == 'docs' ? 'active' : ''}" title="Tài liệu dự án">
-                        <i class="bi bi-journal-text"></i>
-                    </a>
-                    <!-- Activity Log -->
-                    <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" class="clickup-dock-item ${currentView == 'activity' ? 'active' : ''}" title="Nhật ký hoạt động dự án">
-                        <i class="bi bi-clock-history"></i>
+                    <!-- Reports Hub (Trung tâm Báo cáo Tiến độ) -->
+                    <a href="${pageContext.request.contextPath}/project?action=report&id=${project.id}" class="clickup-dock-item" title="Trung tâm Báo cáo & Thống kê tiến độ">
+                        <i class="bi bi-bar-chart-fill text-info"></i>
                     </a>
                     <!-- Quả chuông thông báo (Mở Inbox Slide-over Drawer) -->
                     <a href="javascript:void(0)" class="clickup-dock-item position-relative" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" title="Hộp thư thông báo (Inbox)">
@@ -47,6 +57,16 @@
                 </div>
 
                 <div class="clickup-dock-bottom">
+                    <!-- Phím tắt hệ thống (?) -->
+                    <a href="javascript:void(0)" class="clickup-dock-item" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" title="Phím tắt hệ thống (?)">
+                        <i class="bi bi-question-circle"></i>
+                    </a>
+                    <!-- Quản trị hệ thống (Nếu là ADMIN) -->
+                    <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
+                        <a href="${pageContext.request.contextPath}/admin?action=dashboard" class="clickup-dock-item" title="Quản trị hệ thống">
+                            <i class="bi bi-shield-lock-fill text-warning"></i>
+                        </a>
+                    </c:if>
                     <!-- User Profile Avatar & Dropdown -->
                     <div class="dropdown dropup">
                         <a href="#" class="d-flex align-items-center text-decoration-none" data-bs-toggle="dropdown" title="${sessionScope.currentUser.fullName}">
@@ -96,64 +116,40 @@
                     </button>
                 </div>
 
-                <!-- PRIMARY CREATE TASK BUTTON (CLICKUP & LINEAR STYLE) -->
+                <!-- PRIMARY CREATE PROJECT BUTTON (CLICKUP & LINEAR STYLE) -->
                 <div class="px-3 pt-2 pb-2">
                     <button type="button" class="sidebar-create-task-btn w-100 d-flex align-items-center justify-content-center gap-2"
-                        data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                        data-bs-toggle="modal" data-bs-target="#createProjectModal">
                         <i class="bi bi-plus-circle-fill fs-7"></i>
-                        <span>Tạo công việc mới</span>
+                        <span>Tạo dự án mới</span>
                     </button>
                 </div>
 
-                <!-- Section Home / Cá nhân -->
+                <!-- Section Tổng quan -->
                 <div class="clickup-sidebar-section">
-                    <div class="clickup-section-title">Home</div>
+                    <div class="clickup-section-title">Tổng quan</div>
+                    <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-nav-link" id="nav-all-spaces">
+                        <span><i class="bi bi-grid text-primary"></i> Tất cả Spaces</span>
+                    </a>
                     <a href="javascript:void(0)" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" class="clickup-nav-link" id="nav-inbox">
-                        <span><i class="bi bi-inbox text-secondary"></i> Inbox</span>
+                        <span><i class="bi bi-inbox text-secondary"></i> Hộp thư (Inbox)</span>
                         <c:if test="${unreadNotifCount > 0}">
                             <span class="badge bg-danger rounded-pill fs-9">${unreadNotifCount}</span>
                         </c:if>
                     </a>
-                    <a href="javascript:void(0)" onclick="filterClickUpTasks('MY_TASKS')" class="clickup-nav-link" id="nav-mytasks">
-                        <span><i class="bi bi-check2-circle text-primary"></i> My Tasks</span>
-                        <span class="badge bg-light text-muted border rounded-pill fs-9">${todoTasks.size() + inProgressTasks.size()}</span>
-                    </a>
-                    <a href="javascript:void(0)" onclick="filterClickUpTasks('SCHEDULE')" class="clickup-nav-link" id="nav-schedule">
-                        <span><i class="bi bi-calendar-event text-warning"></i> Schedule</span>
+                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#joinByCodeModal" class="clickup-nav-link" id="nav-join-code">
+                        <span><i class="bi bi-key text-warning"></i> Nhập mã tham gia...</span>
                     </a>
                 </div>
 
-                <!-- Section Đội ngũ (Creative Team) -->
-                <div class="clickup-sidebar-section">
+                <!-- Section Mục yêu thích (Favorites) -->
+                <div class="clickup-sidebar-section" id="sidebarFavoritesSection">
                     <div class="clickup-section-title">
-                        <span>Đội ngũ (${memberCount})</span>
-                        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
-                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#inviteMemberModal" class="text-muted" title="Mời thành viên"><i class="bi bi-person-plus"></i></a>
-                        </c:if>
+                        <span>Mục yêu thích</span>
+                        <i class="bi bi-star-fill text-warning fs-9"></i>
                     </div>
-                    <div class="d-flex flex-column gap-1">
-                        <!-- Tất cả thành viên -->
-                        <a href="javascript:void(0)" onclick="filterClickUpTasks('ALL')" class="clickup-nav-link active py-1" id="filter-all-btn">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="avatar-circle-sm bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center border" style="width: 22px; height: 22px; font-size: 0.65rem;">
-                                    <i class="bi bi-people-fill"></i>
-                                </span>
-                                <span class="fs-8 fw-semibold">Tất cả thành viên</span>
-                            </div>
-                        </a>
-                        <c:forEach items="${userList}" var="u">
-                            <a href="javascript:void(0)" onclick="filterClickUpTasks('USER', '${u.id}', '${u.fullName}')" class="clickup-nav-link member-filter-item py-1" data-user-id="${u.id}">
-                                <div class="d-flex align-items-center gap-2 text-truncate">
-                                    <span class="position-relative d-inline-block">
-                                        <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;">
-                                            ${u.fullName.substring(0, 1).toUpperCase()}
-                                        </span>
-                                        <span class="position-absolute bottom-0 end-0 bg-success border border-white rounded-circle" style="width: 6px; height: 6px;"></span>
-                                    </span>
-                                    <span class="text-truncate fs-8">${u.fullName}</span>
-                                </div>
-                            </a>
-                        </c:forEach>
+                    <div id="favoritesList" class="d-flex flex-column gap-1">
+                        <!-- Rendered tự động qua JS từ localStorage -->
                     </div>
                 </div>
 
@@ -170,9 +166,20 @@
                                     <i class="bi ${p.id == project.id ? 'bi-pencil-fill' : 'bi-folder2'}"></i>
                                 </span>
                                 <span class="text-truncate flex-grow-1 fs-8 fw-semibold">${p.name}</span>
+                                <span class="badge ${p.soloProject ? 'bg-info-subtle text-info border border-info-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} rounded-pill px-1-5 py-0 fs-10 fw-bold">
+                                    ${p.soloProject ? 'Solo' : 'Team'}
+                                </span>
                             </a>
                         </c:forEach>
                     </div>
+                </div>
+
+                <!-- Mini SaaS Footer Widget -->
+                <div class="p-2-5 mt-auto border-top text-muted fs-9 d-flex align-items-center justify-content-between bg-white bg-opacity-50">
+                    <span class="text-truncate fw-medium"><i class="bi bi-check-circle-fill text-success me-1"></i>TeamWork Hub v2.5</span>
+                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" class="text-muted text-decoration-none" title="Phím tắt trợ giúp (?)">
+                        <kbd class="bg-light text-secondary border px-1-5 py-0-5 rounded fs-9">?</kbd>
+                    </a>
                 </div>
             </aside>
 
@@ -197,23 +204,19 @@
                                 <i class="bi bi-gear text-secondary fs-9"></i>
                             </button>
                         </c:if>
-                        <i class="bi bi-star text-muted fs-8 ms-1" style="cursor: pointer;" title="Đánh dấu sao" onclick="this.classList.toggle('text-warning'); this.classList.toggle('bi-star-fill'); this.classList.toggle('bi-star');"></i>
+                        <i class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')"></i>
                     </div>
 
                     <!-- Center: Universal Search -->
                     <div class="clickup-search-box d-none d-md-block">
                         <i class="bi bi-search position-absolute text-muted fs-8" style="top: 10px; left: 12px;"></i>
-                        <input type="text" id="clickupSearchInput" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm công việc..." autocomplete="off">
+                        <input type="text" id="clickupSearchInput" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm công việc... (Ctrl+K)" autocomplete="off">
                         <i class="bi bi-stars position-absolute text-primary fs-8" style="top: 10px; right: 12px;" title="Tra cứu nhanh"></i>
                     </div>
 
                     <!-- Right: Actions & Badges -->
                     <div class="d-flex align-items-center gap-2">
-                        <span id="cloudSyncBadge" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
-                            <i class="bi bi-lightning-charge-fill text-warning"></i>
-                            <span id="cloudSyncText">Đã đồng bộ</span>
-                        </span>
-                        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+                        <c:if test="${project.ownerId == sessionScope.currentUser.id && project.teamProject}">
                             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
                                 <i class="bi bi-person-plus"></i> Mời bạn
                             </button>
@@ -272,33 +275,15 @@
                                 <i class="bi bi-kanban"></i> Board
                             </button>
                         </div>
-                        <!-- Subtasks Mode Switcher (ClickUp 3.0) -->
-                        <div class="dropdown clickup-subtasks-dropdown" id="subtasksModeDropdown">
-                            <button class="btn btn-sm btn-light border dropdown-toggle d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2 shadow-2xs fs-8" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Tùy chọn hiển thị việc con (Subtasks)">
-                                <i class="bi bi-diagram-2 text-secondary"></i>
-                                <span id="currentSubtaskModeLabel">Subtasks: ${subtaskMode == 'expanded' ? 'Mở rộng' : (subtaskMode == 'hidden' ? 'Ẩn' : 'Thu gọn')}</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 p-1 fs-8">
-                                <li>
-                                    <a class="dropdown-item rounded-2 d-flex align-items-center justify-content-between py-1.5 px-2" href="javascript:void(0)" onclick="setSubtaskMode('collapsed')">
-                                        <span><i class="bi bi-chevron-right me-2 text-muted"></i>Thu gọn (Mặc định)</span>
-                                        <i class="bi bi-check text-primary fs-7 ${subtaskMode == 'collapsed' ? '' : 'd-none'}" id="subtask-check-collapsed"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item rounded-2 d-flex align-items-center justify-content-between py-1.5 px-2" href="javascript:void(0)" onclick="setSubtaskMode('expanded')">
-                                        <span><i class="bi bi-chevron-down me-2 text-muted"></i>Mở rộng tất cả</span>
-                                        <i class="bi bi-check text-primary fs-7 ${subtaskMode == 'expanded' ? '' : 'd-none'}" id="subtask-check-expanded"></i>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item rounded-2 d-flex align-items-center justify-content-between py-1.5 px-2" href="javascript:void(0)" onclick="setSubtaskMode('hidden')">
-                                        <span><i class="bi bi-eye-slash me-2 text-muted"></i>Ẩn việc con</span>
-                                        <i class="bi bi-check text-primary fs-7 ${subtaskMode == 'hidden' ? '' : 'd-none'}" id="subtask-check-hidden"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                        <!-- Nút Chuyển Đổi 2 Chế Độ Subtasks (Đóng ⇄ Mở Rộng) -->
+                        <button type="button" 
+                                class="btn btn-sm btn-light border d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-2 shadow-2xs fs-8 text-dark fw-medium" 
+                                id="btnToggleSubtasks" 
+                                onclick="toggleAllSubtasks()" 
+                                title="Bấm 1 lần để chuyển đổi giữa Đóng và Mở rộng việc con (Phím tắt: S)">
+                            <i class="bi ${subtaskMode == 'expanded' ? 'bi-chevron-down text-primary' : 'bi-chevron-right text-secondary'}" id="subtaskToggleIcon"></i>
+                            <span id="subtaskToggleLabel">Subtasks: ${subtaskMode == 'expanded' ? 'Mở rộng' : 'Đóng'}</span>
+                        </button>
                         <!-- Nút Xuất Excel (.csv UTF-8 BOM) -->
                         <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
                            class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-2 shadow-2xs text-nowrap"
@@ -322,7 +307,7 @@
 
                 <div class="clickup-progress-strip d-flex align-items-center justify-content-between">
                     <!-- Trái: Thanh Tiến Độ Đa Sắc Màu & Thống Kê -->
-                    <div class="d-flex align-items-center gap-3 flex-grow-1 me-3">
+                    <div class="d-flex align-items-center gap-3 flex-grow-1">
                         <div class="d-flex align-items-center gap-1 fs-9 text-muted fw-semibold text-uppercase" style="letter-spacing: 0.04em;">
                             <i class="bi bi-pie-chart-fill text-primary fs-8"></i> Tiến độ:
                             <span class="text-dark fw-bold tabular-nums fs-8">${pctDone}%</span>
@@ -354,6 +339,12 @@
                                 <span class="badge-dot" style="background-color: #10b981;"></span>
                                 <span><strong class="text-dark tabular-nums">${progDone}</strong> Hoàn thành</span>
                             </span>
+                            <c:if test="${submittedCount > 0}">
+                                <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_SUBMITTED')" title="Lọc công việc Chờ PM duyệt">
+                                    <span class="badge-dot" style="background-color: #8b5cf6;"></span>
+                                    <span><strong class="text-dark tabular-nums">${submittedCount}</strong> Chờ duyệt</span>
+                                </span>
+                            </c:if>
                             <span class="d-flex align-items-center gap-1-5 cursor-pointer" onclick="filterClickUpTasks('STATUS_IN_PROGRESS')" title="Lọc công việc Đang làm">
                                 <span class="badge-dot" style="background-color: #3b82f6;"></span>
                                 <span><strong class="text-dark tabular-nums">${progInProg}</strong> Đang làm</span>
@@ -363,14 +354,6 @@
                                 <span><strong class="text-dark tabular-nums">${progTodo}</strong> Chờ làm</span>
                             </span>
                         </div>
-                    </div>
-
-                    <!-- Phải: Nút Pháo Hoa Chúc Mừng Demo -->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                        <button type="button" class="btn btn-xs celebration-btn rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
-                            onclick="fireConfettiCelebration()" title="Bắn pháo hoa chúc mừng (ClickUp Celebration Demo)">
-                            <span>🎉</span> <span class="d-none d-sm-inline">Bắn pháo hoa</span>
-                        </button>
                     </div>
                 </div>
 
@@ -397,23 +380,89 @@
                          ========================================================================= -->
                     <div id="clickup-view-tasks" class="clickup-view-pane ${currentView == 'tasks' ? '' : 'd-none'}">
 
+                        <!-- ClickUp 3.0 Assignee & Status Quick-Filter Bar -->
+                        <c:if test="${project.teamProject}">
+                            <div class="clickup-assignee-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 bg-white border-bottom shadow-2xs mb-3 rounded-3">
+                                <!-- Trái: Bộ lọc Assignee phong cách ClickUp 3.0 -->
+                                <div class="d-flex align-items-center flex-wrap gap-2">
+                                    <span class="fs-9 fw-bold text-uppercase text-muted tracking-wider d-none d-sm-inline-flex align-items-center gap-1">
+                                        <i class="bi bi-people"></i> Phụ trách:
+                                    </span>
+                                    
+                                    <!-- Nút Tất cả -->
+                                    <button type="button" id="assignee-btn-all" class="assignee-filter-btn active" onclick="filterClickUpTasks('ALL')" title="Xem tất cả công việc">
+                                        Tất cả
+                                    </button>
+
+                                    <!-- Nút Me Mode (Việc của tôi) -->
+                                    <button type="button" id="assignee-btn-me" class="assignee-filter-btn" onclick="filterClickUpTasks('MY_TASKS')" title="Chế độ 'Me Mode' - Chỉ hiện việc của tôi">
+                                        <i class="bi bi-person-fill text-primary"></i> Việc của tôi
+                                    </button>
+
+                                    <div class="vr mx-1 opacity-25 d-none d-sm-block" style="height: 18px;"></div>
+
+                                    <!-- Dải Avatar Thành viên dự án ClickUp 3.0 -->
+                                    <div class="d-flex align-items-center gap-1-5 flex-wrap">
+                                        <c:forEach items="${userWorkloadList}" var="uw" varStatus="loop">
+                                            <c:if test="${loop.index < 8}">
+                                                <button type="button" class="assignee-avatar-btn position-relative" 
+                                                        data-user-id="${uw.user.id}" 
+                                                        onclick="handleToolbarAvatarClick('${uw.user.id}', '<c:out value="${uw.user.fullName}" />')"
+                                                        title="${uw.user.fullName} (${uw.totalTasks} việc &bull; ${uw.doneCount} xong &bull; ${uw.overdueCount > 0 ? uw.overdueCount : 0} quá hạn)">
+                                                    <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">
+                                                        ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                                                    </span>
+                                                    <c:if test="${uw.overdueCount > 0}">
+                                                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="transform: translate(-30%, -20%) !important;" title="${uw.overdueCount} việc quá hạn"></span>
+                                                    </c:if>
+                                                </button>
+                                            </c:if>
+                                        </c:forEach>
+                                        <c:if test="${userWorkloadList.size() > 8}">
+                                            <button type="button" class="assignee-avatar-btn-more" data-bs-toggle="modal" data-bs-target="#projectTeamModal" title="Xem thêm ${userWorkloadList.size() - 8} thành viên khác">
+                                                +${userWorkloadList.size() - 8}
+                                            </button>
+                                        </c:if>
+                                    </div>
+                                </div>
+
+                                <!-- Phải: Nút lọc nhanh trạng thái & Xem khối lượng -->
+                                <div class="d-flex align-items-center gap-2">
+                                    <c:if test="${submittedCount > 0}">
+                                        <button type="button" id="assignee-btn-submitted" class="status-filter-btn status-btn-submitted" onclick="filterClickUpTasks('STATUS_SUBMITTED')" title="Lọc các nhiệm vụ đã nộp báo cáo chờ PM duyệt">
+                                            <i class="bi bi-send-check"></i>
+                                            <span>Chờ duyệt</span>
+                                            <span class="status-count-pill">${submittedCount}</span>
+                                        </button>
+                                    </c:if>
+
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#projectTeamModal" title="Xem báo cáo khối lượng & tiến độ chi tiết">
+                                        <i class="bi bi-bar-chart-line text-primary"></i>
+                                        <span class="d-none d-md-inline">Khối lượng</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </c:if>
+
                         <!-- A. HIERARCHICAL LIST VIEW (CLICKUP 3.0 LIST VIEW PHÂN CẤP CHA - CON) -->
                         <div id="task-subview-list" class="${taskView == 'list' ? '' : 'd-none'}">
                             <div class="table-responsive">
                                 <table class="clickup-list-table">
                                     <thead>
                                         <tr class="clickup-list-header-row">
-                                            <th style="width: 44%;">Name</th>
-                                            <th style="width: 16%;">Assignee</th>
+                                            <th style="width: ${project.soloProject ? '58%' : '44%'};">Name</th>
+                                            <c:if test="${project.teamProject}">
+                                                <th style="width: 16%;">Assignee</th>
+                                            </c:if>
                                             <th style="width: 14%;">Priority</th>
                                             <th style="width: 14%;">Team / Nhãn</th>
-                                            <th style="width: 12%; text-align: right;">Hạn chót</th>
+                                            <th style="width: ${project.soloProject ? '14%' : '12%'}; text-align: right;">Hạn chót</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <!-- NHÓM 1: DONE (ĐÃ HOÀN THÀNH) -->
                                         <tr class="clickup-group-header-row">
-                                            <td colspan="5">
+                                            <td colspan="${project.soloProject ? 4 : 5}">
                                                 <div class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-done"></i>
                                                     <span class="clickup-group-badge bg-success text-white">DONE</span>
@@ -422,12 +471,12 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${doneTasks}" var="task">
-                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
-                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''} ${subtaskMode == 'hidden' ? 'd-none' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
+                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
                                                                     <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
                                                                 </span>
                                                             </c:when>
@@ -446,14 +495,16 @@
                                                         </c:if>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-1-5">
-                                                        <span class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
-                                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
-                                                        </span>
-                                                        <span class="fs-9 text-secondary text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
-                                                    </div>
-                                                </td>
+                                                <c:if test="${project.teamProject}">
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-1-5">
+                                                            <span class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                            </span>
+                                                            <span class="fs-9 text-secondary text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                        </div>
+                                                    </td>
+                                                </c:if>
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${task.priority == 'HIGH'}">
@@ -486,7 +537,7 @@
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
-                                                <tr class="clickup-subtask-row group-done-row ${subtaskMode == 'collapsed' || subtaskMode == 'hidden' ? 'd-none' : ''}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <tr class="clickup-subtask-row group-done-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 36px;">
                                                             <span class="clickup-status-dot dot-done dot-locked" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation();" title="Việc con đã hoàn tất (Đã khóa)">
@@ -495,9 +546,11 @@
                                                             <span class="text-secondary text-truncate fs-8 ${isStDone ? 'text-decoration-line-through' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
                                                         </div>
                                                     </td>
-                                                    <td>
-                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
-                                                    </td>
+                                                    <c:if test="${project.teamProject}">
+                                                        <td>
+                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
+                                                        </td>
+                                                    </c:if>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
@@ -513,58 +566,21 @@
 
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row">
-                                            <td colspan="5">
+                                            <td colspan="${project.soloProject ? 4 : 5}">
                                                 <div class="clickup-group-banner text-primary mt-3 d-flex align-items-center" onclick="toggleClickUpGroup('inprog')">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-inprog"></i>
                                                     <span class="clickup-group-badge bg-primary text-white">IN PROGRESS</span>
                                                     <span class="text-secondary fs-8 ms-1" id="group-count-inprog">${inProgressTasks.size()}</span>
-                                                    <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('inprog');" title="Thêm công việc vào IN PROGRESS">
-                                                        <i class="bi bi-plus-lg"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <!-- Inline Quick Task Create for IN PROGRESS -->
-                                        <tr id="inline-task-row-inprog" class="clickup-inline-create-row d-none">
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2 ps-2">
-                                                    <span class="clickup-status-dot dot-inprog"></span>
-                                                    <input type="text" id="inline-task-title-inprog" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc đang làm mới... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'inprog')" />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <select id="inline-task-assignee-inprog" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
-                                                    <option value="0">Chưa gán</option>
-                                                    <c:forEach items="${userList}" var="u">
-                                                        <option value="${u.id}"><c:out value="${u.fullName}" /></option>
-                                                    </c:forEach>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <select id="inline-task-priority-inprog" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
-                                                    <option value="MEDIUM">Normal</option>
-                                                    <option value="HIGH">Urgent</option>
-                                                    <option value="LOW">Low</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">IN PROGRESS</span>
-                                            </td>
-                                            <td style="text-align: right;">
-                                                <div class="d-inline-flex align-items-center gap-1">
-                                                    <input type="date" id="inline-task-due-inprog" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
-                                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8" onclick="submitInlineCreateTask('inprog')" title="Lưu việc"><i class="bi bi-check-lg"></i></button>
-                                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 fs-8" onclick="cancelInlineCreateTask('inprog')" title="Hủy"><i class="bi bi-x-lg"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
                                         <c:forEach items="${inProgressTasks}" var="task">
-                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
-                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''} ${subtaskMode == 'hidden' ? 'd-none' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
+                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
                                                                     <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
                                                                 </span>
                                                             </c:when>
@@ -574,6 +590,11 @@
                                                         </c:choose>
                                                         <span class="clickup-status-dot dot-inprog" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
                                                         <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
+                                                        <c:if test="${task.status == 'SUBMITTED'}">
+                                                            <span class="badge bg-purple text-white rounded-pill px-1-5 py-0 fs-9 ms-1" title="Nhiệm vụ đã nộp báo cáo kết quả, chờ PM duyệt">
+                                                                <i class="bi bi-send-check me-0-5"></i>Chờ duyệt
+                                                            </span>
+                                                        </c:if>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
                                                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} việc con (${taskProgressMap[task.id]}%)">
                                                                 <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
@@ -584,14 +605,16 @@
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-1-5">
-                                                        <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
-                                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
-                                                        </span>
-                                                        <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
-                                                    </div>
-                                                </td>
+                                                <c:if test="${project.teamProject}">
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-1-5">
+                                                            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                            </span>
+                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                        </div>
+                                                    </td>
+                                                </c:if>
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${task.priority == 'HIGH'}">
@@ -624,7 +647,7 @@
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
-                                                <tr class="clickup-subtask-row group-inprog-row ${subtaskMode == 'collapsed' || subtaskMode == 'hidden' ? 'd-none' : ''}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <tr class="clickup-subtask-row group-inprog-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">
                                                             <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
@@ -635,9 +658,11 @@
                                                             <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
                                                         </div>
                                                     </td>
-                                                    <td>
-                                                        <span class="fs-9 text-dark text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
-                                                    </td>
+                                                    <c:if test="${project.teamProject}">
+                                                        <td>
+                                                            <span class="fs-9 text-dark text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
+                                                        </td>
+                                                    </c:if>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
@@ -650,17 +675,10 @@
                                                 </tr>
                                             </c:forEach>
                                         </c:forEach>
-                                        <tr class="group-inprog-row">
-                                            <td colspan="5" class="py-1">
-                                                <a href="javascript:void(0)" onclick="showInlineCreateTask('inprog')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
-                                                    <i class="bi bi-plus-lg"></i> Thêm công việc
-                                                </a>
-                                            </td>
-                                        </tr>
 
                                         <!-- NHÓM 3: TO DO (CẦN LÀM) -->
                                         <tr class="clickup-group-header-row">
-                                            <td colspan="5">
+                                            <td colspan="${project.soloProject ? 4 : 5}">
                                                 <div class="clickup-group-banner text-secondary mt-3 d-flex align-items-center" onclick="toggleClickUpGroup('todo')">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-todo"></i>
                                                     <span class="clickup-group-badge bg-secondary text-white">TO DO</span>
@@ -679,14 +697,21 @@
                                                     <input type="text" id="inline-task-title-todo" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc cần làm mới... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'todo')" />
                                                 </div>
                                             </td>
-                                            <td>
-                                                <select id="inline-task-assignee-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
-                                                    <option value="0">Chưa gán</option>
-                                                    <c:forEach items="${userList}" var="u">
-                                                        <option value="${u.id}"><c:out value="${u.fullName}" /></option>
-                                                    </c:forEach>
-                                                </select>
-                                            </td>
+                                            <c:choose>
+                                                <c:when test="${project.teamProject}">
+                                                    <td>
+                                                        <select id="inline-task-assignee-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
+                                                            <option value="0">Chưa gán</option>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <option value="${u.id}"><c:out value="${u.fullName}" /></option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </td>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <input type="hidden" id="inline-task-assignee-todo" value="${sessionScope.currentUser.id}">
+                                                </c:otherwise>
+                                            </c:choose>
                                             <td>
                                                 <select id="inline-task-priority-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
                                                     <option value="MEDIUM">Normal</option>
@@ -706,12 +731,12 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${todoTasks}" var="task">
-                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2 ps-2">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
-                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''} ${subtaskMode == 'hidden' ? 'd-none' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
+                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
                                                                     <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
                                                                 </span>
                                                             </c:when>
@@ -731,14 +756,16 @@
                                                         </button>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-1-5">
-                                                        <span class="avatar-circle-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
-                                                            ${task.assigneeName.substring(0, 1).toUpperCase()}
-                                                        </span>
-                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
-                                                    </div>
-                                                </td>
+                                                <c:if test="${project.teamProject}">
+                                                    <td>
+                                                        <div class="d-flex align-items-center gap-1-5">
+                                                            <span class="avatar-circle-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                            </span>
+                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                        </div>
+                                                    </td>
+                                                </c:if>
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${task.priority == 'HIGH'}">
@@ -771,7 +798,7 @@
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
-                                                <tr class="clickup-subtask-row group-todo-row ${subtaskMode == 'collapsed' || subtaskMode == 'hidden' ? 'd-none' : ''}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <tr class="clickup-subtask-row group-todo-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">
                                                             <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
@@ -782,9 +809,11 @@
                                                             <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
                                                         </div>
                                                     </td>
-                                                    <td>
-                                                        <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
-                                                    </td>
+                                                    <c:if test="${project.teamProject}">
+                                                        <td>
+                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
+                                                        </td>
+                                                    </c:if>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
@@ -798,7 +827,7 @@
                                             </c:forEach>
                                         </c:forEach>
                                         <tr class="group-todo-row">
-                                            <td colspan="5" class="py-1">
+                                            <td colspan="${project.soloProject ? 4 : 5}" class="py-1">
                                                 <a href="javascript:void(0)" onclick="showInlineCreateTask('todo')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
                                                     <i class="bi bi-plus-lg"></i> Thêm công việc
                                                 </a>
@@ -857,6 +886,7 @@
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
                                     data-assignee-id="${task.assigneeId}"
+                                    data-task-status="${task.status}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                                     data-task-labels="${task.labels}"
@@ -865,18 +895,20 @@
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
-                                            <c:choose>
-                                                <c:when test="${project.teamProject && task.requiresGate}">
-                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
-                                                        <i class="bi bi-shield-check"></i> Gate
-                                                    </span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
-                                                        <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
-                                                    </span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <c:if test="${project.teamProject}">
+                                                <c:choose>
+                                                    <c:when test="${task.requiresGate}">
+                                                        <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
+                                                            <i class="bi bi-shield-check"></i> Gate
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
+                                                            <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:if>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
@@ -914,11 +946,13 @@
                                     <!-- 3. Footer phẳng phong cách Ảnh 2: Stacked Avatars + Flat Metadata icons -->
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
                                         <!-- Dải Avatar xếp lớp -->
-                                        <div class="avatar-group" title="Task Lead: ${task.assigneeName}">
-                                            <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                        <c:if test="${project.teamProject}">
+                                            <div class="avatar-group" title="Task Lead: ${task.assigneeName}">
+                                                <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                </div>
                                             </div>
-                                        </div>
+                                        </c:if>
 
                                         <!-- Metadata phẳng không dùng badge -->
                                         <div class="d-flex align-items-center gap-2-5">
@@ -992,12 +1026,13 @@
                             id="column-IN_PROGRESS" data-status="IN_PROGRESS">
 
                             <c:forEach items="${inProgressTasks}" var="task">
-                                <div class="card kanban-card kanban-card-inprogress p-3 ${task.isOverdue() ? 'border-danger border-2' : ''}"
+                                <div class="card kanban-card kanban-card-inprogress p-3 ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
                                     data-assignee-id="${task.assigneeId}"
+                                    data-task-status="${task.status}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                                     data-task-labels="${task.labels}"
@@ -1006,18 +1041,20 @@
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
-                                            <c:choose>
-                                                <c:when test="${project.teamProject && task.requiresGate}">
-                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
-                                                        <i class="bi bi-shield-check"></i> Gate
-                                                    </span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
-                                                        <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
-                                                    </span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <c:if test="${project.teamProject}">
+                                                <c:choose>
+                                                    <c:when test="${task.requiresGate}">
+                                                        <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
+                                                            <i class="bi bi-shield-check"></i> Gate
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
+                                                            <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:if>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
@@ -1040,6 +1077,15 @@
                                         </div>
                                     </div>
 
+                                    <!-- Huy hiệu Chờ PM Duyệt (SUBMITTED) -->
+                                    <c:if test="${task.status == 'SUBMITTED'}">
+                                        <div class="mb-2">
+                                            <span class="badge bg-purple text-white rounded-pill px-2 py-1 fs-9 fw-semibold shadow-xs d-inline-flex align-items-center gap-1" title="Nhiệm vụ đã nộp báo cáo kết quả, chờ PM duyệt">
+                                                <i class="bi bi-send-check"></i> Chờ PM Duyệt
+                                            </span>
+                                        </div>
+                                    </c:if>
+
                                     <!-- 2. Tiêu đề công việc to, đậm, rõ nét -->
                                     <h6 class="fw-bold text-dark mb-2 fs-7 lh-sm text-truncate-2">${task.title}</h6>
 
@@ -1055,11 +1101,13 @@
                                     <!-- 3. Footer phẳng phong cách Ảnh 2: Stacked Avatars + Flat Metadata icons -->
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
                                         <!-- Dải Avatar xếp lớp -->
-                                        <div class="avatar-group" title="Task Lead: ${task.assigneeName}">
-                                            <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                        <c:if test="${project.teamProject}">
+                                            <div class="avatar-group" title="Task Lead: ${task.assigneeName}">
+                                                <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                </div>
                                             </div>
-                                        </div>
+                                        </c:if>
 
                                         <!-- Metadata phẳng không dùng badge -->
                                         <div class="d-flex align-items-center gap-2-5">
@@ -1077,6 +1125,14 @@
                                                 <span class="kanban-meta-item" title="${taskDocsMap[task.id].size()} tài liệu">
                                                     <i class="bi bi-paperclip text-secondary"></i>
                                                     <span>${taskDocsMap[task.id].size()}</span>
+                                                </span>
+                                            </c:if>
+
+                                            <!-- Báo cáo kết quả đã nộp -->
+                                            <c:if test="${task.status == 'SUBMITTED'}">
+                                                <span class="kanban-meta-item text-purple fw-semibold" title="Đã nộp báo cáo kết quả">
+                                                    <i class="bi bi-file-earmark-check text-purple"></i>
+                                                    <span>Đã nộp</span>
                                                 </span>
                                             </c:if>
 
@@ -1130,24 +1186,28 @@
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
+                                    data-assignee-id="${task.assigneeId}"
+                                    data-task-status="${task.status}"
                                     data-task-labels="${task.labels}"
                                     data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
-                                            <c:choose>
-                                                <c:when test="${project.teamProject && task.requiresGate}">
-                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
-                                                        <i class="bi bi-shield-check"></i> Gate
-                                                    </span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
-                                                        <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
-                                                    </span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <c:if test="${project.teamProject}">
+                                                <c:choose>
+                                                    <c:when test="${task.requiresGate}">
+                                                        <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
+                                                            <i class="bi bi-shield-check"></i> Gate
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
+                                                            <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </c:if>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
@@ -1189,11 +1249,13 @@
                                     <!-- 3. Footer phẳng phong cách Ảnh 2: Stacked Avatars + Flat Metadata icons -->
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
                                         <!-- Dải Avatar Task Lead hoàn thành -->
-                                        <div class="avatar-group" title="Người hoàn thành: ${task.assigneeName}">
-                                            <div class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                        <c:if test="${project.teamProject}">
+                                            <div class="avatar-group" title="Người hoàn thành: ${task.assigneeName}">
+                                                <div class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                </div>
                                             </div>
-                                        </div>
+                                        </c:if>
 
                                         <!-- Metadata phẳng -->
                                         <div class="d-flex align-items-center gap-2-5">
@@ -1947,10 +2009,10 @@
             if (willHide) {
                 r.classList.add('d-none');
             } else {
-                // If it's a subtask row and subtask preference is collapsed/hidden, keep it hidden
+                // If it's a subtask row and subtask preference is not expanded, keep it hidden
                 var subtaskCookie = document.cookie.split('; ').find(function(c) { return c.startsWith('preferred_subtask_mode='); });
                 var subMode = subtaskCookie ? decodeURIComponent(subtaskCookie.split('=')[1]) : '${subtaskMode}';
-                if (r.classList.contains('clickup-subtask-row') && (subMode === 'collapsed' || subMode === 'hidden')) {
+                if (r.classList.contains('clickup-subtask-row') && subMode !== 'expanded') {
                     return;
                 }
                 r.classList.remove('d-none');
@@ -2004,22 +2066,26 @@
         }
     };
 
-    // 5.1. Subtask Display Preference Switcher
-    window.setSubtaskMode = function(mode) {
+    // 5.1. Subtask Display 2-Mode Toggle (Đóng ⇄ Mở rộng)
+    window.applySubtaskMode = function(mode) {
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '/';
         document.cookie = "preferred_subtask_mode=" + encodeURIComponent(mode) + "; path=" + basePath + "; max-age=" + (30 * 24 * 60 * 60);
 
-        var label = document.getElementById('subtasksModeLabel');
+        var label = document.getElementById('subtaskToggleLabel');
+        var icon = document.getElementById('subtaskToggleIcon');
+        var isExpanded = (mode === 'expanded');
+
         if (label) {
-            if (mode === 'expanded') label.innerHTML = '<i class="bi bi-list-nested me-1"></i> Subtasks: Mở rộng tất cả';
-            else if (mode === 'hidden') label.innerHTML = '<i class="bi bi-eye-slash me-1"></i> Subtasks: Ẩn việc con';
-            else label.innerHTML = '<i class="bi bi-chevron-expand me-1"></i> Subtasks: Thu gọn';
+            label.textContent = isExpanded ? 'Subtasks: Mở rộng' : 'Subtasks: Đóng';
+        }
+        if (icon) {
+            icon.className = isExpanded ? 'bi bi-chevron-down text-primary' : 'bi bi-chevron-right text-secondary';
         }
 
         var allSubRows = document.querySelectorAll('.clickup-subtask-row');
         var allCarets = document.querySelectorAll('.subtask-caret');
 
-        if (mode === 'expanded') {
+        if (isExpanded) {
             allSubRows.forEach(function(r) { r.classList.remove('d-none'); });
             allCarets.forEach(function(c) {
                 c.classList.remove('d-none');
@@ -2027,10 +2093,7 @@
                 var i = c.querySelector('i');
                 if (i) i.className = 'bi bi-chevron-down';
             });
-        } else if (mode === 'hidden') {
-            allSubRows.forEach(function(r) { r.classList.add('d-none'); });
-            allCarets.forEach(function(c) { c.classList.add('d-none'); });
-        } else { // 'collapsed'
+        } else {
             allSubRows.forEach(function(r) { r.classList.add('d-none'); });
             allCarets.forEach(function(c) {
                 c.classList.remove('d-none', 'is-expanded');
@@ -2039,6 +2102,19 @@
             });
         }
     };
+
+    window.toggleAllSubtasks = function() {
+        var label = document.getElementById('subtaskToggleLabel');
+        var isCurrentlyExpanded = label ? label.textContent.includes('Mở rộng') : false;
+        var newMode = isCurrentlyExpanded ? 'collapsed' : 'expanded';
+        window.applySubtaskMode(newMode);
+        if (window.showToast) {
+            window.showToast(newMode === 'expanded' ? 'Đã mở rộng tất cả việc con' : 'Đã đóng tất cả việc con', 'info');
+        }
+    };
+
+    // Aliases
+    window.setSubtaskMode = window.applySubtaskMode;
 
     // 5.2. ClickUp Floating Status Popover
     var currentStatusTarget = { id: 0, isSubtask: false, currentStatus: '', parentTaskId: 0 };
@@ -2059,6 +2135,19 @@
                 if (window.showToast) window.showToast('Công việc cha đã hoàn thành (DONE). Toàn bộ việc con đã bị khóa!', 'warning');
                 return;
             }
+        }
+
+        // Chế độ Solo: Subtask là 1-click checklist (tick là toggle DONE/TODO tức thì)
+        if (isSubtask && ${project.soloProject}) {
+            currentStatusTarget = {
+                id: id,
+                isSubtask: isSubtask,
+                currentStatus: currentStatus,
+                parentTaskId: parentTaskId || 0
+            };
+            var isDone = (currentStatus === 'APPROVED' || currentStatus === 'DONE');
+            window.executeInlineStatusChange(isDone ? 'TODO' : 'DONE');
+            return;
         }
 
         var popover = document.getElementById('clickupStatusPopover');
@@ -2186,6 +2275,9 @@
             .then(function(data) {
                 if (data.success) {
                     if (window.showToast) window.showToast(data.message, 'success');
+                    if (isCompleted && window.fireConfettiCelebration) {
+                        window.fireConfettiCelebration();
+                    }
                     var dot = document.getElementById('subtask-status-dot-' + currentStatusTarget.id);
                     var titleEl = document.getElementById('subtask-title-text-' + currentStatusTarget.id);
                     var badge = document.getElementById('subtask-badge-' + currentStatusTarget.id);
@@ -2232,6 +2324,9 @@
             .then(function(data) {
                 if (data.success) {
                     if (window.showToast) window.showToast(data.message, 'success');
+                    if ((newStatus === 'DONE' || newStatus === 'IN_PROGRESS') && window.fireConfettiCelebration) {
+                        window.fireConfettiCelebration();
+                    }
                     setTimeout(function() { window.location.reload(); }, 400);
                 } else {
                     if (window.showToast) window.showToast(data.message, 'error');
@@ -2386,6 +2481,14 @@
             });
         }
 
+        var assigneeTd = ${project.teamProject} ? (
+            '<td>' +
+                '<select id="inline-subtask-assignee-' + parentTaskId + '" class="form-select form-select-sm py-0 fs-8" style="max-width: 120px;">' +
+                    memberOpts +
+                '</select>' +
+            '</td>'
+        ) : '';
+
         var newRow = document.createElement('tr');
         newRow.id = 'inline-subtask-row-' + parentTaskId;
         newRow.className = 'clickup-inline-subtask-row clickup-inline-create-row ' + groupClass;
@@ -2396,11 +2499,7 @@
                     '<input type="text" id="inline-subtask-title-' + parentTaskId + '" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Tên việc con mới (Enter để lưu, Esc để hủy)..." onkeydown="handleInlineSubtaskKey(event, ' + parentTaskId + ')" />' +
                 '</div>' +
             '</td>' +
-            '<td>' +
-                '<select id="inline-subtask-assignee-' + parentTaskId + '" class="form-select form-select-sm py-0 fs-8" style="max-width: 120px;">' +
-                    memberOpts +
-                '</select>' +
-            '</td>' +
+            assigneeTd +
             '<td>' +
                 '<span class="fs-9 text-muted">Subtask</span>' +
             '</td>' +
@@ -2449,7 +2548,7 @@
             return;
         }
 
-        var assigneeId = assigneeEl ? assigneeEl.value : '0';
+        var assigneeId = assigneeEl ? assigneeEl.value : (${project.soloProject} ? '${sessionScope.currentUser.id}' : '0');
 
         var params = new URLSearchParams();
         params.append('action', 'quickAddSubTask');
@@ -2565,6 +2664,9 @@
         document.querySelectorAll('.clickup-sidebar .clickup-nav-link').forEach(function(el) {
             el.classList.remove('active');
         });
+        document.querySelectorAll('.assignee-avatar-btn, .assignee-filter-btn, .status-filter-btn').forEach(function(b) {
+            b.classList.remove('active');
+        });
 
         var currentUserId = "${sessionScope.currentUser.id}";
         var filterTargetUserId = null;
@@ -2586,12 +2688,16 @@
         if (mode === 'ALL') {
             var allBtn = document.getElementById('filter-all-btn');
             if (allBtn) allBtn.classList.add('active');
+            var tbAll = document.getElementById('assignee-btn-all');
+            if (tbAll) tbAll.classList.add('active');
             if (banner) { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
             filterTargetUserId = null;
             filterTargetStatus = null;
         } else if (mode === 'MY_TASKS') {
             var myBtn = document.getElementById('nav-mytasks');
             if (myBtn) myBtn.classList.add('active');
+            var tbMe = document.getElementById('assignee-btn-me');
+            if (tbMe) tbMe.classList.add('active');
             filterTargetUserId = currentUserId;
             if (banner && bannerText) {
                 bannerText.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Đang lọc: <strong>Công việc của tôi</strong>';
@@ -2601,6 +2707,8 @@
         } else if (mode === 'USER') {
             var memberItem = document.querySelector('.member-filter-item[data-user-id="' + userId + '"]');
             if (memberItem) memberItem.classList.add('active');
+            var tbAvatar = document.querySelector('.assignee-avatar-btn[data-user-id="' + userId + '"]');
+            if (tbAvatar) tbAvatar.classList.add('active');
             filterTargetUserId = userId;
             if (banner && bannerText) {
                 bannerText.innerHTML = '<i class="bi bi-person me-1"></i> Đang lọc theo thành viên: <strong>' + (userName || 'Thành viên') + '</strong>';
@@ -2628,6 +2736,15 @@
                 banner.classList.remove('d-none');
                 banner.classList.add('d-flex');
             }
+        } else if (mode === 'STATUS_SUBMITTED') {
+            filterTargetStatus = 'SUBMITTED';
+            var tbSub = document.getElementById('assignee-btn-submitted');
+            if (tbSub) tbSub.classList.add('active');
+            if (banner && bannerText) {
+                bannerText.innerHTML = '<i class="bi bi-send-check text-purple me-1"></i> Đang lọc: <strong>Công việc chờ PM duyệt (SUBMITTED)</strong>';
+                banner.classList.remove('d-none');
+                banner.classList.add('d-flex');
+            }
         }
 
         // List View filtering
@@ -2636,6 +2753,7 @@
         parentRows.forEach(function(pRow) {
             var assigneeId = pRow.getAttribute('data-assignee-id');
             var taskId = pRow.getAttribute('data-task-id');
+            var taskStatus = pRow.getAttribute('data-task-status');
             var subRows = taskId ? document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]') : [];
 
             var show = false;
@@ -2643,6 +2761,7 @@
                 if (filterTargetStatus === 'DONE' && pRow.classList.contains('group-done-row')) show = true;
                 else if (filterTargetStatus === 'IN_PROGRESS' && pRow.classList.contains('group-inprog-row')) show = true;
                 else if (filterTargetStatus === 'TODO' && pRow.classList.contains('group-todo-row')) show = true;
+                else if (filterTargetStatus === 'SUBMITTED' && taskStatus === 'SUBMITTED') show = true;
 
                 subRows.forEach(function(sRow) {
                     sRow.style.display = show ? '' : 'none';
@@ -2679,15 +2798,28 @@
                 show = assigneeId == filterTargetUserId;
             } else if (filterTargetStatus) {
                 var col = card.closest('.kanban-col-todo, .kanban-col-in-progress, .kanban-col-done');
+                var cardStatus = card.getAttribute('data-task-status');
                 if (filterTargetStatus === 'DONE') show = col && col.classList.contains('kanban-col-done');
                 else if (filterTargetStatus === 'IN_PROGRESS') show = col && col.classList.contains('kanban-col-in-progress');
                 else if (filterTargetStatus === 'TODO') show = col && col.classList.contains('kanban-col-todo');
+                else if (filterTargetStatus === 'SUBMITTED') show = cardStatus === 'SUBMITTED';
             }
             card.style.display = show ? '' : 'none';
         });
 
         if ((filterTargetUserId || filterTargetStatus) && bannerText) {
             bannerText.innerHTML += ' <span class="badge bg-primary text-white rounded-pill ms-1">' + count + ' việc</span>';
+        }
+    };
+
+    // ClickUp 3.0 Avatar click handler with toggle behavior
+    window.handleToolbarAvatarClick = function(userId, userName) {
+        var btn = document.querySelector('.assignee-avatar-btn[data-user-id="' + userId + '"]');
+        if (btn && btn.classList.contains('active')) {
+            // Toggle off -> reset to ALL
+            window.filterClickUpTasks('ALL');
+        } else {
+            window.filterClickUpTasks('USER', userId, userName);
         }
     };
 
@@ -2757,7 +2889,78 @@
         }
     };
 
-    // Khởi tạo Bootstrap tooltips khi DOM sẵn sàng
+    // 11. Quick Toggle Subtasks (Đóng ⇄ Mở rộng)
+    window.quickToggleSubtaskMode = function() {
+        if (typeof window.toggleAllSubtasks === 'function') {
+            window.toggleAllSubtasks();
+        }
+    };
+
+    // 12. ClickUp 3.0 Favorite Projects (Starred Spaces via localStorage)
+    window.getFavoriteProjects = function() {
+        try {
+            var raw = localStorage.getItem('teamwork_fav_projects');
+            return raw ? JSON.parse(raw) : [];
+        } catch(e) {
+            return [];
+        }
+    };
+
+    window.saveFavoriteProjects = function(list) {
+        try {
+            localStorage.setItem('teamwork_fav_projects', JSON.stringify(list));
+        } catch(e) {}
+    };
+
+    window.toggleProjectFavorite = function(projId, projName) {
+        var list = window.getFavoriteProjects();
+        var index = list.findIndex(function(item) { return item.id === projId; });
+        var starBtn = document.getElementById('btnStarProject');
+
+        if (index > -1) {
+            list.splice(index, 1);
+            if (starBtn) {
+                starBtn.classList.remove('text-warning', 'bi-star-fill');
+                starBtn.classList.add('text-muted', 'bi-star');
+            }
+            if (window.showToast) window.showToast('Đã bỏ dự án khỏi mục yêu thích', 'info');
+        } else {
+            list.push({ id: projId, name: projName });
+            if (starBtn) {
+                starBtn.classList.remove('text-muted', 'bi-star');
+                starBtn.classList.add('text-warning', 'bi-star-fill');
+            }
+            if (window.showToast) window.showToast('Đã thêm dự án vào mục yêu thích ⭐', 'success');
+            if (window.fireConfettiCelebration) window.fireConfettiCelebration();
+        }
+        window.saveFavoriteProjects(list);
+        window.renderSidebarFavorites();
+    };
+
+    window.renderSidebarFavorites = function() {
+        var container = document.getElementById('favoritesList');
+        if (!container) return;
+        var list = window.getFavoriteProjects();
+        var currentProjectId = ${project.id};
+
+        if (list.length === 0) {
+            container.innerHTML = '<span class="fs-9 text-muted px-2 py-1 fst-italic">Chưa có dự án yêu thích</span>';
+            return;
+        }
+
+        var html = '';
+        list.forEach(function(item) {
+            var isActive = item.id === currentProjectId;
+            var url = '${pageContext.request.contextPath}/task?action=list&projectId=' + item.id;
+            html += '<a href="' + url + '" class="clickup-space-item ' + (isActive ? 'active' : '') + '">';
+            html += '<span class="clickup-space-icon text-warning"><i class="bi bi-star-fill"></i></span>';
+            html += '<span class="text-truncate flex-grow-1 fs-8 fw-medium">' + item.name + '</span>';
+            html += '</a>';
+        });
+        container.innerHTML = html;
+    };
+
+    // Khởi tạo Bootstrap tooltips, Favorites và Auto Confetti khi DOM sẵn sàng
     document.addEventListener('DOMContentLoaded', function() {
         if (window.bootstrap && bootstrap.Tooltip) {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -2765,13 +2968,33 @@
                 return new bootstrap.Tooltip(el);
             });
         }
-        // Tự động bắn pháo hoa khi vừa duyệt hoàn thành Gate 2 hoặc Subtask
+
+        // Khởi tạo trạng thái Ngôi sao và Danh sách Yêu thích Sidebar
+        var favs = window.getFavoriteProjects();
+        var isFav = favs.some(function(item) { return item.id === ${project.id}; });
+        var starBtn = document.getElementById('btnStarProject');
+        if (starBtn && isFav) {
+            starBtn.classList.remove('text-muted', 'bi-star');
+            starBtn.classList.add('text-warning', 'bi-star-fill');
+        }
+        window.renderSidebarFavorites();
+
+        // Tự động bắn pháo hoa khi hoàn thành bất kỳ cột mốc nào (Gate 1, Gate 2, Task In Progress/Done, Subtask)
         <c:if test="${not empty toastSuccess}">
             var toastMsg = "<c:out value='${toastSuccess}' />".toLowerCase();
-            if (toastMsg.indexOf('duyệt') > -1 || toastMsg.indexOf('nghiệm thu') > -1 || toastMsg.indexOf('hoàn thành') > -1) {
+            if (toastMsg.indexOf('duyệt') > -1 || 
+                toastMsg.indexOf('nghiệm thu') > -1 || 
+                toastMsg.indexOf('hoàn thành') > -1 || 
+                toastMsg.indexOf('thành công') > -1 || 
+                toastMsg.indexOf('tiến hành') > -1 || 
+                toastMsg.indexOf('đang làm') > -1 || 
+                toastMsg.indexOf('bắt đầu') > -1 || 
+                toastMsg.indexOf('in progress') > -1 || 
+                toastMsg.indexOf('khóa kế hoạch') > -1 || 
+                toastMsg.indexOf('subtask') > -1) {
                 setTimeout(function() {
                     if (window.fireConfettiCelebration) window.fireConfettiCelebration();
-                }, 500);
+                }, 400);
             }
         </c:if>
     });
@@ -2842,7 +3065,7 @@
                                                 <textarea name="description" class="form-control form-control-sm" rows="3"><c:out value="${task.description}" /></textarea>
                                             </div>
                                             <div class="row g-2 mb-3">
-                                                <div class="col-4">
+                                                <div class="${project.soloProject ? 'col-6' : 'col-4'}">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu tiên:</label>
                                                     <select name="priority" class="form-select form-select-sm">
                                                         <option value="LOW" ${task.priority=='LOW' ? 'selected' : ''}>Thấp (Low)</option>
@@ -2850,26 +3073,33 @@
                                                         <option value="HIGH" ${task.priority=='HIGH' ? 'selected' : ''}>Cao (High)</option>
                                                     </select>
                                                 </div>
-                                                <div class="col-4">
+                                                <div class="${project.soloProject ? 'col-6' : 'col-4'}">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
                                                     <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
                                                 </div>
-                                                <div class="col-4">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ trách:</label>
-                                                    <c:choose>
-                                                        <c:when test="${project.ownerId == sessionScope.currentUser.id}">
-                                                            <select name="assigneeId" class="form-select form-select-sm" required>
-                                                                <c:forEach items="${userList}" var="u">
-                                                                    <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
-                                                                </c:forEach>
-                                                            </select>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <input type="hidden" name="assigneeId" value="${task.assigneeId}">
-                                                            <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </div>
+                                                <c:choose>
+                                                    <c:when test="${project.teamProject}">
+                                                        <div class="col-4">
+                                                            <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ trách:</label>
+                                                            <c:choose>
+                                                                <c:when test="${project.ownerId == sessionScope.currentUser.id}">
+                                                                    <select name="assigneeId" class="form-select form-select-sm" required>
+                                                                        <c:forEach items="${userList}" var="u">
+                                                                            <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                                        </c:forEach>
+                                                                    </select>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <input type="hidden" name="assigneeId" value="${task.assigneeId}">
+                                                                    <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <input type="hidden" name="assigneeId" value="${sessionScope.currentUser.id}">
+                                                    </c:otherwise>
+                                                </c:choose>
                                             </div>
                                             <c:if test="${project.teamProject}">
                                                 <input type="hidden" name="hasRequiresGateControl" value="true">
@@ -2966,9 +3196,11 @@
                                                                 <i class="bi bi-calendar-event me-1"></i>${st.deadlineLabel}
                                                             </span>
                                                         </c:if>
-                                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
-                                                            <i class="bi bi-person-fill text-primary me-1"></i>${st.assigneeName}
-                                                        </span>
+                                                        <c:if test="${project.teamProject}">
+                                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
+                                                                <i class="bi bi-person-fill text-primary me-1"></i>${st.assigneeName}
+                                                            </span>
+                                                        </c:if>
                                                         <i class="bi bi-chevron-right fs-9 text-muted ms-1"></i>
                                                     </div>
                                                 </div>
@@ -2994,12 +3226,19 @@
                                             <input type="text" name="title"
                                                 class="form-control form-control-sm border-0 bg-transparent shadow-none fs-8 flex-grow-1 p-0"
                                                 placeholder="+ Thêm việc con mới... (nhấn Enter để tạo)" autocomplete="off" required>
-                                            <select name="assigneeId" class="form-select form-select-sm border-0 bg-transparent shadow-none fs-9 py-0 text-muted" style="width: auto; max-width: 140px;">
-                                                <option value="0">-- Phân công --</option>
-                                                <c:forEach items="${userList}" var="u">
-                                                    <option value="${u.id}">${u.fullName}</option>
-                                                </c:forEach>
-                                            </select>
+                                            <c:choose>
+                                                <c:when test="${project.teamProject}">
+                                                    <select name="assigneeId" class="form-select form-select-sm border-0 bg-transparent shadow-none fs-9 py-0 text-muted" style="width: auto; max-width: 140px;">
+                                                        <option value="0">-- Phân công --</option>
+                                                        <c:forEach items="${userList}" var="u">
+                                                            <option value="${u.id}">${u.fullName}</option>
+                                                        </c:forEach>
+                                                    </select>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <input type="hidden" name="assigneeId" value="${sessionScope.currentUser.id}">
+                                                </c:otherwise>
+                                            </c:choose>
                                             <input type="date" name="dueDate" class="form-control form-control-sm border-0 bg-transparent shadow-none fs-9 py-0 text-muted"
                                                 style="width: auto; max-width: 125px;" max="${task.dueDate}" title="Hạn chót việc con (tối đa ${task.dueDate})">
                                             <button type="submit" class="btn btn-primary-custom btn-sm rounded-pill px-3 py-0-5 fs-9 fw-semibold text-nowrap">
@@ -3059,16 +3298,18 @@
                                                 <span class="badge ${task.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">${task.statusLabel}</span>
                                             </span>
                                         </div>
-                                        <div class="task-property-row">
-                                            <span class="task-property-label"><i class="bi bi-person"></i> Phụ trách</span>
-                                            <span class="task-property-value d-flex align-items-center gap-1">
-                                                <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
-                                                    style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                        <c:if test="${project.teamProject}">
+                                            <div class="task-property-row">
+                                                <span class="task-property-label"><i class="bi bi-person"></i> Phụ trách</span>
+                                                <span class="task-property-value d-flex align-items-center gap-1">
+                                                    <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                        style="width: 18px; height: 18px; font-size: 0.65rem;">
+                                                        ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                    </span>
+                                                    <span>${task.assigneeName}</span>
                                                 </span>
-                                                <span>${task.assigneeName}</span>
-                                            </span>
-                                        </div>
+                                            </div>
+                                        </c:if>
                                         <div class="task-property-row">
                                             <span class="task-property-label"><i class="bi bi-flag"></i> Mức ưu tiên</span>
                                             <span class="task-property-value">
@@ -4171,19 +4412,26 @@
                             </div>
 
                             <div class="row g-3 mb-2">
-                                <div class="col-12 col-md-6">
-                                    <label for="taskAssignee" class="form-label fw-semibold text-dark fs-7">Chỉ định
-                                        Trưởng nhóm Task (Lead)</label>
-                                    <select class="form-select rounded-3 py-2 px-3 fs-7" id="taskAssignee"
-                                        name="assigneeId">
-                                        <option value="0">-- Chưa chỉ định --</option>
-                                        <c:forEach items="${userList}" var="u">
-                                            <option value="${u.id}">${u.fullName} (${u.role})</option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
-
-                                <div class="col-12 col-md-6">
+                                <c:choose>
+                                    <c:when test="${project.teamProject}">
+                                        <div class="col-12 col-md-6">
+                                            <label for="taskAssignee" class="form-label fw-semibold text-dark fs-7">Chỉ định
+                                                Trưởng nhóm Task (Lead)</label>
+                                            <select class="form-select rounded-3 py-2 px-3 fs-7" id="taskAssignee"
+                                                name="assigneeId">
+                                                <option value="0">-- Chưa chỉ định --</option>
+                                                <c:forEach items="${userList}" var="u">
+                                                    <option value="${u.id}">${u.fullName} (${u.role})</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <input type="hidden" name="assigneeId" value="${sessionScope.currentUser.id}">
+                                        <div class="col-12">
+                                    </c:otherwise>
+                                </c:choose>
                                     <label for="taskDocSelect" class="form-label fw-semibold text-dark fs-7">
                                         <i class="bi bi-paperclip me-1 text-primary"></i> Đính kèm tài liệu Wiki
                                     </label>
@@ -4266,134 +4514,237 @@
                     </div>
 
                     <div class="modal-body p-4">
+                        <!-- Navigation Tabs phong cách ClickUp 3.0 -->
+                        <ul class="nav nav-pills nav-fill mb-4 bg-light p-1 rounded-pill border" id="projectTeamTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active rounded-pill fs-8 fw-semibold py-1-5" id="tab-workload-btn" data-bs-toggle="pill" data-bs-target="#tab-workload-pane" type="button" role="tab" aria-controls="tab-workload-pane" aria-selected="true">
+                                    <i class="bi bi-bar-chart-line-fill me-1 text-primary"></i> Khối lượng & Tiến độ
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link rounded-pill fs-8 fw-semibold py-1-5" id="tab-members-btn" data-bs-toggle="pill" data-bs-target="#tab-members-pane" type="button" role="tab" aria-controls="tab-members-pane" aria-selected="false">
+                                    <i class="bi bi-people-fill me-1 text-success"></i> Quản lý Thành viên & Lời mời (${projectMemberList.size()})
+                                </button>
+                            </li>
+                        </ul>
 
-                        <!-- PHẦN 1: DANH SÁCH THÀNH VIÊN ĐANG THAM GIA -->
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
-                                    <i class="bi bi-person-check-fill text-success me-1"></i> Thành viên chính thức
-                                    (${projectMemberList.size()}):
-                                </h6>
-                                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0 fs-9">Đang hoạt
-                                    động</span>
-                            </div>
-
-                            <div class="d-flex flex-column gap-2">
-                                <c:forEach items="${projectMemberList}" var="pm">
-                                    <div
-                                        class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="avatar-sm rounded-circle ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-primary text-white'} d-flex align-items-center justify-content-center fw-bold fs-7"
-                                                style="width: 36px; height: 36px;">
-                                                <c:choose>
-                                                    <c:when test="${pm.projectRole == 'OWNER'}"><i
-                                                            class="bi bi-star-fill"></i></c:when>
-                                                    <c:otherwise><i class="bi bi-person-fill"></i></c:otherwise>
-                                                </c:choose>
-                                            </div>
-                                            <div>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="fw-bold text-dark fs-7">${pm.userName}</span>
-                                                    <span
-                                                        class="badge ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-secondary'} rounded-pill px-2 py-0 fs-9">
-                                                        ${pm.projectRole == 'OWNER' ? 'Trưởng Dự Án (PM)' : 'Thành viên'}
-                                                    </span>
-                                                </div>
-                                                <div class="text-muted fs-8">
-                                                    ${pm.userEmail} &bull; <span
-                                                        class="text-primary">${pm.userRole}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="text-end">
-                                                <span class="fs-9 text-muted d-block">Gia nhập:</span>
-                                                <span class="fs-9 fw-semibold text-secondary">${pm.joinedAt}</span>
-                                            </div>
-                                            <c:if
-                                                test="${project.ownerId == sessionScope.currentUser.id && pm.userId != project.ownerId}">
-                                                <form method="post" action="${pageContext.request.contextPath}/invite"
-                                                    class="m-0"
-                                                    onsubmit="return confirm('Bạn có chắc chắn muốn mời thành viên [${pm.userName}] rời khỏi dự án?');">
-                                                    <input type="hidden" name="action" value="kick">
-                                                    <input type="hidden" name="projectId" value="${project.id}">
-                                                    <input type="hidden" name="userId" value="${pm.userId}">
-                                                    <button type="submit"
-                                                        class="btn btn-outline-danger btn-sm py-1 px-2 rounded-pill fs-9"
-                                                        title="Mời rời dự án">
-                                                        <i class="bi bi-person-x-fill me-1"></i> Mời rời
-                                                    </button>
-                                                </form>
-                                            </c:if>
-                                        </div>
-                                    </div>
-                                </c:forEach>
-                            </div>
-
-                            <c:if test="${project.ownerId != sessionScope.currentUser.id}">
-                                <div class="mt-3 pt-2 text-end">
-                                    <form method="post" action="${pageContext.request.contextPath}/invite"
-                                        class="m-0 d-inline"
-                                        onsubmit="return confirm('Bạn có chắc chắn muốn rời khỏi dự án [${project.name}]? Bạn sẽ không thể truy cập lại trừ khi được mời lại.');">
-                                        <input type="hidden" name="action" value="leave">
-                                        <input type="hidden" name="projectId" value="${project.id}">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fs-8">
-                                            <i class="bi bi-box-arrow-left me-1"></i> Rời khỏi dự án này
-                                        </button>
-                                    </form>
-                                </div>
-                            </c:if>
-                        </div>
-
-                        <!-- PHẦN 2: LỜI MỜI / YÊU CẦU ĐANG CHỜ PHẢN HỒI (PENDING) -->
-                        <c:if test="${not empty projectInviteList}">
-                            <div class="mt-4 pt-3 border-top">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="tab-content" id="projectTeamTabsContent">
+                            <!-- TAB 1: KHỐI LƯỢNG & TIẾN ĐỘ THÀNH VIÊN (CLICKUP 3.0 WORKLOAD) -->
+                            <div class="tab-pane fade show active" id="tab-workload-pane" role="tabpanel" aria-labelledby="tab-workload-btn">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
                                     <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
-                                        <i class="bi bi-hourglass-split text-warning me-1"></i> Lời mời & Yêu cầu đang
-                                        chờ (${projectInviteList.size()}):
+                                        <i class="bi bi-pie-chart-fill text-primary me-1"></i> Phân công & Khối lượng công việc:
                                     </h6>
-                                    <span
-                                        class="badge bg-warning-subtle text-dark rounded-pill px-2 py-0 fs-9">PENDING</span>
+                                    <span class="fs-9 text-muted"><strong>${userWorkloadList.size()}</strong> thành viên có nhiệm vụ</span>
                                 </div>
 
-                                <div class="d-flex flex-column gap-2">
-                                    <c:forEach items="${projectInviteList}" var="inv">
-                                        <div
-                                            class="p-2 px-3 bg-white rounded-3 border d-flex align-items-center justify-content-between shadow-2xs">
-                                            <div>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span
-                                                        class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${inv.statusLabel}</span>
-                                                    <span class="fs-8 fw-bold text-dark">${inv.type == 'INVITATION' ? inv.receiverName : inv.senderName}</span>
-                                                    <span class="fs-9 text-muted">(${inv.type == 'INVITATION' ? 'Được PM mời' : 'Gửi đơn xin vào'})</span>
+                                <div class="d-flex flex-column gap-2-5">
+                                    <c:forEach items="${userWorkloadList}" var="uw">
+                                        <div class="p-3 bg-white rounded-3 border shadow-2xs">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                                <!-- Avatar & Tên thành viên -->
+                                                <div class="d-flex align-items-center gap-2-5">
+                                                    <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-7" style="width: 34px; height: 34px;">
+                                                        ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-1-5">
+                                                            <span class="fw-bold text-dark fs-7">${uw.user.fullName}</span>
+                                                            <c:if test="${uw.user.id == project.ownerId}">
+                                                                <span class="badge bg-warning-subtle text-dark rounded-pill px-1-5 py-0 fs-10 fw-semibold">PM</span>
+                                                            </c:if>
+                                                        </div>
+                                                        <span class="fs-9 text-muted">${uw.user.email}</span>
+                                                    </div>
                                                 </div>
-                                                <span class="fs-9 text-danger d-block mt-1">
-                                                    <i class="bi bi-clock me-1"></i> Hạn: ${inv.expiredAt}
+
+                                                <!-- Nút xem nhanh các task của thành viên này -->
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <c:if test="${uw.overdueCount > 0}">
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0-5 fs-9 fw-bold" title="${uw.overdueCount} công việc đã quá hạn!">
+                                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>${uw.overdueCount} Quá hạn
+                                                        </span>
+                                                    </c:if>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2-5 py-1 fs-9 fw-semibold"
+                                                            onclick="bootstrap.Modal.getInstance(document.getElementById('projectTeamModal')).hide(); filterClickUpTasks('USER', '${uw.user.id}', '<c:out value="${uw.user.fullName}" />');"
+                                                            title="Xem tất cả việc của ${uw.user.fullName}">
+                                                        <i class="bi bi-funnel me-1"></i>Xem việc (${uw.totalTasks})
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Thanh tiến độ phân đoạn (Segmented Progress Bar) -->
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <div class="progress flex-grow-1" style="height: 7px; background-color: #f1f5f9; border-radius: 9999px; overflow: hidden;">
+                                                    <c:set var="pctDone" value="${uw.totalTasks > 0 ? (uw.doneCount * 100 / uw.totalTasks) : 0}" />
+                                                    <c:set var="pctSubmitted" value="${uw.totalTasks > 0 ? (uw.submittedCount * 100 / uw.totalTasks) : 0}" />
+                                                    <c:set var="pctInProg" value="${uw.totalTasks > 0 ? ((uw.inProgressCount - uw.submittedCount) * 100 / uw.totalTasks) : 0}" />
+                                                    <div class="progress-bar bg-success" style="width: ${pctDone}%;" title="Đã xong: ${uw.doneCount}"></div>
+                                                    <div class="progress-bar" style="width: ${pctSubmitted}%; background-color: #8b5cf6;" title="Chờ PM duyệt: ${uw.submittedCount}"></div>
+                                                    <div class="progress-bar bg-primary" style="width: ${pctInProg}%;" title="Đang làm: ${uw.inProgressCount - uw.submittedCount}"></div>
+                                                </div>
+                                                <span class="fs-9 fw-bold text-dark tabular-nums">${uw.memberProgressPercentage}%</span>
+                                            </div>
+
+                                            <!-- Chi tiết trạng thái (Pills) -->
+                                            <div class="d-flex align-items-center flex-wrap gap-1-5 fs-9">
+                                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5" title="Chờ làm">
+                                                    <i class="bi bi-circle me-1 text-secondary"></i>${uw.todoCount} Cần làm
+                                                </span>
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5" title="Đang làm">
+                                                    <i class="bi bi-play-circle me-1"></i>${uw.inProgressCount} Đang làm
+                                                </span>
+                                                <c:if test="${uw.submittedCount > 0}">
+                                                    <span class="badge bg-purple text-white rounded-pill px-2 py-0-5" title="Đã nộp báo cáo chờ duyệt">
+                                                        <i class="bi bi-send-check me-1"></i>${uw.submittedCount} Chờ duyệt
+                                                    </span>
+                                                </c:if>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5" title="Đã xong">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>${uw.doneCount} Đã xong
                                                 </span>
                                             </div>
-
-                                            <!-- Nút PM Thu hồi lời mời nếu còn PENDING -->
-                                            <c:if
-                                                test="${project.ownerId == sessionScope.currentUser.id && inv.status == 'PENDING'}">
-                                                <form method="post" action="${pageContext.request.contextPath}/invite"
-                                                    class="m-0"
-                                                    onsubmit="return confirm('Bạn có chắc chắn muốn thu hồi lời mời này?');">
-                                                    <input type="hidden" name="action" value="revoke">
-                                                    <input type="hidden" name="inviteId" value="${inv.id}">
-                                                    <button type="submit"
-                                                        class="btn btn-outline-danger btn-sm rounded-pill fs-9 py-1 px-3"
-                                                        title="Thu hồi lời mời">
-                                                        <i class="bi bi-x-circle me-1"></i> Thu hồi
-                                                    </button>
-                                                </form>
-                                            </c:if>
                                         </div>
                                     </c:forEach>
+
+                                    <c:if test="${empty userWorkloadList}">
+                                        <div class="text-center py-4 text-muted">
+                                            <i class="bi bi-inbox fs-2 d-block mb-1 text-secondary opacity-50"></i>
+                                            <span class="fs-8">Chưa có dữ liệu phân công công việc trong dự án</span>
+                                        </div>
+                                    </c:if>
                                 </div>
                             </div>
-                        </c:if>
 
+                            <!-- TAB 2: QUẢN LÝ THÀNH VIÊN & LỜI MỜI (EXISTING) -->
+                            <div class="tab-pane fade" id="tab-members-pane" role="tabpanel" aria-labelledby="tab-members-btn">
+                                <!-- PHẦN 1: DANH SÁCH THÀNH VIÊN ĐANG THAM GIA -->
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                                            <i class="bi bi-person-check-fill text-success me-1"></i> Thành viên chính thức
+                                            (${projectMemberList.size()}):
+                                        </h6>
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0 fs-9">Đang hoạt
+                                            động</span>
+                                    </div>
+
+                                    <div class="d-flex flex-column gap-2">
+                                        <c:forEach items="${projectMemberList}" var="pm">
+                                            <div
+                                                class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="avatar-sm rounded-circle ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-primary text-white'} d-flex align-items-center justify-content-center fw-bold fs-7"
+                                                        style="width: 36px; height: 36px;">
+                                                        <c:choose>
+                                                            <c:when test="${pm.projectRole == 'OWNER'}"><i
+                                                                    class="bi bi-star-fill"></i></c:when>
+                                                            <c:otherwise><i class="bi bi-person-fill"></i></c:otherwise>
+                                                        </c:choose>
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="fw-bold text-dark fs-7">${pm.userName}</span>
+                                                            <span
+                                                                class="badge ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-secondary'} rounded-pill px-2 py-0 fs-9">
+                                                                ${pm.projectRole == 'OWNER' ? 'Trưởng Dự Án (PM)' : 'Thành viên'}
+                                                            </span>
+                                                        </div>
+                                                        <div class="text-muted fs-8">
+                                                            ${pm.userEmail} &bull; <span
+                                                                class="text-primary">${pm.userRole}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="text-end">
+                                                        <span class="fs-9 text-muted d-block">Gia nhập:</span>
+                                                        <span class="fs-9 fw-semibold text-secondary">${pm.joinedAt}</span>
+                                                    </div>
+                                                    <c:if
+                                                        test="${project.ownerId == sessionScope.currentUser.id && pm.userId != project.ownerId}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/invite"
+                                                            class="m-0"
+                                                            onsubmit="return confirm('Bạn có chắc chắn muốn mời thành viên [${pm.userName}] rời khỏi dự án?');">
+                                                            <input type="hidden" name="action" value="kick">
+                                                            <input type="hidden" name="projectId" value="${project.id}">
+                                                            <input type="hidden" name="userId" value="${pm.userId}">
+                                                            <button type="submit"
+                                                                class="btn btn-outline-danger btn-sm py-1 px-2 rounded-pill fs-9"
+                                                                title="Mời rời dự án">
+                                                                <i class="bi bi-person-x-fill me-1"></i> Mời rời
+                                                            </button>
+                                                        </form>
+                                                    </c:if>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </div>
+
+                                    <c:if test="${project.ownerId != sessionScope.currentUser.id}">
+                                        <div class="mt-3 pt-2 text-end">
+                                            <form method="post" action="${pageContext.request.contextPath}/invite"
+                                                class="m-0 d-inline"
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn rời khỏi dự án [${project.name}]? Bạn sẽ không thể truy cập lại trừ khi được mời lại.');">
+                                                <input type="hidden" name="action" value="leave">
+                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fs-8">
+                                                    <i class="bi bi-box-arrow-left me-1"></i> Rời khỏi dự án này
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </c:if>
+                                </div>
+
+                                <!-- PHẦN 2: LỜI MỜI / YÊU CẦU ĐANG CHỜ PHẢN HỒI (PENDING) -->
+                                <c:if test="${not empty projectInviteList}">
+                                    <div class="mt-4 pt-3 border-top">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                                                <i class="bi bi-hourglass-split text-warning me-1"></i> Lời mời & Yêu cầu đang
+                                                chờ (${projectInviteList.size()}):
+                                            </h6>
+                                            <span
+                                                class="badge bg-warning-subtle text-dark rounded-pill px-2 py-0 fs-9">PENDING</span>
+                                        </div>
+
+                                        <div class="d-flex flex-column gap-2">
+                                            <c:forEach items="${projectInviteList}" var="inv">
+                                                <div
+                                                    class="p-2 px-3 bg-white rounded-3 border d-flex align-items-center justify-content-between shadow-2xs">
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span
+                                                                class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${inv.statusLabel}</span>
+                                                            <span class="fs-8 fw-bold text-dark">${inv.type == 'INVITATION' ? inv.receiverName : inv.senderName}</span>
+                                                            <span class="fs-9 text-muted">(${inv.type == 'INVITATION' ? 'Được PM mời' : 'Gửi đơn xin vào'})</span>
+                                                        </div>
+                                                        <span class="fs-9 text-danger d-block mt-1">
+                                                            <i class="bi bi-clock me-1"></i> Hạn: ${inv.expiredAt}
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Nút PM Thu hồi lời mời nếu còn PENDING -->
+                                                    <c:if
+                                                        test="${project.ownerId == sessionScope.currentUser.id && inv.status == 'PENDING'}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/invite"
+                                                            class="m-0"
+                                                            onsubmit="return confirm('Bạn có chắc chắn muốn thu hồi lời mời này?');">
+                                                            <input type="hidden" name="action" value="revoke">
+                                                            <input type="hidden" name="inviteId" value="${inv.id}">
+                                                            <button type="submit"
+                                                                class="btn btn-outline-danger btn-sm rounded-pill fs-9 py-1 px-3"
+                                                                title="Thu hồi lời mời">
+                                                                <i class="bi bi-x-circle me-1"></i> Thu hồi
+                                                            </button>
+                                                        </form>
+                                                    </c:if>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+                                </c:if>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="modal-footer px-4 py-3 bg-light border-0">
@@ -4518,17 +4869,37 @@
                                             <label class="d-block p-3 rounded-3 border h-100 position-relative ${project.teamProject ? 'border-primary bg-primary-subtle' : 'bg-light'}" style="cursor: pointer;">
                                                 <input type="radio" name="projectType" value="TEAM" class="position-absolute top-2 end-2" ${project.teamProject ? 'checked' : ''}>
                                                 <div class="fw-bold text-dark fs-8 mb-1"><i class="bi bi-shield-check text-primary me-1"></i> Dự Án Nhóm</div>
-                                                <div class="fs-9 text-muted lh-sm">Kích hoạt Quality Gate 2 tầng (Gate 1 duyệt WBS + Gate 2 PM nghiệm thu).</div>
+                                                <div class="fs-9 text-muted lh-sm">Kích hoạt Quality Gate 2 tầng (Gate 1 duyệt WBS + Gate 2 PM nghiệm thu), thanh lọc nhân sự và cột Phụ trách.</div>
                                             </label>
                                         </div>
-                                        <div class="col-6">
-                                            <label class="d-block p-3 rounded-3 border h-100 position-relative ${project.soloProject ? 'border-warning bg-warning-subtle' : 'bg-light'}" style="cursor: pointer;">
-                                                <input type="radio" name="projectType" value="SOLO" class="position-absolute top-2 end-2" ${project.soloProject ? 'checked' : ''}>
-                                                <div class="fw-bold text-dark fs-8 mb-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Cá Nhân (Fast-track)</div>
-                                                <div class="fs-9 text-muted lh-sm">Linh hoạt chuẩn ClickUp, tự do kéo thả TODO ➔ DONE, không rào cản PM.</div>
-                                            </label>
-                                        </div>
+                                        <c:choose>
+                                            <c:when test="${project.teamProject && memberCount > 1}">
+                                                <div class="col-6">
+                                                    <div class="d-block p-3 rounded-3 border h-100 position-relative bg-light opacity-75 border-secondary-subtle">
+                                                        <input type="radio" name="projectType" value="SOLO" class="position-absolute top-2 end-2" disabled>
+                                                        <div class="fw-bold text-secondary fs-8 mb-1"><i class="bi bi-lock-fill me-1"></i> Cá Nhân (Bị khóa)</div>
+                                                        <div class="fs-9 text-danger lh-sm">
+                                                            Đang có <strong>${memberCount} thành viên</strong>. Cần xóa hết thành viên khác trước khi chuyển sang chế độ Cá Nhân.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="col-6">
+                                                    <label class="d-block p-3 rounded-3 border h-100 position-relative ${project.soloProject ? 'border-warning bg-warning-subtle' : 'bg-light'}" style="cursor: pointer;">
+                                                        <input type="radio" name="projectType" value="SOLO" class="position-absolute top-2 end-2" ${project.soloProject ? 'checked' : ''}>
+                                                        <div class="fw-bold text-dark fs-8 mb-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Cá Nhân (Fast-track)</div>
+                                                        <div class="fs-9 text-muted lh-sm">Giao diện tối giản tuyệt đối, tự do kéo thả, ẩn toàn bộ thông tin phụ trách/đội ngũ.</div>
+                                                    </label>
+                                                </div>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
+                                    <c:if test="${project.teamProject && memberCount == 1}">
+                                        <div class="mt-2 fs-9 text-muted bg-light p-2 rounded-2 border">
+                                            <i class="bi bi-info-circle text-primary me-1"></i> Khi chuyển sang <strong>Cá Nhân</strong>, toàn bộ task sẽ tự động mở khóa (bỏ duyệt cổng) và hủy các lời mời đang chờ.
+                                        </div>
+                                    </c:if>
                                 </div>
                             </div>
                             <div class="modal-footer border-0 pt-0 px-4 pb-4">
@@ -4543,8 +4914,207 @@
             </div>
         </c:if>
 
+        <!-- MODAL: TẠO DỰ ÁN MỚI (SPACES) TRỰC TIẾP TỪ SIDEBAR -->
+        <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header bg-dark-navy text-white px-4 py-3 border-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-folder-plus text-primary fs-5"></i>
+                            <div>
+                                <h5 class="modal-title fw-bold mb-0" id="createProjectModalLabel">Khởi Tạo Không Gian Mới</h5>
+                                <span class="fs-9 text-white-50">Tạo dự án làm việc nhóm hoặc cá nhân</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+
+                    <!-- FORM SUBMIT POST VỀ PROJECTSERVLET -->
+                    <form action="${pageContext.request.contextPath}/project" method="post">
+                        <input type="hidden" name="action" value="create">
+
+                        <div class="modal-body p-4">
+                            <div class="mb-3">
+                                <label for="proj-name" class="form-label fw-semibold fs-7 text-dark">
+                                    Tên dự án <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control rounded-3 fs-7" id="proj-name" name="name"
+                                    placeholder="Ví dụ: Nâng cấp Website E-Commerce" required autofocus>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="proj-code"
+                                    class="form-label fw-semibold fs-7 text-dark d-flex align-items-center justify-content-between">
+                                    <span>Mã dự án (Tùy chọn)</span>
+                                    <span class="text-muted fs-9 fw-normal">Tự động tạo nếu để trống</span>
+                                </label>
+                                <input type="text" class="form-control text-uppercase rounded-3 fs-7" id="proj-code"
+                                    name="projectCode" placeholder="Ví dụ: TW-HUB-01">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="proj-desc" class="form-label fw-semibold fs-7 text-dark">
+                                    Mô tả mục tiêu dự án
+                                </label>
+                                <textarea class="form-control rounded-3 fs-7" id="proj-desc" name="description"
+                                    rows="2"
+                                    placeholder="Mô tả ngắn gọn phạm vi và mục tiêu của dự án..."></textarea>
+                            </div>
+
+                            <!-- BỘ CHỌN MÔ HÌNH DỰ ÁN (CLICKUP 3.0 WORKFLOW SELECTOR) -->
+                            <div class="mb-2">
+                                <label class="form-label fw-semibold fs-7 text-dark mb-2 d-flex align-items-center justify-content-between">
+                                    <span>Mô hình làm việc & Quy trình kiểm soát</span>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">Tùy chỉnh linh hoạt</span>
+                                </label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="p-2.5 rounded-3 border border-primary bg-primary-subtle bg-opacity-10 d-block position-relative h-100" id="card-type-team" style="cursor: pointer;">
+                                            <input type="radio" name="projectType" value="TEAM" class="form-check-input position-absolute top-0 end-0 m-2" checked onchange="document.getElementById('card-type-team').classList.add('border-primary','bg-primary-subtle','bg-opacity-10'); document.getElementById('card-type-solo').classList.remove('border-primary','bg-primary-subtle','bg-opacity-10');">
+                                            <div class="d-flex align-items-center gap-1-5 mb-1 pe-3">
+                                                <span class="badge bg-primary text-white rounded-circle p-1 lh-1"><i class="bi bi-people-fill fs-9"></i></span>
+                                                <strong class="fs-8 text-dark">Dự Án Nhóm</strong>
+                                            </div>
+                                            <p class="fs-9 text-secondary mb-0 lh-sm">
+                                                Áp dụng <strong>Quality Gate 2 tầng</strong>: duyệt kế hoạch WBS và nghiệm thu bàn giao.
+                                            </p>
+                                        </label>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="p-2.5 rounded-3 border d-block position-relative h-100" id="card-type-solo" style="cursor: pointer;">
+                                            <input type="radio" name="projectType" value="SOLO" class="form-check-input position-absolute top-0 end-0 m-2" onchange="document.getElementById('card-type-solo').classList.add('border-primary','bg-primary-subtle','bg-opacity-10'); document.getElementById('card-type-team').classList.remove('border-primary','bg-primary-subtle','bg-opacity-10');">
+                                            <div class="d-flex align-items-center gap-1-5 mb-1 pe-3">
+                                                <span class="badge bg-info text-white rounded-circle p-1 lh-1"><i class="bi bi-person-fill fs-9"></i></span>
+                                                <strong class="fs-8 text-dark">Cá Nhân (Fast-track)</strong>
+                                            </div>
+                                            <p class="fs-9 text-secondary mb-0 lh-sm">
+                                                Tối giản như <strong>ClickUp Solo</strong>: tự do kéo thả, việc con là checklist 1 chạm.
+                                            </p>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold"
+                                data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit"
+                                class="btn btn-primary-custom rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                                <i class="bi bi-check-circle-fill me-1"></i> Khởi tạo dự án
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: GIA NHẬP DỰ ÁN BẰNG MÃ (JOIN BY CODE) -->
+        <div class="modal fade" id="joinByCodeModal" tabindex="-1" aria-labelledby="joinByCodeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header border-0 bg-light px-4 pt-4 pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-warning text-dark rounded-circle p-2">
+                                <i class="bi bi-key-fill fs-6"></i>
+                            </span>
+                            <div>
+                                <h5 class="modal-title fw-bold text-dark fs-6" id="joinByCodeModalLabel">Gia Nhập Dự Án Bằng Mã</h5>
+                                <p class="text-muted fs-8 mb-0">Nhập mã định danh dự án (Project Code) do PM cung cấp</p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="${pageContext.request.contextPath}/invite" method="POST">
+                        <input type="hidden" name="action" value="requestJoin">
+                        <div class="modal-body px-4 py-3">
+                            <div class="mb-3">
+                                <label for="inputProjectCode" class="form-label fw-semibold fs-7 text-dark">Mã dự án (Project Code) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-hash"></i></span>
+                                    <input type="text" class="form-control text-uppercase rounded-end-3 fs-7 fw-bold" id="inputProjectCode" name="projectCode" placeholder="Ví dụ: WEB-2026, PRJ-01" required autocomplete="off">
+                                </div>
+                                <div class="form-text fs-9 text-muted mt-1">Hệ thống sẽ gửi yêu cầu xin tham gia đến Trưởng dự án để phê duyệt.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary-custom rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                                <i class="bi bi-send-fill me-1"></i> Gửi yêu cầu gia nhập
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: PHÍM TẮT HỆ THỐNG (KEYBOARD SHORTCUTS HELP) -->
+        <div class="modal fade" id="shortcutsHelpModal" tabindex="-1" aria-labelledby="shortcutsHelpModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header border-0 bg-light px-4 pt-4 pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary text-white rounded-circle p-2">
+                                <i class="bi bi-keyboard-fill fs-6"></i>
+                            </span>
+                            <div>
+                                <h5 class="modal-title fw-bold text-dark fs-6" id="shortcutsHelpModalLabel">Phím Tắt Hệ Thống (Keyboard Shortcuts)</h5>
+                                <p class="text-muted fs-8 mb-0">Tăng tốc độ thao tác như một Power-User theo chuẩn ClickUp & Linear</p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body px-4 py-3">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100">
+                                    <h6 class="fw-bold text-primary fs-8 text-uppercase mb-3" style="letter-spacing: 0.05em;"><i class="bi bi-search me-1"></i> Điều hướng & Tìm kiếm</h6>
+                                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                        <span class="fs-8 text-dark">Tìm kiếm công việc nhanh</span>
+                                        <kbd class="bg-white text-dark border shadow-2xs px-2 py-1 rounded fs-8 fw-semibold">Ctrl + K</kbd>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                        <span class="fs-8 text-dark">Mở bảng trợ giúp phím tắt</span>
+                                        <kbd class="bg-white text-dark border shadow-2xs px-2 py-1 rounded fs-8 fw-semibold">?</kbd>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between py-2">
+                                        <span class="fs-8 text-dark">Đóng Modal / Side-Peek Drawer</span>
+                                        <kbd class="bg-white text-dark border shadow-2xs px-2 py-1 rounded fs-8 fw-semibold">Esc</kbd>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 h-100">
+                                    <h6 class="fw-bold text-primary fs-8 text-uppercase mb-3" style="letter-spacing: 0.05em;"><i class="bi bi-layers me-1"></i> Chế độ xem & Thao tác</h6>
+                                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                        <span class="fs-8 text-dark">Chuyển sang Chế độ Danh sách (List)</span>
+                                        <kbd class="bg-white text-dark border shadow-2xs px-2 py-1 rounded fs-8 fw-semibold">L</kbd>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                        <span class="fs-8 text-dark">Chuyển sang Bảng Kanban (Board)</span>
+                                        <kbd class="bg-white text-dark border shadow-2xs px-2 py-1 rounded fs-8 fw-semibold">B</kbd>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between py-2">
+                                        <span class="fs-8 text-dark">Chuyển nhanh Mở/Ẩn việc con (Subtasks)</span>
+                                        <kbd class="bg-white text-dark border shadow-2xs px-2 py-1 rounded fs-8 fw-semibold">S</kbd>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                        <button type="button" class="btn btn-primary-custom rounded-pill px-4 fs-7 fw-semibold" data-bs-dismiss="modal">Đã hiểu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 7. NẠP FILE JAVASCRIPT KÉO THẢ & LỌC TỨC THÌ (0.01 GIÂY) -->
         <script src="${pageContext.request.contextPath}/js/tasks.js"></script>
 
-        <!-- 8. NẠP FOOTER CHUNG -->
-        <jsp:include page="/includes/footer.jsp" />
+        <!-- Bootstrap 5.3.3 JS Bundle CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <!-- UI-04: Global App JS (Floating Toast System + Utilities) -->
+        <script src="${pageContext.request.contextPath}/js/app.js"></script>
+    </body>
+</html>

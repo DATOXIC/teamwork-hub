@@ -269,6 +269,23 @@ public class ProjectServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (project != null && project.getOwnerId() == currentUser.getId()) {
+            boolean switchingToSolo = "SOLO".equalsIgnoreCase(projectType) && !"SOLO".equalsIgnoreCase(project.getProjectType());
+            if (switchingToSolo) {
+                int memberCount = ProjectMemberDB.countMembers(projectId);
+                if (memberCount > 1) {
+                    if (session != null) {
+                        session.setAttribute("toastError", "Dự án hiện đang có " + memberCount + " thành viên. Bạn không thể chuyển sang chế độ Cá nhân (Solo) khi vẫn còn thành viên khác trong nhóm! Vui lòng mời các thành viên rời dự án trước.");
+                    }
+                    String redirectUrl = request.getParameter("redirectUrl");
+                    if (redirectUrl != null && !redirectUrl.trim().isEmpty()) {
+                        response.sendRedirect(redirectUrl);
+                    } else {
+                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    }
+                    return;
+                }
+            }
+
             if (name != null && !name.trim().isEmpty()) {
                 project.setName(name.trim());
             }
@@ -279,8 +296,19 @@ public class ProjectServlet extends HttpServlet {
                 project.setProjectType(projectType.trim().toUpperCase());
             }
             ProjectDB.update(project);
-            if (session != null) {
-                session.setAttribute("toastSuccess", "Đã cập nhật cài đặt dự án [" + project.getName() + "] thành công!");
+
+            if (switchingToSolo) {
+                // Tự động mở khóa toàn bộ task trong dự án và gán cho Owner
+                com.teamwork.data.TaskDB.unlockAllTasksForSolo(projectId, currentUser.getId());
+                // Thu hồi tất cả lời mời PENDING của dự án này
+                com.teamwork.data.ProjectInviteDB.revokeAllPendingByProjectId(projectId);
+                if (session != null) {
+                    session.setAttribute("toastSuccess", "Đã chuyển dự án sang chế độ Cá Nhân (Solo) siêu tối giản! Toàn bộ công việc đã được tự động mở khóa tự do.");
+                }
+            } else {
+                if (session != null) {
+                    session.setAttribute("toastSuccess", "Đã cập nhật cài đặt dự án [" + project.getName() + "] thành công!");
+                }
             }
         } else {
             if (session != null) {

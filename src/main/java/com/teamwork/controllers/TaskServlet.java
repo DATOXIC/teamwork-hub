@@ -304,6 +304,7 @@ public class TaskServlet extends HttpServlet {
         List<Task> todoTasks = new ArrayList<>();
         List<Task> inProgressTasks = new ArrayList<>();
         List<Task> doneTasks = new ArrayList<>();
+        int submittedCount = 0;
 
         for (Task t : allProjectTasks) {
             String st = t.getStatus() != null ? t.getStatus().toUpperCase() : "TODO";
@@ -311,6 +312,9 @@ public class TaskServlet extends HttpServlet {
                 doneTasks.add(t);
             } else if ("IN_PROGRESS".equals(st) || "SUBMITTED".equals(st) || "REVISE".equals(st) || "REJECTED".equals(st)) {
                 inProgressTasks.add(t);
+                if ("SUBMITTED".equals(st)) {
+                    submittedCount++;
+                }
             } else {
                 todoTasks.add(t);
             }
@@ -382,7 +386,7 @@ public class TaskServlet extends HttpServlet {
 
         // 8.5. Tính toán khối lượng công việc của từng thành viên (UserWorkload DTO) cho Dải Avatar B.3
         List<Task> allTasks = new ArrayList<>(allProjectTasks);
-        List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks);
+        List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks, taskSubTasksMap);
 
         // 8.6. Lấy danh sách lời mời của dự án (Chặng C.3)
         List<ProjectInvite> projectInviteList = ProjectInviteDB.selectByProjectId(projectId);
@@ -487,6 +491,7 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("taskSubTasksMap", taskSubTasksMap);
         request.setAttribute("taskProgressMap", taskProgressMap);
         request.setAttribute("userWorkloadList", userWorkloadList);
+        request.setAttribute("submittedCount", submittedCount);
         request.setAttribute("projectMemberList", projectMemberList);
         request.setAttribute("projectInviteList", projectInviteList);
         request.setAttribute("memberCount", memberCount);
@@ -697,12 +702,8 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
-        String status = request.getParameter("status");
-        if (!"IN_PROGRESS".equalsIgnoreCase(status) && !"DONE".equalsIgnoreCase(status)) {
-            status = "TODO";
-        } else {
-            status = status.toUpperCase();
-        }
+        // Mọi công việc mới tạo bắt buộc bắt đầu từ TO DO theo chuẩn quy trình ClickUp/Agile
+        String status = "TODO";
 
         Task newTask = new Task(
             0,
@@ -720,17 +721,26 @@ public class TaskServlet extends HttpServlet {
         newTask.setLabels(labels != null ? labels.trim() : "");
 
         Project curPrj = ProjectDB.selectById(projectId);
-        boolean defaultRequiresGate = (curPrj != null && curPrj.isTeamProject());
-        String reqGateParam = request.getParameter("requiresGate");
-        if (reqGateParam != null) {
-            newTask.setRequiresGate("true".equalsIgnoreCase(reqGateParam.trim()) || "on".equalsIgnoreCase(reqGateParam.trim()) || "1".equals(reqGateParam.trim()));
+        if (curPrj != null && curPrj.isSoloProject()) {
+            User curUser = getCurrentUser(request);
+            if (curUser != null) {
+                newTask.setAssigneeId(curUser.getId());
+                newTask.setAssigneeName(curUser.getFullName());
+            }
+            newTask.setRequiresGate(false);
         } else {
-            // Nếu form có cờ hasRequiresGateControl nhưng checkbox không được tick
-            String hasControl = request.getParameter("hasRequiresGateControl");
-            if (hasControl != null && !hasControl.trim().isEmpty()) {
-                newTask.setRequiresGate(false);
+            boolean defaultRequiresGate = (curPrj != null && curPrj.isTeamProject());
+            String reqGateParam = request.getParameter("requiresGate");
+            if (reqGateParam != null) {
+                newTask.setRequiresGate("true".equalsIgnoreCase(reqGateParam.trim()) || "on".equalsIgnoreCase(reqGateParam.trim()) || "1".equals(reqGateParam.trim()));
             } else {
-                newTask.setRequiresGate(defaultRequiresGate);
+                // Nếu form có cờ hasRequiresGateControl nhưng checkbox không được tick
+                String hasControl = request.getParameter("hasRequiresGateControl");
+                if (hasControl != null && !hasControl.trim().isEmpty()) {
+                    newTask.setRequiresGate(false);
+                } else {
+                    newTask.setRequiresGate(defaultRequiresGate);
+                }
             }
         }
 
@@ -796,31 +806,29 @@ public class TaskServlet extends HttpServlet {
                 if ("IN_PROGRESS".equalsIgnoreCase(status) && "TODO".equalsIgnoreCase(task.getStatus())) {
                     String taskTitle = task.getTitle();
 
-                    // Ràng buộc 1: Bắt buộc phải có Người phụ trách (Task Lead)
+                    // Ràng buộc Quality Gate: Chặn kéo thả trực tiếp từ TODO sang IN_PROGRESS.
+                    // Bắt buộc phải nộp Kế hoạch WBS và được PM phê duyệt (Gate 1)
+                    if (isGateEnforced) {
+                        String errMsg = "🛡️ [Quality Gate 1] Công việc này áp dụng Cổng Kế Hoạch! Vui lòng mở chi tiết công việc, phân rã việc con (WBS) và bấm 'Gửi duyệt kế hoạch' để PM phê duyệt trước khi bắt đầu.";
+                        if (isAjax) {
+                            sendJsonResponse(response, false, errMsg, null);
+                            return;
+                        }
+                        if (session != null) session.setAttribute("toastError", errMsg);
+                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                        return;
+                    }
+
+                    // Đối với Fast-track: Bắt buộc phải có Người phụ trách (Task Lead)
                     if (task.getAssigneeId() <= 0) {
                         User curUser = getCurrentUser(request);
-                        if (curUser != null && !isGateEnforced) {
-                            // Fast-track: Tự động gán cho người đang thao tác nếu task chưa có ai
+                        if (curUser != null && currentPrj != null && currentPrj.isSoloProject()) {
+                            // Solo mode: Tự động gán cho chính mình
                             task.setAssigneeId(curUser.getId());
                             task.setAssigneeName(curUser.getFullName());
                             TaskDB.update(task);
                         } else {
                             String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.";
-                            if (isAjax) {
-                                sendJsonResponse(response, false, errMsg, null);
-                                return;
-                            }
-                            if (session != null) session.setAttribute("toastError", errMsg);
-                            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
-                            return;
-                        }
-                    }
-
-                    // Ràng buộc 2: Bắt buộc phải có danh mục Việc con (Sub-tasks) đã phân rã (CHỈ KHI BẬT QUALITY GATE)
-                    if (isGateEnforced) {
-                        List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
-                        if (subTasks == null || subTasks.isEmpty()) {
-                            String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! [Quality Gate] Vui lòng phân rã ít nhất 1 việc con (Sub-task) để lập kế hoạch trước khi bắt đầu thực hiện.";
                             if (isAjax) {
                                 sendJsonResponse(response, false, errMsg, null);
                                 return;
@@ -906,9 +914,21 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
+        User currentUser = getCurrentUser(request);
+        Task parentTask = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+        
+        if (parentTask == null || project == null || parentTask.getProjectId() != projectId) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
         int assigneeId = safeParseInt(request.getParameter("assigneeId"), 0);
         String assigneeName = "Chưa phân công";
-        if (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) {
+        if (project.isSoloProject()) {
+            assigneeId = currentUser != null ? currentUser.getId() : 0;
+            assigneeName = currentUser != null ? currentUser.getFullName() : "Chưa phân công";
+        } else if (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) {
             User u = UserDB.selectById(assigneeId);
             if (u != null) {
                 assigneeName = u.getFullName();
@@ -917,15 +937,6 @@ public class TaskServlet extends HttpServlet {
             }
         } else {
             assigneeId = 0;
-        }
-
-        User currentUser = getCurrentUser(request);
-        Task parentTask = TaskDB.selectById(taskId);
-        Project project = ProjectDB.selectById(projectId);
-        
-        if (parentTask == null || parentTask.getProjectId() != projectId) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
         }
 
         HttpSession session = request.getSession(false);
@@ -1205,32 +1216,38 @@ public class TaskServlet extends HttpServlet {
         }
         task.setDueDate(dueDate != null ? dueDate.trim() : "");
 
-        // Chỉ PM mới được đổi người phụ trách (assigneeId)
-        if (isPm && assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
-            int newAssigneeId = safeParseInt(assigneeIdParam, 0);
-            if (newAssigneeId > 0 && newAssigneeId != task.getAssigneeId() && ProjectMemberDB.isMember(projectId, newAssigneeId)) {
-                User newAssignee = UserDB.selectById(newAssigneeId);
-                if (newAssignee != null) {
-                    task.setAssigneeId(newAssigneeId);
-                    task.setAssigneeName(newAssignee.getFullName());
+        if (project.isSoloProject()) {
+            task.setAssigneeId(currentUser.getId());
+            task.setAssigneeName(currentUser.getFullName());
+            task.setRequiresGate(false);
+        } else {
+            // Chỉ PM mới được đổi người phụ trách (assigneeId)
+            if (isPm && assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
+                int newAssigneeId = safeParseInt(assigneeIdParam, 0);
+                if (newAssigneeId > 0 && newAssigneeId != task.getAssigneeId() && ProjectMemberDB.isMember(projectId, newAssigneeId)) {
+                    User newAssignee = UserDB.selectById(newAssigneeId);
+                    if (newAssignee != null) {
+                        task.setAssigneeId(newAssigneeId);
+                        task.setAssigneeName(newAssignee.getFullName());
 
-                    // Gửi thông báo cho người mới được giao task
-                    NotificationDB.send(
-                        newAssigneeId,
-                        "Phân Công Nhiệm Vụ Mới",
-                        "Bạn vừa được Trưởng Dự Án phân công làm Task Lead cho công việc [" + task.getTitle() + "].",
-                        "/task?action=list&projectId=" + projectId,
-                        "TASK"
-                    );
+                        // Gửi thông báo cho người mới được giao task
+                        NotificationDB.send(
+                            newAssigneeId,
+                            "Phân Công Nhiệm Vụ Mới",
+                            "Bạn vừa được Trưởng Dự Án phân công làm Task Lead cho công việc [" + task.getTitle() + "].",
+                            "/task?action=list&projectId=" + projectId,
+                            "TASK"
+                        );
+                    }
                 }
             }
-        }
 
-        // Cập nhật chế độ Quality Gate nếu form có gửi cờ điều khiển
-        String hasControl = request.getParameter("hasRequiresGateControl");
-        if (hasControl != null && !hasControl.trim().isEmpty()) {
-            String reqGateParam = request.getParameter("requiresGate");
-            task.setRequiresGate("true".equalsIgnoreCase(reqGateParam) || "on".equalsIgnoreCase(reqGateParam) || "1".equals(reqGateParam));
+            // Cập nhật chế độ Quality Gate nếu form có gửi cờ điều khiển
+            String hasControl = request.getParameter("hasRequiresGateControl");
+            if (hasControl != null && !hasControl.trim().isEmpty()) {
+                String reqGateParam = request.getParameter("requiresGate");
+                task.setRequiresGate("true".equalsIgnoreCase(reqGateParam) || "on".equalsIgnoreCase(reqGateParam) || "1".equals(reqGateParam));
+            }
         }
 
         TaskDB.update(task);
@@ -2005,13 +2022,19 @@ public class TaskServlet extends HttpServlet {
      * 2. Đếm số Việc Con được giao & số Việc Con đã xong [☑]
      * 3. Thu thập mảng relatedTaskIds để JavaScript lọc Kanban trong 0.01 giây
      */
-    private List<UserWorkload> computeUserWorkloads(List<User> userList, List<Task> allTasks) {
+    private List<UserWorkload> computeUserWorkloads(List<User> userList, List<Task> allTasks, Map<Integer, List<SubTask>> taskSubTasksMap) {
         List<UserWorkload> workloadList = new ArrayList<>();
         // 1. Duyệt qua từng thành viên trong hệ thống
         for (User u : userList) {
             int leadTaskCount = 0;
             int subTaskCount = 0;
             int completedSubTaskCount = 0;
+            int todoCount = 0;
+            int inProgressCount = 0;
+            int submittedCount = 0;
+            int doneCount = 0;
+            int overdueCount = 0;
+
             List<Integer> relatedTaskIds = new ArrayList<>();
             List<Task> leadTasks = new ArrayList<>();
 
@@ -2024,23 +2047,45 @@ public class TaskServlet extends HttpServlet {
                     if (!relatedTaskIds.contains(t.getId())) {
                         relatedTaskIds.add(t.getId());
                     }
+
+                    String st = t.getStatus() != null ? t.getStatus().toUpperCase() : "TODO";
+                    if ("DONE".equals(st) || "APPROVED".equals(st)) {
+                        doneCount++;
+                    } else if ("SUBMITTED".equals(st)) {
+                        submittedCount++;
+                    } else if ("IN_PROGRESS".equals(st) || "REVISE".equals(st) || "REJECTED".equals(st)) {
+                        inProgressCount++;
+                    } else {
+                        todoCount++;
+                    }
+
+                    if (t.isOverdue()) {
+                        overdueCount++;
+                    }
                 }
-                // b. Quét các Việc Con bên trong Task lớn này
-                List<SubTask> subTasks = SubTaskDB.selectByTaskId(t.getId());
-                for (SubTask st : subTasks) {
-                    if (st.getAssigneeId() == u.getId()) {
-                        subTaskCount++;
-                        if (st.isCompleted()) {
-                            completedSubTaskCount++;
-                        }
-                        if (!relatedTaskIds.contains(t.getId())) {
-                            relatedTaskIds.add(t.getId());
+                // b. Quét các Việc Con bên trong Task lớn này từ Map RAM
+                List<SubTask> subTasks = (taskSubTasksMap != null) ? taskSubTasksMap.get(t.getId()) : null;
+                if (subTasks != null) {
+                    for (SubTask st : subTasks) {
+                        if (st.getAssigneeId() == u.getId()) {
+                            subTaskCount++;
+                            if (st.isCompleted()) {
+                                completedSubTaskCount++;
+                            }
+                            if (!relatedTaskIds.contains(t.getId())) {
+                                relatedTaskIds.add(t.getId());
+                            }
                         }
                     }
                 }
             }
             // 3. Đóng gói vào đối tượng UserWorkload
             UserWorkload uw = new UserWorkload(u, leadTaskCount, subTaskCount, completedSubTaskCount, relatedTaskIds, leadTasks);
+            uw.setTodoCount(todoCount);
+            uw.setInProgressCount(inProgressCount);
+            uw.setSubmittedCount(submittedCount);
+            uw.setDoneCount(doneCount);
+            uw.setOverdueCount(overdueCount);
             workloadList.add(uw);
         }
         return workloadList;
@@ -2128,13 +2173,8 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
-        if (status == null || status.trim().isEmpty()) {
-            status = "TODO";
-        }
-        status = status.trim().toUpperCase();
-        if (!"TODO".equals(status) && !"IN_PROGRESS".equals(status) && !"DONE".equals(status)) {
-            status = "TODO";
-        }
+        // Mọi công việc mới tạo bắt buộc bắt đầu từ TO DO theo chuẩn quy trình ClickUp/Agile
+        status = "TODO";
 
         if (priority == null || priority.trim().isEmpty()) {
             priority = "MEDIUM";
@@ -2179,12 +2219,18 @@ public class TaskServlet extends HttpServlet {
         );
 
         Project currentPrj = ProjectDB.selectById(projectId);
-        boolean defaultRequiresGate = (currentPrj != null && currentPrj.isTeamProject());
-        String reqGateParam = request.getParameter("requiresGate");
-        if (reqGateParam != null) {
-            newTask.setRequiresGate("true".equalsIgnoreCase(reqGateParam.trim()) || "on".equalsIgnoreCase(reqGateParam.trim()) || "1".equals(reqGateParam.trim()));
+        if (currentPrj != null && currentPrj.isSoloProject()) {
+            newTask.setAssigneeId(currentUser.getId());
+            newTask.setAssigneeName(currentUser.getFullName());
+            newTask.setRequiresGate(false);
         } else {
-            newTask.setRequiresGate(defaultRequiresGate);
+            boolean defaultRequiresGate = (currentPrj != null && currentPrj.isTeamProject());
+            String reqGateParam = request.getParameter("requiresGate");
+            if (reqGateParam != null) {
+                newTask.setRequiresGate("true".equalsIgnoreCase(reqGateParam.trim()) || "on".equalsIgnoreCase(reqGateParam.trim()) || "1".equals(reqGateParam.trim()));
+            } else {
+                newTask.setRequiresGate(defaultRequiresGate);
+            }
         }
 
         int newTaskId = TaskDB.insert(newTask);
@@ -2253,7 +2299,10 @@ public class TaskServlet extends HttpServlet {
         }
 
         String assigneeName = "Chưa phân công";
-        if (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) {
+        if (project.isSoloProject()) {
+            assigneeId = currentUser.getId();
+            assigneeName = currentUser.getFullName();
+        } else if (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) {
             User u = UserDB.selectById(assigneeId);
             if (u != null) {
                 assigneeName = u.getFullName();
