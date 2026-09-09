@@ -189,7 +189,14 @@
                         </button>
                         <span class="badge bg-danger text-white rounded-2 p-1 fs-8"><i class="bi bi-pencil-fill"></i></span>
                         <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
-                        <span class="text-muted fs-8"><i class="bi bi-chevron-down"></i></span>
+                        <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
+                            <i class="bi ${project.projectTypeIcon}"></i> ${project.projectTypeLabel}
+                        </span>
+                        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+                            <button type="button" class="btn btn-sm btn-light border rounded-circle p-1 ms-1 d-inline-flex align-items-center justify-content-center shadow-2xs" data-bs-toggle="modal" data-bs-target="#projectSettingsModal" title="Cài đặt dự án & Quy trình" style="width: 24px; height: 24px;">
+                                <i class="bi bi-gear text-secondary fs-9"></i>
+                            </button>
+                        </c:if>
                         <i class="bi bi-star text-muted fs-8 ms-1" style="cursor: pointer;" title="Đánh dấu sao" onclick="this.classList.toggle('text-warning'); this.classList.toggle('bi-star-fill'); this.classList.toggle('bi-star');"></i>
                     </div>
 
@@ -411,43 +418,6 @@
                                                     <i class="bi bi-chevron-down me-1" id="chevron-done"></i>
                                                     <span class="clickup-group-badge bg-success text-white">DONE</span>
                                                     <span class="text-secondary fs-8 ms-1" id="group-count-done">${doneTasks.size()}</span>
-                                                    <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('done');" title="Thêm công việc vào DONE">
-                                                        <i class="bi bi-plus-lg"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <!-- Inline Quick Task Create for DONE -->
-                                        <tr id="inline-task-row-done" class="clickup-inline-create-row d-none group-done-row">
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2 ps-2">
-                                                    <span class="clickup-status-dot dot-done"><i class="bi bi-check text-white fs-9"></i></span>
-                                                    <input type="text" id="inline-task-title-done" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc đã hoàn thành... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'done')" />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <select id="inline-task-assignee-done" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
-                                                    <option value="0">Chưa gán</option>
-                                                    <c:forEach items="${userList}" var="u">
-                                                        <option value="${u.id}"><c:out value="${u.fullName}" /></option>
-                                                    </c:forEach>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <select id="inline-task-priority-done" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
-                                                    <option value="MEDIUM">Normal</option>
-                                                    <option value="HIGH">Urgent</option>
-                                                    <option value="LOW">Low</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5 fs-9">DONE</span>
-                                            </td>
-                                            <td style="text-align: right;">
-                                                <div class="d-inline-flex align-items-center gap-1">
-                                                    <input type="date" id="inline-task-due-done" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
-                                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8" onclick="submitInlineCreateTask('done')" title="Lưu việc"><i class="bi bi-check-lg"></i></button>
-                                                    <button type="button" class="btn btn-sm btn-light border py-0 px-2 fs-8" onclick="cancelInlineCreateTask('done')" title="Hủy"><i class="bi bi-x-lg"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -465,7 +435,7 @@
                                                                 <span style="width: 18px; display: inline-block;"></span>
                                                             </c:otherwise>
                                                         </c:choose>
-                                                        <span class="clickup-status-dot dot-done" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)">
+                                                        <span class="clickup-status-dot dot-done dot-locked" id="status-dot-${task.id}" onclick="event.stopPropagation();" title="Công việc đã hoàn thành (Đã khóa, không thể thay đổi)">
                                                             <i class="bi bi-check text-white"></i>
                                                         </span>
                                                         <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
@@ -474,9 +444,6 @@
                                                                 <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
                                                             </span>
                                                         </c:if>
-                                                        <button type="button" class="task-hover-add-subtask-btn" onclick="event.stopPropagation(); showInlineCreateSubtask(${task.id}, event);" title="Thêm việc con">
-                                                            <i class="bi bi-plus"></i>
-                                                        </button>
                                                     </div>
                                                 </td>
                                                 <td>
@@ -522,10 +489,8 @@
                                                 <tr class="clickup-subtask-row group-done-row ${subtaskMode == 'collapsed' || subtaskMode == 'hidden' ? 'd-none' : ''}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 36px;">
-                                                            <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
-                                                                <c:if test="${isStDone}">
-                                                                    <i class="bi bi-check text-white"></i>
-                                                                </c:if>
+                                                            <span class="clickup-status-dot dot-done dot-locked" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation();" title="Việc con đã hoàn tất (Đã khóa)">
+                                                                <i class="bi bi-check text-white"></i>
                                                             </span>
                                                             <span class="text-secondary text-truncate fs-8 ${isStDone ? 'text-decoration-line-through' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
                                                         </div>
@@ -545,13 +510,6 @@
                                                 </tr>
                                             </c:forEach>
                                         </c:forEach>
-                                        <tr class="group-done-row">
-                                            <td colspan="5" class="py-1">
-                                                <a href="javascript:void(0)" onclick="showInlineCreateTask('done')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
-                                                    <i class="bi bi-plus-lg"></i> Thêm công việc
-                                                </a>
-                                            </td>
-                                        </tr>
 
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row">
@@ -567,7 +525,7 @@
                                             </td>
                                         </tr>
                                         <!-- Inline Quick Task Create for IN PROGRESS -->
-                                        <tr id="inline-task-row-inprog" class="clickup-inline-create-row d-none group-inprog-row">
+                                        <tr id="inline-task-row-inprog" class="clickup-inline-create-row d-none">
                                             <td>
                                                 <div class="d-flex align-items-center gap-2 ps-2">
                                                     <span class="clickup-status-dot dot-inprog"></span>
@@ -714,7 +672,7 @@
                                             </td>
                                         </tr>
                                         <!-- Inline Quick Task Create for TO DO -->
-                                        <tr id="inline-task-row-todo" class="clickup-inline-create-row d-none group-todo-row">
+                                        <tr id="inline-task-row-todo" class="clickup-inline-create-row d-none">
                                             <td>
                                                 <div class="d-flex align-items-center gap-2 ps-2">
                                                     <span class="clickup-status-dot dot-todo"></span>
@@ -852,9 +810,9 @@
                         </div>
 
                         <!-- ClickUp Floating Status Popover Menu -->
-                        <div id="clickupStatusPopover" class="clickup-status-dropdown-menu d-none" style="position: absolute; z-index: 1060;">
-                            <div class="p-1">
-                                <div class="px-2 py-1 text-muted fs-9 fw-semibold text-uppercase border-bottom mb-1" id="clickupPopoverHeader">Đổi trạng thái</div>
+                        <div id="clickupStatusPopover" class="clickup-status-dropdown-menu shadow-lg" style="position: fixed; display: none; z-index: 999999;">
+                            <div class="p-2">
+                                <div class="px-2 py-1 text-muted fs-9 fw-bold text-uppercase border-bottom mb-2" id="clickupPopoverHeader">Đổi trạng thái</div>
                                 <div id="clickupPopoverOptions"></div>
                             </div>
                         </div>
@@ -901,11 +859,24 @@
                                     data-assignee-id="${task.assigneeId}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
-                                    data-task-labels="${task.labels}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
+                                    data-task-labels="${task.labels}"
+                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
+                                            <c:choose>
+                                                <c:when test="${project.teamProject && task.requiresGate}">
+                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
+                                                        <i class="bi bi-shield-check"></i> Gate
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
+                                                        <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
@@ -1029,11 +1000,24 @@
                                     data-assignee-id="${task.assigneeId}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
-                                    data-task-labels="${task.labels}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
+                                    data-task-labels="${task.labels}"
+                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
+                                            <c:choose>
+                                                <c:when test="${project.teamProject && task.requiresGate}">
+                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
+                                                        <i class="bi bi-shield-check"></i> Gate
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
+                                                        <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
@@ -1134,26 +1118,36 @@
                                 <span>Đã xong</span>
                                 <span class="pill-count">${doneTasks.size()}</span>
                             </div>
-                            <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
-                                title="Thêm công việc vào Đã xong">
-                                <i class="bi bi-plus-lg"></i>
-                            </button>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-lock-fill"></i> Khóa</span>
                         </div>
 
                         <div class="kanban-task-area kanban-task-list d-flex flex-column gap-2-5 flex-grow-1"
                             id="column-DONE" data-status="DONE">
 
                             <c:forEach items="${doneTasks}" var="task">
-                                <div class="card kanban-card kanban-card-done p-3" id="task-${task.id}"
+                                <div class="card kanban-card kanban-card-done kanban-card-locked p-3" id="task-${task.id}"
                                     draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
-                                    data-task-labels="${task.labels}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
+                                    data-task-labels="${task.labels}"
+                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                         <div class="d-flex flex-wrap align-items-center gap-1">
+                                            <c:choose>
+                                                <c:when test="${project.teamProject && task.requiresGate}">
+                                                    <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Bắt buộc qua Quality Gate">
+                                                        <i class="bi bi-shield-check"></i> Gate
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-1.5 py-0.5 fs-10 fw-semibold" title="Fast-track nhanh">
+                                                        <i class="bi bi-lightning-charge-fill text-warning"></i> Fast
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
                                                     ${task.getLabelDisplayName(lbl)}
@@ -1204,7 +1198,7 @@
                                         <!-- Metadata phẳng -->
                                         <div class="d-flex align-items-center gap-2-5">
                                             <span class="kanban-meta-item text-success fw-semibold">
-                                                <i class="bi bi-check2-all text-success"></i>
+                                                <i class="bi bi-lock-fill text-success"></i>
                                                 <span>Hoàn tất</span>
                                             </span>
 
@@ -1941,21 +1935,38 @@
         var icon = document.getElementById('chevron-' + groupId);
         if (!rows || rows.length === 0) return;
 
-        var isNowHidden = !rows[0].classList.contains('d-none');
+        var isCurrentlyExpanded = icon ? icon.classList.contains('bi-chevron-down') : !rows[0].classList.contains('d-none');
+        var willHide = isCurrentlyExpanded;
+
         rows.forEach(function(r) {
-            if (isNowHidden) {
+            // Never show inline create task or subtask rows when expanding group
+            if (r.classList.contains('clickup-inline-create-row') || r.classList.contains('clickup-inline-subtask-row')) {
+                r.classList.add('d-none');
+                return;
+            }
+            if (willHide) {
                 r.classList.add('d-none');
             } else {
+                // If it's a subtask row and subtask preference is collapsed/hidden, keep it hidden
+                var subtaskCookie = document.cookie.split('; ').find(function(c) { return c.startsWith('preferred_subtask_mode='); });
+                var subMode = subtaskCookie ? decodeURIComponent(subtaskCookie.split('=')[1]) : '${subtaskMode}';
+                if (r.classList.contains('clickup-subtask-row') && (subMode === 'collapsed' || subMode === 'hidden')) {
+                    return;
+                }
                 r.classList.remove('d-none');
             }
         });
 
+        if (willHide && typeof cancelInlineCreateTask === 'function') {
+            cancelInlineCreateTask(groupId);
+        }
+
         if (icon) {
-            icon.className = isNowHidden ? 'bi bi-chevron-right me-1' : 'bi bi-chevron-down me-1';
+            icon.className = willHide ? 'bi bi-chevron-right me-1' : 'bi bi-chevron-down me-1';
         }
 
         try {
-            localStorage.setItem('clickup_group_' + groupId + '_collapsed', isNowHidden ? 'true' : 'false');
+            localStorage.setItem('clickup_group_' + groupId + '_collapsed', willHide ? 'true' : 'false');
         } catch(e) {}
     };
 
@@ -2034,9 +2045,34 @@
 
     window.openStatusDropdown = function(event, id, isSubtask, currentStatus, parentTaskId) {
         if (event) {
-            event.stopPropagation();
-            event.preventDefault();
+            if (typeof event.stopPropagation === 'function') event.stopPropagation();
+            if (typeof event.preventDefault === 'function') event.preventDefault();
         }
+
+        if (!isSubtask && currentStatus === 'DONE') {
+            if (window.showToast) window.showToast('Công việc đã hoàn thành (DONE) đã bị khóa, không thể thay đổi trạng thái!', 'warning');
+            return;
+        }
+        if (isSubtask && parentTaskId) {
+            var parentRow = document.querySelector('.clickup-task-row[data-task-id="' + parentTaskId + '"]');
+            if (parentRow && parentRow.classList.contains('group-done-row')) {
+                if (window.showToast) window.showToast('Công việc cha đã hoàn thành (DONE). Toàn bộ việc con đã bị khóa!', 'warning');
+                return;
+            }
+        }
+
+        var popover = document.getElementById('clickupStatusPopover');
+        if (!popover) return;
+
+        // Nếu popover đang mở cho chính đối tượng này -> đóng lại (Toggle)
+        if ((popover.classList.contains('show') || popover.style.display === 'block') &&
+            currentStatusTarget.id === id && currentStatusTarget.isSubtask === isSubtask) {
+            popover.classList.remove('show');
+            popover.classList.add('d-none');
+            popover.style.display = 'none';
+            return;
+        }
+
         currentStatusTarget = {
             id: id,
             isSubtask: isSubtask,
@@ -2044,49 +2080,88 @@
             parentTaskId: parentTaskId || 0
         };
 
-        var popover = document.getElementById('clickupStatusPopover');
         var header = document.getElementById('clickupPopoverHeader');
         var container = document.getElementById('clickupPopoverOptions');
-        if (!popover || !container) return;
+        if (!container) return;
 
         if (isSubtask) {
             if (header) header.textContent = 'Trạng thái việc con';
             var isDone = (currentStatus === 'APPROVED' || currentStatus === 'DONE');
             container.innerHTML = 
-                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (!isDone ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'TODO\')">' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-2 px-2-5 rounded-2 hover-bg-light border-0 mb-1 ' + (!isDone ? 'bg-light fw-bold text-primary' : 'text-dark') + '" onclick="event.stopPropagation(); executeInlineStatusChange(\'TODO\')">' +
                     '<span class="clickup-status-dot dot-todo"></span>' +
-                    '<span class="fs-8 text-dark">Chưa xong (TO DO)</span>' +
+                    '<span class="fs-8">Chưa xong (TO DO)</span>' +
                 '</button>' +
-                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (isDone ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'DONE\')">' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-2 px-2-5 rounded-2 hover-bg-light border-0 ' + (isDone ? 'bg-light fw-bold text-success' : 'text-dark') + '" onclick="event.stopPropagation(); executeInlineStatusChange(\'DONE\')">' +
                     '<span class="clickup-status-dot dot-done"><i class="bi bi-check text-white fs-9"></i></span>' +
-                    '<span class="fs-8 text-dark">Hoàn thành (DONE)</span>' +
+                    '<span class="fs-8">Hoàn thành (DONE)</span>' +
                 '</button>';
         } else {
             if (header) header.textContent = 'Trạng thái công việc';
             container.innerHTML = 
-                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (currentStatus === 'TODO' ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'TODO\')">' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-2 px-2-5 rounded-2 hover-bg-light border-0 mb-1 ' + (currentStatus === 'TODO' ? 'bg-light fw-bold text-primary' : 'text-dark') + '" onclick="event.stopPropagation(); executeInlineStatusChange(\'TODO\')">' +
                     '<span class="clickup-status-dot dot-todo"></span>' +
-                    '<span class="fs-8 text-dark">TO DO</span>' +
+                    '<span class="fs-8">TO DO (Cần làm)</span>' +
                 '</button>' +
-                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (currentStatus === 'IN_PROGRESS' ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'IN_PROGRESS\')">' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-2 px-2-5 rounded-2 hover-bg-light border-0 mb-1 ' + (currentStatus === 'IN_PROGRESS' ? 'bg-light fw-bold text-info' : 'text-dark') + '" onclick="event.stopPropagation(); executeInlineStatusChange(\'IN_PROGRESS\')">' +
                     '<span class="clickup-status-dot dot-inprog"></span>' +
-                    '<span class="fs-8 text-dark">IN PROGRESS</span>' +
+                    '<span class="fs-8">IN PROGRESS (Đang làm)</span>' +
                 '</button>' +
-                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-1-5 px-2 rounded-2 hover-bg-light border-0 ' + (currentStatus === 'DONE' ? 'bg-light fw-bold' : '') + '" onclick="executeInlineStatusChange(\'DONE\')">' +
+                '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-2 px-2-5 rounded-2 hover-bg-light border-0 ' + (currentStatus === 'DONE' ? 'bg-light fw-bold text-success' : 'text-dark') + '" onclick="event.stopPropagation(); executeInlineStatusChange(\'DONE\')">' +
                     '<span class="clickup-status-dot dot-done"><i class="bi bi-check text-white fs-9"></i></span>' +
-                    '<span class="fs-8 text-dark">DONE</span>' +
+                    '<span class="fs-8">DONE (Hoàn thành)</span>' +
                 '</button>';
         }
 
-        var rect = event.currentTarget.getBoundingClientRect();
-        popover.style.top = (rect.bottom + window.scrollY + 4) + 'px';
-        popover.style.left = (rect.left + window.scrollX) + 'px';
+        // Tìm phần tử kích hoạt (target element) an toàn tuyệt đối
+        var targetEl = null;
+        if (event) {
+            if (event.currentTarget && event.currentTarget.classList && event.currentTarget.classList.contains('clickup-status-dot')) {
+                targetEl = event.currentTarget;
+            } else if (event.target) {
+                targetEl = event.target.closest('.clickup-status-dot');
+            }
+        }
+        if (!targetEl) {
+            targetEl = document.getElementById((isSubtask ? 'subtask-status-dot-' : 'status-dot-') + id);
+        }
+
+        if (targetEl) {
+            var rect = targetEl.getBoundingClientRect();
+            var popoverWidth = 220;
+            var leftPos = rect.left;
+            var topPos = rect.bottom + 6;
+
+            if (leftPos + popoverWidth > window.innerWidth - 12) {
+                leftPos = Math.max(10, window.innerWidth - popoverWidth - 16);
+            }
+            if (topPos + 180 > window.innerHeight) {
+                topPos = Math.max(10, rect.top - 170);
+            }
+
+            popover.style.position = 'fixed';
+            popover.style.top = topPos + 'px';
+            popover.style.left = leftPos + 'px';
+            popover.style.zIndex = '999999';
+        } else {
+            popover.style.position = 'fixed';
+            popover.style.top = '30%';
+            popover.style.left = '40%';
+            popover.style.zIndex = '999999';
+        }
+
+        popover.style.display = 'block';
         popover.classList.remove('d-none');
+        popover.classList.add('show');
     };
 
     window.executeInlineStatusChange = function(newStatus) {
         var popover = document.getElementById('clickupStatusPopover');
-        if (popover) popover.classList.add('d-none');
+        if (popover) {
+            popover.classList.remove('show');
+            popover.classList.add('d-none');
+            popover.style.display = 'none';
+        }
 
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
         var params = new URLSearchParams();
@@ -2207,6 +2282,10 @@
     };
 
     window.submitInlineCreateTask = function(groupId) {
+        if (groupId === 'done') {
+            if (window.showToast) window.showToast('Không thể tạo trực tiếp công việc ở trạng thái DONE!', 'error');
+            return;
+        }
         var titleEl = document.getElementById('inline-task-title-' + groupId);
         var assigneeEl = document.getElementById('inline-task-assignee-' + groupId);
         var priorityEl = document.getElementById('inline-task-priority-' + groupId);
@@ -2266,6 +2345,13 @@
     window.showInlineCreateSubtask = function(parentTaskId, event) {
         if (event) event.stopPropagation();
 
+        var parentRow = document.querySelector('tr[data-task-id="' + parentTaskId + '"]');
+        if (!parentRow) return;
+        if (parentRow.classList.contains('group-done-row')) {
+            if (window.showToast) window.showToast('Không thể thêm việc con vào công việc đã hoàn thành (DONE)!', 'warning');
+            return;
+        }
+
         var subRows = document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + parentTaskId + '"]');
         subRows.forEach(function(r) { r.classList.remove('d-none'); });
         var caret = document.getElementById('caret-' + parentTaskId);
@@ -2280,9 +2366,6 @@
             if (input) { input.focus(); input.select(); }
             return;
         }
-
-        var parentRow = document.querySelector('tr[data-task-id="' + parentTaskId + '"]');
-        if (!parentRow) return;
 
         var groupClass = '';
         parentRow.classList.forEach(function(cls) {
@@ -2305,7 +2388,7 @@
 
         var newRow = document.createElement('tr');
         newRow.id = 'inline-subtask-row-' + parentTaskId;
-        newRow.className = 'clickup-inline-subtask-row ' + groupClass;
+        newRow.className = 'clickup-inline-subtask-row clickup-inline-create-row ' + groupClass;
         newRow.innerHTML = 
             '<td>' +
                 '<div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">' +
@@ -2403,15 +2486,26 @@
         });
     };
 
-    // Close status popover when clicking anywhere outside
+    // Close status popover when clicking anywhere outside or scrolling
     document.addEventListener('click', function(e) {
         var popover = document.getElementById('clickupStatusPopover');
-        if (popover && !popover.classList.contains('d-none')) {
+        if (popover && (popover.classList.contains('show') || popover.style.display === 'block')) {
             if (!popover.contains(e.target) && !e.target.closest('.clickup-status-dot')) {
+                popover.classList.remove('show');
                 popover.classList.add('d-none');
+                popover.style.display = 'none';
             }
         }
     });
+
+    window.addEventListener('scroll', function() {
+        var popover = document.getElementById('clickupStatusPopover');
+        if (popover && (popover.classList.contains('show') || popover.style.display === 'block')) {
+            popover.classList.remove('show');
+            popover.classList.add('d-none');
+            popover.style.display = 'none';
+        }
+    }, true);
 
     // Restore group collapse states from localStorage on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
@@ -2709,12 +2803,19 @@
                                 </span>
                             </div>
                             <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
-                                    <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
-                                        data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
-                                        <i class="bi bi-pencil-square"></i> Chỉnh sửa
-                                    </button>
-                                </c:if>
+                                <c:choose>
+                                    <c:when test="${task.status == 'DONE'}">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2-5 py-1 fs-9 fw-semibold">
+                                            <i class="bi bi-lock-fill me-1"></i> Đã hoàn thành (Read-only)
+                                        </span>
+                                    </c:when>
+                                    <c:when test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                        <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
+                                            data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">
+                                            <i class="bi bi-pencil-square"></i> Chỉnh sửa
+                                        </button>
+                                    </c:when>
+                                </c:choose>
                                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
                             </div>
                         </div>
@@ -2724,7 +2825,7 @@
                             <!-- CỘT TRÁI (65%): NỘI DUNG, CHECKLIST VIỆC CON, TÀI LIỆU -->
                             <div class="col-12 col-lg-8 p-4 border-end">
                                 <!-- FORM CHỈNH SỬA TASK CHA (COLLAPSIBLE) -->
-                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                     <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
                                         <form method="post" action="${pageContext.request.contextPath}/task"
                                             class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
@@ -2770,6 +2871,18 @@
                                                     </c:choose>
                                                 </div>
                                             </div>
+                                            <c:if test="${project.teamProject}">
+                                                <input type="hidden" name="hasRequiresGateControl" value="true">
+                                                <div class="p-2-5 bg-light rounded-2 border mb-3">
+                                                    <div class="form-check form-switch mb-1">
+                                                        <input class="form-check-input" type="checkbox" role="switch" id="editRequiresGate-${task.id}" name="requiresGate" value="true" ${task.requiresGate ? 'checked' : ''} ${project.ownerId == sessionScope.currentUser.id ? '' : 'disabled'}>
+                                                        <label class="form-check-label fs-9 fw-bold text-dark" for="editRequiresGate-${task.id}">
+                                                            <i class="bi bi-shield-check text-primary me-1"></i> Áp dụng Quality Gate (Cổng kiểm soát)
+                                                        </label>
+                                                    </div>
+                                                    <div class="fs-10 text-muted">Bật để kích hoạt Gate 1 (Khóa kế hoạch WBS) & Gate 2 (Nghiệm thu PM). Tắt để chuyển sang Fast-track.<c:if test="${project.ownerId != sessionScope.currentUser.id}"> (Chỉ PM mới có quyền đổi)</c:if></div>
+                                                </div>
+                                            </c:if>
                                             <div class="d-flex justify-content-end gap-2">
                                                 <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editTaskFormCollapse-${task.id}">Hủy</button>
                                                 <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay đổi</button>
@@ -2870,7 +2983,7 @@
                                     </c:if>
 
                                     <!-- INLINE QUICK ADD SUBTASK BOX (CLICKUP STYLE) -->
-                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                         <form method="post" action="${pageContext.request.contextPath}/task"
                                             class="quick-add-subtask-box d-flex align-items-center gap-2 mt-1"
                                             onsubmit="if (!this.title.value.trim()) return false;">
@@ -2987,8 +3100,10 @@
                                         </div>
                                     </div>
 
-                                    <!-- NÚT BẮT ĐẦU (NẾU ĐANG TODO) -->
-                                    <c:if test="${task.status == 'TODO'}">
+                                    <c:choose>
+                                        <c:when test="${project.teamProject && task.requiresGate}">
+                                            <!-- NÚT BẮT ĐẦU (NẾU ĐANG TODO) -->
+                                            <c:if test="${task.status == 'TODO'}">
                                         <c:set var="hasAssignee" value="${task.assigneeId > 0}" />
                                         <c:set var="subTaskCount" value="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}" />
                                         <c:set var="canStartTask" value="${hasAssignee && subTaskCount > 0}" />
@@ -3304,6 +3419,67 @@
                                             </div>
                                         </div>
                                     </c:if>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <!-- QUY TRÌNH NHANH (FAST-TRACK / SOLO DỰ ÁN CÁ NHÂN) -->
+                                            <div class="card border-0 bg-light-subtle rounded-3 p-3 mb-3 border shadow-2xs">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <span class="fs-9 fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quy Trình Nhanh (Fast-track)</span>
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0-5 fs-9">Không áp Gate</span>
+                                                </div>
+                                                <p class="fs-9 text-muted mb-2-5 lh-sm">Công việc này có thể tự do cập nhật trạng thái mà không cần qua các cổng phê duyệt WBS hay nghiệm thu.</p>
+                                                
+                                                <c:choose>
+                                                    <c:when test="${task.status == 'TODO'}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                            <input type="hidden" name="action" value="updateStatus">
+                                                            <input type="hidden" name="projectId" value="${project.id}">
+                                                            <input type="hidden" name="taskId" value="${task.id}">
+                                                            <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                                            <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold py-2 text-white border-0 shadow-sm d-flex align-items-center justify-content-center gap-1.5"
+                                                                style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                                                                <i class="bi bi-play-circle-fill fs-7"></i> Bắt đầu làm việc (→ In Progress) 🚀
+                                                            </button>
+                                                        </form>
+                                                    </c:when>
+                                                    <c:when test="${task.status == 'IN_PROGRESS'}">
+                                                        <div class="d-flex flex-column gap-2">
+                                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                                <input type="hidden" name="action" value="updateStatus">
+                                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                                <input type="hidden" name="taskId" value="${task.id}">
+                                                                <input type="hidden" name="newStatus" value="DONE">
+                                                                <button type="submit" class="btn btn-success btn-sm w-100 rounded-3 fs-8 fw-bold py-2 text-white border-0 shadow-sm d-flex align-items-center justify-content-center gap-1.5"
+                                                                    style="background: linear-gradient(135deg, #10b981, #059669);">
+                                                                    <i class="bi bi-check-circle-fill fs-7"></i> Hoàn thành công việc (→ Done) ✓
+                                                                </button>
+                                                            </form>
+                                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                                <input type="hidden" name="action" value="updateStatus">
+                                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                                <input type="hidden" name="taskId" value="${task.id}">
+                                                                <input type="hidden" name="newStatus" value="TODO">
+                                                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100 rounded-3 fs-9 py-1.5 d-flex align-items-center justify-content-center gap-1">
+                                                                    <i class="bi bi-arrow-counterclockwise"></i> Trả về Chưa làm (→ To Do)
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:when test="${task.status == 'DONE'}">
+                                                        <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                            <input type="hidden" name="action" value="updateStatus">
+                                                            <input type="hidden" name="projectId" value="${project.id}">
+                                                            <input type="hidden" name="taskId" value="${task.id}">
+                                                            <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-3 fs-9 py-1.5 d-flex align-items-center justify-content-center gap-1.5">
+                                                                <i class="bi bi-arrow-repeat"></i> Mở lại công việc (→ In Progress)
+                                                            </button>
+                                                        </form>
+                                                    </c:when>
+                                                </c:choose>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
 
                                     <!-- HỘI THOẠI & BÌNH LUẬN -->
                                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
@@ -3353,7 +3529,7 @@
                                 </div>
 
                                 <!-- FOOTER: XÓA TASK NẾU CÓ QUYỀN -->
-                                <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                     <div class="pt-2 mt-2 border-top text-end">
                                         <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
                                             class="text-danger fs-9 text-decoration-none d-inline-flex align-items-center gap-1 opacity-75 hover-opacity-100"
@@ -3381,7 +3557,7 @@
                                     <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">${st.statusLabel}</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                         <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
                                             data-bs-toggle="collapse" data-bs-target="#editSubTaskCollapse-${st.id}">
                                             <i class="bi bi-pencil-square"></i> Sửa việc con
@@ -3517,7 +3693,7 @@
 
                                     <!-- NÚT NỘP BÀI CHO THÀNH VIÊN ĐƯỢC GIAO -->
                                     <c:set var="canSubmitSubTask" value="${(not empty st.assigneeId && st.assigneeId > 0 && st.assigneeId == sessionScope.currentUser.id) || ((empty st.assigneeId || st.assigneeId == 0) && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id))}" />
-                                    <c:if test="${canSubmitSubTask && st.status != 'APPROVED' && st.status != 'SUBMITTED'}">
+                                    <c:if test="${task.status != 'DONE' && canSubmitSubTask && st.status != 'APPROVED' && st.status != 'SUBMITTED'}">
                                         <div class="mb-3">
                                             <button type="button" class="btn btn-primary btn-sm rounded-pill fs-8 py-1-5 px-3 fw-semibold shadow-2xs"
                                                 data-bs-toggle="collapse" data-bs-target="#submitSubTaskPanel-${st.id}">
@@ -3552,7 +3728,7 @@
 
                                     <!-- NÚT DUYỆT 3 LỰA CHỌN CHO TASK LEAD (KHI SUBMITTED) -->
                                     <c:set var="isReviewer" value="${(task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || (task.assigneeId == 0 && project.ownerId == sessionScope.currentUser.id)}" />
-                                    <c:if test="${isReviewer && st.status == 'SUBMITTED'}">
+                                    <c:if test="${task.status != 'DONE' && isReviewer && st.status == 'SUBMITTED'}">
                                         <div class="p-3 bg-light rounded-3 border mb-3">
                                             <span class="fs-9 fw-bold text-dark d-block mb-2"><i class="bi bi-shield-check text-primary me-1"></i> Quyền Thẩm Định Của Task Lead:</span>
                                             <div class="d-flex flex-wrap align-items-center gap-2">
@@ -3668,7 +3844,7 @@
                                     </div>
 
                                     <!-- Footer: Xóa việc con nếu có quyền -->
-                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                    <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                         <div class="pt-2 mt-2 border-top text-end">
                                             <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-inline"
                                                 onsubmit="return confirm('Bạn có chắc chắn muốn xóa việc con này?');">
@@ -4032,6 +4208,20 @@
                                 </div>
                             </div>
 
+                            <c:if test="${project.teamProject}">
+                                <div class="p-3 bg-light rounded-3 border mb-2">
+                                    <div class="form-check form-switch mb-1">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="taskRequiresGate" name="requiresGate" value="true" checked>
+                                        <label class="form-check-label fw-bold text-dark fs-8" for="taskRequiresGate">
+                                            <i class="bi bi-shield-check text-primary me-1"></i> Áp dụng Cổng Chất Lượng (Quality Gate)
+                                        </label>
+                                    </div>
+                                    <p class="fs-9 text-muted mb-0">
+                                        Khi bật, công việc bắt buộc phân rã việc con, được PM duyệt kế hoạch (Gate 1) và nghiệm thu chấm điểm (Gate 2). Tắt để làm nhanh không kiểm duyệt (Fast-track).
+                                    </p>
+                                </div>
+                            </c:if>
+
                         </div>
 
                         <div class="modal-footer px-4 py-3 bg-light border-0 d-flex align-items-center justify-content-between">
@@ -4285,6 +4475,66 @@
                                 <button type="submit"
                                     class="btn btn-success rounded-pill px-4 fs-7 fw-semibold shadow-sm">
                                     <i class="bi bi-send-fill me-1"></i> Gửi lời mời (7 ngày)
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </c:if>
+
+        <!-- MODAL: CÀI ĐẶT DỰ ÁN & QUY TRÌNH (SOLO VS TEAM) -->
+        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+            <div class="modal fade" id="projectSettingsModal" tabindex="-1" aria-labelledby="projectSettingsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <div class="modal-header bg-dark-navy text-white px-4 py-3 border-0">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-gear-fill text-warning fs-5"></i>
+                                <div>
+                                    <h5 class="modal-title fw-bold mb-0" id="projectSettingsModalLabel">Cài Đặt & Quy Trình Dự Án</h5>
+                                    <span class="fs-9 text-white-50">Tùy biến chế độ kiểm soát chất lượng</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+                        <form method="post" action="${pageContext.request.contextPath}/project">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="projectId" value="${project.id}">
+                            <div class="modal-body p-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold fs-7 text-dark">Tên dự án <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control rounded-3 fs-7" name="name" value="${project.name}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold fs-7 text-dark">Mô tả dự án</label>
+                                    <textarea class="form-control rounded-3 fs-7" name="description" rows="2"><c:out value="${project.description}" /></textarea>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold fs-7 text-dark mb-2">Chế độ vận hành (Workflow Mode):</label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="d-block p-3 rounded-3 border h-100 position-relative ${project.teamProject ? 'border-primary bg-primary-subtle' : 'bg-light'}" style="cursor: pointer;">
+                                                <input type="radio" name="projectType" value="TEAM" class="position-absolute top-2 end-2" ${project.teamProject ? 'checked' : ''}>
+                                                <div class="fw-bold text-dark fs-8 mb-1"><i class="bi bi-shield-check text-primary me-1"></i> Dự Án Nhóm</div>
+                                                <div class="fs-9 text-muted lh-sm">Kích hoạt Quality Gate 2 tầng (Gate 1 duyệt WBS + Gate 2 PM nghiệm thu).</div>
+                                            </label>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="d-block p-3 rounded-3 border h-100 position-relative ${project.soloProject ? 'border-warning bg-warning-subtle' : 'bg-light'}" style="cursor: pointer;">
+                                                <input type="radio" name="projectType" value="SOLO" class="position-absolute top-2 end-2" ${project.soloProject ? 'checked' : ''}>
+                                                <div class="fw-bold text-dark fs-8 mb-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Cá Nhân (Fast-track)</div>
+                                                <div class="fs-9 text-muted lh-sm">Linh hoạt chuẩn ClickUp, tự do kéo thả TODO ➔ DONE, không rào cản PM.</div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                                    <i class="bi bi-check-lg me-1"></i> Lưu Cấu Hình
                                 </button>
                             </div>
                         </form>

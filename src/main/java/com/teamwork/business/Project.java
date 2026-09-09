@@ -13,6 +13,7 @@ public class Project implements Serializable {
     private String projectCode;       // Mã định danh ngắn gọn duy nhất (VD: TW-HUB-01, ECOMMERCE-99)
     private String name;              // Tên dự án
     private String description;       // Mô tả mục tiêu dự án
+    private String projectType;       // 'SOLO' (Cá nhân / Fast-track) hoặc 'TEAM' (Nhóm / Quality Gate)
     private int ownerId;              // ID của Trưởng Dự Án (Project Manager / Owner)
     private String createdAt;         // Ngày tạo
     private int totalTasks;           // Tổng số Task lớn
@@ -24,6 +25,7 @@ public class Project implements Serializable {
         this.projectCode = "";
         this.name = "";
         this.description = "";
+        this.projectType = "TEAM";
         this.ownerId = 0;
         this.createdAt = "";
         this.totalTasks = 0;
@@ -31,20 +33,26 @@ public class Project implements Serializable {
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
-    public Project(int id, String projectCode, String name, String description, int ownerId, String createdAt, int totalTasks, int doneTasks) {
+    public Project(int id, String projectCode, String name, String description, String projectType, int ownerId, String createdAt, int totalTasks, int doneTasks) {
         this.id = id;
         this.projectCode = (projectCode != null && !projectCode.trim().isEmpty()) ? projectCode.trim().toUpperCase() : "";
         this.name = name;
         this.description = description;
+        this.projectType = (projectType != null && !projectType.trim().isEmpty()) ? projectType.trim().toUpperCase() : "TEAM";
         this.ownerId = ownerId;
         this.createdAt = createdAt;
         this.totalTasks = totalTasks;
         this.doneTasks = doneTasks;
     }
 
+    // Constructor tương thích ngược có projectCode
+    public Project(int id, String projectCode, String name, String description, int ownerId, String createdAt, int totalTasks, int doneTasks) {
+        this(id, projectCode, name, description, "TEAM", ownerId, createdAt, totalTasks, doneTasks);
+    }
+
     // Constructor tương thích ngược (Tự động sinh mã nếu không truyền)
     public Project(int id, String name, String description, int ownerId, String createdAt, int totalTasks, int doneTasks) {
-        this(id, "PRJ-" + id, name, description, ownerId, createdAt, totalTasks, doneTasks);
+        this(id, "PRJ-" + id, name, description, "TEAM", ownerId, createdAt, totalTasks, doneTasks);
     }
 
     // ===================== HÀM TÍNH TOÁN TIỆN ÍCH =====================
@@ -120,6 +128,33 @@ public class Project implements Serializable {
     }
     public void setDoneTasks(int doneTasks) {
         this.doneTasks = doneTasks;
+    }
+
+    public String getProjectType() {
+        return projectType != null ? projectType : "TEAM";
+    }
+    public void setProjectType(String projectType) {
+        this.projectType = (projectType != null && !projectType.trim().isEmpty()) ? projectType.trim().toUpperCase() : "TEAM";
+    }
+
+    public boolean isSoloProject() {
+        return "SOLO".equalsIgnoreCase(this.projectType);
+    }
+
+    public boolean isTeamProject() {
+        return !"SOLO".equalsIgnoreCase(this.projectType);
+    }
+
+    public String getProjectTypeLabel() {
+        return isSoloProject() ? "Cá nhân (Linh hoạt)" : "Nhóm (Quality Gate)";
+    }
+
+    public String getProjectTypeBadgeClass() {
+        return isSoloProject() ? "bg-info-subtle text-info border border-info-subtle" : "bg-primary-subtle text-primary border border-primary-subtle";
+    }
+
+    public String getProjectTypeIcon() {
+        return isSoloProject() ? "bi-person-fill" : "bi-people-fill";
     }
 
     @Override

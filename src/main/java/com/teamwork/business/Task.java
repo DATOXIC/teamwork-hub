@@ -30,6 +30,7 @@ public class Task implements Serializable {
     private String planningNote;        // Ghi chú kế hoạch phân rã Task Lead gửi PM thẩm định (Cổng 1)
     private String planningReviewedAt;  // Thời điểm PM phê duyệt & khóa kế hoạch phân rã
     private String labels;              // Nhãn phân loại (Ví dụ: "BUG,BACKEND", "FEATURE,UI")
+    private boolean requiresGate = true;// Cờ kiểm soát Quality Gate (true = Bắt buộc qua Gate 1 & 2; false = Fast-track)
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
 
@@ -52,6 +53,7 @@ public class Task implements Serializable {
         this.planningNote = "";
         this.planningReviewedAt = "";
         this.labels = "";
+        this.requiresGate = true;
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
@@ -62,7 +64,8 @@ public class Task implements Serializable {
                 String finalDeliverableNote, String pmFeedback,
                 String submittedAt, String reviewedAt,
                 String deliverableFile, int qualityRating,
-                String planningNote, String planningReviewedAt) 
+                String planningNote, String planningReviewedAt,
+                boolean requiresGate) 
     {
         this.id = id;
         this.projectId = projectId;
@@ -81,6 +84,21 @@ public class Task implements Serializable {
         this.qualityRating = qualityRating > 0 ? qualityRating : 5;
         this.planningNote = (planningNote != null) ? planningNote.trim() : "";
         this.planningReviewedAt = (planningReviewedAt != null) ? planningReviewedAt.trim() : "";
+        this.requiresGate = requiresGate;
+    }
+
+    // Constructor tương thích ngược (17 tham số)
+    public Task(int id, int projectId, String title, String description,
+                String status, String priority, String dueDate,
+                int assigneeId, String assigneeName,
+                String finalDeliverableNote, String pmFeedback,
+                String submittedAt, String reviewedAt,
+                String deliverableFile, int qualityRating,
+                String planningNote, String planningReviewedAt) 
+    {
+        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName,
+             finalDeliverableNote, pmFeedback, submittedAt, reviewedAt, deliverableFile, qualityRating,
+             planningNote, planningReviewedAt, true);
     }
 
     // Constructor rút gọn (Dùng khi Tạo Task mới từ Form)
@@ -88,7 +106,7 @@ public class Task implements Serializable {
                 String status, String priority, String dueDate,
                 int assigneeId, String assigneeName) 
     {
-        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, "", "", "", "", "", 5, "", "");
+        this(id, projectId, title, description, status, priority, dueDate, assigneeId, assigneeName, "", "", "", "", "", 5, "", "", true);
     }
 
     // ===================== HÀM TIỆN ÍCH PHỤC VỤ GIAO DIỆN =====================
@@ -277,6 +295,13 @@ public class Task implements Serializable {
     }
     public void setPlanningReviewedAt(String planningReviewedAt) {
         this.planningReviewedAt = (planningReviewedAt != null) ? planningReviewedAt.trim() : "";
+    }
+
+    public boolean isRequiresGate() {
+        return this.requiresGate;
+    }
+    public void setRequiresGate(boolean requiresGate) {
+        this.requiresGate = requiresGate;
     }
 
     // ===================== CÁC HÀM TIỆN ÍCH TÍNH TOÁN HẠN CHÓT (DEADLINE UTILITIES) =====================

@@ -520,6 +520,16 @@ public class TaskServlet extends HttpServlet {
 
             if (task != null && task.getProjectId() == projectId && (isTaskLead(currentUser, task) || isProjectOwner(currentUser, project)))
             {
+                // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG ĐƯỢC XÓA TASK ĐÃ DONE ĐỂ BẢO VỆ DỮ LIỆU & AUDIT LOG
+                if ("DONE".equalsIgnoreCase(task.getStatus())) {
+                    HttpSession session = request.getSession(false);
+                    if (session != null) {
+                        session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành (DONE) và được khóa vĩnh viễn, không thể xóa!");
+                    }
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+
                 // 1. Dọn dẹp các liên kết Task-Doc trên RAM
                 TaskDocDB.deleteByTaskId(taskId);
 
@@ -709,6 +719,21 @@ public class TaskServlet extends HttpServlet {
         String labels = request.getParameter("labels");
         newTask.setLabels(labels != null ? labels.trim() : "");
 
+        Project curPrj = ProjectDB.selectById(projectId);
+        boolean defaultRequiresGate = (curPrj != null && curPrj.isTeamProject());
+        String reqGateParam = request.getParameter("requiresGate");
+        if (reqGateParam != null) {
+            newTask.setRequiresGate("true".equalsIgnoreCase(reqGateParam.trim()) || "on".equalsIgnoreCase(reqGateParam.trim()) || "1".equals(reqGateParam.trim()));
+        } else {
+            // Nếu form có cờ hasRequiresGateControl nhưng checkbox không được tick
+            String hasControl = request.getParameter("hasRequiresGateControl");
+            if (hasControl != null && !hasControl.trim().isEmpty()) {
+                newTask.setRequiresGate(false);
+            } else {
+                newTask.setRequiresGate(defaultRequiresGate);
+            }
+        }
+
         int newTaskId = TaskDB.insert(newTask);
 
         // Ghi nhận Activity Log
@@ -750,6 +775,21 @@ public class TaskServlet extends HttpServlet {
             if (task != null && task.getProjectId() == projectId) {
                 String status = newStatus.trim();
                 HttpSession session = request.getSession(false);
+
+                // RÀNG BUỘC KHÓA BẤT BIẾN: TASK ĐÃ DONE KHÔNG THỂ THAY ĐỔI SANG TRẠNG THÁI KHÁC
+                if ("DONE".equalsIgnoreCase(task.getStatus())) {
+                    String errMsg = "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành (DONE) và được khóa vĩnh viễn, không thể thay đổi trạng thái!";
+                    if (isAjax) {
+                        sendJsonResponse(response, false, errMsg, null);
+                        return;
+                    }
+                    if (session != null) session.setAttribute("toastError", errMsg);
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+                Project currentPrj = ProjectDB.selectById(projectId);
+                boolean isGateEnforced = (currentPrj != null && currentPrj.isTeamProject() && task.isRequiresGate());
+
                 // =========================================================================
                 // RÀNG BUỘC GIAI ĐOẠN 1: CHUYỂN TỪ TODO SANG IN_PROGRESS (ĐANG LÀM)
                 // =========================================================================
@@ -758,27 +798,37 @@ public class TaskServlet extends HttpServlet {
 
                     // Ràng buộc 1: Bắt buộc phải có Người phụ trách (Task Lead)
                     if (task.getAssigneeId() <= 0) {
-                        String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.";
-                        if (isAjax) {
-                            sendJsonResponse(response, false, errMsg, null);
+                        User curUser = getCurrentUser(request);
+                        if (curUser != null && !isGateEnforced) {
+                            // Fast-track: Tự động gán cho người đang thao tác nếu task chưa có ai
+                            task.setAssigneeId(curUser.getId());
+                            task.setAssigneeName(curUser.getFullName());
+                            TaskDB.update(task);
+                        } else {
+                            String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.";
+                            if (isAjax) {
+                                sendJsonResponse(response, false, errMsg, null);
+                                return;
+                            }
+                            if (session != null) session.setAttribute("toastError", errMsg);
+                            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                             return;
                         }
-                        if (session != null) session.setAttribute("toastError", errMsg);
-                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
-                        return;
                     }
 
-                    // Ràng buộc 2: Bắt buộc phải có danh mục Việc con (Sub-tasks) đã phân rã
-                    List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
-                    if (subTasks == null || subTasks.isEmpty()) {
-                        String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Chưa có danh mục việc con. Vui lòng tạo ít nhất 1 việc con (Sub-task) để lập kế hoạch trước khi bắt đầu thực hiện.";
-                        if (isAjax) {
-                            sendJsonResponse(response, false, errMsg, null);
+                    // Ràng buộc 2: Bắt buộc phải có danh mục Việc con (Sub-tasks) đã phân rã (CHỈ KHI BẬT QUALITY GATE)
+                    if (isGateEnforced) {
+                        List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
+                        if (subTasks == null || subTasks.isEmpty()) {
+                            String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! [Quality Gate] Vui lòng phân rã ít nhất 1 việc con (Sub-task) để lập kế hoạch trước khi bắt đầu thực hiện.";
+                            if (isAjax) {
+                                sendJsonResponse(response, false, errMsg, null);
+                                return;
+                            }
+                            if (session != null) session.setAttribute("toastError", errMsg);
+                            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                             return;
                         }
-                        if (session != null) session.setAttribute("toastError", errMsg);
-                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
-                        return;
                     }
                 }
 
@@ -790,15 +840,17 @@ public class TaskServlet extends HttpServlet {
                     int progress = SubTaskDB.calculateProgress(taskId);
                     String taskTitle = task.getTitle();
 
-                    if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
-                        String errMsg = "⚠️ Không thể đánh dấu hoàn thành Task [" + taskTitle + "]! Vẫn còn việc con chưa hoàn tất (Tiến độ: " + progress + "%). Hãy hoàn thành và nghiệm thu đủ 100% việc con trước.";
-                        if (isAjax) {
-                            sendJsonResponse(response, false, errMsg, null);
+                    if (isGateEnforced) {
+                        if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
+                            String errMsg = "⚠️ Không thể đánh dấu hoàn thành Task [" + taskTitle + "]! [Quality Gate] Vẫn còn việc con chưa hoàn tất (Tiến độ: " + progress + "%). Hãy hoàn thành và nghiệm thu đủ 100% việc con trước.";
+                            if (isAjax) {
+                                sendJsonResponse(response, false, errMsg, null);
+                                return;
+                            }
+                            if (session != null) session.setAttribute("toastError", errMsg);
+                            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                             return;
                         }
-                        if (session != null) session.setAttribute("toastError", errMsg);
-                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
-                        return;
                     }
                 }
 
@@ -966,6 +1018,18 @@ public class TaskServlet extends HttpServlet {
             Task parentTask = TaskDB.selectById(st.getTaskId());
             Project project = ProjectDB.selectById(projectId);
 
+            if (parentTask != null && "DONE".equalsIgnoreCase(parentTask.getStatus())) {
+                String errMsg = "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành (DONE) và được khóa, không thể thay đổi việc con!";
+                if (isAjax) {
+                    sendJsonResponse(response, false, errMsg, null);
+                    return;
+                }
+                HttpSession session = request.getSession(false);
+                if (session != null) session.setAttribute("toastError", errMsg);
+                response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                return;
+            }
+
             if (parentTask != null && project != null && parentTask.getProjectId() == projectId && canManageSubTask(currentUser, st, parentTask, project)) {
                 // 1. Cập nhật trạng thái hoàn thành [☑] trong kho SubTaskDB
                 SubTaskDB.updateStatus(subTaskId, isCompleted);
@@ -974,24 +1038,37 @@ public class TaskServlet extends HttpServlet {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
+                boolean isGateEnforced = (project.isTeamProject() && parentTask.isRequiresGate());
+
                 // 2. CƠ CHẾ TỰ ĐỘNG CHUYỂN CỘT KANBAN CHO TASK LỚN:
-                if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) 
-                {
-                    TaskDB.updateStatus(parentTask.getId(), "DONE");
-                    String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
-                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
-                } 
-                else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) 
-                {
-                    TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
-                    String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
-                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
-                } 
-                else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) 
-                {
-                    TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
-                    String reopenText = "⚠️ CẬP NHẬT: Còn việc con chưa xong (" + newProgress + "%). Task [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
-                    MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));
+                if (!isGateEnforced) {
+                    // Chế độ Fast-track (Tự do / Solo): Hoàn tất 100% subtask thì tự động hoàn thành Task
+                    if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) 
+                    {
+                        TaskDB.updateStatus(parentTask.getId(), "DONE");
+                        String celebrationText = "🏆 CHÚC MỪNG: Tất cả việc con đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
+                    } 
+                    else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) 
+                    {
+                        TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                        String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
+                    } 
+                    else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) 
+                    {
+                        TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                        String reopenText = "⚠️ CẬP NHẬT: Còn việc con chưa xong (" + newProgress + "%). Task [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));
+                    }
+                } else {
+                    // Chế độ Quality Gate (Nhóm): Đủ 100% việc con thì nhắc Task Lead nộp nghiệm thu Cổng 2 (không tự ý nhảy DONE)
+                    if (newProgress == 100 && "IN_PROGRESS".equals(parentTask.getStatus())) {
+                        String readyText = "✨ [SẴN SÀNG NGHIỆM THU]: Toàn bộ việc con của Task [" + parentTask.getTitle() + "] đã hoàn thành 100%! Task Lead hãy chuẩn bị báo cáo để nộp nghiệm thu Cổng 2 lên PM.";
+                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", readyText, now));
+                    } else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
+                        TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
+                    }
                 }
 
                 // 3. Thông báo ghi nhận cá nhân vừa hoàn thành việc con
@@ -1096,6 +1173,13 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
+        // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG THỂ CHỈNH SỬA THÔNG TIN TASK ĐÃ DONE
+        if ("DONE".equalsIgnoreCase(task.getStatus())) {
+            if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành (DONE) và được khóa vĩnh viễn, không thể chỉnh sửa!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
         // Kiểm tra thẩm quyền: PM hoặc Task Lead của task này
         boolean isPm = isProjectOwner(currentUser, project);
         boolean isLead = isTaskLead(currentUser, task);
@@ -1142,6 +1226,13 @@ public class TaskServlet extends HttpServlet {
             }
         }
 
+        // Cập nhật chế độ Quality Gate nếu form có gửi cờ điều khiển
+        String hasControl = request.getParameter("hasRequiresGateControl");
+        if (hasControl != null && !hasControl.trim().isEmpty()) {
+            String reqGateParam = request.getParameter("requiresGate");
+            task.setRequiresGate("true".equalsIgnoreCase(reqGateParam) || "on".equalsIgnoreCase(reqGateParam) || "1".equals(reqGateParam));
+        }
+
         TaskDB.update(task);
 
         if (session != null) {
@@ -1183,6 +1274,13 @@ public class TaskServlet extends HttpServlet {
         if (parentTask == null || parentTask.getProjectId() != projectId) {
             if (session != null) session.setAttribute("toastError", "Không tìm thấy công việc cha thuộc dự án!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG THỂ SỬA VIỆC CON KHI TASK CHA ĐÃ DONE
+        if ("DONE".equalsIgnoreCase(parentTask.getStatus())) {
+            if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành (DONE) và được khóa, không thể sửa việc con!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
 
@@ -2079,6 +2177,15 @@ public class TaskServlet extends HttpServlet {
             "",
             ""
         );
+
+        Project currentPrj = ProjectDB.selectById(projectId);
+        boolean defaultRequiresGate = (currentPrj != null && currentPrj.isTeamProject());
+        String reqGateParam = request.getParameter("requiresGate");
+        if (reqGateParam != null) {
+            newTask.setRequiresGate("true".equalsIgnoreCase(reqGateParam.trim()) || "on".equalsIgnoreCase(reqGateParam.trim()) || "1".equals(reqGateParam.trim()));
+        } else {
+            newTask.setRequiresGate(defaultRequiresGate);
+        }
 
         int newTaskId = TaskDB.insert(newTask);
         if (newTaskId <= 0) {

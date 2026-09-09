@@ -172,6 +172,11 @@
                                                 </c:otherwise>
                                             </c:choose>
                                             <span
+                                                class="badge ${p.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9"
+                                                title="Mô hình quản lý: ${p.projectTypeLabel}">
+                                                <i class="bi ${p.projectTypeIcon} me-1"></i>${p.projectTypeLabel}
+                                            </span>
+                                            <span
                                                 class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9"
                                                 title="Số lượng thành viên hiện tại">
                                                 <i class="bi bi-people-fill text-primary me-1"></i>
@@ -382,8 +387,42 @@
                                         Mô tả mục tiêu dự án
                                     </label>
                                     <textarea class="form-control rounded-3 fs-7" id="proj-desc" name="description"
-                                        rows="3"
+                                        rows="2"
                                         placeholder="Mô tả ngắn gọn phạm vi và mục tiêu của dự án..."></textarea>
+                                </div>
+
+                                <!-- BỘ CHỌN MÔ HÌNH DỰ ÁN (CLICKUP 3.0 WORKFLOW SELECTOR) -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold fs-7 text-dark mb-2 d-flex align-items-center justify-content-between">
+                                        <span>Mô hình làm việc & Quy trình kiểm soát</span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">Tùy chỉnh linh hoạt</span>
+                                    </label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="p-2.5 rounded-3 border border-primary bg-primary-subtle bg-opacity-10 d-block position-relative h-100" id="card-type-team" style="cursor: pointer;">
+                                                <input type="radio" name="projectType" value="TEAM" class="form-check-input position-absolute top-0 end-0 m-2" checked onchange="document.getElementById('card-type-team').classList.add('border-primary','bg-primary-subtle','bg-opacity-10'); document.getElementById('card-type-solo').classList.remove('border-primary','bg-primary-subtle','bg-opacity-10');">
+                                                <div class="d-flex align-items-center gap-1-5 mb-1 pe-3">
+                                                    <span class="badge bg-primary text-white rounded-circle p-1 lh-1"><i class="bi bi-people-fill fs-9"></i></span>
+                                                    <strong class="fs-8 text-dark">Dự Án Nhóm</strong>
+                                                </div>
+                                                <p class="fs-9 text-secondary mb-0 lh-sm">
+                                                    Áp dụng <strong>Quality Gate 2 tầng</strong>: duyệt kế hoạch phân rã và nghiệm thu có chấm sao.
+                                                </p>
+                                            </label>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="p-2.5 rounded-3 border d-block position-relative h-100" id="card-type-solo" style="cursor: pointer;">
+                                                <input type="radio" name="projectType" value="SOLO" class="form-check-input position-absolute top-0 end-0 m-2" onchange="document.getElementById('card-type-solo').classList.add('border-primary','bg-primary-subtle','bg-opacity-10'); document.getElementById('card-type-team').classList.remove('border-primary','bg-primary-subtle','bg-opacity-10');">
+                                                <div class="d-flex align-items-center gap-1-5 mb-1 pe-3">
+                                                    <span class="badge bg-info text-white rounded-circle p-1 lh-1"><i class="bi bi-person-fill fs-9"></i></span>
+                                                    <strong class="fs-8 text-dark">Cá Nhân (Fast-track)</strong>
+                                                </div>
+                                                <p class="fs-9 text-secondary mb-0 lh-sm">
+                                                    Linh hoạt như <strong>ClickUp</strong>: tự do đổi trạng thái, việc con là checklist, không cần qua duyệt.
+                                                </p>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

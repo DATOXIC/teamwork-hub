@@ -49,6 +49,10 @@ public class TaskDB {
         String planningNote = rs.getString("planning_note");
         String planningReviewedAt = rs.getString("planning_reviewed_at_str");
         String labels = rs.getString("labels");
+        boolean requiresGate = true;
+        try {
+            requiresGate = rs.getBoolean("requires_gate");
+        } catch (SQLException ignored) {}
 
         Task task = new Task(
             id,
@@ -67,7 +71,8 @@ public class TaskDB {
             deliverableFile != null ? deliverableFile : "",
             qualityRating > 0 ? qualityRating : 5,
             planningNote != null ? planningNote : "",
-            planningReviewedAt != null ? planningReviewedAt : ""
+            planningReviewedAt != null ? planningReviewedAt : "",
+            requiresGate
         );
         task.setLabels(labels != null ? labels : "");
         return task;
@@ -83,7 +88,8 @@ public class TaskDB {
         "       t.deliverable_file, t.quality_rating, " +
         "       t.planning_note, " +
         "       to_char(t.planning_reviewed_at, 'DD/MM/YYYY HH24:MI') AS planning_reviewed_at_str, " +
-        "       t.labels " +
+        "       t.labels, " +
+        "       COALESCE(t.requires_gate, TRUE) AS requires_gate " +
         "FROM tasks t " +
         "LEFT JOIN users u ON t.assignee_id = u.id ";
 
@@ -205,8 +211,8 @@ public class TaskDB {
         }
 
         String sql = "INSERT INTO tasks (project_id, title, description, status, priority, due_date, assignee_id, labels, " +
-                     "final_deliverable_note, pm_feedback, deliverable_file, quality_rating, planning_note, created_at) " +
-                     "VALUES (?, ?, ?, ?::task_status_enum, ?::priority_enum, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) RETURNING id";
+                     "final_deliverable_note, pm_feedback, deliverable_file, quality_rating, planning_note, requires_gate, created_at) " +
+                     "VALUES (?, ?, ?, ?::task_status_enum, ?::priority_enum, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) RETURNING id";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -239,6 +245,7 @@ public class TaskDB {
             ps.setString(11, task.getDeliverableFile() != null ? task.getDeliverableFile().trim() : "");
             ps.setInt(12, task.getQualityRating() > 0 ? task.getQualityRating() : 5);
             ps.setString(13, task.getPlanningNote() != null ? task.getPlanningNote().trim() : "");
+            ps.setBoolean(14, task.isRequiresGate());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -438,7 +445,7 @@ public class TaskDB {
         if (updatedTask == null || updatedTask.getId() <= 0) return false;
 
         String sql = "UPDATE tasks SET title = ?, description = ?, status = ?::task_status_enum, priority = ?::priority_enum, " +
-                     "due_date = ?, assignee_id = ?, labels = ?, updated_at = NOW() WHERE id = ?";
+                     "due_date = ?, assignee_id = ?, labels = ?, requires_gate = ?, updated_at = NOW() WHERE id = ?";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -465,11 +472,29 @@ public class TaskDB {
             }
 
             ps.setString(7, updatedTask.getLabels() != null ? updatedTask.getLabels().trim() : "");
-            ps.setInt(8, updatedTask.getId());
+            ps.setBoolean(8, updatedTask.isRequiresGate());
+            ps.setInt(9, updatedTask.getId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi update Task ID: " + updatedTask.getId(), e);
+        }
+        return false;
+    }
+
+    /**
+     * Cập nhật riêng cờ requires_gate cho Task
+     */
+    public static boolean updateRequiresGate(int taskId, boolean requiresGate) {
+        if (taskId <= 0) return false;
+        String sql = "UPDATE tasks SET requires_gate = ?, updated_at = NOW() WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, requiresGate);
+            ps.setInt(2, taskId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi update requires_gate Task ID: " + taskId, e);
         }
         return false;
     }

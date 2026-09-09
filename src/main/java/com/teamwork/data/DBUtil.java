@@ -82,6 +82,16 @@ public class DBUtil {
 
             dataSource = new HikariDataSource(config);
             LOGGER.info("DBUtil: Khởi tạo HikariCP Pool [" + config.getPoolName() + "] → Supabase Singapore (Session Mode :5432) thành công!");
+
+            // ─── TỰ ĐỘNG CẬP NHẬT CỘT MỚI (MIGRATION IDEMPOTENT) ─────────────────
+            try (Connection conn = dataSource.getConnection();
+                 Statement stmt = conn.createStatement()) {
+                stmt.execute("ALTER TABLE projects ADD COLUMN IF NOT EXISTS project_type VARCHAR(20) NOT NULL DEFAULT 'TEAM'");
+                stmt.execute("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS requires_gate BOOLEAN NOT NULL DEFAULT TRUE");
+                LOGGER.info("DBUtil: Migration kiểm tra cấu trúc schema (project_type, requires_gate) thành công.");
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "DBUtil: Lưu ý khi chạy migration cập nhật schema: " + e.getMessage());
+            }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "DBUtil: Khởi tạo HikariCP thất bại", e);
         }

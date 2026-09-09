@@ -125,6 +125,7 @@ CREATE TABLE projects (
     project_code  VARCHAR(30)  NOT NULL,  -- Mã duy nhất: TW-HUB-01 (dùng luồng xin gia nhập Chiều 2)
     name          VARCHAR(200) NOT NULL,
     description   TEXT         NOT NULL DEFAULT '',
+    project_type  VARCHAR(20)  NOT NULL DEFAULT 'TEAM', -- 'SOLO' (Cá nhân / Fast-track) | 'TEAM' (Nhóm / Quality Gate)
     owner_id      INT          NOT NULL,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
 
@@ -135,7 +136,8 @@ CREATE TABLE projects (
 
     CONSTRAINT uq_projects_code   UNIQUE (project_code),
     CONSTRAINT chk_projects_code_len CHECK (char_length(project_code) BETWEEN 2 AND 30),
-    CONSTRAINT chk_projects_name_len CHECK (char_length(name) >= 1)
+    CONSTRAINT chk_projects_name_len CHECK (char_length(name) >= 1),
+    CONSTRAINT chk_projects_type CHECK (project_type IN ('SOLO', 'TEAM'))
 );
 
 CREATE INDEX idx_projects_owner_id ON projects (owner_id);
@@ -247,6 +249,9 @@ CREATE TABLE tasks (
     -- Trường kế hoạch phân rã (Gate 1)
     planning_note          TEXT             NOT NULL DEFAULT '',
     planning_reviewed_at   TIMESTAMPTZ,
+
+    -- Cờ kiểm soát Quality Gate (true = Bắt buộc qua Gate 1 & 2; false = Fast-track)
+    requires_gate          BOOLEAN          NOT NULL DEFAULT TRUE,
 
     created_at             TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ      NOT NULL DEFAULT NOW(),

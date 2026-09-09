@@ -33,6 +33,11 @@ public class ProjectDB {
         String projectCode = rs.getString("project_code");
         String name = rs.getString("name");
         String description = rs.getString("description");
+        String projectType = "TEAM";
+        try {
+            String pt = rs.getString("project_type");
+            if (pt != null && !pt.trim().isEmpty()) projectType = pt.trim().toUpperCase();
+        } catch (SQLException ignored) {}
         int ownerId = rs.getInt("owner_id");
         String createdAt = rs.getString("created_at_str");
         int totalTasks = rs.getInt("total_tasks");
@@ -43,6 +48,7 @@ public class ProjectDB {
             projectCode != null ? projectCode : "PRJ-" + id,
             name != null ? name : "",
             description != null ? description : "",
+            projectType,
             ownerId,
             createdAt != null ? createdAt : "",
             totalTasks,
@@ -57,13 +63,13 @@ public class ProjectDB {
      */
     public static List<Project> selectAll() {
         List<Project> list = new ArrayList<>();
-        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.owner_id, " +
+        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, " +
                      "       to_char(p.created_at, 'YYYY-MM-DD') AS created_at_str, " +
                      "       COUNT(t.id) AS total_tasks, " +
                      "       COUNT(t.id) FILTER (WHERE t.status = 'DONE' OR t.status = 'APPROVED') AS done_tasks " +
                      "FROM projects p " +
                      "LEFT JOIN tasks t ON p.id = t.project_id " +
-                     "GROUP BY p.id, p.project_code, p.name, p.description, p.owner_id, p.created_at " +
+                     "GROUP BY p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, p.created_at " +
                      "ORDER BY p.id ASC";
 
         try (Connection conn = DBUtil.getConnection();
@@ -90,14 +96,14 @@ public class ProjectDB {
             return null;
         }
 
-        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.owner_id, " +
+        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, " +
                      "       to_char(p.created_at, 'YYYY-MM-DD') AS created_at_str, " +
                      "       COUNT(t.id) AS total_tasks, " +
                      "       COUNT(t.id) FILTER (WHERE t.status = 'DONE' OR t.status = 'APPROVED') AS done_tasks " +
                      "FROM projects p " +
                      "LEFT JOIN tasks t ON p.id = t.project_id " +
                      "WHERE p.id = ? " +
-                     "GROUP BY p.id, p.project_code, p.name, p.description, p.owner_id, p.created_at " +
+                     "GROUP BY p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, p.created_at " +
                      "LIMIT 1";
 
         try (Connection conn = DBUtil.getConnection();
@@ -128,14 +134,14 @@ public class ProjectDB {
             return null;
         }
 
-        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.owner_id, " +
+        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, " +
                      "       to_char(p.created_at, 'YYYY-MM-DD') AS created_at_str, " +
                      "       COUNT(t.id) AS total_tasks, " +
                      "       COUNT(t.id) FILTER (WHERE t.status = 'DONE' OR t.status = 'APPROVED') AS done_tasks " +
                      "FROM projects p " +
                      "LEFT JOIN tasks t ON p.id = t.project_id " +
                      "WHERE UPPER(p.project_code) = UPPER(?) " +
-                     "GROUP BY p.id, p.project_code, p.name, p.description, p.owner_id, p.created_at " +
+                     "GROUP BY p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, p.created_at " +
                      "LIMIT 1";
 
         try (Connection conn = DBUtil.getConnection();
@@ -172,8 +178,8 @@ public class ProjectDB {
         }
         projectCode = projectCode.trim().toUpperCase();
 
-        String sql = "INSERT INTO projects (project_code, name, description, owner_id, created_at) " +
-                     "VALUES (?, ?, ?, ?, NOW()) RETURNING id";
+        String sql = "INSERT INTO projects (project_code, name, description, project_type, owner_id, created_at) " +
+                     "VALUES (?, ?, ?, ?, ?, NOW()) RETURNING id";
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -181,7 +187,8 @@ public class ProjectDB {
             ps.setString(1, projectCode);
             ps.setString(2, project.getName().trim());
             ps.setString(3, project.getDescription() != null ? project.getDescription().trim() : "");
-            ps.setInt(4, project.getOwnerId());
+            ps.setString(4, project.getProjectType() != null ? project.getProjectType() : "TEAM");
+            ps.setInt(5, project.getOwnerId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -205,5 +212,25 @@ public class ProjectDB {
             LOGGER.log(Level.SEVERE, "Lỗi khi chèn Project mới: " + project.getName(), e);
         }
         return 0;
+    }
+
+    /**
+     * Hàm 5: Cập nhật thông tin dự án (Tên, mô tả, loại dự án)
+     */
+    public static boolean update(Project project) {
+        if (project == null || project.getId() <= 0) return false;
+
+        String sql = "UPDATE projects SET name = ?, description = ?, project_type = ? WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, project.getName().trim());
+            ps.setString(2, project.getDescription() != null ? project.getDescription().trim() : "");
+            ps.setString(3, project.getProjectType() != null ? project.getProjectType() : "TEAM");
+            ps.setInt(4, project.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật Project ID: " + project.getId(), e);
+        }
+        return false;
     }
 }

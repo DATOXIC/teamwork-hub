@@ -2946,21 +2946,37 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     border-color: #059669;
 }
 
+.clickup-status-dot.dot-locked {
+    cursor: default !important;
+    opacity: 0.95;
+}
+.clickup-status-dot.dot-locked:hover {
+    transform: none !important;
+}
+
+.kanban-card-locked {
+    cursor: default !important;
+    user-select: none;
+}
+.kanban-card-locked:hover {
+    transform: none !important;
+}
+
 /* Status Popover Dropdown */
 .clickup-status-dropdown-menu {
-    min-width: 190px;
+    min-width: 210px;
     background: #ffffff;
-    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.18), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
-    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.22), 0 8px 10px -6px rgba(15, 23, 42, 0.12) !important;
+    border: 1px solid #cbd5e1 !important;
     border-radius: 10px !important;
     animation: clickupDropdownFade 0.15s ease-out;
-    z-index: 1070;
-    position: absolute;
+    z-index: 999999 !important;
+    position: fixed !important;
     display: none;
 }
 
 .clickup-status-dropdown-menu.show {
-    display: block;
+    display: block !important;
 }
 
 @keyframes clickupDropdownFade {

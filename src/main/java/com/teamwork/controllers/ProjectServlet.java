@@ -91,6 +91,9 @@ public class ProjectServlet extends HttpServlet {
             case "create":
                 createProject(request, response, currentUser);
                 break;
+            case "update":
+                updateProject(request, response, currentUser);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/project?action=list");
                 break;
@@ -202,6 +205,13 @@ public class ProjectServlet extends HttpServlet {
             }
         }
 
+        String projectType = request.getParameter("projectType");
+        if (projectType == null || (!"SOLO".equalsIgnoreCase(projectType.trim()) && !"TEAM".equalsIgnoreCase(projectType.trim()))) {
+            projectType = "TEAM";
+        } else {
+            projectType = projectType.trim().toUpperCase();
+        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         String createdAt = LocalDateTime.now().format(formatter);
 
@@ -210,6 +220,7 @@ public class ProjectServlet extends HttpServlet {
                 projectCode,
                 name.trim(),
                 (description != null ? description.trim() : ""),
+                projectType,
                 currentUser.getId(),
                 createdAt,
                 0,
@@ -232,6 +243,57 @@ public class ProjectServlet extends HttpServlet {
         session.setAttribute("toastSuccess",
                 "Đã khởi tạo dự án [" + newProject.getName() + " (" + newProject.getProjectCode() + ")] thành công!");
         response.sendRedirect(request.getContextPath() + "/project?action=list");
+    }
+
+    /**
+     * Cập nhật thông tin và chế độ hoạt động của Dự án (Project Settings)
+     */
+    private void updateProject(HttpServletRequest request, HttpServletResponse response, User currentUser)
+            throws ServletException, IOException {
+
+        int projectId = 0;
+        try {
+            projectId = Integer.parseInt(request.getParameter("projectId"));
+        } catch (Exception ignored) {}
+
+        String name = request.getParameter("name");
+        String description = request.getParameter("description");
+        String projectType = request.getParameter("projectType");
+
+        if (projectId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        Project project = ProjectDB.selectById(projectId);
+        HttpSession session = request.getSession(false);
+
+        if (project != null && project.getOwnerId() == currentUser.getId()) {
+            if (name != null && !name.trim().isEmpty()) {
+                project.setName(name.trim());
+            }
+            if (description != null) {
+                project.setDescription(description.trim());
+            }
+            if (projectType != null && ("SOLO".equalsIgnoreCase(projectType.trim()) || "TEAM".equalsIgnoreCase(projectType.trim()))) {
+                project.setProjectType(projectType.trim().toUpperCase());
+            }
+            ProjectDB.update(project);
+            if (session != null) {
+                session.setAttribute("toastSuccess", "Đã cập nhật cài đặt dự án [" + project.getName() + "] thành công!");
+            }
+        } else {
+            if (session != null) {
+                session.setAttribute("toastError", "Bạn không có quyền chỉnh sửa cài đặt của dự án này!");
+            }
+        }
+
+        String redirectUrl = request.getParameter("redirectUrl");
+        if (redirectUrl != null && !redirectUrl.trim().isEmpty()) {
+            response.sendRedirect(redirectUrl);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+        }
     }
 
     /**
