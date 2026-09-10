@@ -10,3 +10,6 @@ SLIDE_NOTE/
 LUYEN_TAP/
 .agents/
 AGENTS.MD
+.claude/
+PRODUCT.md
+skills-lock.json
