@@ -8,7 +8,12 @@ env.bat
 local.env.bat
 SLIDE_NOTE/
 LUYEN_TAP/
+.agents/
+.claude/
+PRODUCT.md
+skills-lock.json
 .agent/
 .agents/
 skills-lock.json
 AGENTS.MD
+
