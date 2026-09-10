@@ -129,9 +129,9 @@
                     <a href="javascript:void(0)" class="clickup-dock-item" onclick="var inp = document.getElementById('clickupSearchInput'); if(inp){inp.focus(); inp.select();}" title="Tìm kiếm nhanh (Ctrl+K)">
                         <i class="bi bi-search"></i>
                     </a>
-                    <!-- Reports Hub (Trung tâm Báo cáo Tiến độ) -->
-                    <a href="${pageContext.request.contextPath}/project?action=report&id=${project.id}" class="clickup-dock-item" title="Trung tâm Báo cáo & Thống kê tiến độ">
-                        <i class="bi bi-bar-chart-fill text-info"></i>
+                    <!-- Workload / Thống kê tiến độ (Dock Rail) -->
+                    <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-dock-item ${currentView == 'metrics' ? 'active' : ''}" id="dock-btn-metrics" title="Workload & Thống kê tiến độ">
+                        <i class="bi bi-pie-chart-fill text-info"></i>
                     </a>
                     <!-- Quả chuông thông báo (Mở Inbox Slide-over Drawer) -->
                     <a href="javascript:void(0)" class="clickup-dock-item position-relative" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" title="Hộp thư thông báo (Inbox)">
@@ -213,6 +213,60 @@
                     </button>
                 </div>
 
+                <!-- Section Phân hệ Dự Án Hiện Tại & Workload -->
+                <div class="clickup-sidebar-section">
+                    <div class="clickup-section-title d-flex align-items-center justify-content-between">
+                        <span class="text-truncate" style="max-width: 140px;" title="${project.name}">${project.name}</span>
+                        <span class="badge ${project.soloProject ? 'bg-info-subtle text-info border border-info-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} rounded-pill px-1.5 py-0 fs-10 fw-bold">
+                            ${project.soloProject ? 'Solo' : 'Team'}
+                        </span>
+                    </div>
+                    <div class="d-flex flex-column gap-0.5">
+                        <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" class="clickup-nav-link ${currentView == 'tasks' ? 'active' : ''}" id="sidebar-nav-tasks" title="Danh sách công việc dự án">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-list-task text-primary"></i>
+                                <span>Tasks</span>
+                            </div>
+                            <span class="badge bg-light text-muted border rounded-pill fs-9 ms-auto">${not empty allProjectTasks ? allProjectTasks.size() : 0}</span>
+                        </a>
+
+                        <!-- Workload (Khối lượng công việc & Thống kê) -->
+                        <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-nav-link ${currentView == 'metrics' ? 'active' : ''}" id="sidebar-nav-metrics" title="Bấm để xem thống kê tiến độ & phân bổ khối lượng công việc">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-pie-chart-fill text-info"></i>
+                                <span class="fw-semibold">Workload</span>
+                            </div>
+                            <span class="badge bg-info-subtle text-info rounded-pill px-2 py-0 fs-9 ms-auto fw-bold">
+                                ${userWorkloadList.size()} người
+                            </span>
+                        </a>
+
+                        <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" class="clickup-nav-link ${currentView == 'schedule' ? 'active' : ''}" id="sidebar-nav-schedule" title="Lịch trình theo hạn chót">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar-check text-success"></i>
+                                <span>Schedule</span>
+                            </div>
+                        </a>
+
+                        <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-nav-link ${currentView == 'docs' ? 'active' : ''}" id="sidebar-nav-docs" title="Tài liệu dự án">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-journal-text text-secondary"></i>
+                                <span>Docs</span>
+                            </div>
+                            <c:if test="${not empty docList}">
+                                <span class="badge bg-light text-muted border rounded-pill fs-9 ms-auto">${docList.size()}</span>
+                            </c:if>
+                        </a>
+
+                        <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-nav-link ${currentView == 'chat' ? 'active' : ''}" id="sidebar-nav-chat" title="Thảo luận nhóm">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-chat-dots text-warning"></i>
+                                <span>Chat</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Section Tổng quan -->
                 <div class="clickup-sidebar-section">
                     <div class="clickup-section-title">Tổng quan</div>
@@ -276,12 +330,12 @@
                  ========================================================================= -->
             <main class="clickup-main-panel">
                 <!-- Header Đảo Nổi: Title & Tabs -->
-                <div class="clickup-main-header">
+                <div class="clickup-main-header ${currentView == 'metrics' ? 'd-none' : ''}">
                     <!-- Project Title Row -->
                     <div class="clickup-project-title-row">
                         <!-- Left: Space Breadcrumb & Title -->
                         <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
+                            <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 btn-expand-sidebar ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
                                 <i class="bi bi-chevron-bar-right fs-8"></i>
                             </button>
                             <div class="d-flex align-items-center gap-1.5 text-muted fs-8">
@@ -336,11 +390,6 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" id="tab-btn-metrics">
-                                    <i class="bi bi-bar-chart-line"></i> Thống kê
-                                </a>
-                            </li>
-                            <li>
                                 <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" class="clickup-tab-link ${currentView == 'schedule' ? 'active' : ''}" id="tab-btn-schedule">
                                     <i class="bi bi-calendar-event"></i> Schedule
                                 </a>
@@ -366,8 +415,8 @@
                 <c:set var="pctInProg" value="${progTotal > 0 ? ((progInProg * 100 - (progInProg * 100 % progTotal)) / progTotal) : 0}" />
                 <c:set var="pctTodo" value="${progTotal > 0 ? (100 - pctDone - pctInProg) : 0}" />
 
-                <div class="clickup-control-toolbar">
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="clickup-control-toolbar ${currentView == 'tasks' ? '' : 'd-none'} d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 bg-white border-bottom shadow-2xs">
+                    <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
                         <!-- View Switcher (List vs Board) -->
                         <div class="clickup-view-switcher" id="taskViewSwitcher">
                             <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
@@ -378,12 +427,12 @@
                             </button>
                         </div>
 
-                        <!-- Pill Badge Group: Status -->
+                        <!-- Pill Group: Status -->
                         <span class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 fs-8 text-secondary fw-medium shadow-2xs">
                             <i class="bi bi-layers text-primary me-1"></i> Group: Status
                         </span>
 
-                        <!-- Nút Chuyển Đổi 2 Chế Độ Subtasks (Đóng ⇄ Mở Rộng) -->
+                        <!-- Nút Chuyển Đổi Subtasks -->
                         <button type="button" 
                                 class="btn btn-sm btn-light border d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill shadow-2xs fs-8 text-dark fw-medium" 
                                 id="btnToggleSubtasks" 
@@ -393,26 +442,87 @@
                             <span id="subtaskToggleLabel">Subtasks: ${subtaskMode == 'expanded' ? 'Mở rộng' : 'Đóng'}</span>
                         </button>
 
+                        <!-- Bộ lọc Khoảng thời gian (Timeframe Filter) -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 fs-8 text-dark fw-medium shadow-2xs dropdown-toggle d-flex align-items-center gap-1.5" type="button" id="timeframeDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Lọc theo khoảng thời gian hạn chót">
+                                <i class="bi bi-calendar3 text-primary"></i>
+                                <span id="currentTimeframeLabel">Tất cả thời gian</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm border-0 fs-8" aria-labelledby="timeframeDropdownBtn">
+                                <li><a class="dropdown-item active" href="javascript:void(0)" onclick="filterTasksByTimeframe('ALL', 'Tất cả thời gian')"><i class="bi bi-calendar-range me-2 text-secondary"></i> Tất cả thời gian</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterTasksByTimeframe('THIS_WEEK', 'Tuần này')"><i class="bi bi-calendar-week me-2 text-primary"></i> Tuần này</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterTasksByTimeframe('THIS_MONTH', 'Tháng này')"><i class="bi bi-calendar-month me-2 text-success"></i> Tháng này</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterTasksByTimeframe('OVERDUE', 'Quá hạn')"><i class="bi bi-exclamation-triangle me-2 text-danger"></i> Quá hạn</a></li>
+                            </ul>
+                        </div>
+
+                        <c:if test="${project.teamProject}">
+                            <div class="vr mx-1 opacity-25 d-none d-sm-block" style="height: 18px;"></div>
+
+                            <!-- Cụm Lọc thành viên ClickUp 3.0 -->
+                            <div class="d-flex align-items-center flex-wrap gap-1.5" id="globalAssigneeFilterGroup">
+                                <button type="button" id="assignee-btn-all" class="assignee-filter-btn active" onclick="filterClickUpTasks('ALL')" title="Xem tất cả công việc & thành viên">
+                                    Tất cả
+                                </button>
+                                <button type="button" id="assignee-btn-me" class="assignee-filter-btn" onclick="filterClickUpTasks('MY_TASKS')" title="Chế độ 'Me Mode' - Việc của tôi">
+                                    <i class="bi bi-person-fill text-primary"></i> Việc tôi
+                                </button>
+
+                                <!-- Dải Avatar Thành viên dự án -->
+                                <div class="d-flex align-items-center gap-1 flex-wrap ms-1">
+                                    <c:forEach items="${userWorkloadList}" var="uw" varStatus="loop">
+                                        <c:if test="${loop.index < 7}">
+                                            <button type="button" class="assignee-avatar-btn position-relative" 
+                                                    data-user-id="${uw.user.id}" 
+                                                    onclick="handleToolbarAvatarClick('${uw.user.id}', '<c:out value="${uw.user.fullName}" />')"
+                                                    title="${uw.user.fullName} (${uw.totalTasks} việc &bull; ${uw.doneTasks} xong &bull; ${uw.overdueTasks > 0 ? uw.overdueTasks : 0} quá hạn)">
+                                                <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.65rem;">
+                                                    ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                                                </span>
+                                                <c:if test="${uw.overdueTasks > 0}">
+                                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="transform: translate(-30%, -20%) !important;" title="${uw.overdueTasks} việc quá hạn"></span>
+                                                </c:if>
+                                            </button>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${userWorkloadList.size() > 7}">
+                                        <span class="badge bg-light text-muted border rounded-circle p-1 fs-9 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" title="Còn ${userWorkloadList.size() - 7} thành viên khác">
+                                            +${userWorkloadList.size() - 7}
+                                        </span>
+                                    </c:if>
+                                </div>
+
+                                <c:if test="${submittedCount > 0}">
+                                    <button type="button" id="assignee-btn-submitted" class="status-filter-btn status-btn-submitted ms-1" onclick="filterClickUpTasks('STATUS_SUBMITTED')" title="Lọc các nhiệm vụ đã nộp báo cáo chờ PM duyệt">
+                                        <i class="bi bi-send-check"></i>
+                                        <span>Chờ duyệt</span>
+                                        <span class="status-count-pill">${submittedCount}</span>
+                                    </button>
+                                </c:if>
+                            </div>
+                        </c:if>
+                    </div>
+
+                    <!-- Right: Fixed Primary CTA + Add Task Button -->
+                    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
                         <!-- Mini Progress Strip -->
-                        <div class="clickup-mini-progress" title="Tiến độ: ${pctDone}% (${progDone}/${progTotal} việc hoàn thành)">
+                        <div class="clickup-mini-progress d-none d-xl-inline-flex" title="Tiến độ: ${pctDone}% (${progDone}/${progTotal} việc hoàn thành)">
                             <i class="bi bi-pie-chart-fill text-primary"></i>
                             <span class="tabular-nums">${pctDone}%</span>
                             <div class="clickup-mini-progress-bar">
                                 <div style="width: ${pctDone}%; background-color: #10b981;"></div>
                                 <div style="width: ${pctInProg}%; background-color: #3b82f6;"></div>
-                                <div style="width: ${pctTodo}%; background-color: #cbd5e1;"></div>
+                                <div style="width: ${pctTodo}%; background-color: #f59e0b;"></div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Right: + Add Task Dark Button -->
-                    <div class="d-flex align-items-center gap-2">
                         <button type="button" class="clickup-add-task-btn-dark" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Thêm công việc mới">
                             <i class="bi bi-plus-lg"></i>
                             <span>Add Task</span>
                         </button>
                     </div>
                 </div>
+
 
                 <!-- Workspace Content Area (Scrollable) -->
                 <div class="clickup-workspace-body">
@@ -437,69 +547,7 @@
                          ========================================================================= -->
                     <div id="clickup-view-tasks" class="clickup-view-pane ${currentView == 'tasks' ? '' : 'd-none'}">
 
-                        <!-- ClickUp 3.0 Assignee & Status Quick-Filter Bar -->
-                        <c:if test="${project.teamProject}">
-                            <div class="clickup-assignee-toolbar d-flex align-items-center justify-content-between flex-wrap gap-2 px-3 py-2 bg-white border-bottom shadow-2xs mb-3 rounded-3">
-                                <!-- Trái: Bộ lọc Assignee phong cách ClickUp 3.0 -->
-                                <div class="d-flex align-items-center flex-wrap gap-2">
-                                    <span class="fs-9 fw-bold text-uppercase text-muted tracking-wider d-none d-sm-inline-flex align-items-center gap-1">
-                                        <i class="bi bi-people"></i> Phụ trách:
-                                    </span>
-                                    
-                                    <!-- Nút Tất cả -->
-                                    <button type="button" id="assignee-btn-all" class="assignee-filter-btn active" onclick="filterClickUpTasks('ALL')" title="Xem tất cả công việc">
-                                        Tất cả
-                                    </button>
 
-                                    <!-- Nút Me Mode (Việc của tôi) -->
-                                    <button type="button" id="assignee-btn-me" class="assignee-filter-btn" onclick="filterClickUpTasks('MY_TASKS')" title="Chế độ 'Me Mode' - Chỉ hiện việc của tôi">
-                                        <i class="bi bi-person-fill text-primary"></i> Việc của tôi
-                                    </button>
-
-                                    <div class="vr mx-1 opacity-25 d-none d-sm-block" style="height: 18px;"></div>
-
-                                    <!-- Dải Avatar Thành viên dự án ClickUp 3.0 -->
-                                    <div class="d-flex align-items-center gap-1-5 flex-wrap">
-                                        <c:forEach items="${userWorkloadList}" var="uw" varStatus="loop">
-                                            <c:if test="${loop.index < 8}">
-                                                <button type="button" class="assignee-avatar-btn position-relative" 
-                                                        data-user-id="${uw.user.id}" 
-                                                        onclick="handleToolbarAvatarClick('${uw.user.id}', '<c:out value="${uw.user.fullName}" />')"
-                                                        title="${uw.user.fullName} (${uw.totalTasks} việc &bull; ${uw.doneCount} xong &bull; ${uw.overdueCount > 0 ? uw.overdueCount : 0} quá hạn)">
-                                                    <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">
-                                                        ${uw.user.fullName.substring(0, 1).toUpperCase()}
-                                                    </span>
-                                                    <c:if test="${uw.overdueCount > 0}">
-                                                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="transform: translate(-30%, -20%) !important;" title="${uw.overdueCount} việc quá hạn"></span>
-                                                    </c:if>
-                                                </button>
-                                            </c:if>
-                                        </c:forEach>
-                                        <c:if test="${userWorkloadList.size() > 8}">
-                                            <button type="button" class="assignee-avatar-btn-more" data-bs-toggle="modal" data-bs-target="#projectTeamModal" title="Xem thêm ${userWorkloadList.size() - 8} thành viên khác">
-                                                +${userWorkloadList.size() - 8}
-                                            </button>
-                                        </c:if>
-                                    </div>
-                                </div>
-
-                                <!-- Phải: Nút lọc nhanh trạng thái & Xem khối lượng -->
-                                <div class="d-flex align-items-center gap-2">
-                                    <c:if test="${submittedCount > 0}">
-                                        <button type="button" id="assignee-btn-submitted" class="status-filter-btn status-btn-submitted" onclick="filterClickUpTasks('STATUS_SUBMITTED')" title="Lọc các nhiệm vụ đã nộp báo cáo chờ PM duyệt">
-                                            <i class="bi bi-send-check"></i>
-                                            <span>Chờ duyệt</span>
-                                            <span class="status-count-pill">${submittedCount}</span>
-                                        </button>
-                                    </c:if>
-
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#projectTeamModal" title="Xem báo cáo khối lượng & tiến độ chi tiết">
-                                        <i class="bi bi-bar-chart-line text-primary"></i>
-                                        <span class="d-none d-md-inline">Khối lượng</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </c:if>
 
                         <!-- A. HIERARCHICAL LIST VIEW (CLICKUP 3.0 LIST VIEW PHÂN CẤP CHA - CON) -->
                         <div id="task-subview-list" class="${taskView == 'list' ? '' : 'd-none'}">
@@ -1531,19 +1579,43 @@
                  TAB 4: METRICS & WORKLOAD VIEW (THỐNG KÊ)
                  ========================================================================= -->
             <div id="clickup-view-metrics" class="clickup-view-pane ${currentView == 'metrics' ? '' : 'd-none'}">
-                <div class="d-flex align-items-center justify-content-between mb-3 px-1">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0 fs-7">Tổng quan & Phân bổ Công việc</h6>
-                        <span class="fs-9 text-muted">Báo cáo hiệu suất, tiến độ hoàn thành và khối lượng công việc của các thành viên</span>
+                <!-- Dedicated Workload Top Header Bar (ClickUp 3.0 Clean Island Header) -->
+                <div class="workload-header-bar d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 btn-expand-sidebar ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
+                            <i class="bi bi-chevron-bar-right fs-8"></i>
+                        </button>
+                        <div class="d-flex align-items-center gap-1.5 text-muted fs-8">
+                            <span>Team Space</span>
+                            <i class="bi bi-chevron-right fs-9 text-muted"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
+                        <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
+                            <i class="bi ${project.projectTypeIcon}"></i> ${project.projectTypeLabel}
+                        </span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-pie-chart-fill"></i> Workload & Hiệu suất
+                        </span>
                     </div>
-                    <div>
-                        <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" class="btn btn-sm btn-primary-custom rounded-pill px-3 py-1 fs-9">
-                            <i class="bi bi-file-earmark-bar-graph me-1"></i> Xem Báo cáo Toàn diện
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-light border text-dark rounded-pill px-2-5 py-1 fs-8 d-inline-flex align-items-center gap-1 shadow-2xs" onclick="switchClickUpTab('tasks')" title="Chuyển sang bảng công việc Tasks">
+                            <i class="bi bi-arrow-left text-primary"></i> Quay lại Tasks
+                        </button>
+                        <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
+                           class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-pill shadow-2xs text-nowrap"
+                           title="Tải toàn bộ danh sách công việc của dự án về máy tính (.csv chuẩn UTF-8 BOM)">
+                            <i class="bi bi-file-earmark-excel-fill text-success fs-8"></i>
+                            <span class="fs-8">Xuất Excel</span>
+                        </a>
+                        <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
+                           class="btn btn-sm btn-primary-custom rounded-pill px-3 py-1 fs-8 d-inline-flex align-items-center gap-1 shadow-2xs"
+                           title="Xem trang báo cáo thống kê chuyên sâu & biểu đồ tiến độ">
+                            <i class="bi bi-file-earmark-bar-graph"></i> Báo cáo Toàn diện
                         </a>
                     </div>
                 </div>
 
-                <!-- 4 Stat Summary Cards (UI/UX Pro Max) -->
+                <!-- 4 Stat Summary Cards & Donut Chart Split View (UI/UX Pro Max) -->
                 <c:set var="mTodoCount" value="${not empty todoTasks ? todoTasks.size() : 0}" />
                 <c:set var="mInProgCount" value="${not empty inProgressTasks ? inProgressTasks.size() : 0}" />
                 <c:set var="mDoneCount" value="${not empty doneTasks ? doneTasks.size() : 0}" />
@@ -1554,185 +1626,434 @@
                 <c:set var="mPctTodo" value="${mTotalCount > 0 ? (100 - mPctDone - mPctInProg) : 0}" />
                 <c:if test="${mPctTodo < 0}"><c:set var="mPctTodo" value="0" /></c:if>
 
-                <div class="row g-3 mb-4">
-                    <!-- Card 1: Tổng công việc -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="metrics-stat-card card-total h-100 d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="metrics-card-header">
-                                    <span class="metrics-stat-title">Tổng công việc</span>
-                                    <div class="metrics-icon-badge badge-total" title="Tổng số công việc dự án">
-                                        <i class="bi bi-stack"></i>
+                <c:set var="mOverdueCount" value="0" />
+                <c:forEach items="${userWorkloadList}" var="uw">
+                    <c:set var="mOverdueCount" value="${mOverdueCount + uw.overdueTasks}" />
+                </c:forEach>
+
+                <c:set var="cCirc" value="364.4" />
+                <c:set var="cDashDone" value="${mTotalCount > 0 ? (mDoneCount * 364.4 / mTotalCount) : 0}" />
+                <c:set var="cDashInProg" value="${mTotalCount > 0 ? (mInProgCount * 364.4 / mTotalCount) : 0}" />
+                <c:set var="cDashTodo" value="${mTotalCount > 0 ? (mTodoCount * 364.4 / mTotalCount) : 0}" />
+                <c:set var="cOffDone" value="0" />
+                <c:set var="cOffInProg" value="${0 - cDashDone}" />
+                <c:set var="cOffTodo" value="${0 - (cDashDone + cDashInProg)}" />
+
+                <div class="row g-3 mb-3 align-items-stretch" id="metricsOverviewSplitView">
+                    <!-- CỘT TRÁI (7/12): 4 Stat Cards dạng 2x2 Grid -->
+                    <div class="col-12 col-xl-7 col-lg-7">
+                        <div class="row g-3 h-100">
+                            <!-- Card 1: Tổng công việc -->
+                            <div class="col-12 col-sm-6">
+                                <div class="metrics-stat-card card-total h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="metrics-card-header">
+                                            <span class="metrics-stat-title">Tổng công việc</span>
+                                            <div class="metrics-icon-badge badge-total" title="Tổng số công việc dự án">
+                                                <i class="bi bi-stack"></i>
+                                            </div>
+                                        </div>
+                                        <div class="metrics-stat-body">
+                                            <div class="metrics-stat-number text-dark" id="metric-total-count">${mTotalCount}</div>
+                                            <span class="metrics-pct-pill pill-total" id="metric-total-pill">
+                                                <i class="bi bi-pie-chart-fill me-1"></i>100%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="metrics-progress-track d-flex" id="metric-total-track" title="Tiến độ tổng thể: ${mDoneCount} Hoàn thành (${mPctDone}%), ${mInProgCount} Đang làm (${mPctInProg}%), ${mTodoCount} Cần làm (${mPctTodo}%)">
+                                            <c:choose>
+                                                <c:when test="${mTotalCount > 0}">
+                                                    <div class="metrics-progress-segment bg-success" id="metric-total-seg-done" style="width: ${mPctDone}%;" title="Đã xong: ${mPctDone}%"></div>
+                                                    <div class="metrics-progress-segment bg-primary" id="metric-total-seg-inprog" style="width: ${mPctInProg}%;" title="Đang làm: ${mPctInProg}%"></div>
+                                                    <div class="metrics-progress-segment bg-amber" id="metric-total-seg-todo" style="width: ${mPctTodo}%;" title="Cần làm: ${mPctTodo}%"></div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <div class="metrics-progress-fill bg-light" style="width: 100%;"></div>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                        <div class="metrics-stat-footer">
+                                            <span class="text-muted" id="metric-total-footer-label"><i class="bi bi-people-fill me-1 text-secondary"></i>${memberCount} thành viên</span>
+                                            <span class="metrics-stat-footer-sub text-dark" id="metric-total-footer-val">${mTotalCount} việc</span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="metrics-stat-body">
-                                    <div class="metrics-stat-number text-dark">${mTotalCount}</div>
-                                    <span class="metrics-pct-pill pill-total">
-                                        <i class="bi bi-pie-chart-fill me-1"></i>100%
-                                    </span>
+                            </div>
+
+                            <!-- Card 2: Cần làm (To Do) -->
+                            <div class="col-12 col-sm-6">
+                                <div class="metrics-stat-card card-todo h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="metrics-card-header">
+                                            <span class="metrics-stat-title text-amber">Cần làm</span>
+                                            <div class="metrics-icon-badge badge-todo" title="Công việc chưa bắt đầu / đang chờ xử lý">
+                                                <i class="bi bi-hourglass-split"></i>
+                                            </div>
+                                        </div>
+                                        <div class="metrics-stat-body">
+                                            <div class="metrics-stat-number text-amber" id="metric-todo-count">${mTodoCount}</div>
+                                            <span class="metrics-pct-pill pill-todo" id="metric-todo-pill">
+                                                <i class="bi bi-hourglass-split me-1"></i>${mPctTodo}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="metrics-progress-track" title="${mTodoCount} / ${mTotalCount} công việc (${mPctTodo}%)">
+                                            <div class="metrics-progress-fill bg-amber" id="metric-todo-bar" style="width: ${mPctTodo}%;"></div>
+                                        </div>
+                                        <div class="metrics-stat-footer">
+                                            <span class="text-muted">Chưa bắt đầu</span>
+                                            <span class="metrics-stat-footer-sub text-amber" id="metric-todo-footer-val">${mTodoCount}/${mTotalCount} việc</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <div class="metrics-progress-track d-flex" title="Tiến độ tổng thể: ${mDoneCount} Hoàn thành (${mPctDone}%), ${mInProgCount} Đang làm (${mPctInProg}%), ${mTodoCount} Cần làm (${mPctTodo}%)">
-                                    <c:choose>
-                                        <c:when test="${mTotalCount > 0}">
-                                            <div class="metrics-progress-segment bg-success" style="width: ${mPctDone}%;" title="Đã xong: ${mPctDone}%"></div>
-                                            <div class="metrics-progress-segment bg-primary" style="width: ${mPctInProg}%;" title="Đang làm: ${mPctInProg}%"></div>
-                                            <div class="metrics-progress-segment bg-secondary" style="width: ${mPctTodo}%; opacity: 0.5;" title="Cần làm: ${mPctTodo}%"></div>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="metrics-progress-fill bg-light" style="width: 100%;"></div>
-                                        </c:otherwise>
-                                    </c:choose>
+
+                            <!-- Card 3: Đang làm (In Progress) -->
+                            <div class="col-12 col-sm-6">
+                                <div class="metrics-stat-card card-inprog h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="metrics-card-header">
+                                            <span class="metrics-stat-title text-primary">Đang làm</span>
+                                            <div class="metrics-icon-badge badge-inprog" title="Công việc đang xử lý tích cực">
+                                                <i class="bi bi-lightning-charge-fill"></i>
+                                            </div>
+                                        </div>
+                                        <div class="metrics-stat-body">
+                                            <div class="metrics-stat-number text-primary" id="metric-inprog-count">${mInProgCount}</div>
+                                            <span class="metrics-pct-pill pill-inprog" id="metric-inprog-pill">
+                                                <i class="bi bi-lightning-charge-fill me-1"></i>${mPctInProg}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="metrics-progress-track" title="${mInProgCount} / ${mTotalCount} công việc (${mPctInProg}%)">
+                                            <div class="metrics-progress-fill bg-primary" id="metric-inprog-bar" style="width: ${mPctInProg}%;"></div>
+                                        </div>
+                                        <div class="metrics-stat-footer">
+                                            <span class="text-muted">Đang xử lý</span>
+                                            <span class="metrics-stat-footer-sub text-primary" id="metric-inprog-footer-val">${mInProgCount}/${mTotalCount} việc</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="metrics-stat-footer">
-                                    <span class="text-muted"><i class="bi bi-people-fill me-1 text-secondary"></i>${memberCount} thành viên</span>
-                                    <span class="metrics-stat-footer-sub text-dark">Toàn bộ dự án</span>
+                            </div>
+
+                            <!-- Card 4: Hoàn thành (Done) -->
+                            <div class="col-12 col-sm-6">
+                                <div class="metrics-stat-card card-done h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="metrics-card-header">
+                                            <span class="metrics-stat-title text-success">Hoàn thành</span>
+                                            <div class="metrics-icon-badge badge-done" title="Công việc đã hoàn tất thành công">
+                                                <i class="bi bi-check-circle-fill"></i>
+                                            </div>
+                                        </div>
+                                        <div class="metrics-stat-body">
+                                            <div class="metrics-stat-number text-success" id="metric-done-count">${mDoneCount}</div>
+                                            <span class="metrics-pct-pill pill-done" id="metric-done-pill">
+                                                <i class="bi bi-check2 me-1"></i>${mPctDone}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="metrics-progress-track" title="${mDoneCount} / ${mTotalCount} công việc (${mPctDone}%)">
+                                            <div class="metrics-progress-fill bg-success" id="metric-done-bar" style="width: ${mPctDone}%;"></div>
+                                        </div>
+                                        <div class="metrics-stat-footer">
+                                            <span class="text-muted">Đã về đích</span>
+                                            <span class="metrics-stat-footer-sub text-success" id="metric-done-footer-val">${mDoneCount}/${mTotalCount} việc</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Card 2: Cần làm (To Do) -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="metrics-stat-card card-todo h-100 d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="metrics-card-header">
-                                    <span class="metrics-stat-title">Cần làm (To Do)</span>
-                                    <div class="metrics-icon-badge badge-todo" title="Công việc chưa bắt đầu">
-                                        <i class="bi bi-card-checklist"></i>
-                                    </div>
+                    <!-- CỘT PHẢI (5/12): Biểu đồ Donut Chart phân bổ trạng thái công việc -->
+                    <div class="col-12 col-xl-5 col-lg-5">
+                        <div class="card border-0 shadow-2xs rounded-3 bg-white h-100 p-3-5 d-flex flex-column justify-content-between">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0 fs-8 d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-pie-chart-fill text-primary"></i> Phân bổ trạng thái công việc
+                                    </h6>
+                                    <span class="fs-9 text-muted" id="donut-chart-subtitle">Toàn bộ dự án (${mTotalCount} việc)</span>
                                 </div>
-                                <div class="metrics-stat-body">
-                                    <div class="metrics-stat-number text-secondary">${mTodoCount}</div>
-                                    <span class="metrics-pct-pill pill-todo">
-                                        <i class="bi bi-hourglass-split me-1"></i>${mPctTodo}%
-                                    </span>
-                                </div>
+                                <span class="badge bg-light text-secondary border rounded-pill fs-9" id="donut-filter-badge">Tất cả</span>
                             </div>
-                            <div>
-                                <div class="metrics-progress-track" title="${mTodoCount} / ${mTotalCount} công việc (${mPctTodo}%)">
-                                    <div class="metrics-progress-fill bg-secondary" style="width: ${mPctTodo}%;"></div>
-                                </div>
-                                <div class="metrics-stat-footer">
-                                    <span class="text-muted">Chưa bắt đầu</span>
-                                    <span class="metrics-stat-footer-sub text-secondary">${mTodoCount}/${mTotalCount} việc (${mPctTodo}%)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Card 3: Đang làm (In Progress) -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="metrics-stat-card card-inprog h-100 d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="metrics-card-header">
-                                    <span class="metrics-stat-title text-primary">Đang làm</span>
-                                    <div class="metrics-icon-badge badge-inprog" title="Công việc đang xử lý tích cực">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    </div>
-                                </div>
-                                <div class="metrics-stat-body">
-                                    <div class="metrics-stat-number text-primary">${mInProgCount}</div>
-                                    <span class="metrics-pct-pill pill-inprog">
-                                        <i class="bi bi-lightning-charge-fill me-1"></i>${mPctInProg}%
-                                    </span>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="metrics-progress-track" title="${mInProgCount} / ${mTotalCount} công việc (${mPctInProg}%)">
-                                    <div class="metrics-progress-fill bg-primary" style="width: ${mPctInProg}%;"></div>
-                                </div>
-                                <div class="metrics-stat-footer">
-                                    <span class="text-muted">Đang triển khai</span>
-                                    <span class="metrics-stat-footer-sub text-primary">${mInProgCount}/${mTotalCount} việc (${mPctInProg}%)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                            <!-- Donut SVG & Central Metric -->
+                            <div class="d-flex align-items-center justify-content-center py-2 position-relative">
+                                <div class="donut-chart-container position-relative" style="width: 160px; height: 160px;">
+                                    <svg viewBox="0 0 160 160" class="donut-svg" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                        <!-- Background Circle Track -->
+                                        <circle cx="80" cy="80" r="58" fill="none" stroke="#f1f5f9" stroke-width="15" />
+                                        
+                                        <!-- Done Segment (Emerald Green) -->
+                                        <circle id="donut-segment-done" cx="80" cy="80" r="58" fill="none" 
+                                                stroke="#10b981" stroke-width="15"
+                                                stroke-dasharray="${cDashDone} 364.4" stroke-dashoffset="${cOffDone}" class="donut-segment"
+                                                title="Hoàn thành: ${mDoneCount} (${mPctDone}%)" />
+                                        
+                                        <!-- In-Progress Segment (Sky Blue) -->
+                                        <circle id="donut-segment-inprog" cx="80" cy="80" r="58" fill="none" 
+                                                stroke="#0284c7" stroke-width="15"
+                                                stroke-dasharray="${cDashInProg} 364.4" stroke-dashoffset="${cOffInProg}" class="donut-segment"
+                                                title="Đang làm: ${mInProgCount} (${mPctInProg}%)" />
+                                        
+                                        <!-- To-do Segment (Amber) -->
+                                        <circle id="donut-segment-todo" cx="80" cy="80" r="58" fill="none" 
+                                                stroke="#f59e0b" stroke-width="15"
+                                                stroke-dasharray="${cDashTodo} 364.4" stroke-dashoffset="${cOffTodo}" class="donut-segment"
+                                                title="Cần làm: ${mTodoCount} (${mPctTodo}%)" />
+                                    </svg>
 
-                    <!-- Card 4: Đã hoàn thành (Done) -->
-                    <div class="col-12 col-sm-6 col-xl-3">
-                        <div class="metrics-stat-card card-done h-100 d-flex flex-column justify-content-between">
-                            <div>
-                                <div class="metrics-card-header">
-                                    <span class="metrics-stat-title text-success">Đã hoàn thành</span>
-                                    <div class="metrics-icon-badge badge-done" title="Công việc đã hoàn tất nghiệm thu">
-                                        <i class="bi bi-check2-circle"></i>
+                                    <!-- Center Text -->
+                                    <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
+                                        <div class="fw-bold text-dark fs-4 lh-1" id="donut-center-total">${mTotalCount}</div>
+                                        <div class="fs-9 text-muted mt-1" id="donut-center-label">công việc</div>
+                                        <div class="badge bg-success-subtle text-success rounded-pill px-2 py-0-5 fs-9 mt-1 fw-semibold" id="donut-center-pct">
+                                            ${mPctDone}% Xong
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="metrics-stat-body">
-                                    <div class="metrics-stat-number text-success">${mDoneCount}</div>
-                                    <span class="metrics-pct-pill pill-done">
-                                        <i class="bi bi-check-circle-fill me-1"></i>${mPctDone}%
-                                    </span>
-                                </div>
                             </div>
-                            <div>
-                                <div class="metrics-progress-track" title="${mDoneCount} / ${mTotalCount} công việc (${mPctDone}%)">
-                                    <div class="metrics-progress-fill bg-success" style="width: ${mPctDone}%;"></div>
+
+                            <!-- Legend Grid -->
+                            <div class="row g-2 pt-2 border-top fs-8">
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center justify-content-between p-1.5 rounded-2 bg-light-subtle donut-legend-item" id="legend-item-done" onclick="filterClickUpTasks('STATUS_DONE')" style="cursor: pointer;" title="Lọc công việc đã xong">
+                                        <span class="d-flex align-items-center gap-1.5 text-muted">
+                                            <span class="badge-dot bg-success"></span> Hoàn thành
+                                        </span>
+                                        <span class="fw-bold text-success fs-8" id="donut-legend-done">${mDoneCount} <span class="fs-9 text-muted fw-normal">(${mPctDone}%)</span></span>
+                                    </div>
                                 </div>
-                                <div class="metrics-stat-footer">
-                                    <span class="text-success fw-medium"><i class="bi bi-shield-check me-1"></i>Đã nghiệm thu</span>
-                                    <span class="metrics-stat-footer-sub text-success fw-bold">${mDoneCount}/${mTotalCount} việc (${mPctDone}%)</span>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center justify-content-between p-1.5 rounded-2 bg-light-subtle donut-legend-item" id="legend-item-inprog" onclick="filterClickUpTasks('STATUS_IN_PROGRESS')" style="cursor: pointer;" title="Lọc công việc đang làm">
+                                        <span class="d-flex align-items-center gap-1.5 text-muted">
+                                            <span class="badge-dot bg-primary"></span> Đang làm
+                                        </span>
+                                        <span class="fw-bold text-primary fs-8" id="donut-legend-inprog">${mInProgCount} <span class="fs-9 text-muted fw-normal">(${mPctInProg}%)</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center justify-content-between p-1.5 rounded-2 bg-light-subtle donut-legend-item" id="legend-item-todo" onclick="filterClickUpTasks('STATUS_TODO')" style="cursor: pointer;" title="Lọc công việc cần làm">
+                                        <span class="d-flex align-items-center gap-1.5 text-muted">
+                                            <span class="badge-dot bg-amber"></span> Cần làm
+                                        </span>
+                                        <span class="fw-bold text-amber fs-8" id="donut-legend-todo">${mTodoCount} <span class="fs-9 text-muted fw-normal">(${mPctTodo}%)</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center justify-content-between p-1.5 rounded-2 bg-light-subtle donut-legend-item" id="legend-item-overdue" onclick="filterTasksByTimeframe('OVERDUE', 'Quá hạn')" style="cursor: pointer;" title="Lọc các việc quá hạn">
+                                        <span class="d-flex align-items-center gap-1.5 text-muted">
+                                            <span class="badge-dot bg-danger"></span> Quá hạn
+                                        </span>
+                                        <span class="fw-bold text-danger fs-8" id="donut-legend-overdue">${mOverdueCount} việc</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Workload Distribution Table -->
-                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden bg-white mb-4">
-                    <div class="px-3 py-2-5 border-bottom d-flex align-items-center justify-content-between">
-                        <h6 class="fw-bold text-dark mb-0 fs-8"><i class="bi bi-people me-1 text-primary"></i> Phân bổ khối lượng công việc (Workload)</h6>
-                        <span class="badge bg-light text-muted border rounded-pill fs-9">${userWorkloadList.size()} người</span>
+                <!-- Workload Distribution Table (Expanded Modern Data Table) -->
+                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden bg-white mb-4" id="workloadTableCard">
+                    <div class="px-3 py-2.5 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <h6 class="fw-bold text-dark mb-0 fs-8"><i class="bi bi-people-fill me-1.5 text-primary"></i> Phân bổ khối lượng công việc (Workload Capacity)</h6>
+                            <span class="badge bg-light text-muted border rounded-pill fs-9" id="workload-member-count">${userWorkloadList.size()} thành viên</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <!-- Quick Filter Tabs -->
+                            <div class="d-flex align-items-center gap-1 flex-wrap" id="workloadFilterTabs">
+                                <button type="button" class="workload-capacity-filter-btn active" onclick="filterWorkloadCapacity('ALL', this)">
+                                    Tất cả
+                                </button>
+                                <button type="button" class="workload-capacity-filter-btn" onclick="filterWorkloadCapacity('OVERLOAD', this)">
+                                    <span class="badge-dot bg-danger"></span> Quá tải / Có trễ
+                                </button>
+                                <button type="button" class="workload-capacity-filter-btn" onclick="filterWorkloadCapacity('BUSY', this)">
+                                    <span class="badge-dot bg-warning"></span> Bận rộn
+                                </button>
+                                <button type="button" class="workload-capacity-filter-btn" onclick="filterWorkloadCapacity('OPTIMAL', this)">
+                                    <span class="badge-dot bg-primary"></span> Cân bằng
+                                </button>
+                            </div>
+
+                            <!-- Search Input -->
+                            <div class="input-group input-group-sm" style="width: 200px;">
+                                <span class="input-group-text bg-light border-end-0 py-0 text-muted fs-9"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0 py-1 fs-9" placeholder="Tìm thành viên..." id="workloadSearchInput" oninput="filterWorkloadTable(this.value)">
+                            </div>
+                        </div>
                     </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0 fs-8">
+                    <div class="table-responsive" style="overflow-x: auto; overflow-y: visible; max-height: none;">
+                        <table class="table table-hover align-middle mb-0 fs-8" id="workloadTable">
                             <thead class="table-light fs-9 text-muted text-uppercase">
                                 <tr>
-                                    <th class="ps-3 py-2">Thành viên</th>
-                                    <th class="py-2 text-center">Tổng việc</th>
-                                    <th class="py-2 text-center">Đang làm</th>
-                                    <th class="py-2 text-center">Hoàn thành</th>
-                                    <th class="py-2 text-center">Quá hạn</th>
-                                    <th class="pe-3 py-2" style="width: 220px;">Tỷ lệ hoàn thành</th>
+                                    <th class="ps-3 py-2.5 sortable-th" onclick="sortWorkloadTable(0)" title="Nhấn để sắp xếp theo tên thành viên">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span>Thành viên</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-0"></i>
+                                        </div>
+                                    </th>
+                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(1)" title="Nhấn để sắp xếp theo công suất">
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <span>Công suất</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-1"></i>
+                                        </div>
+                                    </th>
+                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(2)" title="Nhấn để sắp xếp theo tổng việc">
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <span>Tổng việc</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-2"></i>
+                                        </div>
+                                    </th>
+                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(3)" title="Nhấn để sắp xếp theo việc cần làm">
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <span>Cần làm</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-3"></i>
+                                        </div>
+                                    </th>
+                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(4)" title="Nhấn để sắp xếp theo việc đang làm">
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <span>Đang làm</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-4"></i>
+                                        </div>
+                                    </th>
+                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(5)" title="Nhấn để sắp xếp theo việc hoàn thành">
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <span>Hoàn thành</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-5"></i>
+                                        </div>
+                                    </th>
+                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(6)" title="Nhấn để sắp xếp theo việc quá hạn">
+                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                            <span>Quá hạn</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-6"></i>
+                                        </div>
+                                    </th>
+                                    <th class="py-2.5 sortable-th" style="min-width: 220px;" onclick="sortWorkloadTable(7)" title="Nhấn để sắp xếp theo tỷ lệ hoàn thành">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span>Tỷ lệ hoàn thành</span>
+                                            <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-7"></i>
+                                        </div>
+                                    </th>
+                                    <th class="pe-3 py-2.5 text-end" style="width: 110px;">
+                                        <span>Thao tác</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:forEach items="${userWorkloadList}" var="wl">
-                                    <tr>
-                                        <td class="ps-3 py-2-5">
+                                    <c:set var="wlPctInProg" value="${wl.totalTasks > 0 ? Math.round((wl.inProgressTasks * 100.0) / wl.totalTasks) : 0}" />
+                                    <c:set var="wlTodoTasks" value="${wl.totalTasks - wl.inProgressTasks - wl.doneTasks}" />
+                                    <c:if test="${wlTodoTasks < 0}"><c:set var="wlTodoTasks" value="0" /></c:if>
+
+                                    <!-- Tính toán chỉ số công suất tải việc (Workload Capacity) -->
+                                    <c:choose>
+                                        <c:when test="${wl.overdueTasks > 0 || wl.inProgressTasks >= 5}">
+                                            <c:set var="wlCapKey" value="overload" />
+                                            <c:set var="wlCapLabel" value="Quá tải" />
+                                            <c:set var="wlCapClass" value="bg-danger-subtle text-danger border border-danger-subtle" />
+                                            <c:set var="wlCapIcon" value="bi-exclamation-octagon-fill" />
+                                        </c:when>
+                                        <c:when test="${wl.inProgressTasks >= 3}">
+                                            <c:set var="wlCapKey" value="busy" />
+                                            <c:set var="wlCapLabel" value="Bận rộn" />
+                                            <c:set var="wlCapClass" value="bg-warning-subtle text-warning border border-warning-subtle" />
+                                            <c:set var="wlCapIcon" value="bi-lightning-charge-fill" />
+                                        </c:when>
+                                        <c:when test="${wl.inProgressTasks >= 1 || wl.totalTasks > 0}">
+                                            <c:set var="wlCapKey" value="optimal" />
+                                            <c:set var="wlCapLabel" value="Cân bằng" />
+                                            <c:set var="wlCapClass" value="bg-primary-subtle text-primary border border-primary-subtle" />
+                                            <c:set var="wlCapIcon" value="bi-check2-circle" />
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:set var="wlCapKey" value="ready" />
+                                            <c:set var="wlCapLabel" value="Sẵn sàng" />
+                                            <c:set var="wlCapClass" value="bg-success-subtle text-success border border-success-subtle" />
+                                            <c:set var="wlCapIcon" value="bi-cup-hot-fill" />
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <tr class="workload-row" 
+                                        data-user-id="${wl.user.id}" 
+                                        data-name="<c:out value="${wl.user.fullName}" />"
+                                        data-capacity="${wlCapKey}"
+                                        data-total="${wl.totalTasks}"
+                                        data-todo="${wlTodoTasks}"
+                                        data-inprog="${wl.inProgressTasks}"
+                                        data-done="${wl.doneTasks}"
+                                        data-overdue="${wl.overdueTasks}"
+                                        data-rate="${wl.completionRate}"
+                                        onclick="handleWorkloadRowClick('${wl.user.id}', '<c:out value="${wl.user.fullName}" />')"
+                                        title="Bấm để lọc thống kê của ${wl.user.fullName}">
+                                        <td class="ps-3 py-3">
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 26px; height: 26px; font-size: 0.7rem;">
+                                                <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 30px; height: 30px; font-size: 0.75rem; font-weight: 600;">
                                                     ${wl.user.fullName.substring(0, 1).toUpperCase()}
                                                 </span>
                                                 <div>
-                                                    <div class="fw-semibold text-dark">${wl.user.fullName}</div>
-                                                    <div class="fs-9 text-muted">${wl.user.role}</div>
+                                                    <div class="fw-semibold text-dark user-name-cell fs-8">${wl.user.fullName}</div>
+                                                    <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-10">${wl.user.role}</span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="text-center fw-bold">${wl.totalTasks}</td>
-                                        <td class="text-center text-primary fw-semibold">${wl.inProgressTasks}</td>
-                                        <td class="text-center text-success fw-semibold">${wl.doneTasks}</td>
+                                        <td class="text-center">
+                                            <span class="badge ${wlCapClass} rounded-pill px-2.5 py-1 fs-9 d-inline-flex align-items-center gap-1">
+                                                <i class="bi ${wlCapIcon}"></i> ${wlCapLabel}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 fs-8 fw-bold">${wl.totalTasks}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-semibold text-amber fs-8">${wlTodoTasks}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-semibold text-primary fs-8">${wl.inProgressTasks}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="fw-semibold text-success fs-8">${wl.doneTasks}</span>
+                                        </td>
                                         <td class="text-center">
                                             <c:choose>
                                                 <c:when test="${wl.overdueTasks > 0}">
-                                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-2 fs-9">${wl.overdueTasks} trễ</span>
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0-5 fs-9 fw-bold">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>${wl.overdueTasks} trễ
+                                                    </span>
                                                 </c:when>
                                                 <c:otherwise>
                                                     <span class="text-muted fs-9">-</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td class="pe-3">
+                                        <td>
                                             <div class="d-flex align-items-center gap-2">
-                                                <div class="progress flex-grow-1" style="height: 6px;">
-                                                    <div class="progress-bar bg-success rounded-pill" role="progressbar" style="width: ${wl.completionRate}%;"></div>
+                                                <div class="workload-two-color-bar flex-grow-1" style="height: 7px;" title="Hoàn thành: ${wl.completionRate}%, Đang làm: ${wlPctInProg}%">
+                                                    <div class="bar-done" style="width: ${wl.completionRate}%;"></div>
+                                                    <div class="bar-inprog" style="width: ${wlPctInProg}%;"></div>
                                                 </div>
-                                                <span class="fs-9 text-muted fw-semibold" style="min-width: 35px;">${wl.completionRate}%</span>
+                                                <div class="workload-rate-label text-nowrap d-flex align-items-center gap-1" style="min-width: 75px;">
+                                                    <span class="fw-bold text-success fs-8">${wl.completionRate}%</span>
+                                                    <c:if test="${wlPctInProg > 0}">
+                                                        <span class="fs-10 text-primary opacity-75" title="Đang làm ${wlPctInProg}%">(+${wlPctInProg}%)</span>
+                                                    </c:if>
+                                                </div>
                                             </div>
+                                        </td>
+                                        <td class="pe-3 text-end">
+                                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 fs-9 text-secondary d-inline-flex align-items-center gap-1 shadow-2xs hover-primary"
+                                                    onclick="viewMemberTasks('${wl.user.id}', '<c:out value="${wl.user.fullName}" />', event)"
+                                                    title="Xem danh sách công việc của thành viên này">
+                                                <span>Xem việc</span>
+                                                <i class="bi bi-arrow-right fs-10"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                 </c:forEach>
@@ -2049,29 +2370,31 @@
     // 1. Sidebar Toggle & State persistence in localStorage and Cookie
     function toggleClickUpSidebar() {
         var sidebar = document.getElementById('clickupSidebar');
-        var expandBtn = document.getElementById('btnExpandSidebar');
+        var expandBtns = document.querySelectorAll('.btn-expand-sidebar');
         if (!sidebar) return;
         var isCollapsed = sidebar.classList.toggle('collapsed');
         localStorage.setItem('clickup_sidebar_collapsed', isCollapsed ? '1' : '0');
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '/';
         document.cookie = "sidebar_collapsed=" + (isCollapsed ? 'true' : 'false') + "; path=" + basePath + "; max-age=" + (30 * 24 * 60 * 60);
-        if (expandBtn) {
+        expandBtns.forEach(function(btn) {
             if (isCollapsed) {
-                expandBtn.classList.remove('d-none');
+                btn.classList.remove('d-none');
             } else {
-                expandBtn.classList.add('d-none');
+                btn.classList.add('d-none');
             }
-        }
+        });
     }
 
     // Initialize sidebar state on page load
     document.addEventListener('DOMContentLoaded', function() {
         var isCollapsed = localStorage.getItem('clickup_sidebar_collapsed') === '1';
         var sidebar = document.getElementById('clickupSidebar');
-        var expandBtn = document.getElementById('btnExpandSidebar');
+        var expandBtns = document.querySelectorAll('.btn-expand-sidebar');
         if (isCollapsed && sidebar) {
             sidebar.classList.add('collapsed');
-            if (expandBtn) expandBtn.classList.remove('d-none');
+            expandBtns.forEach(function(btn) {
+                btn.classList.remove('d-none');
+            });
         }
     });
 
@@ -2083,11 +2406,41 @@
         var activeBtn = document.getElementById('tab-btn-' + tab);
         if (activeBtn) activeBtn.classList.add('active');
 
+        // Đồng bộ trạng thái active trên sidebar và dock rail
+        document.querySelectorAll('.clickup-sidebar .clickup-nav-link').forEach(function(el) {
+            el.classList.remove('active');
+        });
+        var activeSidebarNav = document.getElementById('sidebar-nav-' + tab);
+        if (activeSidebarNav) activeSidebarNav.classList.add('active');
+
+        var dockWorkload = document.getElementById('dock-btn-metrics');
+        if (dockWorkload) {
+            if (tab === 'metrics') dockWorkload.classList.add('active');
+            else dockWorkload.classList.remove('active');
+        }
+
         document.querySelectorAll('.clickup-view-pane').forEach(function(el) {
             el.classList.add('d-none');
         });
         var targetPane = document.getElementById('clickup-view-' + tab);
         if (targetPane) targetPane.classList.remove('d-none');
+
+        // Ẩn Header & Toolbar khi xem Workload (metrics) để mở rộng tối đa không gian cho bảng Workload
+        var mainHeader = document.querySelector('.clickup-main-header');
+        var controlToolbar = document.querySelector('.clickup-control-toolbar');
+        if (tab === 'metrics') {
+            if (mainHeader) mainHeader.classList.add('d-none');
+            if (controlToolbar) controlToolbar.classList.add('d-none');
+        } else {
+            if (mainHeader) mainHeader.classList.remove('d-none');
+            if (controlToolbar) {
+                if (tab === 'tasks') {
+                    controlToolbar.classList.remove('d-none');
+                } else {
+                    controlToolbar.classList.add('d-none');
+                }
+            }
+        }
 
         var switcher = document.getElementById('taskViewSwitcher');
         if (switcher) {
@@ -2815,7 +3168,19 @@
         });
     };
 
-    // 7. Filter tasks by Member, Status, or Scope (With Active Feedback Banner)
+    // 7. Filter tasks by Member, Status, or Scope (With Active Feedback Banner & Metric Sync)
+    var defaultProjectMetrics = {
+        total: ${mTotalCount},
+        todo: ${mTodoCount},
+        inprog: ${mInProgCount},
+        done: ${mDoneCount},
+        pctTodo: ${mPctTodo},
+        pctInProg: ${mPctInProg},
+        pctDone: ${mPctDone},
+        overdue: ${mOverdueCount},
+        memberCount: ${memberCount}
+    };
+
     window.filterClickUpTasks = function(mode, userId, userName) {
         document.querySelectorAll('.clickup-sidebar .clickup-nav-link').forEach(function(el) {
             el.classList.remove('active');
@@ -2838,8 +3203,12 @@
             return;
         }
 
-        // Switch to tasks tab when filtering
-        window.switchClickUpTab('tasks');
+        // Chuyển tab tasks chỉ khi không ở tab Thống kê (cho phép người dùng lọc ngay tại tab Thống kê)
+        var activeTab = document.querySelector('.clickup-tab-link.active');
+        var activeTabId = activeTab ? activeTab.id : '';
+        if (activeTabId !== 'tab-btn-metrics' && activeTabId !== 'tab-btn-tasks') {
+            window.switchClickUpTab('tasks');
+        }
 
         if (mode === 'ALL') {
             var allBtn = document.getElementById('filter-all-btn');
@@ -2900,6 +3269,17 @@
                 bannerText.innerHTML = '<i class="bi bi-send-check text-purple me-1"></i> Đang lọc: <strong>Công việc chờ PM duyệt (SUBMITTED)</strong>';
                 banner.classList.remove('d-none');
                 banner.classList.add('d-flex');
+            }
+        }
+
+        // Đồng bộ KPI tổng quan, Donut Chart và Bảng Workload
+        if (typeof updateMetricsAndWorkloadForUser === 'function') {
+            if (mode === 'ALL') {
+                updateMetricsAndWorkloadForUser(null, null);
+            } else if (mode === 'MY_TASKS') {
+                updateMetricsAndWorkloadForUser(currentUserId, 'Việc của tôi');
+            } else if (mode === 'USER') {
+                updateMetricsAndWorkloadForUser(userId, userName);
             }
         }
 
@@ -2976,6 +3356,390 @@
             window.filterClickUpTasks('ALL');
         } else {
             window.filterClickUpTasks('USER', userId, userName);
+        }
+    };
+
+    // Cập nhật số liệu KPI 4 Stat Cards, Donut Chart và làm mờ hàng Bảng Workload
+    window.updateMetricsAndWorkloadForUser = function(userId, userName) {
+        var totalEl = document.getElementById('metric-total-count');
+        var todoEl = document.getElementById('metric-todo-count');
+        var inprogEl = document.getElementById('metric-inprog-count');
+        var doneEl = document.getElementById('metric-done-count');
+        
+        var totalPill = document.getElementById('metric-total-pill');
+        var todoPill = document.getElementById('metric-todo-pill');
+        var inprogPill = document.getElementById('metric-inprog-pill');
+        var donePill = document.getElementById('metric-done-pill');
+
+        var segDone = document.getElementById('metric-total-seg-done');
+        var segInprog = document.getElementById('metric-total-seg-inprog');
+        var segTodo = document.getElementById('metric-total-seg-todo');
+
+        var barTodo = document.getElementById('metric-todo-bar');
+        var barInprog = document.getElementById('metric-inprog-bar');
+        var barDone = document.getElementById('metric-done-bar');
+
+        var totalFooterLabel = document.getElementById('metric-total-footer-label');
+        var totalFooterVal = document.getElementById('metric-total-footer-val');
+        var todoFooterVal = document.getElementById('metric-todo-footer-val');
+        var inprogFooterVal = document.getElementById('metric-inprog-footer-val');
+        var doneFooterVal = document.getElementById('metric-done-footer-val');
+
+        var donutSubtitle = document.getElementById('donut-chart-subtitle');
+        var donutBadge = document.getElementById('donut-filter-badge');
+        var donutCenterTotal = document.getElementById('donut-center-total');
+        var donutCenterPct = document.getElementById('donut-center-pct');
+
+        var segDonutDone = document.getElementById('donut-segment-done');
+        var segDonutInprog = document.getElementById('donut-segment-inprog');
+        var segDonutTodo = document.getElementById('donut-segment-todo');
+
+        var legDone = document.getElementById('donut-legend-done');
+        var legInprog = document.getElementById('donut-legend-inprog');
+        var legTodo = document.getElementById('donut-legend-todo');
+        var legOverdue = document.getElementById('donut-legend-overdue');
+
+        var C = 364.4; // Chu vi vòng tròn bán kính 58
+
+        if (!userId) {
+            // Khôi phục toàn bộ dự án
+            if (totalEl) totalEl.textContent = defaultProjectMetrics.total;
+            if (todoEl) todoEl.textContent = defaultProjectMetrics.todo;
+            if (inprogEl) inprogEl.textContent = defaultProjectMetrics.inprog;
+            if (doneEl) doneEl.textContent = defaultProjectMetrics.done;
+
+            if (totalPill) totalPill.innerHTML = '<i class="bi bi-pie-chart-fill me-1"></i>100%';
+            if (todoPill) todoPill.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>' + defaultProjectMetrics.pctTodo + '%';
+            if (inprogPill) inprogPill.innerHTML = '<i class="bi bi-lightning-charge-fill me-1"></i>' + defaultProjectMetrics.pctInProg + '%';
+            if (donePill) donePill.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + defaultProjectMetrics.pctDone + '%';
+
+            if (segDone) segDone.style.width = defaultProjectMetrics.pctDone + '%';
+            if (segInprog) segInprog.style.width = defaultProjectMetrics.pctInProg + '%';
+            if (segTodo) segTodo.style.width = defaultProjectMetrics.pctTodo + '%';
+
+            if (barTodo) barTodo.style.width = defaultProjectMetrics.pctTodo + '%';
+            if (barInprog) barInprog.style.width = defaultProjectMetrics.pctInProg + '%';
+            if (barDone) barDone.style.width = defaultProjectMetrics.pctDone + '%';
+
+            if (totalFooterLabel) totalFooterLabel.innerHTML = '<i class="bi bi-people-fill me-1 text-secondary"></i>' + defaultProjectMetrics.memberCount + ' thành viên';
+            if (totalFooterVal) totalFooterVal.textContent = defaultProjectMetrics.total + ' việc';
+            if (todoFooterVal) todoFooterVal.textContent = defaultProjectMetrics.todo + '/' + defaultProjectMetrics.total + ' việc';
+            if (inprogFooterVal) inprogFooterVal.textContent = defaultProjectMetrics.inprog + '/' + defaultProjectMetrics.total + ' việc';
+            if (doneFooterVal) doneFooterVal.textContent = defaultProjectMetrics.done + '/' + defaultProjectMetrics.total + ' việc';
+
+            // Donut Chart reset
+            if (donutSubtitle) donutSubtitle.textContent = 'Toàn bộ dự án (' + defaultProjectMetrics.total + ' việc)';
+            if (donutBadge) { donutBadge.textContent = 'Tất cả'; donutBadge.className = 'badge bg-light text-secondary border rounded-pill fs-9'; }
+            if (donutCenterTotal) donutCenterTotal.textContent = defaultProjectMetrics.total;
+            if (donutCenterPct) donutCenterPct.textContent = defaultProjectMetrics.pctDone + '% Xong';
+
+            var dDone = defaultProjectMetrics.total > 0 ? (defaultProjectMetrics.done * C / defaultProjectMetrics.total) : 0;
+            var dInprog = defaultProjectMetrics.total > 0 ? (defaultProjectMetrics.inprog * C / defaultProjectMetrics.total) : 0;
+            var dTodo = defaultProjectMetrics.total > 0 ? (defaultProjectMetrics.todo * C / defaultProjectMetrics.total) : 0;
+
+            if (segDonutDone) { segDonutDone.style.strokeDasharray = dDone + ' ' + C; segDonutDone.style.strokeDashoffset = '0'; }
+            if (segDonutInprog) { segDonutInprog.style.strokeDasharray = dInprog + ' ' + C; segDonutInprog.style.strokeDashoffset = -dDone; }
+            if (segDonutTodo) { segDonutTodo.style.strokeDasharray = dTodo + ' ' + C; segDonutTodo.style.strokeDashoffset = -(dDone + dInprog); }
+
+            if (legDone) legDone.innerHTML = defaultProjectMetrics.done + ' <span class="fs-9 text-muted fw-normal">(' + defaultProjectMetrics.pctDone + '%)</span>';
+            if (legInprog) legInprog.innerHTML = defaultProjectMetrics.inprog + ' <span class="fs-9 text-muted fw-normal">(' + defaultProjectMetrics.pctInProg + '%)</span>';
+            if (legTodo) legTodo.innerHTML = defaultProjectMetrics.todo + ' <span class="fs-9 text-muted fw-normal">(' + defaultProjectMetrics.pctTodo + '%)</span>';
+            if (legOverdue) legOverdue.textContent = defaultProjectMetrics.overdue + ' việc';
+
+            // Bỏ làm mờ tất cả các hàng trong bảng Workload
+            document.querySelectorAll('#workloadTable tbody tr').forEach(function(row) {
+                row.classList.remove('workload-row-active', 'workload-row-dimmed');
+            });
+            return;
+        }
+
+        // Tìm dữ liệu của thành viên từ dòng bảng Workload
+        var targetRow = document.querySelector('#workloadTable tbody tr[data-user-id="' + userId + '"]');
+        var uTotal = 0, uDone = 0, uInprog = 0, uOverdue = 0, uRate = 0, uTodo = 0;
+        var displayName = userName || 'Thành viên';
+
+        if (targetRow) {
+            uTotal = parseInt(targetRow.getAttribute('data-total')) || 0;
+            uDone = parseInt(targetRow.getAttribute('data-done')) || 0;
+            uInprog = parseInt(targetRow.getAttribute('data-inprog')) || 0;
+            uOverdue = parseInt(targetRow.getAttribute('data-overdue')) || 0;
+            uRate = parseInt(targetRow.getAttribute('data-rate')) || 0;
+            uTodo = Math.max(0, uTotal - uDone - uInprog);
+            displayName = targetRow.getAttribute('data-name') || displayName;
+        }
+
+        var uPctDone = uTotal > 0 ? Math.round((uDone * 100) / uTotal) : 0;
+        var uPctInprog = uTotal > 0 ? Math.round((uInprog * 100) / uTotal) : 0;
+        var uPctTodo = uTotal > 0 ? (100 - uPctDone - uPctInprog) : 0;
+        if (uPctTodo < 0) uPctTodo = 0;
+
+        // Cập nhật 4 Stat Cards
+        if (totalEl) totalEl.textContent = uTotal;
+        if (todoEl) todoEl.textContent = uTodo;
+        if (inprogEl) inprogEl.textContent = uInprog;
+        if (doneEl) doneEl.textContent = uDone;
+
+        if (totalPill) totalPill.innerHTML = '<i class="bi bi-person-check-fill me-1"></i>100%';
+        if (todoPill) todoPill.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>' + uPctTodo + '%';
+        if (inprogPill) inprogPill.innerHTML = '<i class="bi bi-lightning-charge-fill me-1"></i>' + uPctInprog + '%';
+        if (donePill) donePill.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + uPctDone + '%';
+
+        if (segDone) segDone.style.width = uPctDone + '%';
+        if (segInprog) segInprog.style.width = uPctInprog + '%';
+        if (segTodo) segTodo.style.width = uPctTodo + '%';
+
+        if (barTodo) barTodo.style.width = uPctTodo + '%';
+        if (barInprog) barInprog.style.width = uPctInprog + '%';
+        if (barDone) barDone.style.width = uPctDone + '%';
+
+        if (totalFooterLabel) totalFooterLabel.innerHTML = '<i class="bi bi-person-badge me-1 text-primary"></i>' + displayName;
+        if (totalFooterVal) totalFooterVal.textContent = uTotal + ' việc';
+        if (todoFooterVal) todoFooterVal.textContent = uTodo + '/' + uTotal + ' việc';
+        if (inprogFooterVal) inprogFooterVal.textContent = uInprog + '/' + uTotal + ' việc';
+        if (doneFooterVal) doneFooterVal.textContent = uDone + '/' + uTotal + ' việc';
+
+        // Cập nhật Donut Chart
+        if (donutSubtitle) donutSubtitle.textContent = 'Thành viên: ' + displayName;
+        if (donutBadge) { donutBadge.textContent = displayName; donutBadge.className = 'badge bg-primary text-white rounded-pill fs-9'; }
+        if (donutCenterTotal) donutCenterTotal.textContent = uTotal;
+        if (donutCenterPct) donutCenterPct.textContent = uPctDone + '% Xong';
+
+        var duDone = uTotal > 0 ? (uDone * C / uTotal) : 0;
+        var duInprog = uTotal > 0 ? (uInprog * C / uTotal) : 0;
+        var duTodo = uTotal > 0 ? (uTodo * C / uTotal) : 0;
+
+        if (segDonutDone) { segDonutDone.style.strokeDasharray = duDone + ' ' + C; segDonutDone.style.strokeDashoffset = '0'; }
+        if (segDonutInprog) { segDonutInprog.style.strokeDasharray = duInprog + ' ' + C; segDonutInprog.style.strokeDashoffset = -duDone; }
+        if (segDonutTodo) { segDonutTodo.style.strokeDasharray = duTodo + ' ' + C; segDonutTodo.style.strokeDashoffset = -(duDone + duInprog); }
+
+        if (legDone) legDone.innerHTML = uDone + ' <span class="fs-9 text-muted fw-normal">(' + uPctDone + '%)</span>';
+        if (legInprog) legInprog.innerHTML = uInprog + ' <span class="fs-9 text-muted fw-normal">(' + uPctInprog + '%)</span>';
+        if (legTodo) legTodo.innerHTML = uTodo + ' <span class="fs-9 text-muted fw-normal">(' + uPctTodo + '%)</span>';
+        if (legOverdue) legOverdue.textContent = uOverdue + ' việc';
+
+        // Bảng Workload: Làm nổi bật dòng được chọn, làm mờ các dòng còn lại
+        document.querySelectorAll('#workloadTable tbody tr').forEach(function(row) {
+            if (row.getAttribute('data-user-id') == userId) {
+                row.classList.add('workload-row-active');
+                row.classList.remove('workload-row-dimmed');
+            } else {
+                row.classList.remove('workload-row-active');
+                row.classList.add('workload-row-dimmed');
+            }
+        });
+    };
+
+    // Xử lý khi click vào một hàng trong Bảng Workload
+    window.handleWorkloadRowClick = function(userId, userName) {
+        var activeAvatar = document.querySelector('.assignee-avatar-btn[data-user-id="' + userId + '"].active');
+        if (activeAvatar) {
+            window.filterClickUpTasks('ALL');
+        } else {
+            window.filterClickUpTasks('USER', userId, userName);
+        }
+    };
+
+    // Sắp xếp nhanh các cột trong Bảng Workload
+    var currentSortCol = -1;
+    var currentSortAsc = true;
+
+    window.sortWorkloadTable = function(colIdx) {
+        var table = document.getElementById('workloadTable');
+        if (!table) return;
+        var tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        var rows = Array.from(tbody.querySelectorAll('tr.workload-row'));
+
+        if (currentSortCol === colIdx) {
+            currentSortAsc = !currentSortAsc;
+        } else {
+            currentSortCol = colIdx;
+            currentSortAsc = false; // Mặc định giảm dần với các chỉ số số học
+            if (colIdx === 0) currentSortAsc = true; // A-Z với tên
+        }
+
+        // Cập nhật icon sort
+        for (var i = 0; i <= 7; i++) {
+            var icon = document.getElementById('sort-icon-' + i);
+            if (icon) {
+                if (i === colIdx) {
+                    icon.className = currentSortAsc ? 'bi bi-sort-up sort-icon text-primary opacity-100' : 'bi bi-sort-down sort-icon text-primary opacity-100';
+                } else {
+                    icon.className = 'bi bi-arrow-down-up sort-icon';
+                }
+            }
+        }
+
+        var capRank = { 'overload': 3, 'busy': 2, 'optimal': 1, 'ready': 0 };
+
+        rows.sort(function(a, b) {
+            var valA, valB;
+            if (colIdx === 0) {
+                valA = (a.getAttribute('data-name') || '').toLowerCase();
+                valB = (b.getAttribute('data-name') || '').toLowerCase();
+                return currentSortAsc ? valA.localeCompare(valB, 'vi') : valB.localeCompare(valA, 'vi');
+            } else if (colIdx === 1) {
+                valA = capRank[a.getAttribute('data-capacity')] || 0;
+                valB = capRank[b.getAttribute('data-capacity')] || 0;
+            } else if (colIdx === 2) {
+                valA = parseFloat(a.getAttribute('data-total')) || 0;
+                valB = parseFloat(b.getAttribute('data-total')) || 0;
+            } else if (colIdx === 3) {
+                valA = parseFloat(a.getAttribute('data-todo')) || 0;
+                valB = parseFloat(b.getAttribute('data-todo')) || 0;
+            } else if (colIdx === 4) {
+                valA = parseFloat(a.getAttribute('data-inprog')) || 0;
+                valB = parseFloat(b.getAttribute('data-inprog')) || 0;
+            } else if (colIdx === 5) {
+                valA = parseFloat(a.getAttribute('data-done')) || 0;
+                valB = parseFloat(b.getAttribute('data-done')) || 0;
+            } else if (colIdx === 6) {
+                valA = parseFloat(a.getAttribute('data-overdue')) || 0;
+                valB = parseFloat(b.getAttribute('data-overdue')) || 0;
+            } else if (colIdx === 7) {
+                valA = parseFloat(a.getAttribute('data-rate')) || 0;
+                valB = parseFloat(b.getAttribute('data-rate')) || 0;
+            }
+
+            return currentSortAsc ? (valA - valB) : (valB - valA);
+        });
+
+        rows.forEach(function(row) {
+            tbody.appendChild(row);
+        });
+    };
+
+    // Lọc nhanh theo tình trạng công suất tải việc (Workload Capacity Filters)
+    window.filterWorkloadCapacity = function(type, tabEl) {
+        var tabs = document.querySelectorAll('.workload-capacity-filter-btn');
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        if (tabEl) tabEl.classList.add('active');
+
+        var rows = document.querySelectorAll('#workloadTable tbody tr.workload-row');
+        var matched = 0;
+        rows.forEach(function(r) {
+            var cap = r.getAttribute('data-capacity') || '';
+            var overdue = parseInt(r.getAttribute('data-overdue') || '0', 10);
+            var inprog = parseInt(r.getAttribute('data-inprog') || '0', 10);
+
+            var show = false;
+            if (type === 'ALL') {
+                show = true;
+            } else if (type === 'OVERLOAD') {
+                show = (cap === 'overload' || overdue > 0);
+            } else if (type === 'BUSY') {
+                show = (cap === 'busy' || inprog >= 3);
+            } else if (type === 'OPTIMAL') {
+                show = (cap === 'optimal' || cap === 'ready');
+            }
+
+            r.style.display = show ? '' : 'none';
+            if (show) matched++;
+        });
+
+        var countBadge = document.getElementById('workload-member-count');
+        if (countBadge) {
+            countBadge.textContent = (type === 'ALL') ? (rows.length + ' thành viên') : (matched + '/' + rows.length + ' thành viên');
+        }
+    };
+
+    // Chuyển nhanh sang tab Tasks và lọc trực tiếp theo thành viên
+    window.viewMemberTasks = function(userId, userName, event) {
+        if (event) event.stopPropagation();
+        switchClickUpTab('tasks');
+        if (typeof filterClickUpTasks === 'function') {
+            filterClickUpTasks('USER', userId, userName);
+        }
+    };
+
+    // Tìm kiếm nhanh thành viên trong Bảng Workload
+    window.filterWorkloadTable = function(query) {
+        var q = (query || '').trim().toLowerCase();
+        var rows = document.querySelectorAll('#workloadTable tbody tr.workload-row');
+        var matched = 0;
+        rows.forEach(function(r) {
+            var name = (r.getAttribute('data-name') || '').toLowerCase();
+            var isMatch = !q || name.indexOf(q) > -1;
+            r.style.display = isMatch ? '' : 'none';
+            if (isMatch) matched++;
+        });
+        var countBadge = document.getElementById('workload-member-count');
+        if (countBadge) {
+            countBadge.textContent = q ? (matched + '/' + rows.length + ' người') : (rows.length + ' thành viên');
+        }
+    };
+
+    // Lọc theo khoảng thời gian hạn chót
+    window.filterTasksByTimeframe = function(timeframe, label) {
+        var labelEl = document.getElementById('currentTimeframeLabel');
+        if (labelEl) labelEl.textContent = label;
+
+        // Cập nhật active trong dropdown
+        var dropdownEl = document.getElementById('timeframeDropdownBtn');
+        if (dropdownEl && dropdownEl.parentElement) {
+            var menu = dropdownEl.parentElement.querySelector('.dropdown-menu');
+            if (menu) {
+                menu.querySelectorAll('.dropdown-item').forEach(function(item) {
+                    if (item.textContent.indexOf(label) > -1) item.classList.add('active');
+                    else item.classList.remove('active');
+                });
+            }
+        }
+
+        // Lọc trong danh sách List View & Board View
+        var parentRows = document.querySelectorAll('.clickup-task-row');
+        var now = new Date();
+        var startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - now.getDay());
+        var endOfWeek = new Date(now);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+        var matchCount = 0;
+        parentRows.forEach(function(pRow) {
+            var taskId = pRow.getAttribute('data-task-id');
+            var subRows = taskId ? document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]') : [];
+            var lastTd = pRow.querySelector('td:last-child');
+            var dueDateStr = lastTd ? lastTd.textContent.trim() : '';
+
+            var show = true;
+            if (timeframe === 'ALL') {
+                show = true;
+            } else if (timeframe === 'OVERDUE') {
+                var isOverdue = pRow.querySelector('.badge.bg-danger') || (dueDateStr && dueDateStr !== '—' && new Date(dueDateStr) < now && !pRow.classList.contains('group-done-row'));
+                show = !!isOverdue;
+            } else if (timeframe === 'THIS_WEEK' || timeframe === 'THIS_MONTH') {
+                if (!dueDateStr || dueDateStr === '—') {
+                    show = false;
+                } else {
+                    var d = new Date(dueDateStr);
+                    if (isNaN(d.getTime())) {
+                        show = true;
+                    } else if (timeframe === 'THIS_WEEK') {
+                        show = (d >= startOfWeek && d <= endOfWeek);
+                    } else if (timeframe === 'THIS_MONTH') {
+                        show = (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear());
+                    }
+                }
+            }
+
+            pRow.style.display = show ? '' : 'none';
+            subRows.forEach(function(sRow) {
+                sRow.style.display = show ? '' : 'none';
+            });
+            if (show) matchCount++;
+        });
+
+        // Banner phản hồi
+        var banner = document.getElementById('activeFilterBanner');
+        var bannerText = document.getElementById('activeFilterText');
+        if (timeframe !== 'ALL') {
+            if (banner && bannerText) {
+                bannerText.innerHTML = '<i class="bi bi-calendar3 text-primary me-1"></i> Đang lọc theo thời gian: <strong>' + label + '</strong> <span class="badge bg-primary text-white rounded-pill ms-1">' + matchCount + ' việc</span>';
+                banner.classList.remove('d-none');
+                banner.classList.add('d-flex');
+            }
+        } else {
+            if (banner) { banner.classList.add('d-none'); banner.classList.remove('d-flex'); }
         }
     };
 
