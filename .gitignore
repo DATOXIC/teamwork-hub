@@ -9,4 +9,8 @@ local.env.bat
 SLIDE_NOTE/
 LUYEN_TAP/
 .agents/skills/
+.claude/
+PRODUCT.md
+skills-lock.json
+
 
