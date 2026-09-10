@@ -11,6 +11,20 @@
             <!-- Favicon -->
             <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/images/favicon.png">
 
+            <!-- Anti-FOUC Theme Script (Khởi tạo Theme tức thời tránh chớp nháy) -->
+            <script>
+                (function() {
+                    try {
+                        var theme = localStorage.getItem('teamwork_theme') || localStorage.getItem('teamwork_report_theme');
+                        if (!theme) {
+                            theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                        }
+                        document.documentElement.setAttribute('data-theme', theme);
+                        document.documentElement.setAttribute('data-bs-theme', theme);
+                    } catch (e) {}
+                })();
+            </script>
+
             <!-- Google Font: Inter (Chuẩn ClickUp, Linear & Figma) -->
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

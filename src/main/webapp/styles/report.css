@@ -95,7 +95,10 @@
 /* --------------------------------------------------------------------------
    2. GLOBAL THEME APPLICATION & RESET
    -------------------------------------------------------------------------- */
-body {
+body,
+body.bg-light,
+[data-theme="dark"] body,
+[data-theme="dark"] body.bg-light {
     background-color: var(--rep-bg-canvas) !important;
     color: var(--rep-text-primary) !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;

@@ -61,7 +61,7 @@
         <!-- Cụm Nút Thao Tác Xuất / In + Nút Đổi Theme (Actions) -->
         <div class="d-flex align-items-center gap-2">
             <!-- Nút Bật / Tắt Giao Diện Sáng - Tối (Light / Dark Mode) -->
-            <button type="button" id="themeToggleBtn" onclick="toggleReportTheme()"
+            <button type="button" id="themeToggleBtn" onclick="toggleGlobalTheme()"
                 class="btn btn-sm rounded-pill px-3 py-1-5 fw-semibold d-flex align-items-center gap-2 theme-toggle-btn"
                 title="Chuyển đổi giao diện Sáng / Tối (Light / Dark Mode)"
                 aria-label="Chuyển đổi giao diện Sáng / Tối">
@@ -973,38 +973,24 @@ JAVASCRIPT TIỆN ÍCH: BỘ LỌC TƯƠNG TÁC + TÌM KIẾM + ĐỒNG BỘ KPI
     }
 
     // 2. Theme Management (Light / Dark Mode Switcher)
-    function initReportTheme() {
-        var savedTheme = localStorage.getItem('teamwork_report_theme');
-        if (!savedTheme) {
-            savedTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-        }
-        applyReportTheme(savedTheme);
-    }
-
     function toggleReportTheme() {
-        var current = document.documentElement.getAttribute('data-theme') || 'light';
-        var next = current === 'dark' ? 'light' : 'dark';
-        applyReportTheme(next);
-        try {
-            localStorage.setItem('teamwork_report_theme', next);
-        } catch (e) {
-            console.warn('localStorage error:', e);
+        if (typeof toggleGlobalTheme === 'function') {
+            toggleGlobalTheme();
+        } else {
+            var current = document.documentElement.getAttribute('data-theme') || 'light';
+            var next = (current === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            document.documentElement.setAttribute('data-bs-theme', next);
+            try {
+                localStorage.setItem('teamwork_theme', next);
+                localStorage.setItem('teamwork_report_theme', next);
+            } catch (e) {}
+            var btnText = document.getElementById('themeBtnText');
+            if (btnText) {
+                btnText.innerText = (next === 'dark') ? 'Chế độ sáng' : 'Chế độ tối';
+            }
         }
     }
-
-    function applyReportTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        document.documentElement.setAttribute('data-bs-theme', theme);
-        var btnText = document.getElementById('themeBtnText');
-        if (btnText) {
-            btnText.innerText = theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối';
-        }
-    }
-
-    // Khởi tạo trạng thái giao diện khi trang sẵn sàng
-    document.addEventListener('DOMContentLoaded', function() {
-        initReportTheme();
-    });
 </script>
 
 <jsp:include page="/includes/footer.jsp" />

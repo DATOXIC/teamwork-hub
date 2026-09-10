@@ -59,6 +59,16 @@
                         <li><button type="button" class="dropdown-item language-option" data-language="en">English</button></li>
                     </ul>
                 </div>
+
+                <!-- Nút chuyển đổi Giao diện Sáng / Tối toàn hệ thống (Global Theme Switcher) -->
+                <button type="button" id="globalThemeToggleBtn" onclick="toggleGlobalTheme()"
+                        class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 d-flex align-items-center gap-1 shadow-none"
+                        title="Chuyển đổi giao diện Sáng / Tối (Light / Dark Mode)"
+                        aria-label="Chuyển đổi giao diện Sáng / Tối">
+                    <i class="bi bi-moon-stars-fill" id="globalThemeIconMoon"></i>
+                    <i class="bi bi-sun-fill text-warning d-none" id="globalThemeIconSun"></i>
+                    <span id="globalThemeBtnText" class="d-none d-sm-inline fs-9 fw-semibold">Tối</span>
+                </button>
                 
                 <!-- =========================================================
                      1. QUẢ CHUÔNG THÔNG BÁO THỜI GIAN THỰC (NOTIFICATION BELL)
