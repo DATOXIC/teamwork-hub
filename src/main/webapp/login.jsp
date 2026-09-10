@@ -49,6 +49,16 @@
                         <span class="small" style="color: #94a3b8; font-size: 13px;">
                             <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCM-UTE Campus
                         </span>
+                        <div class="dropdown ms-3">
+                            <button class="btn btn-sm btn-outline-light rounded-pill px-2 py-1" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false" aria-label="Chọn ngôn ngữ">
+                                <i class="bi bi-translate"></i> <span id="languageCurrent">VI</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><button type="button" class="dropdown-item language-option" data-language="vi">Tiếng Việt</button></li>
+                                <li><button type="button" class="dropdown-item language-option" data-language="en">English</button></li>
+                            </ul>
+                        </div>
                     </div>
                 </nav>
 
@@ -477,6 +487,7 @@
                                 return valid;
                             }
                         </script>
+                        <script src="${pageContext.request.contextPath}/js/app.js"></script>
 
                         <script
                             src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
