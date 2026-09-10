@@ -8,5 +8,5 @@ env.bat
 local.env.bat
 SLIDE_NOTE/
 LUYEN_TAP/
-.agent/
+.agents/
 AGENTS.MD
