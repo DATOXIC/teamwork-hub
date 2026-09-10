@@ -46,6 +46,19 @@
 
             <!-- Right Side: Quả Chuông Thông Báo 🔔 + User Profile hoặc Login Button -->
             <div class="d-flex align-items-center gap-2 ms-auto">
+                <!-- Language selector -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 d-flex align-items-center gap-1"
+                            type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                            title="Chọn ngôn ngữ" aria-label="Chọn ngôn ngữ">
+                        <i class="bi bi-translate"></i>
+                        <span id="languageCurrent" class="d-none d-sm-inline">VI</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm mt-2" aria-labelledby="languageDropdown">
+                        <li><button type="button" class="dropdown-item language-option" data-language="vi">Tiếng Việt</button></li>
+                        <li><button type="button" class="dropdown-item language-option" data-language="en">English</button></li>
+                    </ul>
+                </div>
                 
                 <!-- =========================================================
                      1. QUẢ CHUÔNG THÔNG BÁO THỜI GIAN THỰC (NOTIFICATION BELL)
