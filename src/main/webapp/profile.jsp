@@ -5,15 +5,16 @@
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
 
-<div class="container py-4 my-auto">
+<main class="profile-page">
+<div class="container py-4 my-auto profile-shell">
 
     <!-- 1. Breadcrumb & Nút Quay lại -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <div class="profile-toolbar d-flex align-items-center justify-content-between mb-4">
         <a href="${pageContext.request.contextPath}/project?action=list" 
-           class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none d-flex align-items-center gap-1">
+           class="profile-back btn btn-sm rounded-pill px-3 shadow-none d-flex align-items-center gap-1">
             <i class="bi bi-arrow-left"></i> Quay lại Không gian làm việc
         </a>
-        <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 fs-8">
+        <span class="profile-visibility badge rounded-pill px-3 py-1 fs-8">
             <i class="bi bi-shield-check text-success me-1"></i> Hồ sơ chuyên môn công khai
         </span>
     </div>
@@ -25,17 +26,19 @@
     <!-- =========================================================================
          3. KHỐI 1: IDENTITY & CV HEADER (THÔNG TIN CHUYÊN MÔN)
          ========================================================================= -->
-    <div class="card border-0 bg-white shadow-sm rounded-4 p-4 p-md-5 mb-4">
+    <section class="profile-identity mb-4">
+        <div class="profile-identity-glow"></div>
         <div class="row align-items-center g-4">
             
             <!-- Cột Trái: Avatar & Tên & Chuyên Môn -->
             <div class="col-12 col-md-8 d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4 text-center text-sm-start">
-                <div class="avatar-lg rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-extrabold shadow-sm flex-shrink-0" 
+                <div class="profile-avatar avatar-lg rounded-circle text-white d-flex align-items-center justify-content-center fw-extrabold shadow-sm flex-shrink-0"
                      style="width: 84px; height: 84px; font-size: 2.2rem; background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);">
                     <i class="bi bi-person-fill"></i>
                 </div>
                 
                 <div class="flex-grow-1">
+                    <span class="profile-eyebrow">TeamWork Hub profile</span>
                     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-2 mb-1">
                         <h3 class="fw-extrabold text-dark mb-0">${profileUser.fullName}</h3>
                         <span class="badge bg-primary text-white rounded-pill px-3 py-1 fs-8">
@@ -55,7 +58,7 @@
                     </p>
                     
                     <!-- Bio giới thiệu bản thân -->
-                    <p class="text-secondary fs-7 mb-3" style="max-width: 600px;">
+                    <p class="profile-bio text-secondary fs-7 mb-3" style="max-width: 600px;">
                         ${not empty profileUser.bio ? profileUser.bio : 'Chưa có lời giới thiệu bản thân.'}
                     </p>
 
@@ -115,12 +118,12 @@
             </div>
 
         </div>
-    </div>
+    </section>
 
     <!-- =========================================================================
          4. KHỐI 2: BẢNG CHỈ SỐ NĂNG SUẤT REAL-TIME (DỮ LIỆU KHÁCH QUAN CSDL)
          ========================================================================= -->
-    <div class="mb-4">
+    <section class="profile-section mb-4">
         <h5 class="fw-bold text-dark mb-3">
             <i class="bi bi-graph-up-arrow text-primary me-2"></i>Chỉ số Năng suất & Cống hiến trên Hệ thống
         </h5>
@@ -184,12 +187,12 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <!-- =========================================================================
          5. KHỐI 3: DANH SÁCH DỰ ÁN ĐÃ & ĐANG THAM GIA
          ========================================================================= -->
-    <div class="mb-5">
+    <section class="profile-section mb-5">
         <h5 class="fw-bold text-dark mb-3">
             <i class="bi bi-kanban text-primary me-2"></i>Các Dự án đang tham gia (${userProjects.size()})
         </h5>
@@ -197,7 +200,7 @@
         <div class="row g-4">
             <c:forEach items="${userProjects}" var="p">
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div class="project-card h-100 d-flex flex-column justify-content-between">
+                    <div class="project-card profile-project-card h-100 d-flex flex-column justify-content-between">
                         <div>
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9 fw-bold">
@@ -233,9 +236,10 @@
                 </div>
             </c:if>
         </div>
-    </div>
+    </section>
 
 </div>
+</main>
 
 <!-- =========================================================================
      6. MODAL 1: CHỈNH SỬA HỒ SƠ CÁ NHÂN (DÀNH RIÊNG CHO CHÍNH CHỦ)

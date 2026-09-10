@@ -269,6 +269,10 @@ public class TaskServlet extends HttpServlet {
                 handleEditSubTask(request, response);
                 break;
 
+            case "updateDueDate":
+                handleUpdateTaskDueDate(request, response);
+                break;
+
             default:
                 response.sendRedirect(request.getContextPath() + "/project?action=list");
                 break;
@@ -1256,6 +1260,123 @@ public class TaskServlet extends HttpServlet {
             session.setAttribute("toastSuccess", "Đã cập nhật thông tin công việc [" + task.getTitle() + "] thành công!");
         }
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    /**
+     * Nghiệp vụ 7.1: AJAX / Direct: Cập nhật hạn chót (dueDate) của công việc lớn (ClickUp Calendar Drag & Drop / Quick Edit)
+     */
+    private void handleUpdateTaskDueDate(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        int taskId = safeParseInt(request.getParameter("taskId"), 0);
+        String dueDate = request.getParameter("dueDate");
+        boolean isAjax = isAjaxRequest(request);
+
+        if (projectId <= 0 || taskId <= 0) {
+            if (isAjax) {
+                sendJsonResponse(response, false, "Dữ liệu yêu cầu không hợp lệ!", null);
+                return;
+            }
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        User currentUser = getCurrentUser(request);
+        HttpSession session = request.getSession(false);
+        if (currentUser == null || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            if (isAjax) {
+                sendJsonResponse(response, false, "Bạn không có quyền thao tác trong dự án này!", null);
+                return;
+            }
+            if (session != null) session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
+
+        Task task = TaskDB.selectById(taskId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (task == null || project == null || task.getProjectId() != projectId) {
+            if (isAjax) {
+                sendJsonResponse(response, false, "Không tìm thấy công việc tương ứng!", null);
+                return;
+            }
+            if (session != null) session.setAttribute("toastError", "Không tìm thấy công việc tương ứng!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // BẤT BIẾN KHÓA: Task đã DONE không được sửa hạn chót
+        if ("DONE".equalsIgnoreCase(task.getStatus())) {
+            String errMsg = "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành (DONE) và được khóa vĩnh viễn, không thể dời hạn!";
+            if (isAjax) {
+                sendJsonResponse(response, false, errMsg, null);
+                return;
+            }
+            if (session != null) session.setAttribute("toastError", errMsg);
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        // Quyền sửa: PM hoặc Task Lead hoặc thành viên nếu dự án solo
+        boolean isPm = isProjectOwner(currentUser, project);
+        boolean isLead = isTaskLead(currentUser, task);
+        boolean isSolo = project.isSoloProject();
+
+        if (!isPm && !isLead && !isSolo) {
+            String errMsg = "Bạn không có quyền thay đổi hạn chót cho công việc này!";
+            if (isAjax) {
+                sendJsonResponse(response, false, errMsg, null);
+                return;
+            }
+            if (session != null) session.setAttribute("toastError", errMsg);
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
+        String cleanDueDate = (dueDate != null) ? dueDate.trim() : "";
+        // Validate định dạng YYYY-MM-DD nếu có ngày
+        if (!cleanDueDate.isEmpty()) {
+            try {
+                LocalDate.parse(cleanDueDate);
+            } catch (Exception e) {
+                String errMsg = "Định dạng ngày hạn chót không hợp lệ (cần YYYY-MM-DD)!";
+                if (isAjax) {
+                    sendJsonResponse(response, false, errMsg, null);
+                    return;
+                }
+                if (session != null) session.setAttribute("toastError", errMsg);
+                response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                return;
+            }
+        }
+
+        task.setDueDate(cleanDueDate);
+        TaskDB.update(task);
+
+        // Ghi nhận Activity Log
+        String logDesc = cleanDueDate.isEmpty()
+            ? ("Gỡ bỏ hạn chót của công việc: " + task.getTitle())
+            : ("Dời hạn chót công việc [" + task.getTitle() + "] sang ngày " + cleanDueDate);
+        ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_UPDATE_DEADLINE", "TASK", taskId, task.getTitle(), logDesc);
+
+        String successMsg = cleanDueDate.isEmpty()
+            ? "Đã gỡ hạn chót của công việc thành công!"
+            : ("Đã dời hạn chót công việc sang ngày " + cleanDueDate + "!");
+
+        if (isAjax) {
+            String dataJson = String.format(
+                "{\"taskId\":%d,\"dueDate\":\"%s\",\"title\":\"%s\"}",
+                task.getId(),
+                escapeJson(cleanDueDate),
+                escapeJson(task.getTitle())
+            );
+            sendJsonResponse(response, true, successMsg, dataJson);
+            return;
+        }
+
+        if (session != null) session.setAttribute("toastSuccess", successMsg);
+        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId + "&currentView=schedule");
     }
 
     /**

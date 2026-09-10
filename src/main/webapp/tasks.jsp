@@ -1645,149 +1645,294 @@
             </div><!-- /clickup-view-metrics -->
 
             <!-- =========================================================================
-                 TAB 5: SCHEDULE & DEADLINE TIMELINE VIEW (LỊCH TRÌNH THEO HẠN CHÓT)
+                 TAB 5: SCHEDULE & CALENDAR VIEW (CLICKUP 3.0 CALENDAR & DEADLINE ENGINE)
                  ========================================================================= -->
             <div id="clickup-view-schedule" class="clickup-view-pane ${currentView == 'schedule' ? '' : 'd-none'}">
-                <div class="d-flex align-items-center justify-content-between mb-3 px-1">
+                <!-- SCHEDULE HEADER & SUB-VIEW SWITCHER -->
+                <div class="d-flex align-items-center justify-content-between mb-3 px-1 flex-wrap gap-2">
                     <div>
-                        <h6 class="fw-bold text-dark mb-0 fs-7"><i class="bi bi-calendar-check me-1 text-primary"></i> Lịch Trình Công Việc (Schedule Timeline)</h6>
-                        <span class="fs-9 text-muted">Phân loại và giám sát thời hạn hoàn thành theo từng mốc thời gian</span>
+                        <h6 class="fw-bold text-dark mb-0 fs-7">
+                            <i class="bi bi-calendar-date text-primary me-1"></i> Lịch Trình & Cuốn Lịch Công Việc (ClickUp Calendar)
+                        </h6>
+                        <span class="fs-9 text-muted">Trực quan hóa kế hoạch theo Lưới Tháng, Lưới Tuần, và Kéo thả hạn chót tức thì</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
+                        <!-- Sub-view Mode Switcher: Cuốn Lịch vs 4 Cột Hạn Chót -->
+                        <div class="btn-group shadow-2xs" role="group" aria-label="Schedule View Switcher">
+                            <button type="button" class="btn btn-sm btn-light border px-2-5 py-1 rounded-start-pill fs-8 fw-semibold active" id="subViewToggleCalendar" title="Xem dạng Cuốn Lịch tương tác cao">
+                                <i class="bi bi-calendar3 me-1 text-primary"></i> Cuốn Lịch
+                            </button>
+                            <button type="button" class="btn btn-sm btn-light border px-2-5 py-1 rounded-end-pill fs-8 fw-semibold" id="subViewToggleLanes" title="Xem dạng 4 cột hạn chót">
+                                <i class="bi bi-kanban me-1 text-secondary"></i> 4 Cột Hạn Chót
+                            </button>
+                        </div>
+
                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fs-9" onclick="switchClickUpTab('tasks')">
-                            <i class="bi bi-arrow-left me-1"></i> Trở về Bảng công việc
+                            <i class="bi bi-arrow-left me-1"></i> Trở về Bảng việc
                         </button>
                     </div>
                 </div>
 
-                <div class="row g-3">
-                    <!-- 1. QUÁ HẠN (OVERDUE) -->
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="schedule-lane">
-                            <div class="schedule-lane-header">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-danger text-white rounded-pill px-2 py-0-5 fs-9">🔴 Quá hạn</span>
-                                </div>
-                                <span class="fs-9 text-danger fw-bold">Cần xử lý gấp</span>
+                <!-- SUB-VIEW 1: CUỐN LỊCH CLICKUP (CALENDAR WRAPPER) -->
+                <div id="clickupCalendarWrapper" class="clickup-calendar-wrapper">
+                    <!-- CALENDAR TOOLBAR -->
+                    <div class="calendar-toolbar">
+                        <div class="calendar-toolbar-left">
+                            <!-- View mode pills: Tháng / Tuần -->
+                            <div class="calendar-view-pills">
+                                <button type="button" class="calendar-pill-btn active" id="calBtnViewMonth">Tháng</button>
+                                <button type="button" class="calendar-pill-btn" id="calBtnViewWeek">Tuần</button>
                             </div>
-                            <c:set var="hasOverdue" value="false" />
-                            <c:forEach items="${allProjectTasks}" var="t">
-                                <c:if test="${t.isOverdue()}">
-                                    <c:set var="hasOverdue" value="true" />
-                                    <div class="schedule-card schedule-card-overdue" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
-                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
-                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-2 fs-9">Trễ ${t.daysRemaining < 0 ? -t.daysRemaining : 0} ngày</span>
-                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
-                                        </div>
-                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
-                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
-                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
-                                            <span class="text-danger fw-semibold"><i class="bi bi-calendar-x me-1"></i>${t.dueDate}</span>
-                                        </div>
-                                    </div>
-                                </c:if>
-                            </c:forEach>
-                            <c:if test="${!hasOverdue}">
-                                <div class="text-center py-4 text-muted fs-9 fst-italic">Không có công việc quá hạn 🎉</div>
-                            </c:if>
+
+                            <!-- Điều hướng thời gian -->
+                            <div class="calendar-nav-group">
+                                <button type="button" class="calendar-nav-btn" id="calBtnPrev" title="Thời gian trước"><i class="bi bi-chevron-left"></i></button>
+                                <button type="button" class="calendar-today-btn" id="calBtnToday">Hôm nay</button>
+                                <button type="button" class="calendar-nav-btn" id="calBtnNext" title="Thời gian kế"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+
+                            <!-- Hiển thị tháng/năm hiện hành -->
+                            <h5 class="calendar-title-text" id="calTitleDisplay">Tháng 9, 2026</h5>
+                        </div>
+
+                        <div class="calendar-toolbar-right">
+                            <!-- Switch Ẩn việc đã xong -->
+                            <div class="form-check form-switch mb-0 d-flex align-items-center gap-1-5" title="Ẩn các việc có trạng thái Đã xong (Done / Approved)">
+                                <input class="form-check-input" type="checkbox" role="switch" id="calFilterHideClosed">
+                                <label class="form-check-label fs-8 text-secondary user-select-none" for="calFilterHideClosed">Ẩn việc đã xong</label>
+                            </div>
+
+                            <!-- Lọc theo Người phụ trách -->
+                            <div class="calendar-filter-item">
+                                <select class="form-select form-select-sm fs-8 rounded-pill" id="calFilterAssignee" style="min-width: 140px;">
+                                    <option value="ALL">Tất cả thành viên</option>
+                                    <option value="MY_TASKS">Việc của tôi</option>
+                                    <c:choose>
+                                        <c:when test="${not empty userList}">
+                                            <c:forEach items="${userList}" var="u">
+                                                <option value="${u.id}"><c:out value="${u.fullName}" /></option>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:forEach items="${projectMemberList}" var="pm">
+                                                <option value="${pm.userId}"><c:out value="${pm.userName}" /></option>
+                                            </c:forEach>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </select>
+                            </div>
+
+                            <!-- Lọc theo Mức ưu tiên -->
+                            <div class="calendar-filter-item">
+                                <select class="form-select form-select-sm fs-8 rounded-pill" id="calFilterPriority" style="min-width: 120px;">
+                                    <option value="ALL">Mọi mức độ</option>
+                                    <option value="URGENT">Khẩn cấp</option>
+                                    <option value="HIGH">Cao</option>
+                                    <option value="MEDIUM">Trung bình</option>
+                                    <option value="LOW">Thấp</option>
+                                </select>
+                            </div>
+
+                            <!-- Nút bật/tắt Thanh bên Chưa xếp lịch -->
+                            <button type="button" class="calendar-sidebar-toggle-btn" id="calBtnToggleUnscheduled" title="Bật/tắt thanh bên việc chưa xếp lịch">
+                                <i class="bi bi-layout-sidebar-reverse me-1"></i> Chưa xếp lịch
+                                <span class="badge bg-secondary rounded-pill ms-1 fs-10" id="unscheduledCountBadge">0</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- 2. HÔM NAY (DUE TODAY) -->
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="schedule-lane">
-                            <div class="schedule-lane-header">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0-5 fs-9">🟠 Hôm nay</span>
+                    <!-- CALENDAR MAIN LAYOUT (BODY GRID + SIDEBAR) -->
+                    <div class="calendar-main-layout">
+                        <div class="calendar-body-area">
+                            <!-- LƯỚI THÁNG -->
+                            <div id="calendarMonthView">
+                                <div class="calendar-weekdays-header">
+                                    <div class="weekday-col">Thứ 2</div>
+                                    <div class="weekday-col">Thứ 3</div>
+                                    <div class="weekday-col">Thứ 4</div>
+                                    <div class="weekday-col">Thứ 5</div>
+                                    <div class="weekday-col">Thứ 6</div>
+                                    <div class="weekday-col">Thứ 7</div>
+                                    <div class="weekday-col is-weekend">Chủ Nhật</div>
                                 </div>
-                                <span class="fs-9 text-warning-emphasis fw-bold">Hạn trong ngày</span>
+                                <div class="calendar-month-grid" id="calendarMonthGrid"></div>
                             </div>
-                            <c:set var="hasToday" value="false" />
-                            <c:forEach items="${allProjectTasks}" var="t">
-                                <c:if test="${!t.isOverdue() && t.getDeadlineStatus() == 'DUE_TODAY'}">
-                                    <c:set var="hasToday" value="true" />
-                                    <div class="schedule-card schedule-card-today" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
-                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
-                                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 fs-9">Đến hạn hôm nay</span>
-                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
-                                        </div>
-                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
-                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
-                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
-                                            <span class="text-warning-emphasis fw-semibold"><i class="bi bi-clock-history me-1"></i>Hôm nay</span>
-                                        </div>
-                                    </div>
-                                </c:if>
-                            </c:forEach>
-                            <c:if test="${!hasToday}">
-                                <div class="text-center py-4 text-muted fs-9 fst-italic">Không có việc đến hạn hôm nay</div>
-                            </c:if>
-                        </div>
-                    </div>
 
-                    <!-- 3. TUẦN NÀY (THIS WEEK / DUE SOON) -->
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="schedule-lane">
-                            <div class="schedule-lane-header">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-primary text-white rounded-pill px-2 py-0-5 fs-9">🔵 Tuần này</span>
-                                </div>
-                                <span class="fs-9 text-primary fw-bold">1 - 7 ngày tới</span>
+                            <!-- LƯỚI TUẦN -->
+                            <div id="calendarWeekView" class="d-none">
+                                <div class="calendar-week-grid" id="calendarWeekGrid"></div>
                             </div>
-                            <c:set var="hasThisWeek" value="false" />
-                            <c:forEach items="${allProjectTasks}" var="t">
-                                <c:if test="${!t.isOverdue() && t.getDeadlineStatus() != 'DUE_TODAY' && t.isDueSoon()}">
-                                    <c:set var="hasThisWeek" value="true" />
-                                    <div class="schedule-card schedule-card-thisweek" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
-                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
-                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-2 fs-9">Còn ${t.daysRemaining} ngày</span>
-                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
-                                        </div>
-                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
-                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
-                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
-                                            <span class="text-primary fw-semibold"><i class="bi bi-calendar3 me-1"></i>${t.dueDate}</span>
-                                        </div>
-                                    </div>
-                                </c:if>
-                            </c:forEach>
-                            <c:if test="${!hasThisWeek}">
-                                <div class="text-center py-4 text-muted fs-9 fst-italic">Không có việc đến hạn tuần này</div>
-                            </c:if>
                         </div>
-                    </div>
 
-                    <!-- 4. SẮP TỚI & DÀI HẠN (UPCOMING & LATER) -->
-                    <div class="col-12 col-md-6 col-xl-3">
-                        <div class="schedule-lane">
-                            <div class="schedule-lane-header">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-success text-white rounded-pill px-2 py-0-5 fs-9">🟢 Sắp tới & Khác</span>
+                        <!-- THANH BÊN CÔNG VIỆC CHƯA XẾP LỊCH -->
+                        <div class="calendar-unscheduled-sidebar" id="calendarUnscheduledSidebar">
+                            <div class="calendar-sidebar-header">
+                                <div class="d-flex align-items-center gap-1-5">
+                                    <i class="bi bi-clock text-warning fs-8"></i>
+                                    <h6 class="fw-bold text-dark fs-8 mb-0">Chưa xếp lịch</h6>
                                 </div>
-                                <span class="fs-9 text-muted">Dài hạn / Đã xong</span>
+                                <button type="button" class="btn-close fs-10" id="calBtnCloseUnscheduled" aria-label="Đóng"></button>
                             </div>
-                            <c:set var="hasUpcoming" value="false" />
-                            <c:forEach items="${allProjectTasks}" var="t">
-                                <c:if test="${!t.isOverdue() && t.getDeadlineStatus() != 'DUE_TODAY' && !t.isDueSoon()}">
-                                    <c:set var="hasUpcoming" value="true" />
-                                    <div class="schedule-card schedule-card-upcoming" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
-                                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
-                                            <span class="badge ${t.statusBadgeClass} rounded-pill px-2 fs-9">${t.statusLabel}</span>
-                                            <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
-                                        </div>
-                                        <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
-                                        <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
-                                            <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
-                                            <span class="text-muted"><i class="bi bi-calendar me-1"></i>${not empty t.dueDate ? t.dueDate : 'Chưa đặt'}</span>
-                                        </div>
-                                    </div>
-                                </c:if>
-                            </c:forEach>
-                            <c:if test="${!hasUpcoming}">
-                                <div class="text-center py-4 text-muted fs-9 fst-italic">Chưa có công việc nào</div>
-                            </c:if>
+                            <div class="calendar-sidebar-body">
+                                <p class="fs-9 text-muted mb-2 lh-sm">Kéo thẻ việc và thả vào ô ngày trên lịch để thiết lập hạn chót</p>
+                                <div class="calendar-unscheduled-list" id="unscheduledTasksList"></div>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- SUB-VIEW 2: 4 CỘT HẠN CHÓT CŨ (DEADLINE LANES - GIỮ NGUYÊN HOÀN TOÀN) -->
+                <div id="scheduleLanesContainer" class="d-none">
+                    <div class="row g-3">
+                        <!-- 1. QUÁ HẠN (OVERDUE) -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <div class="schedule-lane">
+                                <div class="schedule-lane-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-danger text-white rounded-pill px-2 py-0-5 fs-9">🔴 Quá hạn</span>
+                                    </div>
+                                    <span class="fs-9 text-danger fw-bold">Cần xử lý gấp</span>
+                                </div>
+                                <c:set var="hasOverdue" value="false" />
+                                <c:forEach items="${allProjectTasks}" var="t">
+                                    <c:if test="${t.isOverdue()}">
+                                        <c:set var="hasOverdue" value="true" />
+                                        <div class="schedule-card schedule-card-overdue" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                                <span class="badge bg-danger-subtle text-danger rounded-pill px-2 fs-9">Trễ ${t.daysRemaining < 0 ? -t.daysRemaining : 0} ngày</span>
+                                                <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                            </div>
+                                            <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                            <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                                <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                                <span class="text-danger fw-semibold"><i class="bi bi-calendar-x me-1"></i>${t.dueDate}</span>
+                                            </div>
+                                        </div>
+                                    </c:if>
+                                </c:forEach>
+                                <c:if test="${!hasOverdue}">
+                                    <div class="text-center py-4 text-muted fs-9 fst-italic">Không có công việc quá hạn 🎉</div>
+                                </c:if>
+                            </div>
+                        </div>
+
+                        <!-- 2. HÔM NAY (DUE TODAY) -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <div class="schedule-lane">
+                                <div class="schedule-lane-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-0-5 fs-9">🟠 Hôm nay</span>
+                                    </div>
+                                    <span class="fs-9 text-warning-emphasis fw-bold">Hạn trong ngày</span>
+                                </div>
+                                <c:set var="hasToday" value="false" />
+                                <c:forEach items="${allProjectTasks}" var="t">
+                                    <c:if test="${!t.isOverdue() && t.getDeadlineStatus() == 'DUE_TODAY'}">
+                                        <c:set var="hasToday" value="true" />
+                                        <div class="schedule-card schedule-card-today" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                                <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 fs-9">Đến hạn hôm nay</span>
+                                                <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                            </div>
+                                            <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                            <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                                <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                                <span class="text-warning-emphasis fw-semibold"><i class="bi bi-clock-history me-1"></i>Hôm nay</span>
+                                            </div>
+                                        </div>
+                                    </c:if>
+                                </c:forEach>
+                                <c:if test="${!hasToday}">
+                                    <div class="text-center py-4 text-muted fs-9 fst-italic">Không có việc đến hạn hôm nay</div>
+                                </c:if>
+                            </div>
+                        </div>
+
+                        <!-- 3. TUẦN NÀY (THIS WEEK / DUE SOON) -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <div class="schedule-lane">
+                                <div class="schedule-lane-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary text-white rounded-pill px-2 py-0-5 fs-9">🔵 Tuần này</span>
+                                    </div>
+                                    <span class="fs-9 text-primary fw-bold">1 - 7 ngày tới</span>
+                                </div>
+                                <c:set var="hasThisWeek" value="false" />
+                                <c:forEach items="${allProjectTasks}" var="t">
+                                    <c:if test="${!t.isOverdue() && t.getDeadlineStatus() != 'DUE_TODAY' && t.isDueSoon()}">
+                                        <c:set var="hasThisWeek" value="true" />
+                                        <div class="schedule-card schedule-card-thisweek" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 fs-9">Còn ${t.daysRemaining} ngày</span>
+                                                <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                            </div>
+                                            <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                            <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                                <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                                <span class="text-primary fw-semibold"><i class="bi bi-calendar3 me-1"></i>${t.dueDate}</span>
+                                            </div>
+                                        </div>
+                                    </c:if>
+                                </c:forEach>
+                                <c:if test="${!hasThisWeek}">
+                                    <div class="text-center py-4 text-muted fs-9 fst-italic">Không có việc đến hạn tuần này</div>
+                                </c:if>
+                            </div>
+                        </div>
+
+                        <!-- 4. SẮP TỚI & DÀI HẠN (UPCOMING & LATER) -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <div class="schedule-lane">
+                                <div class="schedule-lane-header">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-success text-white rounded-pill px-2 py-0-5 fs-9">🟢 Sắp tới & Khác</span>
+                                    </div>
+                                    <span class="fs-9 text-muted">Dài hạn / Đã xong</span>
+                                </div>
+                                <c:set var="hasUpcoming" value="false" />
+                                <c:forEach items="${allProjectTasks}" var="t">
+                                    <c:if test="${!t.isOverdue() && t.getDeadlineStatus() != 'DUE_TODAY' && !t.isDueSoon()}">
+                                        <c:set var="hasUpcoming" value="true" />
+                                        <div class="schedule-card schedule-card-upcoming" onclick="openClickUpTask(${t.id})" style="cursor: pointer;">
+                                            <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                                                <span class="badge ${t.statusBadgeClass} rounded-pill px-2 fs-9">${t.statusLabel}</span>
+                                                <span class="badge ${t.priorityBadgeClass} rounded-pill px-2 fs-9">● ${t.priorityLabel}</span>
+                                            </div>
+                                            <div class="fw-bold text-dark fs-8 mb-1 text-truncate-2">${t.title}</div>
+                                            <div class="d-flex align-items-center justify-content-between fs-9 text-muted mt-2 pt-1 border-top">
+                                                <span><i class="bi bi-person me-1"></i>${not empty t.assigneeName ? t.assigneeName : 'Chưa giao'}</span>
+                                                <span class="text-muted"><i class="bi bi-calendar me-1"></i>${not empty t.dueDate ? t.dueDate : 'Chưa đặt'}</span>
+                                            </div>
+                                        </div>
+                                    </c:if>
+                                </c:forEach>
+                                <c:if test="${!hasUpcoming}">
+                                    <div class="text-center py-4 text-muted fs-9 fst-italic">Chưa có công việc nào</div>
+                                </c:if>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KHO DỮ LIỆU DOM ẨN: TRUYỀN DỮ LIỆU TASK SANG CALENDAR.JS AN TOÀN TUYỆT ĐỐI -->
+                <div id="calendarRawTasksStore" class="d-none">
+                    <c:forEach items="${allProjectTasks}" var="t">
+                        <div class="raw-calendar-task-item"
+                             data-id="${t.id}"
+                             data-project-id="${t.projectId}"
+                             data-title="<c:out value='${t.title}' />"
+                             data-status="${t.status}"
+                             data-status-label="<c:out value='${t.statusLabel}' />"
+                             data-status-badge="${t.statusBadgeClass}"
+                             data-priority="${t.priority}"
+                             data-priority-label="<c:out value='${t.priorityLabel}' />"
+                             data-priority-badge="${t.priorityBadgeClass}"
+                             data-due-date="${not empty t.dueDate ? t.dueDate : ''}"
+                             data-assignee-id="${t.assigneeId}"
+                             data-assignee-name="<c:out value='${t.assigneeName}' />"
+                             data-is-overdue="${t.isOverdue()}">
+                        </div>
+                    </c:forEach>
                 </div>
             </div><!-- /clickup-view-schedule -->
 
@@ -2009,6 +2154,12 @@
         if (tab === 'chat') {
             var chatBox = document.getElementById('clickupChatMessages');
             if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        if (tab === 'schedule') {
+            if (window.refreshClickUpCalendar) {
+                window.refreshClickUpCalendar();
+            }
         }
     }
 
@@ -5174,5 +5325,7 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
         <!-- UI-04: Global App JS (Floating Toast System + Utilities) -->
         <script src="${pageContext.request.contextPath}/js/app.js"></script>
+        <!-- CLICKUP 3.0 CALENDAR & SCHEDULE ENGINE (VANILLA JS) -->
+        <script src="${pageContext.request.contextPath}/js/calendar.js?v=<%= System.currentTimeMillis() %>"></script>
     </body>
 </html>
