@@ -3665,4 +3665,183 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .clickup-group-add-btn:hover {
     background-color: rgba(0, 0, 0, 0.08);
     color: #0f172a;
+}
+
+/* ==========================================================================
+   Metrics & Stat Cards (Trang Thống kê - UI/UX Pro Max)
+   ========================================================================== */
+.metrics-stat-card {
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.85);
+    border-radius: var(--radius-lg, 14px);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+    padding: 1.15rem 1.25rem;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.metrics-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+    border-color: rgba(203, 213, 225, 0.95);
+}
+
+.metrics-stat-card.card-total:hover {
+    border-color: rgba(57, 88, 134, 0.4);
+}
+.metrics-stat-card.card-todo:hover {
+    border-color: rgba(100, 116, 139, 0.45);
+}
+.metrics-stat-card.card-inprog:hover {
+    border-color: rgba(2, 132, 199, 0.45);
+}
+.metrics-stat-card.card-done:hover {
+    border-color: rgba(16, 185, 129, 0.45);
+}
+
+.metrics-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.metrics-stat-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--brand-text-muted, #64748b);
+    line-height: 1.2;
+}
+
+.metrics-icon-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.metrics-stat-card:hover .metrics-icon-badge {
+    transform: scale(1.08);
+}
+
+.metrics-icon-badge.badge-total {
+    background-color: rgba(57, 88, 134, 0.1);
+    color: #395886;
+}
+
+.metrics-icon-badge.badge-todo {
+    background-color: rgba(100, 116, 139, 0.12);
+    color: #475569;
+}
+
+.metrics-icon-badge.badge-inprog {
+    background-color: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+}
+
+.metrics-icon-badge.badge-done {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.metrics-stat-body {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 0.65rem;
+}
+
+.metrics-stat-number {
+    font-size: 1.85rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+}
+
+.metrics-pct-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.725rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    line-height: 1.2;
+}
+
+.metrics-pct-pill.pill-total {
+    background-color: rgba(57, 88, 134, 0.08);
+    color: #395886;
+    border: 1px solid rgba(57, 88, 134, 0.15);
+}
+
+.metrics-pct-pill.pill-todo {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.metrics-pct-pill.pill-inprog {
+    background-color: rgba(2, 132, 199, 0.08);
+    color: #0284c7;
+    border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.metrics-pct-pill.pill-done {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Mini Progress Bar Track & Segments */
+.metrics-progress-track {
+    height: 6px;
+    background-color: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.metrics-progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metrics-progress-segment {
+    height: 100%;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.metrics-progress-segment:first-child {
+    border-top-left-radius: 9999px;
+    border-bottom-left-radius: 9999px;
+}
+.metrics-progress-segment:last-child {
+    border-top-right-radius: 9999px;
+    border-bottom-right-radius: 9999px;
+}
+
+.metrics-stat-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.metrics-stat-footer-sub {
+    font-size: 0.725rem;
+    font-weight: 600;
 }

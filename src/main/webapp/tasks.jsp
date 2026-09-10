@@ -1543,41 +1543,139 @@
                     </div>
                 </div>
 
-                <!-- 4 Stat Summary Cards -->
+                <!-- 4 Stat Summary Cards (UI/UX Pro Max) -->
+                <c:set var="mTodoCount" value="${not empty todoTasks ? todoTasks.size() : 0}" />
+                <c:set var="mInProgCount" value="${not empty inProgressTasks ? inProgressTasks.size() : 0}" />
+                <c:set var="mDoneCount" value="${not empty doneTasks ? doneTasks.size() : 0}" />
+                <c:set var="mTotalCount" value="${mTodoCount + mInProgCount + mDoneCount}" />
+
+                <c:set var="mPctDone" value="${mTotalCount > 0 ? Math.round((mDoneCount * 100.0) / mTotalCount) : 0}" />
+                <c:set var="mPctInProg" value="${mTotalCount > 0 ? Math.round((mInProgCount * 100.0) / mTotalCount) : 0}" />
+                <c:set var="mPctTodo" value="${mTotalCount > 0 ? (100 - mPctDone - mPctInProg) : 0}" />
+                <c:if test="${mPctTodo < 0}"><c:set var="mPctTodo" value="0" /></c:if>
+
                 <div class="row g-3 mb-4">
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
-                            <div class="fs-9 text-muted text-uppercase fw-bold mb-1">Tổng công việc</div>
-                            <div class="fs-3 fw-bold text-dark">${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</div>
-                            <div class="fs-9 text-secondary mt-1">Toàn bộ dự án</div>
+                    <!-- Card 1: Tổng công việc -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="metrics-stat-card card-total h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="metrics-card-header">
+                                    <span class="metrics-stat-title">Tổng công việc</span>
+                                    <div class="metrics-icon-badge badge-total" title="Tổng số công việc dự án">
+                                        <i class="bi bi-stack"></i>
+                                    </div>
+                                </div>
+                                <div class="metrics-stat-body">
+                                    <div class="metrics-stat-number text-dark">${mTotalCount}</div>
+                                    <span class="metrics-pct-pill pill-total">
+                                        <i class="bi bi-pie-chart-fill me-1"></i>100%
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="metrics-progress-track d-flex" title="Tiến độ tổng thể: ${mDoneCount} Hoàn thành (${mPctDone}%), ${mInProgCount} Đang làm (${mPctInProg}%), ${mTodoCount} Cần làm (${mPctTodo}%)">
+                                    <c:choose>
+                                        <c:when test="${mTotalCount > 0}">
+                                            <div class="metrics-progress-segment bg-success" style="width: ${mPctDone}%;" title="Đã xong: ${mPctDone}%"></div>
+                                            <div class="metrics-progress-segment bg-primary" style="width: ${mPctInProg}%;" title="Đang làm: ${mPctInProg}%"></div>
+                                            <div class="metrics-progress-segment bg-secondary" style="width: ${mPctTodo}%; opacity: 0.5;" title="Cần làm: ${mPctTodo}%"></div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="metrics-progress-fill bg-light" style="width: 100%;"></div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                                <div class="metrics-stat-footer">
+                                    <span class="text-muted"><i class="bi bi-people-fill me-1 text-secondary"></i>${memberCount} thành viên</span>
+                                    <span class="metrics-stat-footer-sub text-dark">Toàn bộ dự án</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
-                            <div class="fs-9 text-muted text-uppercase fw-bold mb-1">Cần làm (To Do)</div>
-                            <div class="fs-3 fw-bold text-secondary">${todoTasks.size()}</div>
-                            <div class="fs-9 text-muted mt-1">Chưa bắt đầu thực hiện</div>
+
+                    <!-- Card 2: Cần làm (To Do) -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="metrics-stat-card card-todo h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="metrics-card-header">
+                                    <span class="metrics-stat-title">Cần làm (To Do)</span>
+                                    <div class="metrics-icon-badge badge-todo" title="Công việc chưa bắt đầu">
+                                        <i class="bi bi-card-checklist"></i>
+                                    </div>
+                                </div>
+                                <div class="metrics-stat-body">
+                                    <div class="metrics-stat-number text-secondary">${mTodoCount}</div>
+                                    <span class="metrics-pct-pill pill-todo">
+                                        <i class="bi bi-hourglass-split me-1"></i>${mPctTodo}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="metrics-progress-track" title="${mTodoCount} / ${mTotalCount} công việc (${mPctTodo}%)">
+                                    <div class="metrics-progress-fill bg-secondary" style="width: ${mPctTodo}%;"></div>
+                                </div>
+                                <div class="metrics-stat-footer">
+                                    <span class="text-muted">Chưa bắt đầu</span>
+                                    <span class="metrics-stat-footer-sub text-secondary">${mTodoCount}/${mTotalCount} việc (${mPctTodo}%)</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
-                            <div class="fs-9 text-primary text-uppercase fw-bold mb-1">Đang làm (In Progress)</div>
-                            <div class="fs-3 fw-bold text-primary">${inProgressTasks.size()}</div>
-                            <div class="fs-9 text-muted mt-1">Đang xử lý tích cực</div>
+
+                    <!-- Card 3: Đang làm (In Progress) -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="metrics-stat-card card-inprog h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="metrics-card-header">
+                                    <span class="metrics-stat-title text-primary">Đang làm</span>
+                                    <div class="metrics-icon-badge badge-inprog" title="Công việc đang xử lý tích cực">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </div>
+                                </div>
+                                <div class="metrics-stat-body">
+                                    <div class="metrics-stat-number text-primary">${mInProgCount}</div>
+                                    <span class="metrics-pct-pill pill-inprog">
+                                        <i class="bi bi-lightning-charge-fill me-1"></i>${mPctInProg}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="metrics-progress-track" title="${mInProgCount} / ${mTotalCount} công việc (${mPctInProg}%)">
+                                    <div class="metrics-progress-fill bg-primary" style="width: ${mPctInProg}%;"></div>
+                                </div>
+                                <div class="metrics-stat-footer">
+                                    <span class="text-muted">Đang triển khai</span>
+                                    <span class="metrics-stat-footer-sub text-primary">${mInProgCount}/${mTotalCount} việc (${mPctInProg}%)</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 shadow-2xs rounded-3 p-3 bg-white">
-                            <div class="fs-9 text-success text-uppercase fw-bold mb-1">Đã hoàn thành</div>
-                            <div class="fs-3 fw-bold text-success">${doneTasks.size()}</div>
-                            <div class="fs-9 text-success mt-1">
-                                <c:set var="totalT" value="${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}" />
-                                <c:choose>
-                                    <c:when test="${totalT > 0}">
-                                        Đạt ${Math.round((doneTasks.size() * 100.0) / totalT)}% tiến độ
-                                    </c:when>
-                                    <c:otherwise>0%</c:otherwise>
-                                </c:choose>
+
+                    <!-- Card 4: Đã hoàn thành (Done) -->
+                    <div class="col-12 col-sm-6 col-xl-3">
+                        <div class="metrics-stat-card card-done h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="metrics-card-header">
+                                    <span class="metrics-stat-title text-success">Đã hoàn thành</span>
+                                    <div class="metrics-icon-badge badge-done" title="Công việc đã hoàn tất nghiệm thu">
+                                        <i class="bi bi-check2-circle"></i>
+                                    </div>
+                                </div>
+                                <div class="metrics-stat-body">
+                                    <div class="metrics-stat-number text-success">${mDoneCount}</div>
+                                    <span class="metrics-pct-pill pill-done">
+                                        <i class="bi bi-check-circle-fill me-1"></i>${mPctDone}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="metrics-progress-track" title="${mDoneCount} / ${mTotalCount} công việc (${mPctDone}%)">
+                                    <div class="metrics-progress-fill bg-success" style="width: ${mPctDone}%;"></div>
+                                </div>
+                                <div class="metrics-stat-footer">
+                                    <span class="text-success fw-medium"><i class="bi bi-shield-check me-1"></i>Đã nghiệm thu</span>
+                                    <span class="metrics-stat-footer-sub text-success fw-bold">${mDoneCount}/${mTotalCount} việc (${mPctDone}%)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
