@@ -1,221 +1,455 @@
 /* ==========================================================================
-   TEAMWORK HUB — STYLESHEET DÀNH CHO TRANG BÁO CÁO TIẾN ĐỘ DỰ ÁN
+   TEAMWORK HUB — STYLESHEET BÁO CÁO TIẾN ĐỘ DỰ ÁN (STYLE C: LINEAR / DARK TECH)
    File: styles/report.css
-   Mục đích: Tách toàn bộ định dạng và CSS in ấn A4 ra khỏi file JSP
+   Mục đích: Thiết kế tối giản, viền sợi tóc (hairline), typography chuẩn quang học,
+   thanh điều hướng hít trần (sticky glassmorphic), bộ lọc segmented control,
+   hỗ trợ đầy đủ Light / Dark Mode và chuẩn in ấn A4 portrait.
    ========================================================================== */
 
-/* 1. Header Banner Báo Cáo */
+/* --------------------------------------------------------------------------
+   1. DESIGN TOKENS (LIGHT & DARK MODE)
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme="light"] {
+    --rep-bg-canvas: #f8fafc;
+    --rep-bg-surface: #ffffff;
+    --rep-bg-surface-elevated: #ffffff;
+    --rep-bg-subtle: #f1f5f9;
+    --rep-bg-nav: rgba(255, 255, 255, 0.88);
+    
+    --rep-border-hairline: rgba(15, 23, 42, 0.08);
+    --rep-border-subtle: #e2e8f0;
+    --rep-border-focus: #6366f1;
+    
+    --rep-text-primary: #0f172a;
+    --rep-text-secondary: #475569;
+    --rep-text-muted: #64748b;
+    --rep-text-subtle: #94a3b8;
+    
+    --rep-accent: #6366f1;           /* Linear Indigo */
+    --rep-accent-hover: #4f46e5;
+    --rep-accent-subtle: rgba(99, 102, 241, 0.1);
+    
+    --rep-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --rep-hover-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    
+    /* Semantic Status Colors */
+    --rep-status-done-bg: rgba(16, 185, 129, 0.1);
+    --rep-status-done-text: #059669;
+    --rep-status-done-dot: #10b981;
+    
+    --rep-status-prog-bg: rgba(59, 130, 246, 0.1);
+    --rep-status-prog-text: #2563eb;
+    --rep-status-prog-dot: #3b82f6;
+    
+    --rep-status-warn-bg: rgba(245, 158, 11, 0.1);
+    --rep-status-warn-text: #d97706;
+    --rep-status-warn-dot: #f59e0b;
+    
+    --rep-status-dang-bg: rgba(239, 68, 68, 0.1);
+    --rep-status-dang-text: #dc2626;
+    --rep-status-dang-dot: #ef4444;
+}
+
+[data-theme="dark"] {
+    --rep-bg-canvas: #090d16;
+    --rep-bg-surface: #111726;
+    --rep-bg-surface-elevated: #161e31;
+    --rep-bg-subtle: #172033;
+    --rep-bg-nav: rgba(17, 23, 38, 0.85);
+    
+    --rep-border-hairline: rgba(255, 255, 255, 0.08);
+    --rep-border-subtle: rgba(255, 255, 255, 0.12);
+    --rep-border-focus: #818cf8;
+    
+    --rep-text-primary: #f8fafc;
+    --rep-text-secondary: #cbd5e1;
+    --rep-text-muted: #94a3b8;
+    --rep-text-subtle: #64748b;
+    
+    --rep-accent: #818cf8;
+    --rep-accent-hover: #a5b4fc;
+    --rep-accent-subtle: rgba(129, 140, 248, 0.15);
+    
+    --rep-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --rep-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+    
+    /* Semantic Status Colors (Dark Mode Glow) */
+    --rep-status-done-bg: rgba(16, 185, 129, 0.16);
+    --rep-status-done-text: #34d399;
+    --rep-status-done-dot: #10b981;
+    
+    --rep-status-prog-bg: rgba(59, 130, 246, 0.16);
+    --rep-status-prog-text: #60a5fa;
+    --rep-status-prog-dot: #3b82f6;
+    
+    --rep-status-warn-bg: rgba(245, 158, 11, 0.16);
+    --rep-status-warn-text: #fbbf24;
+    --rep-status-warn-dot: #f59e0b;
+    
+    --rep-status-dang-bg: rgba(239, 68, 68, 0.16);
+    --rep-status-dang-text: #f87171;
+    --rep-status-dang-dot: #ef4444;
+}
+
+/* --------------------------------------------------------------------------
+   2. GLOBAL THEME APPLICATION & RESET
+   -------------------------------------------------------------------------- */
+body {
+    background-color: var(--rep-bg-canvas) !important;
+    color: var(--rep-text-primary) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.report-app-container {
+    color: var(--rep-text-primary);
+}
+
+/* Biến đổi các thành phần Bootstrap theo Dark Mode */
+[data-theme="dark"] .bg-white {
+    background-color: var(--rep-bg-surface) !important;
+    color: var(--rep-text-primary) !important;
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: var(--rep-bg-subtle) !important;
+    color: var(--rep-text-secondary) !important;
+}
+
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-start,
+[data-theme="dark"] .border-end {
+    border-color: var(--rep-border-hairline) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: var(--rep-text-primary) !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: var(--rep-text-muted) !important;
+}
+
+[data-theme="dark"] .text-secondary {
+    color: var(--rep-text-secondary) !important;
+}
+
+/* --------------------------------------------------------------------------
+   3. STICKY GLASSMORPHIC SUB-NAV (THANH ĐIỀU HƯỚNG NỔI HÍT TRẦN)
+   -------------------------------------------------------------------------- */
+.report-sticky-nav {
+    position: sticky;
+    top: 56px;
+    z-index: 1010;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background-color: var(--rep-bg-nav);
+    border-bottom: 1px solid var(--rep-border-hairline);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-sticky-nav.is-stuck {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.report-nav-pill-group {
+    display: inline-flex;
+    align-items: center;
+    background: var(--rep-bg-subtle);
+    border-radius: 9999px;
+    padding: 3px;
+    border: 1px solid var(--rep-border-hairline);
+}
+
+.report-nav-pill {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 9999px;
+    color: var(--rep-text-secondary);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.report-nav-pill:hover {
+    color: var(--rep-text-primary);
+}
+
+.report-nav-pill.active {
+    background-color: var(--rep-bg-surface);
+    color: var(--rep-accent);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Theme Toggle Button (Light / Dark Switcher) */
+.theme-toggle-btn {
+    border: 1px solid var(--rep-border-hairline) !important;
+    background-color: var(--rep-bg-surface) !important;
+    color: var(--rep-text-secondary) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    cursor: pointer;
+}
+
+.theme-toggle-btn:hover {
+    color: var(--rep-text-primary) !important;
+    background-color: var(--rep-bg-subtle) !important;
+    border-color: var(--rep-border-subtle) !important;
+    transform: scale(1.02);
+}
+
+[data-theme="dark"] .theme-icon-moon { display: none !important; }
+[data-theme="dark"] .theme-icon-sun { display: inline-block !important; color: #fbbf24; }
+[data-theme="light"] .theme-icon-moon,
+:root:not([data-theme="dark"]) .theme-icon-moon { display: inline-block !important; color: #6366f1; }
+[data-theme="light"] .theme-icon-sun,
+:root:not([data-theme="dark"]) .theme-icon-sun { display: none !important; }
+
+/* --------------------------------------------------------------------------
+   4. EXECUTIVE HERO BANNER (.report-header-badge)
+   -------------------------------------------------------------------------- */
 .report-header-badge {
-    background: linear-gradient(135deg, #1E2D42 0%, #293E5C 60%, #395886 100%);
+    background: linear-gradient(135deg, #090d16 0%, #111726 50%, #1e1b4b 100%);
     color: #ffffff;
     border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(30, 45, 66, 0.12);
+    padding: 26px 28px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.report-header-badge::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 420px;
+    height: 420px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .report-project-desc {
-    max-width: 750px;
+    max-width: 780px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.7);
 }
 
-/* 2. Thẻ Chỉ Số KPI (Executive Summary Cards) */
+/* --------------------------------------------------------------------------
+   5. HEALTH STATUS INDICATOR WITH LIVE PULSE DOT
+   -------------------------------------------------------------------------- */
+.badge-health-healthy {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.badge-health-warning {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.badge-health-critical {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.pulse-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.pulse-dot-healthy {
+    background-color: #10b981;
+    box-shadow: 0 0 8px #10b981;
+}
+
+.pulse-dot-warning {
+    background-color: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+}
+
+.pulse-dot-critical {
+    background-color: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* --------------------------------------------------------------------------
+   6. LINEAR-STYLE KPI METRIC CARDS
+   -------------------------------------------------------------------------- */
 .report-stat-card {
-    background: #ffffff;
-    border-radius: 14px;
-    border: 1px solid #D5DEEF;
-    padding: 16px 20px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: var(--rep-bg-surface);
+    border-radius: 12px;
+    border: 1px solid var(--rep-border-hairline);
+    padding: 18px 20px;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+    box-shadow: var(--rep-card-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.report-stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2.5px;
+    background: transparent;
+    transition: background-color 0.2s ease;
 }
 
 .report-stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(57, 88, 134, 0.08);
-    border-color: #8AAEE0;
+    box-shadow: var(--rep-hover-shadow);
+    border-color: var(--rep-border-subtle);
+}
+
+.report-stat-card:focus-visible {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    border-color: var(--rep-accent);
+}
+
+.report-stat-card.active {
+    border-color: var(--rep-accent) !important;
+    background: var(--rep-bg-surface-elevated) !important;
+    box-shadow: 0 0 0 1px var(--rep-accent), var(--rep-hover-shadow) !important;
+}
+
+.report-stat-card.active::after {
+    background: var(--rep-accent);
 }
 
 .report-stat-number {
-    font-size: 1.75rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: #1E2D42;
+    font-size: 2.125rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--rep-text-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
 }
 
 .report-card-title {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: #627D98;
+    letter-spacing: 0.06em;
+    color: var(--rep-text-muted);
     font-weight: 700;
 }
 
-/* 3. Thanh Tiến Độ (Progress Bars) */
-.progress-bar-custom {
-    height: 12px;
-    border-radius: 999px;
-    background-color: #E6EDF8;
-    overflow: hidden;
-}
-
-.progress-mini {
-    height: 6px;
-}
-
-/* 4. Bảng Dữ Liệu Báo Cáo */
-.report-table th {
-    background-color: #f8fafc;
-    color: #475569;
-    font-weight: 700;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    border-bottom: 2px solid #e2e8f0;
-    vertical-align: middle;
-}
-
-.report-table td {
-    vertical-align: middle;
-    font-size: 0.85rem;
-}
-
-.report-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
-}
-
-.report-desc-truncate {
-    max-width: 320px;
-}
-
-.col-w-id {
-    width: 50px;
-}
-
-.col-w-progress {
-    width: 140px;
-}
-
-.min-w-rate {
-    min-width: 35px;
-}
-
-/* 5. Khung Ký Xác Nhận Báo Cáo */
-.signature-box {
-    border-top: 1px dashed #94a3b8;
-    padding-top: 8px;
-    margin-top: 60px;
-    text-align: center;
-    font-size: 0.85rem;
-}
-
-/* 6. Executive Health Indicators */
-.badge-health-healthy {
-    background-color: #ecfdf5 !important;
-    color: #047857 !important;
-    border: 1px solid #a7f3d0 !important;
-}
-
-.badge-health-warning {
-    background-color: #fffbeb !important;
-    color: #b45309 !important;
-    border: 1px solid #fde68a !important;
-}
-
-.badge-health-critical {
-    background-color: #fff1f2 !important;
-    color: #be123c !important;
-    border: 1px solid #fecdd3 !important;
-}
-
-/* 7. Blocker & Risk Spotlight Cards */
+/* --------------------------------------------------------------------------
+   7. BLOCKER & RISK SPOTLIGHT
+   -------------------------------------------------------------------------- */
 .blocker-spotlight-card {
-    border-left: 4px solid #ef4444 !important;
-    background-color: #fffafb;
-    border-radius: 14px;
-    border-top: 1px solid #fee2e2;
-    border-right: 1px solid #fee2e2;
-    border-bottom: 1px solid #fee2e2;
-    padding: 16px 20px;
+    border-left: 3.5px solid #ef4444 !important;
+    background-color: var(--rep-bg-surface);
+    border-radius: 12px;
+    border-top: 1px solid var(--rep-border-hairline);
+    border-right: 1px solid var(--rep-border-hairline);
+    border-bottom: 1px solid var(--rep-border-hairline);
+    padding: 18px 22px;
+    box-shadow: var(--rep-card-shadow);
 }
 
 .blocker-item {
-    background-color: #ffffff;
-    border: 1px solid #fecdd3;
+    background-color: var(--rep-bg-subtle);
+    border: 1px solid var(--rep-border-hairline);
     border-radius: 10px;
-    padding: 10px 14px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 14px 16px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .blocker-item:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);
+    box-shadow: var(--rep-hover-shadow);
+    border-color: rgba(239, 68, 68, 0.4);
 }
 
 .no-blocker-card {
-    background-color: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    color: #15803d;
-    border-radius: 14px;
-    padding: 14px 20px;
+    background-color: var(--rep-status-done-bg);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: var(--rep-status-done-text);
+    border-radius: 12px;
+    padding: 16px 20px;
 }
 
-/* 8. Interactive Filter Bar & Controls */
+/* --------------------------------------------------------------------------
+   8. SEGMENTED CAPSULE FILTER & SEARCH BAR
+   -------------------------------------------------------------------------- */
 .report-filter-bar {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    background-color: var(--rep-bg-surface);
+    border: 1px solid var(--rep-border-hairline);
+    border-radius: 14px;
     padding: 8px 12px;
+    box-shadow: var(--rep-card-shadow);
+}
+
+.segmented-capsule-track {
+    display: inline-flex;
+    align-items: center;
+    background: var(--rep-bg-subtle);
+    border-radius: 9999px;
+    padding: 3px;
+    border: 1px solid var(--rep-border-hairline);
+    gap: 2px;
 }
 
 .filter-tab-btn {
     border: none;
     background: transparent;
-    color: #64748b;
-    font-size: 0.8rem;
+    color: var(--rep-text-muted);
+    font-size: 0.8125rem;
     font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 999px;
-    transition: all 0.2s ease;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    user-select: none;
 }
 
 .filter-tab-btn:hover {
-    color: #1E2D42;
-    background-color: #F0F3FA;
+    color: var(--rep-text-primary);
 }
 
 .filter-tab-btn.active {
-    background-color: #395886;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(57, 88, 134, 0.25);
+    background-color: var(--rep-bg-surface);
+    color: var(--rep-text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--rep-border-hairline);
 }
 
 .filter-tab-btn .badge {
     font-size: 0.7rem;
-    padding: 2px 6px;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    background-color: var(--rep-bg-canvas);
+    color: var(--rep-text-muted);
+    transition: all 0.15s ease;
 }
 
 .filter-tab-btn.active .badge {
-    background-color: rgba(255, 255, 255, 0.2) !important;
-    color: #ffffff !important;
-    border: none !important;
-}
-
-.report-search-input {
-    border-radius: 999px;
-    font-size: 0.8rem;
-    padding-left: 36px;
-    border: 1px solid #D5DEEF;
-    background-color: #ffffff;
-    transition: all 0.2s ease;
-}
-
-.report-search-input:focus {
-    background-color: #ffffff;
-    border-color: #395886;
-    box-shadow: 0 0 0 3px rgba(57, 88, 134, 0.15);
+    background-color: var(--rep-accent);
+    color: #ffffff;
 }
 
 .report-search-wrap {
@@ -224,18 +458,240 @@
     width: 100%;
 }
 
+.report-search-input {
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    padding-left: 36px;
+    border: 1px solid var(--rep-border-hairline);
+    background-color: var(--rep-bg-subtle);
+    color: var(--rep-text-primary);
+    transition: all 0.15s ease;
+}
+
+.report-search-input:focus {
+    background-color: var(--rep-bg-surface);
+    border-color: var(--rep-accent);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+    color: var(--rep-text-primary);
+}
+
 .report-search-icon {
     position: absolute;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: var(--rep-text-subtle);
     font-size: 0.85rem;
     pointer-events: none;
 }
 
+/* --------------------------------------------------------------------------
+   9. LINEAR-STYLE STATUS DOTS (CHẤM TRÒN CHỈ BÁO TINH TẾ)
+   -------------------------------------------------------------------------- */
+.status-dot-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 0.775rem;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.status-dot {
+    width: 6.5px;
+    height: 6.5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot-done {
+    background: var(--rep-status-done-bg);
+    color: var(--rep-status-done-text);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+.status-dot-done .status-dot {
+    background: var(--rep-status-done-dot);
+    box-shadow: 0 0 6px var(--rep-status-done-dot);
+}
+
+.status-dot-in-progress {
+    background: var(--rep-status-prog-bg);
+    color: var(--rep-status-prog-text);
+    border-color: rgba(59, 130, 246, 0.2);
+}
+.status-dot-in-progress .status-dot {
+    background: var(--rep-status-prog-dot);
+    box-shadow: 0 0 6px var(--rep-status-prog-dot);
+}
+
+.status-dot-pending {
+    background: var(--rep-status-warn-bg);
+    color: var(--rep-status-warn-text);
+    border-color: rgba(245, 158, 11, 0.2);
+}
+.status-dot-pending .status-dot {
+    background: var(--rep-status-warn-dot);
+    box-shadow: 0 0 6px var(--rep-status-warn-dot);
+}
+
+.status-dot-danger {
+    background: var(--rep-status-dang-bg);
+    color: var(--rep-status-dang-text);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+.status-dot-danger .status-dot {
+    background: var(--rep-status-dang-dot);
+    box-shadow: 0 0 6px var(--rep-status-dang-dot);
+}
+
+.status-dot-todo {
+    background: var(--rep-bg-subtle);
+    color: var(--rep-text-secondary);
+    border-color: var(--rep-border-hairline);
+}
+.status-dot-todo .status-dot {
+    background: var(--rep-text-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   10. DATA GRID & TABLES (BẢNG DỮ LIỆU TỐI GIẢN CHUẨN STRIPE/LINEAR)
+   -------------------------------------------------------------------------- */
+.report-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.report-table th {
+    background-color: var(--rep-bg-subtle) !important;
+    color: var(--rep-text-muted) !important;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--rep-border-hairline);
+    border-top: none;
+    padding: 12px 14px;
+    vertical-align: middle;
+}
+
+.report-table td {
+    padding: 14px 14px;
+    vertical-align: middle;
+    font-size: 0.825rem;
+    border-bottom: 1px solid var(--rep-border-hairline);
+    background-color: transparent;
+    color: var(--rep-text-secondary);
+}
+
+.report-table tbody tr {
+    transition: background-color 0.12s ease;
+}
+
+.report-table tbody tr:hover td {
+    background-color: var(--rep-bg-subtle);
+    color: var(--rep-text-primary);
+}
+
+.report-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.775rem;
+    flex-shrink: 0;
+}
+
+.report-desc-truncate {
+    max-width: min(320px, 25vw);
+}
+
+/* --------------------------------------------------------------------------
+   11. PROGRESS BARS
+   -------------------------------------------------------------------------- */
+.progress-bar-custom {
+    height: 10px;
+    border-radius: 9999px;
+    background-color: var(--rep-bg-subtle);
+    overflow: hidden;
+}
+
+.progress-mini {
+    height: 6px;
+    border-radius: 9999px;
+    background-color: var(--rep-bg-subtle);
+    overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   12. SIGNATURE BOX (XÁC NHẬN BÁO CÁO)
+   -------------------------------------------------------------------------- */
+.signature-box {
+    border: 1px solid var(--rep-border-hairline);
+    border-radius: 12px;
+    background: var(--rep-bg-surface);
+    padding: 24px 20px;
+    margin-top: 24px;
+    text-align: center;
+    box-shadow: var(--rep-card-shadow);
+}
+
+.signature-line {
+    border-bottom: 1.5px dashed var(--rep-border-subtle);
+    margin: 44px auto 12px auto;
+    max-width: 220px;
+}
+
+/* --------------------------------------------------------------------------
+   13. EMPTY STATES
+   -------------------------------------------------------------------------- */
+.report-empty-state {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.report-empty-state .empty-icon {
+    font-size: 2.5rem;
+    color: var(--rep-text-subtle);
+    margin-bottom: 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   14. MOBILE RESPONSIVE TWEAKS (<768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+    .report-filter-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .report-search-wrap {
+        max-width: 100%;
+        margin-top: 8px;
+    }
+    
+    .segmented-capsule-track {
+        overflow-x: auto;
+        padding-bottom: 4px;
+        flex-wrap: nowrap !important;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+    
+    .filter-tab-btn {
+        white-space: nowrap;
+    }
+    
+    .report-sticky-nav {
+        top: 0;
+    }
+}
+
 /* ==========================================================================
-   9. CSS CHUYÊN BIỆT DÀNH CHO IN ẤN KHỔ GIẤY A4 (@media print)
+   15. CSS CHUYÊN BIỆT DÀNH CHO IN ẤN KHỔ GIẤY A4 (@media print)
+   LUÔN ÉP BUỘC CHẾ ĐỘ LIGHT MODE SẮC NÉT TRÊN GIẤY TRẮNG
    ========================================================================== */
 @media print {
     @page {
@@ -243,7 +699,7 @@
         margin: 10mm 12mm 12mm 12mm;
     }
 
-    /* 1. Ẩn toàn bộ thanh điều hướng, nút bấm, menu, popup khi in */
+    /* 1. Ẩn toàn bộ thanh điều hướng, nút bấm, menu, switcher khi in */
     nav,
     .navbar,
     footer,
@@ -255,7 +711,9 @@
     #copyToast,
     .toast,
     .modal,
-    header {
+    header,
+    .report-sticky-nav,
+    .theme-toggle-btn {
         display: none !important;
         visibility: hidden !important;
         height: 0 !important;
@@ -263,7 +721,7 @@
         padding: 0 !important;
     }
 
-    /* 2. Thiết lập Body & Container vừa khít khổ giấy A4, không tràn viền */
+    /* 2. Thiết lập Body & Container vừa khít khổ giấy A4, nền trắng 100% */
     html,
     body {
         background-color: #ffffff !important;
@@ -286,8 +744,7 @@
         margin: 0 !important;
     }
 
-    /* 3. KHẮC PHỤC TRIỆT ĐỂ THANH KÉO NGANG (HORIZONTAL SCROLLBAR):
-          Bỏ cơ chế overflow-x: auto của Bootstrap, ép toàn bộ bảng bung 100% */
+    /* 3. Phá bỏ cơ chế overflow ngang, bung toàn bộ bảng */
     .table-responsive {
         overflow: visible !important;
         overflow-x: visible !important;
@@ -297,7 +754,7 @@
         padding: 0 !important;
     }
 
-    /* 4. Table Layout cố định (fixed) để bảng chia cột chuẩn, tự động ngắt dòng */
+    /* 4. Table Layout cố định để bảng chia cột chuẩn */
     .report-table,
     table {
         width: 100% !important;
@@ -323,6 +780,7 @@
         font-size: 8pt !important;
         vertical-align: top !important;
         color: #0f172a !important;
+        background-color: #ffffff !important;
     }
 
     .report-table th {
@@ -334,125 +792,45 @@
         border-bottom: 2px solid #475569 !important;
     }
 
-    /* 5. Phân chia tỉ lệ % cột chuẩn vừa khít A4 cho Bảng Thành Viên */
+    /* 5. Phân chia tỉ lệ % cột cho Bảng Thành Viên */
     #membersPerformanceTable th:nth-child(1),
-    #membersPerformanceTable td:nth-child(1) {
-        width: 5%;
-        text-align: center;
-    }
-
-    /* STT */
+    #membersPerformanceTable td:nth-child(1) { width: 5%; text-align: center; }
     #membersPerformanceTable th:nth-child(2),
-    #membersPerformanceTable td:nth-child(2) {
-        width: 23%;
-    }
-
-    /* Thành viên */
+    #membersPerformanceTable td:nth-child(2) { width: 23%; }
     #membersPerformanceTable th:nth-child(3),
-    #membersPerformanceTable td:nth-child(3) {
-        width: 14%;
-    }
-
-    /* Chuyên môn / Vai trò */
+    #membersPerformanceTable td:nth-child(3) { width: 14%; }
     #membersPerformanceTable th:nth-child(4),
-    #membersPerformanceTable td:nth-child(4) {
-        width: 7%;
-        text-align: center;
-    }
-
-    /* Được giao */
+    #membersPerformanceTable td:nth-child(4) { width: 7%; text-align: center; }
     #membersPerformanceTable th:nth-child(5),
-    #membersPerformanceTable td:nth-child(5) {
-        width: 8%;
-        text-align: center;
-    }
-
-    /* Hoàn thành */
+    #membersPerformanceTable td:nth-child(5) { width: 8%; text-align: center; }
     #membersPerformanceTable th:nth-child(6),
-    #membersPerformanceTable td:nth-child(6) {
-        width: 7%;
-        text-align: center;
-    }
-
-    /* Đang làm */
+    #membersPerformanceTable td:nth-child(6) { width: 7%; text-align: center; }
     #membersPerformanceTable th:nth-child(7),
-    #membersPerformanceTable td:nth-child(7) {
-        width: 7%;
-        text-align: center;
-    }
-
-    /* Quá hạn */
+    #membersPerformanceTable td:nth-child(7) { width: 7%; text-align: center; }
     #membersPerformanceTable th:nth-child(8),
-    #membersPerformanceTable td:nth-child(8) {
-        width: 15%;
-        text-align: center;
-    }
-
-    /* Tiến độ */
+    #membersPerformanceTable td:nth-child(8) { width: 15%; text-align: center; }
     #membersPerformanceTable th:nth-child(9),
-    #membersPerformanceTable td:nth-child(9) {
-        width: 14%;
-        text-align: center;
-    }
+    #membersPerformanceTable td:nth-child(9) { width: 14%; text-align: center; }
 
-    /* Đánh giá TB */
-
-    /* 6. Phân chia tỉ lệ % cột chuẩn vừa khít A4 cho Bảng Danh Sách Công Việc */
+    /* 6. Phân chia tỉ lệ % cột cho Bảng Danh Sách Công Việc */
     #tasksInventoryTable th:nth-child(1),
-    #tasksInventoryTable td:nth-child(1) {
-        width: 6%;
-        text-align: center;
-    }
-
-    /* Mã # */
+    #tasksInventoryTable td:nth-child(1) { width: 6%; text-align: center; }
     #tasksInventoryTable th:nth-child(2),
-    #tasksInventoryTable td:nth-child(2) {
-        width: 28%;
-    }
-
-    /* Tên + Mô tả đầy đủ */
+    #tasksInventoryTable td:nth-child(2) { width: 28%; }
     #tasksInventoryTable th:nth-child(3),
-    #tasksInventoryTable td:nth-child(3) {
-        width: 13%;
-    }
-
-    /* Người Phụ Trách */
+    #tasksInventoryTable td:nth-child(3) { width: 13%; }
     #tasksInventoryTable th:nth-child(4),
-    #tasksInventoryTable td:nth-child(4) {
-        width: 9%;
-        text-align: center;
-    }
-
-    /* Ưu Tiên */
+    #tasksInventoryTable td:nth-child(4) { width: 9%; text-align: center; }
     #tasksInventoryTable th:nth-child(5),
-    #tasksInventoryTable td:nth-child(5) {
-        width: 10%;
-        text-align: center;
-    }
-
-    /* Hạn Chót */
+    #tasksInventoryTable td:nth-child(5) { width: 10%; text-align: center; }
     #tasksInventoryTable th:nth-child(6),
-    #tasksInventoryTable td:nth-child(6) {
-        width: 11%;
-        text-align: center;
-    }
-
-    /* Trạng Thái */
+    #tasksInventoryTable td:nth-child(6) { width: 11%; text-align: center; }
     #tasksInventoryTable th:nth-child(7),
-    #tasksInventoryTable td:nth-child(7) {
-        width: 8%;
-        text-align: center;
-    }
-
-    /* Đánh Giá */
+    #tasksInventoryTable td:nth-child(7) { width: 8%; text-align: center; }
     #tasksInventoryTable th:nth-child(8),
-    #tasksInventoryTable td:nth-child(8) {
-        width: 15%;
-    }
+    #tasksInventoryTable td:nth-child(8) { width: 15%; }
 
-    /* Ghi Chú Nghiệm Thu */
-
-    /* 7. HIỂN THỊ TRỌN VẸN NỘI DUNG (Bỏ hoàn toàn việc cắt ngắn bằng dấu ...) */
+    /* 7. Hiển thị trọn vẹn nội dung khi in */
     .report-desc-truncate,
     .text-truncate {
         max-width: none !important;
@@ -463,23 +841,18 @@
         display: block !important;
     }
 
-    /* 8. Ẩn avatar hình tròn trong bảng để dành trọn diện tích cho Họ Tên & Email */
     .report-avatar,
     .avatar-circle {
         display: none !important;
     }
 
-    /* ==========================================================================
-       TỐI ƯU MÀU SẮC ĐỘ TƯƠNG PHẢN CAO TRÊN GIẤY TRẮNG (HIGH CONTRAST PRINT)
-       ========================================================================== */
-    /* Triệt tiêu hoàn toàn màu chữ trắng hoặc màu mờ (text-white-50) */
+    /* 8. Tương phản cao trên giấy trắng */
     .text-white,
     .text-white-50,
     .text-light {
         color: #0f172a !important;
     }
 
-    /* Màu chữ xám chuyển sang màu than đậm #334155 dễ đọc trên bản in */
     .text-muted,
     .text-secondary,
     .text-black-50 {
@@ -492,7 +865,6 @@
         font-weight: 600 !important;
     }
 
-    /* Banner Tiêu Đề Báo Cáo: Nền xám trang nhã, chữ đen đậm tương phản 100% */
     .report-header-badge {
         background: #f1f5f9 !important;
         color: #0f172a !important;
@@ -519,7 +891,6 @@
         font-size: 8.5pt !important;
     }
 
-    /* Thẻ Card Thống Kê KPI: Viền rõ ràng, số to đậm */
     .report-stat-card {
         border: 1px solid #94a3b8 !important;
         background: #ffffff !important;
@@ -540,8 +911,8 @@
         font-weight: 800 !important;
     }
 
-    /* Huy hiệu (Badge): Chữ đậm, viền sắc nét, nền sáng dễ đọc */
-    .badge {
+    .badge,
+    .status-dot-indicator {
         border: 1px solid #94a3b8 !important;
         color: #0f172a !important;
         background: #f8fafc !important;
@@ -550,53 +921,8 @@
         padding: 2px 6px !important;
         border-radius: 4px !important;
         display: inline-block !important;
-        white-space: normal !important;
     }
 
-    /* Phối màu chữ đậm (có độ tối) theo từng trạng thái */
-    .badge.bg-success,
-    .badge.text-success,
-    .text-success {
-        color: #14532d !important;
-        /* Xanh lá đậm */
-        font-weight: 700 !important;
-    }
-
-    .badge.bg-danger,
-    .badge.text-danger,
-    .text-danger {
-        color: #991b1b !important;
-        /* Đỏ đô đậm */
-        font-weight: 700 !important;
-    }
-
-    .badge.bg-warning,
-    .badge.text-warning,
-    .text-warning,
-    .text-warning-emphasis {
-        color: #78350f !important;
-        /* Nâu hổ phách đậm */
-        font-weight: 700 !important;
-    }
-
-    .badge.bg-info,
-    .badge.text-info,
-    .text-info,
-    .text-info-emphasis {
-        color: #0e7490 !important;
-        /* Xanh dương đậm */
-        font-weight: 700 !important;
-    }
-
-    .badge.bg-primary,
-    .badge.text-primary,
-    .text-primary {
-        color: #1e3a8a !important;
-        /* Xanh Navy đậm */
-        font-weight: 700 !important;
-    }
-
-    /* Thanh tiến độ in rõ ràng */
     .progress {
         background-color: #e2e8f0 !important;
         border: 1px solid #94a3b8 !important;
@@ -610,23 +936,6 @@
         -webkit-print-color-adjust: exact !important;
     }
 
-    .progress-bar.bg-success {
-        background-color: #16a34a !important;
-    }
-
-    .progress-bar.bg-danger {
-        background-color: #dc2626 !important;
-    }
-
-    .progress-bar.bg-warning {
-        background-color: #d97706 !important;
-    }
-
-    .progress-bar.bg-info {
-        background-color: #0284c7 !important;
-    }
-
-    /* Thẻ bao ngoài và khung khối */
     .card,
     .bg-white {
         border: 1px solid #94a3b8 !important;
