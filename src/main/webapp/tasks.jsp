@@ -32,73 +32,64 @@
                 <!-- =========================================================================
                      1. CỘT DUY NHẤT BÊN TRÁI: UNIFIED WORKSPACE SIDEBAR (250PX)
                      ========================================================================= -->
-                <aside class="clickup-sidebar ${cookie.sidebar_collapsed.value == 'true' ? 'collapsed' : ''}" id="clickupSidebar">
-                    <!-- Header: Logo & Workspace Selector & Collapse Button -->
-                    <div class="clickup-sidebar-header d-flex align-items-center justify-content-between">
-                        <div class="dropdown flex-grow-1 me-1">
-                            <button class="clickup-workspace-btn w-100 text-start d-flex align-items-center gap-2 p-1 rounded-2" type="button" id="workspaceDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Không gian làm việc: TeamWork Hub">
-                                <span class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-2 shadow-2xs flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.9rem;">
+                 <aside class="clickup-sidebar ${cookie.sidebar_collapsed.value == 'true' ? 'collapsed' : ''}" id="clickupSidebar">
+                    <!-- Header: Logo Brand & Click-to-Collapse Sidebar -->
+                    <div class="clickup-sidebar-header p-2">
+                        <button type="button" class="sidebar-brand-btn w-100 d-flex align-items-center justify-content-between p-1.5 rounded-3 border-0 bg-transparent text-start" onclick="toggleClickUpSidebar()" title="Bấm vào Logo để thu gọn thanh bên (Ctrl+B)">
+                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                <span class="brand-logo-icon d-inline-flex align-items-center justify-content-center text-white rounded-2 shadow-2xs flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.9rem; background: linear-gradient(135deg, #395886 0%, #628ECB 100%);">
                                     <i class="bi bi-grid-1x2-fill"></i>
                                 </span>
                                 <div class="d-flex flex-column text-truncate" style="line-height: 1.2;">
-                                    <span class="fw-bold text-dark text-truncate fs-8">TeamWork Hub</span>
-                                    <span class="fs-10 text-muted text-truncate">${sessionScope.currentUser.role}</span>
+                                    <span class="fw-bold text-dark text-truncate fs-8">TeamWork <span class="text-primary">Hub</span></span>
+                                    <span class="fs-10 text-muted text-truncate fw-semibold">
+                                        <c:choose>
+                                            <c:when test="${sessionScope.currentUser.role == 'ADMIN'}">Quản trị viên</c:when>
+                                            <c:when test="${sessionScope.currentUser.role == 'MANAGER'}">Trưởng nhóm</c:when>
+                                            <c:otherwise>Thành viên</c:otherwise>
+                                        </c:choose>
+                                    </span>
                                 </div>
-                                <i class="bi bi-chevron-down fs-10 text-muted ms-auto"></i>
-                            </button>
-                            <ul class="dropdown-menu shadow-lg border rounded-3 p-2 fs-8" style="min-width: 220px; z-index: 1060;">
-                                <li class="px-2 py-1 mb-1 border-bottom">
-                                    <span class="fw-bold text-dark d-block">TeamWork Hub</span>
-                                    <span class="fs-9 text-muted">${sessionScope.currentUser.fullName} (${sessionScope.currentUser.role})</span>
-                                </li>
-                                <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile?action=view"><i class="bi bi-person-gear me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
-                                <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/project?action=list"><i class="bi bi-grid-fill me-2 text-info"></i>Tất cả Spaces (Dự án)</a></li>
-                                <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
-                                     <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/admin?action=dashboard"><i class="bi bi-shield-check me-2 text-warning"></i>Quản trị hệ thống</a></li>
-                                </c:if>
-                                <li><hr class="dropdown-divider my-1"></li>
-                                <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
-                            </ul>
-                        </div>
-                        <button type="button" class="btn-sidebar-toggle btn btn-sm btn-light border p-1 rounded-2 shadow-2xs" onclick="toggleClickUpSidebar()" title="Thu gọn thanh bên">
-                            <i class="bi bi-chevron-bar-left fs-8"></i>
+                            </div>
+                            <span class="sidebar-collapse-indicator text-secondary fs-8 p-1 rounded-2 d-inline-flex align-items-center justify-content-center" title="Thu gọn thanh bên">
+                                <i class="bi bi-chevron-bar-left"></i>
+                            </span>
                         </button>
                     </div>
 
                     <!-- Scrollable Body: Quick Nav, Favorites, Spaces List -->
                     <div class="clickup-sidebar-scroll flex-grow-1 overflow-y-auto">
-                        <!-- Quick Search Pill Input (Ctrl+K) -->
-                        <div class="px-3 pt-2 pb-1">
-                            <div class="position-relative">
-                                <i class="bi bi-search position-absolute text-muted fs-8" style="top: 8px; left: 10px;"></i>
-                                <input type="text" id="clickupSearchInput" class="form-control form-control-sm rounded-pill ps-4 pe-4 fs-8 bg-light border-0 shadow-none" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm... (Ctrl+K)" autocomplete="off">
-                                <kbd class="position-absolute end-0 top-50 translate-middle-y me-2 bg-white text-muted border px-1 rounded fs-10">⌘K</kbd>
+                        <!-- Quick Search Box (Ctrl+K) -->
+                        <div class="px-2.5 pt-2 pb-1">
+                            <div class="clickup-search-box position-relative d-flex align-items-center">
+                                <i class="bi bi-search text-muted fs-8 ms-2.5"></i>
+                                <input type="text" id="clickupSearchInput" class="form-control form-control-sm border-0 bg-transparent fs-8 ps-2 pe-5 py-1-5 shadow-none" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm nhanh... (Ctrl+K)" autocomplete="off">
+                                <span class="search-kbd-badge position-absolute end-0 me-2 text-muted">Ctrl+K</span>
                             </div>
                         </div>
 
                         <!-- Điều hướng toàn cục (Global Quick Nav) -->
                         <div class="clickup-sidebar-section pt-1">
-                            <div class="d-flex flex-column gap-0.5">
-                                <a href="javascript:void(0)" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" class="clickup-nav-link" id="nav-inbox" title="Hộp thư thông báo (Inbox)">
+                            <div class="d-flex flex-column gap-1">
+                                <a href="javascript:void(0)" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" class="clickup-nav-link" id="nav-inbox" title="Hộp thư thông báo">
                                     <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-inbox-fill text-primary"></i>
-                                        <span>Hộp thư (Inbox)</span>
+                                        <span class="clickup-nav-icon bg-primary-subtle text-primary">
+                                            <i class="bi bi-bell-fill"></i>
+                                        </span>
+                                        <span class="clickup-nav-label">Hộp thư thông báo</span>
                                     </div>
                                     <c:if test="${unreadNotifCount > 0}">
-                                        <span class="badge bg-danger rounded-pill fs-9 ms-auto">${unreadNotifCount}</span>
+                                        <span class="badge bg-danger rounded-pill fs-9 px-2 py-0-5">${unreadNotifCount}</span>
                                     </c:if>
                                 </a>
                                 <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-nav-link" id="nav-all-spaces" title="Xem tất cả không gian dự án">
                                     <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-grid-fill text-secondary"></i>
-                                        <span>Tất cả Spaces</span>
+                                        <span class="clickup-nav-icon bg-secondary-subtle text-secondary">
+                                            <i class="bi bi-grid-fill"></i>
+                                        </span>
+                                        <span class="clickup-nav-label">Tất cả không gian</span>
                                     </div>
-                                </a>
-                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#joinByCodeModal" class="clickup-nav-link" id="nav-join-code" title="Nhập mã tham gia dự án">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-key-fill text-warning"></i>
-                                        <span>Nhập mã dự án...</span>
-                                    </div>
+                                    <i class="bi bi-chevron-right fs-10 text-muted opacity-50 ms-auto"></i>
                                 </a>
                             </div>
                         </div>
@@ -116,51 +107,66 @@
 
                         <!-- Section Spaces (Danh sách Không Gian Dự Án) -->
                         <div class="clickup-sidebar-section">
-                            <div class="clickup-section-title">
+                            <div class="clickup-section-title d-flex align-items-center justify-content-between">
                                 <span>Không Gian Dự Án</span>
-                                <a href="${pageContext.request.contextPath}/project?action=list" class="text-muted" title="Quản lý dự án"><i class="bi bi-gear fs-9"></i></a>
+                                <span class="badge bg-light text-muted border rounded-pill fs-10 px-1.5 py-0">${not empty userProjects ? userProjects.size() : 0} dự án</span>
                             </div>
                             <div class="d-flex flex-column gap-1 mb-2">
                                 <c:forEach items="${userProjects}" var="p">
                                     <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" class="clickup-space-item ${p.id == project.id ? 'active' : ''}" title="${p.name}">
-                                        <span class="clickup-space-icon ${p.id == project.id ? 'bg-primary text-white' : 'bg-light text-secondary'}">
+                                        <span class="clickup-space-icon ${p.id == project.id ? 'active-icon' : ''}">
                                             <i class="bi ${p.id == project.id ? 'bi-folder-check' : 'bi-folder2'}"></i>
                                         </span>
-                                        <span class="text-truncate flex-grow-1 fs-8 fw-semibold">${p.name}</span>
-                                        <span class="badge ${p.soloProject ? 'bg-info-subtle text-info border border-info-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle'} rounded-pill px-1-5 py-0 fs-10 fw-bold">
-                                            ${p.soloProject ? 'Solo' : 'Team'}
+                                        <span class="text-truncate flex-grow-1 fs-8 fw-semibold space-name-text">${p.name}</span>
+                                        <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold">
+                                            ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
                                         </span>
                                     </a>
                                 </c:forEach>
                             </div>
 
-                            <!-- Nút Tạo Dự Án Mới nằm bên trong danh mục Spaces -->
-                            <button type="button" class="sidebar-create-task-btn w-100 d-flex align-items-center justify-content-center gap-2 mt-1"
-                                data-bs-toggle="modal" data-bs-target="#createProjectModal">
-                                <i class="bi bi-plus-circle-fill fs-7"></i>
-                                <span>Tạo không gian mới</span>
-                            </button>
+                            <!-- Cặp nút thao tác Dự án: Tạo mới & Nhập mã -->
+                            <div class="d-flex align-items-center gap-1.5 mt-2.5">
+                                <button type="button" class="btn btn-sm btn-create-space flex-grow-1 d-flex align-items-center justify-content-center gap-1.5 rounded-2 py-1-5 fs-8 text-white shadow-xs" data-bs-toggle="modal" data-bs-target="#createProjectModal" title="Tạo không gian dự án mới">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span>Tạo không gian</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-join-code d-flex align-items-center justify-content-center gap-1 rounded-2 py-1-5 px-2.5 fs-8 text-secondary" data-bs-toggle="modal" data-bs-target="#joinByCodeModal" title="Nhập mã tham gia không gian">
+                                    <i class="bi bi-key-fill text-warning"></i>
+                                    <span>Nhập mã</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Footer Sidebar: User Profile Card & Phím tắt Help -->
-                    <div class="clickup-sidebar-footer p-2.5 border-top d-flex align-items-center justify-content-between bg-light bg-opacity-50">
+                    <div class="clickup-sidebar-footer p-2.5 border-top d-flex align-items-center justify-content-between bg-white">
                         <div class="dropdown flex-grow-1 me-2">
-                            <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark" data-bs-toggle="dropdown" title="${sessionScope.currentUser.fullName}">
-                                <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold shadow-2xs flex-shrink-0" style="width: 30px; height: 30px; font-size: 0.78rem;">
-                                    ${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}
+                            <a href="#" class="sidebar-user-card d-flex align-items-center gap-2 text-decoration-none text-dark p-1 rounded-2" data-bs-toggle="dropdown" title="${sessionScope.currentUser.fullName}">
+                                <div class="user-avatar-wrap position-relative flex-shrink-0">
+                                    <div class="user-avatar-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-2xs" style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 9px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+                                        ${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}
+                                    </div>
+                                    <span class="user-status-dot position-absolute bottom-0 end-0 rounded-circle border border-white bg-success" style="width: 8px; height: 8px;" title="Đang trực tuyến"></span>
                                 </div>
-                                <div class="d-flex flex-column text-truncate" style="line-height: 1.2;">
+                                <div class="d-flex flex-column text-truncate" style="line-height: 1.25;">
                                     <span class="fw-bold text-dark fs-8 text-truncate">${sessionScope.currentUser.fullName}</span>
-                                    <span class="fs-10 text-muted text-truncate">${sessionScope.currentUser.email}</span>
+                                    <span class="fs-10 text-muted text-truncate">
+                                        <c:choose>
+                                            <c:when test="${sessionScope.currentUser.role == 'ADMIN'}">Quản trị viên</c:when>
+                                            <c:when test="${sessionScope.currentUser.role == 'MANAGER'}">Trưởng nhóm</c:when>
+                                            <c:otherwise>Thành viên</c:otherwise>
+                                        </c:choose>
+                                    </span>
                                 </div>
+                                <i class="bi bi-chevron-expand fs-9 text-muted ms-auto opacity-75"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-start shadow-lg border rounded-3 p-2 fs-8" style="min-width: 220px; z-index: 1070;">
                                 <li class="px-2 py-1 mb-1 border-bottom">
                                     <span class="fw-bold text-dark d-block">${sessionScope.currentUser.fullName}</span>
                                     <span class="fs-9 text-muted">${sessionScope.currentUser.email}</span>
                                 </li>
-                                <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Tài khoản cá nhân</a></li>
+                                <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
                                 <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
                                     <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/admin?action=dashboard"><i class="bi bi-shield-lock me-2 text-warning"></i>Quản trị hệ thống</a></li>
                                 </c:if>
@@ -168,7 +174,7 @@
                                 <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                             </ul>
                         </div>
-                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-2xs flex-shrink-0" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" title="Phím tắt hệ thống (?)" style="width: 28px; height: 28px;">
+                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-2xs flex-shrink-0 sidebar-help-btn" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" title="Phím tắt & Trợ giúp (?)" style="width: 28px; height: 28px;">
                             <i class="bi bi-question-circle text-secondary fs-8"></i>
                         </button>
                     </div>
@@ -188,7 +194,7 @@
                                     <i class="bi bi-chevron-bar-right fs-8"></i>
                                 </button>
                                 <div class="d-flex align-items-center gap-1.5 text-muted fs-8">
-                                    <span>Spaces</span>
+                                    <span>Không gian</span>
                                     <i class="bi bi-chevron-right fs-9 text-muted"></i>
                                 </div>
                                 <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
@@ -229,18 +235,18 @@
                             <ul class="clickup-tabs">
                                 <li>
                                     <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" class="clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" id="tab-btn-tasks">
-                                        <i class="bi bi-list-task"></i> Tasks
+                                        <i class="bi bi-list-task"></i> Công việc
                                         <span class="badge bg-light text-muted border rounded-pill fs-9 ms-1">${not empty allProjectTasks ? allProjectTasks.size() : 0}</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-tab-link ${currentView == 'chat' ? 'active' : ''}" id="tab-btn-chat">
-                                        <i class="bi bi-chat-dots"></i> Chat
+                                        <i class="bi bi-chat-dots"></i> Thảo luận
                                     </a>
                                 </li>
                                 <li>
                                     <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-tab-link ${currentView == 'docs' ? 'active' : ''}" id="tab-btn-docs">
-                                        <i class="bi bi-journal-text"></i> Docs
+                                        <i class="bi bi-journal-text"></i> Tài liệu
                                         <c:if test="${not empty docList}">
                                             <span class="badge bg-light text-muted border rounded-pill fs-9 ms-1">${docList.size()}</span>
                                         </c:if>
@@ -248,12 +254,12 @@
                                 </li>
                                 <li>
                                     <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" class="clickup-tab-link ${currentView == 'schedule' ? 'active' : ''}" id="tab-btn-schedule">
-                                        <i class="bi bi-calendar-event"></i> Schedule
+                                        <i class="bi bi-calendar-event"></i> Lịch biểu
                                     </a>
                                 </li>
                                 <li>
                                     <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" id="tab-btn-metrics">
-                                        <i class="bi bi-pie-chart-fill text-info"></i> Workload
+                                        <i class="bi bi-pie-chart-fill text-info"></i> Phân bổ công việc
                                         <span class="badge bg-info-subtle text-info rounded-pill px-1.5 py-0 fs-10 fw-bold ms-1">
                                             ${userWorkloadList.size()}
                                         </span>

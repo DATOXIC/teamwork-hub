@@ -27,15 +27,18 @@
         <!-- Điều hướng phân hệ (Navigation Context) -->
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <a href="${pageContext.request.contextPath}/project?action=list"
-                class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1-5 shadow-none d-flex align-items-center gap-1"
+                class="btn btn-sm rounded-pill px-3 py-1-5 shadow-none d-flex align-items-center gap-1"
+                style="background-color: #ffffff; color: #395886; border: 1px solid #D5DEEF; transition: all 0.2s;"
+                onmouseover="this.style.borderColor='#8AAEE0'; this.style.backgroundColor='#F0F3FA';"
+                onmouseout="this.style.borderColor='#D5DEEF'; this.style.backgroundColor='#ffffff';"
                 title="Quay về danh sách dự án (Dashboard)">
-                <i class="bi bi-arrow-left"></i> <span class="d-none d-sm-inline">Dự án</span>
+                <i class="bi bi-arrow-left" style="color: #628ECB;"></i> <span class="d-none d-sm-inline">Dự án</span>
             </a>
-            <div class="border-start ps-2 d-flex align-items-center gap-2">
-                <span class="badge bg-dark-navy text-white rounded-pill px-2-5 py-1 fs-9">
+            <div class="border-start ps-2 d-flex align-items-center gap-2" style="border-color: #D5DEEF !important;">
+                <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold" style="background-color: #E2EAF8; color: #395886; border: 1px solid #B1C9EF;">
                     #${project.projectCode}
                 </span>
-                <span class="fw-bold text-dark fs-7 text-truncate" style="max-width: 240px;" title="${project.name}">${project.name}</span>
+                <span class="fw-bold fs-7 text-truncate" style="max-width: 240px; color: #1E2D42;" title="${project.name}">${project.name}</span>
             </div>
 
             <!-- Tab Chuyển Phân Hệ Nhanh (Segmented Capsule) -->
@@ -111,10 +114,10 @@
                         </c:choose>
                         <span class="fw-semibold">${healthLabel}</span>
                     </span>
-                    <span class="badge bg-secondary-subtle text-white border border-secondary rounded-pill px-2-5 py-1 fs-9">
+                    <span class="badge rounded-pill px-2-5 py-1 fs-9" style="background-color: rgba(240, 243, 250, 0.15); color: #D5DEEF; border: 1px solid rgba(213, 222, 239, 0.3);">
                         #${project.projectCode}
                     </span>
-                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2-5 py-1 fs-9">
+                    <span class="badge rounded-pill px-2-5 py-1 fs-9" style="background-color: rgba(240, 243, 250, 0.12); color: #D5DEEF; border: 1px solid rgba(213, 222, 239, 0.25);">
                         <i class="bi bi-calendar3 me-1"></i> Khởi tạo: ${project.createdAt}
                     </span>
                 </div>
@@ -123,8 +126,8 @@
                     ${not empty project.description ? project.description : 'Dự án chưa cập nhật mô tả chi tiết.'}
                 </p>
                 <div class="d-flex align-items-center gap-2 text-white-50 fs-9">
-                    <i class="bi bi-info-circle text-info"></i>
-                    <span>${healthDescription}</span>
+                    <i class="bi bi-info-circle" style="color: #8AAEE0;"></i>
+                    <span style="color: #D5DEEF;">${healthDescription}</span>
                 </div>
             </div>
 
@@ -223,7 +226,7 @@
                 title="Click để xem toàn bộ danh sách công việc">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="report-card-title">Tổng Công Việc</span>
-                    <i class="bi bi-list-task text-primary fs-5"></i>
+                    <i class="bi bi-list-task fs-5" style="color: #395886;"></i>
                 </div>
                 <div class="report-stat-number">${totalTasks}</div>
                 <div class="fs-9 text-muted mt-1">
@@ -250,14 +253,14 @@
 
         <!-- Card 3: Đang thực hiện -->
         <div class="col-6 col-md-4 col-xl">
-            <div class="report-stat-card h-100 border-info-subtle" id="kpiCardInProgress" role="button" tabindex="0"
+            <div class="report-stat-card h-100" id="kpiCardInProgress" role="button" tabindex="0"
                 onclick="handleKpiCardClick('IN_PROGRESS')" onkeydown="if(event.key==='Enter'||event.key===' ')handleKpiCardClick('IN_PROGRESS')"
                 title="Click để lọc các công việc đang triển khai">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="report-card-title text-info-emphasis">Đang Làm</span>
-                    <i class="bi bi-arrow-repeat text-info fs-5"></i>
+                    <span class="report-card-title" style="color: #395886;">Đang Làm</span>
+                    <i class="bi bi-arrow-repeat fs-5" style="color: #628ECB;"></i>
                 </div>
-                <div class="report-stat-number text-info-emphasis">${inProgressCount}</div>
+                <div class="report-stat-number" style="color: #395886;">${inProgressCount}</div>
                 <div class="fs-9 text-muted mt-1">
                     Kế hoạch đã khóa
                 </div>
@@ -307,12 +310,12 @@
     <div class="row g-4 mb-4 avoid-break">
         <!-- Cột Trái: Thanh tiến độ tổng thể -->
         <div class="col-12 col-lg-7">
-            <div class="bg-white p-4 rounded-3 shadow-sm border h-100">
+            <div class="bg-white p-4 rounded-3 shadow-sm border h-100" style="border-color: #D5DEEF !important;">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                        <i class="bi bi-speedometer2 text-primary"></i> Tiến Độ Dự Án Tổng Thể
+                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2" style="color: #1E2D42;">
+                        <i class="bi bi-speedometer2" style="color: #395886;"></i> Tiến Độ Dự Án Tổng Thể
                     </h6>
-                    <span class="badge bg-primary text-white rounded-pill px-3 py-1 fs-8 fw-bold">
+                    <span class="badge rounded-pill px-3 py-1 fs-8 fw-bold" style="background-color: #395886; color: #ffffff;">
                         ${progressPercentage}% Hoàn Tất
                     </span>
                 </div>
@@ -327,22 +330,22 @@
                 </div>
 
                 <!-- Chi tiết trạng thái -->
-                <div class="d-flex flex-wrap gap-2 pt-2 border-top">
-                    <span class="badge bg-light text-dark border fs-9"><i class="bi bi-circle-fill text-secondary me-1"></i> Cần làm: ${todoCount}</span>
-                    <span class="badge bg-light text-dark border fs-9"><i class="bi bi-circle-fill text-primary me-1"></i> Chờ duyệt KH: ${planningCount}</span>
-                    <span class="badge bg-light text-dark border fs-9"><i class="bi bi-circle-fill text-info me-1"></i> Đang làm: ${inProgressCount}</span>
-                    <span class="badge bg-light text-dark border fs-9"><i class="bi bi-circle-fill text-warning me-1"></i> Chờ nghiệm thu: ${submittedCount}</span>
-                    <span class="badge bg-light text-dark border fs-9"><i class="bi bi-circle-fill text-primary me-1"></i> Cần cân chỉnh: ${reviseCount}</span>
-                    <span class="badge bg-light text-dark border fs-9"><i class="bi bi-circle-fill text-danger me-1"></i> Chưa đạt: ${rejectedCount}</span>
-                    <span class="badge bg-light text-dark border fs-9"><i class="bi bi-circle-fill text-success me-1"></i> Đã nghiệm thu: ${doneCount}</span>
+                <div class="d-flex flex-wrap gap-2 pt-2 border-top" style="border-color: #D5DEEF !important;">
+                    <span class="badge border fs-9" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;"><i class="bi bi-circle-fill text-secondary me-1"></i> Cần làm: ${todoCount}</span>
+                    <span class="badge border fs-9" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;"><i class="bi bi-circle-fill me-1" style="color: #628ECB;"></i> Chờ duyệt KH: ${planningCount}</span>
+                    <span class="badge border fs-9" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;"><i class="bi bi-circle-fill me-1" style="color: #8AAEE0;"></i> Đang làm: ${inProgressCount}</span>
+                    <span class="badge border fs-9" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;"><i class="bi bi-circle-fill text-warning me-1"></i> Chờ nghiệm thu: ${submittedCount}</span>
+                    <span class="badge border fs-9" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;"><i class="bi bi-circle-fill me-1" style="color: #395886;"></i> Cần cân chỉnh: ${reviseCount}</span>
+                    <span class="badge border fs-9" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;"><i class="bi bi-circle-fill text-danger me-1"></i> Chưa đạt: ${rejectedCount}</span>
+                    <span class="badge border fs-9" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;"><i class="bi bi-circle-fill text-success me-1"></i> Đã nghiệm thu: ${doneCount}</span>
                 </div>
             </div>
         </div>
 
         <!-- Cột Phải: Phân bổ mức độ ưu tiên -->
         <div class="col-12 col-lg-5">
-            <div class="bg-white p-4 rounded-3 shadow-sm border h-100">
-                <h6 class="fw-bold text-dark fs-7 mb-2 d-flex align-items-center gap-2">
+            <div class="bg-white p-4 rounded-3 shadow-sm border h-100" style="border-color: #D5DEEF !important;">
+                <h6 class="fw-bold fs-7 mb-2 d-flex align-items-center gap-2" style="color: #1E2D42;">
                     <i class="bi bi-flag-fill text-warning"></i> Phân Bổ Mức Độ Ưu Tiên
                 </h6>
                 <p class="text-muted fs-8 mb-3">Tỷ lệ công việc theo mức độ quan trọng trong dự án.</p>
@@ -403,15 +406,15 @@
     <!-- =========================================================================
     6. BẢNG ĐÓNG GÓP & HIỆU SUẤT CỦA THÀNH VIÊN (MEMBER PERFORMANCE)
     ========================================================================= -->
-    <div class="bg-white p-4 rounded-3 shadow-sm border mb-4 avoid-break">
+    <div class="bg-white p-4 rounded-3 shadow-sm border mb-4 avoid-break" style="border-color: #D5DEEF !important;">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h5 class="fw-bold text-dark fs-6 mb-1 d-flex align-items-center gap-2">
-                    <i class="bi bi-people-fill text-primary"></i> Đóng Góp & Năng Suất Thành Viên
+                <h5 class="fw-bold fs-6 mb-1 d-flex align-items-center gap-2" style="color: #1E2D42;">
+                    <i class="bi bi-people-fill" style="color: #395886;"></i> Đóng Góp & Năng Suất Thành Viên
                 </h5>
                 <p class="text-muted fs-8 mb-0">Thống kê khối lượng công việc, tỷ lệ hoàn thành và điểm chất lượng bàn giao theo từng người.</p>
             </div>
-            <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fs-8">
+            <span class="badge border rounded-pill px-3 py-2 fs-8" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;">
                 Tổng cộng: ${memberCount} thành viên
             </span>
         </div>
@@ -522,16 +525,16 @@
     <!-- =========================================================================
     7. DANH SÁCH CHI TIẾT TẤT CẢ CÔNG VIỆC (DETAILED TASKS INVENTORY)
     ========================================================================= -->
-    <div class="bg-white p-4 rounded-3 shadow-sm border mb-4 avoid-break" id="tasksInventorySection">
+    <div class="bg-white p-4 rounded-3 shadow-sm border mb-4 avoid-break" id="tasksInventorySection" style="border-color: #D5DEEF !important;">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <div>
-                <h5 class="fw-bold text-dark fs-6 mb-1 d-flex align-items-center gap-2">
-                    <i class="bi bi-card-checklist text-primary"></i> Bảng Kê Công Việc & Nghiệm Thu
+                <h5 class="fw-bold fs-6 mb-1 d-flex align-items-center gap-2" style="color: #1E2D42;">
+                    <i class="bi bi-card-checklist" style="color: #395886;"></i> Bảng Kê Công Việc & Nghiệm Thu
                 </h5>
                 <p class="text-muted fs-8 mb-0">Quản lý chi tiết tiến độ, đầu ra nghiệm thu và đánh giá chất lượng từng nhiệm vụ.</p>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fs-8" id="tasksVisibleCount">
+                <span class="badge border rounded-pill px-3 py-2 fs-8" id="tasksVisibleCount" style="background-color: #F0F3FA; border-color: #D5DEEF !important; color: #395886;">
                     Hiển thị: ${tasks.size()} / ${tasks.size()} công việc
                 </span>
             </div>
@@ -740,12 +743,12 @@
     <div class="row g-4 mb-4 avoid-break">
         <!-- Wiki Docs -->
         <div class="col-12 col-lg-6">
-            <div class="bg-white p-4 rounded-3 shadow-sm border h-100">
+            <div class="bg-white p-4 rounded-3 shadow-sm border h-100" style="border-color: #D5DEEF !important;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                        <i class="bi bi-journal-text text-primary"></i> Tài Liệu Kỹ Thuật & Wiki (${docCount})
+                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2" style="color: #1E2D42;">
+                        <i class="bi bi-journal-text" style="color: #395886;"></i> Tài Liệu Kỹ Thuật & Wiki (${docCount})
                     </h6>
-                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="no-print fs-9 text-decoration-none">Xem tất cả &rarr;</a>
+                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="no-print fs-9 text-decoration-none fw-semibold" style="color: #395886;">Xem tất cả &rarr;</a>
                 </div>
                 <c:choose>
                     <c:when test="${not empty docs}">
@@ -776,14 +779,14 @@
 
         <!-- Discussions -->
         <div class="col-12 col-lg-6">
-            <div class="bg-white p-4 rounded-3 shadow-sm border h-100">
+            <div class="bg-white p-4 rounded-3 shadow-sm border h-100" style="border-color: #D5DEEF !important;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold text-dark fs-7 mb-0 d-flex align-items-center gap-2">
-                        <i class="bi bi-chat-dots-fill text-info"></i> Tương Tác & Thảo Luận Nhóm
+                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2" style="color: #1E2D42;">
+                        <i class="bi bi-chat-dots-fill" style="color: #628ECB;"></i> Tương Tác & Thảo Luận Nhóm
                     </h6>
-                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="no-print fs-9 text-decoration-none">Vào phòng chat &rarr;</a>
+                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="no-print fs-9 text-decoration-none fw-semibold" style="color: #395886;">Vào phòng chat &rarr;</a>
                 </div>
-                <div class="p-3 bg-light rounded-3 mb-3">
+                <div class="p-3 rounded-3 mb-3" style="background-color: #F0F3FA; border: 1px solid #D5DEEF;">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="fs-8 text-muted">Tổng số tin nhắn trao đổi:</span>
                         <span class="fw-bold fs-7 text-dark">${messageCount} lượt</span>
@@ -820,7 +823,7 @@
     <div class="d-flex justify-content-end mt-4 pt-3 avoid-break">
         <div class="col-12 col-sm-6 col-md-4">
             <div class="signature-box">
-                <div class="fw-bold text-dark fs-8 text-uppercase tracking-wider">TRƯỞNG DỰ ÁN (PROJECT MANAGER)</div>
+                <div class="fw-bold fs-8 text-uppercase tracking-wider" style="color: #1E2D42;">TRƯỞNG DỰ ÁN (PROJECT MANAGER)</div>
                 <div class="text-muted fs-9 mb-1">(Ký và ghi rõ họ tên)</div>
                 <div class="signature-line"></div>
                 <c:set var="projectOwnerName" value="" />
@@ -829,7 +832,7 @@
                         <c:set var="projectOwnerName" value="${m.userName}" />
                     </c:if>
                 </c:forEach>
-                <div class="fw-bold text-dark fs-7">
+                <div class="fw-bold fs-7" style="color: #395886;">
                     <c:choose>
                         <c:when test="${not empty projectOwnerName}">
                             ${projectOwnerName}

@@ -2481,8 +2481,8 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     min-width: 250px;
     height: 100%;
     border-radius: 0;
-    background-color: #f8fafc;
-    border-right: 1px solid #e2e8f0;
+    background-color: #F0F3FA;
+    border-right: 1px solid #D5DEEF;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -2504,8 +2504,8 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-sidebar-header {
-    padding: 10px 14px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 10px 12px;
+    border-bottom: 1px solid #D5DEEF;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2528,22 +2528,66 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     border-radius: 4px;
 }
 
-.clickup-workspace-btn {
-    background: transparent;
-    border: none;
-    padding: 4px 8px;
+.sidebar-brand-btn {
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
     border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.88rem;
-    color: #0f172a;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.15s;
 }
 
-.clickup-workspace-btn:hover {
-    background-color: #f1f5f9;
+.sidebar-brand-btn:hover {
+    background-color: #E2EAF8 !important;
+}
+
+.sidebar-collapse-indicator {
+    transition: all 0.18s ease;
+    opacity: 0.6;
+    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+}
+
+.sidebar-brand-btn:hover .sidebar-collapse-indicator {
+    opacity: 1;
+    background-color: #D5DEEF;
+    color: #1E2D42 !important;
+}
+
+.sidebar-brand-btn:hover .sidebar-collapse-indicator i {
+    transform: translateX(-1.5px);
+}
+
+/* Modern Search Box (ui-ux-pro-max) */
+.clickup-search-box {
+    background-color: #ffffff;
+    border: 1px solid #D5DEEF;
+    border-radius: 9px;
+    box-shadow: 0 1px 2px rgba(57, 88, 134, 0.04);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.clickup-search-box:hover {
+    border-color: #8AAEE0;
+}
+
+.clickup-search-box:focus-within {
+    border-color: #628ECB;
+    box-shadow: 0 0 0 3px rgba(98, 142, 203, 0.18);
+}
+
+.clickup-search-box:focus-within i {
+    color: #628ECB !important;
+}
+
+.search-kbd-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 1.5px 5px;
+    background-color: #F0F3FA;
+    border: 1px solid #D5DEEF;
+    border-radius: 4px;
+    color: #395886;
+    pointer-events: none;
+    letter-spacing: 0.02em;
 }
 
 .clickup-sidebar-section {
@@ -2551,11 +2595,11 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-section-title {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 750;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #94a3b8;
+    letter-spacing: 0.06em;
+    color: #395886;
     padding: 4px 8px;
     margin-bottom: 2px;
     display: flex;
@@ -2563,85 +2607,171 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     justify-content: space-between;
 }
 
+/* Global Quick Nav Links (ui-ux-pro-max) */
 .clickup-nav-link {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
-    color: #475569;
+    padding: 6px 9px;
+    color: #395886;
     text-decoration: none;
     border-radius: 8px;
-    font-weight: 500;
-    font-size: 0.84rem;
-    transition: all 0.15s;
-    margin-bottom: 2px;
+    font-weight: 550;
+    font-size: 0.83rem;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .clickup-nav-link:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
+    background-color: #E2EAF8;
+    color: #1E2D42;
+    transform: translateX(2px);
 }
 
-.clickup-nav-link.active {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: #1d4ed8;
-    font-weight: 650;
+.clickup-nav-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
 }
 
-.clickup-nav-link.active i {
-    color: #2563eb !important;
+.clickup-nav-link:hover .clickup-nav-icon {
+    transform: scale(1.06);
 }
 
-.clickup-nav-link i {
-    font-size: 0.95rem;
-    width: 20px;
-    text-align: center;
-}
-
+/* Space / Project Items (ui-ux-pro-max) */
 .clickup-space-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 10px;
+    padding: 6px 9px;
     border-radius: 8px;
-    color: #334155;
+    color: #395886;
     text-decoration: none;
     font-weight: 500;
-    font-size: 0.84rem;
-    transition: all 0.15s;
+    font-size: 0.83rem;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
     margin-bottom: 2px;
+    border-left: 2.5px solid transparent;
 }
 
 .clickup-space-item:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
+    background-color: #E2EAF8;
+    color: #1E2D42;
+    transform: translateX(2px);
 }
 
 .clickup-space-item.active {
-    background-color: #ede9fe;
-    color: #6d28d9;
+    background-color: #E2EAF8 !important;
+    border-left-color: #395886 !important;
+    color: #395886 !important;
     font-weight: 650;
 }
 
 .clickup-space-icon {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     border-radius: 6px;
+    background-color: #E8EEF8;
+    color: #395886;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
     flex-shrink: 0;
+    transition: all 0.18s ease;
 }
 
-.clickup-sidebar-footer {
-    padding: 10px 14px;
+.clickup-space-icon.active-icon {
+    background: linear-gradient(135deg, #395886 0%, #628ECB 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(57, 88, 134, 0.3);
+}
+
+.clickup-space-item:hover .clickup-space-icon:not(.active-icon) {
+    background-color: #D5DEEF;
+    color: #1E2D42;
+}
+
+.badge-solo {
+    background-color: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-team {
+    background-color: #E2EAF8;
+    color: #395886;
+    border: 1px solid #B1C9EF;
+}
+
+/* Action Buttons in Spaces */
+.btn-create-space {
+    background: linear-gradient(135deg, #395886 0%, #4D71A3 100%);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 2px 5px rgba(57, 88, 134, 0.25);
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-create-space:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(57, 88, 134, 0.35);
+    color: #ffffff;
+}
+
+.btn-join-code {
     background-color: #ffffff;
-    border-top: 1px solid #e2e8f0;
+    border: 1px solid #D5DEEF;
+    color: #395886;
+    font-weight: 500;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-join-code:hover {
+    background-color: #F0F3FA;
+    border-color: #8AAEE0;
+    color: #1E2D42;
+    transform: translateY(-1px);
+}
+
+/* Sidebar Footer */
+.clickup-sidebar-footer {
+    padding: 10px 12px;
+    background-color: #ffffff;
+    border-top: 1px solid #D5DEEF;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+}
+
+.sidebar-user-card {
+    transition: all 0.18s ease;
+    cursor: pointer;
+}
+
+.sidebar-user-card:hover {
+    background-color: #f1f5f9;
+}
+
+.user-status-dot {
+    box-shadow: 0 0 0 1.5px #ffffff;
+}
+
+.sidebar-help-btn {
+    transition: all 0.18s ease;
+}
+
+.sidebar-help-btn:hover {
+    background-color: #e2e8f0;
+    transform: scale(1.05);
 }
 
 /* 4. Main Content Canvas (Liền mạch, không viền rườm rà) */
