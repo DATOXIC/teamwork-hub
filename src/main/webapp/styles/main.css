@@ -2448,136 +2448,49 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
    ========================================================================== */
 
 /* ==========================================================================
-   CLICKUP 3.0 FLOATING ISLANDS ARCHITECTURE (3-ISLAND LAYOUT)
+   UNIFIED MODERN SAAS WORKSPACE ARCHITECTURE
    ========================================================================== */
 
-/* 1. App Shell Container (Canvas ton trang mu xm nh?t #f7f8fa) */
+/* 1. App Shell Container (Toàn màn hình, không thanh cuộn ngoài) */
 .clickup-shell {
     display: flex;
-    flex-direction: column;
     height: 100vh;
     max-height: 100vh;
     width: 100vw;
     max-width: 100vw;
     overflow: hidden;
-    background-color: #f7f8fa;
+    background-color: #ffffff;
     font-family: var(--font-sans);
 }
 
-/* 2. Global Topbar (Thanh ngang siu m?ng trn cng - 42px) */
-.clickup-global-header {
-    height: 42px;
-    min-height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 14px;
-    background-color: #f7f8fa;
-    flex-shrink: 0;
-    z-index: 1060;
-}
-
-.clickup-global-search {
-    position: relative;
-    width: 340px;
-    max-width: 100%;
-}
-
-.clickup-global-search input {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    padding: 4px 34px 4px 32px;
-    font-size: 0.8rem;
-    width: 100%;
-    color: #1e293b;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.clickup-global-search input:focus {
-    background-color: #ffffff;
-    border-color: #7c3aed;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
-    outline: none;
-}
-
-/* 3. Islands Row Container (Ch?a 3 D?o N?i cch d?u vi?n 8px) */
+/* 2. Main Row Container (Sidebar + Canvas liền mạch) */
 .clickup-islands-row {
     display: flex;
     flex: 1;
+    height: 100%;
+    width: 100%;
     min-height: 0;
-    padding: 0 8px 8px 8px;
-    gap: 8px;
+    padding: 0;
+    gap: 0;
     overflow: hidden;
 }
 
-/* D?O 1: Left App Rail (Dock siu m?ng bo trn tch r?i) */
-.clickup-dock {
-    width: 52px;
-    min-width: 52px;
-    height: 100%;
-    border-radius: 14px;
-    background-color: #111217;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    z-index: 1050;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    flex-shrink: 0;
-}
-
-.clickup-dock-top, .clickup-dock-bottom {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-.clickup-dock-item {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    text-decoration: none;
-    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-    font-size: 1.1rem;
-    position: relative;
-}
-
-.clickup-dock-item:hover {
-    color: #ffffff;
-    background-color: rgba(255, 255, 255, 0.12);
-    transform: scale(1.05);
-}
-
-.clickup-dock-item.active {
-    color: #ffffff;
-    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.4);
-}
-
-/* D?O 2: Workspace Sidebar (Tr?ng bo trn vi?n m?ng xm m?) */
+/* 3. Unified Workspace Sidebar (Thanh bên tinh gọn 250px) */
 .clickup-sidebar {
-    width: 236px;
-    min-width: 236px;
+    width: 250px;
+    min-width: 250px;
     height: 100%;
-    border-radius: 14px;
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    border-radius: 0;
+    background-color: #f8fafc;
+    border-right: 1px solid #e2e8f0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     font-size: 0.85rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: none;
+    transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
     flex-shrink: 0;
+    z-index: 1040;
 }
 
 .clickup-sidebar.collapsed {
@@ -2597,12 +2510,22 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
+    background-color: #ffffff;
 }
 
 .clickup-sidebar-scroll {
     flex: 1;
     overflow-y: auto;
     padding-bottom: 12px;
+}
+
+.clickup-sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.clickup-sidebar-scroll::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
 }
 
 .clickup-workspace-btn {
@@ -2624,16 +2547,16 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-sidebar-section {
-    padding: 10px 8px 4px 8px;
+    padding: 8px 10px 4px 10px;
 }
 
 .clickup-section-title {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 750;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #94a3b8;
-    padding: 4px 10px;
+    padding: 4px 8px;
     margin-bottom: 2px;
     display: flex;
     align-items: center;
@@ -2664,6 +2587,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     color: #1d4ed8;
     font-weight: 650;
 }
+
 .clickup-nav-link.active i {
     color: #2563eb !important;
 }
@@ -2710,18 +2634,28 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     flex-shrink: 0;
 }
 
-/* D?O 3: Main Content Panel (Tr?ng bo trn vi?n m?ng xm m? l?n nh?t) */
+.clickup-sidebar-footer {
+    padding: 10px 14px;
+    background-color: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+/* 4. Main Content Canvas (Liền mạch, không viền rườm rà) */
 .clickup-main-panel {
     flex: 1;
     height: 100%;
     min-width: 0;
-    border-radius: 14px;
+    border-radius: 0;
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: none;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    box-shadow: none;
 }
 
 /* 4. Inside Main Panel Header & Tabs */
