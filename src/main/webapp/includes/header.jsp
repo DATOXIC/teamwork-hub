@@ -32,6 +32,10 @@
             <link rel="stylesheet"
                 href="${pageContext.request.contextPath}/styles/main.css?v=<%= System.currentTimeMillis() %>">
 
+            <!-- Command Palette CSS (Ctrl + K) -->
+            <link rel="stylesheet"
+                href="${pageContext.request.contextPath}/styles/command-palette.css?v=<%= System.currentTimeMillis() %>">
+
             <!-- CSS Bổ sung riêng cho từng trang trong HEAD với Cache-Busting -->
             <c:set var="resolvedCss" value="${not empty extraCss ? extraCss : (not empty requestScope.extraCss ? requestScope.extraCss : param.extraCss)}" />
             <c:if test="${not empty resolvedCss}">

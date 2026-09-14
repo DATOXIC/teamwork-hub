@@ -44,8 +44,19 @@
                 </li>
             </ul>
 
-            <!-- Right Side: Quả Chuông Thông Báo 🔔 + User Profile hoặc Login Button -->
+            <!-- Right Side: Command Palette ⚡ + Language + Theme + Notifications + Profile -->
             <div class="d-flex align-items-center gap-2 ms-auto">
+                <!-- Nút Mở Command Palette (Ctrl + K) -->
+                <button type="button" class="navbar-cp-trigger ${not empty sessionScope.currentUser ? '' : 'd-none'}" 
+                        onclick="openCommandPalette()" 
+                        data-cp-trigger
+                        title="Mở thanh tìm kiếm & điều hướng lệnh (Ctrl + K)" 
+                        aria-label="Mở Command Palette">
+                    <i class="bi bi-search fs-9"></i>
+                    <span class="d-none d-lg-inline fs-9">Tìm kiếm hoặc lệnh...</span>
+                    <kbd class="cp-kbd d-none d-sm-inline-flex">Ctrl K</kbd>
+                </button>
+
                 <!-- Language selector -->
                 <div class="dropdown">
                     <button class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 d-flex align-items-center gap-1"
@@ -59,6 +70,16 @@
                         <li><button type="button" class="dropdown-item language-option" data-language="en">English</button></li>
                     </ul>
                 </div>
+
+                <!-- Nút chuyển đổi Giao diện Sáng / Tối toàn hệ thống (Global Theme Switcher) -->
+                <button type="button" id="globalThemeToggleBtn" onclick="toggleGlobalTheme()"
+                        class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 d-flex align-items-center gap-1 shadow-none"
+                        title="Chuyển đổi giao diện Sáng / Tối (Light / Dark Mode)"
+                        aria-label="Chuyển đổi giao diện Sáng / Tối">
+                    <i class="bi bi-moon-stars-fill" id="globalThemeIconMoon"></i>
+                    <i class="bi bi-sun-fill text-warning d-none" id="globalThemeIconSun"></i>
+                    <span id="globalThemeBtnText" class="d-none d-sm-inline fs-9 fw-semibold">Tối</span>
+                </button>
                 
                 <!-- =========================================================
                      1. QUẢ CHUÔNG THÔNG BÁO THỜI GIAN THỰC (NOTIFICATION BELL)
@@ -186,3 +207,6 @@
         </div>
     </div>
 </nav>
+
+<!-- Command Palette Modal (Ctrl + K) -->
+<jsp:include page="/includes/command_palette.jsp" />
