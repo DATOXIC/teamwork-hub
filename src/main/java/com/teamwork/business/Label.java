@@ -2,26 +2,48 @@ package com.teamwork.business;
 
 import java.io.Serializable;
 import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
- * JavaBean Model dai dien cho mot Nhan phan loai (Label / Tag) trong he thong Kanban.
- * Moi Label thuoc ve mot Project cu the va co mau sac, bieu tuong (icon) tuy bien.
- * 
- * Ap dung nguyen tac Backend Code Mastery:
- * - Du lieu bat bien duoc validate chat che (name, colorKey, icon).
- * - Cung cap cac helper methods an toan cho tang View (JSTL / JSP).
+ * JavaBean & JPA Entity đại diện cho một Nhãn phân loại (Label / Tag) trong hệ thống Kanban.
+ * Mỗi Label thuộc về một Project cụ thể và có màu sắc, biểu tượng (icon) tùy biến.
  */
+@Entity
+@Table(name = "labels")
 public class Label implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // ===================== CAC THUOC TINH =====================
+    // ===================== CÁC THUỘC TÍNH =====================
 
-    private int id;             // Khoa chinh dinh danh nhan
-    private int projectId;      // Thuoc du an nao (Khoa ngoai tro den Project.id)
-    private String name;        // Ten nhan hien thi (vi du: "Bug", "Hotfix", "UI/UX", "Security")
-    private String colorKey;    // Ma mau: "red", "blue", "purple", "amber", "green", "pink", "cyan", "slate"
-    private String icon;        // Bieu tuong Bootstrap Icons (vi du: "bi-tag-fill", "bi-bug-fill")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private int id;             // Khóa chính định danh nhãn
+
+    @Column(name = "project_id", nullable = false)
+    private int projectId;      // Thuộc dự án nào (Khóa ngoại trỏ đến Project.id)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    private Project project;
+
+    @Column(name = "name", nullable = false)
+    private String name;        // Tên nhãn hiển thị (ví dụ: "Bug", "Hotfix", "UI/UX", "Security")
+
+    @Column(name = "color_key")
+    private String colorKey;    // Mã màu: "red", "blue", "purple", "amber", "green", "pink", "cyan", "slate"
+
+    @Column(name = "icon")
+    private String icon;        // Biểu tượng Bootstrap Icons (ví dụ: "bi-tag-fill", "bi-bug-fill")
 
     // ===================== CONSTRUCTOR Máº¶C Ä á»ŠNH =====================
 
@@ -59,6 +81,14 @@ public class Label implements Serializable {
 
     public void setProjectId(int projectId) {
         this.projectId = projectId;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public String getName() {

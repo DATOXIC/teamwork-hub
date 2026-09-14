@@ -1,21 +1,53 @@
 package com.teamwork.business;
 
 import java.io.Serializable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 /**
- * JavaBean Model: Đại diện cho một Bản Tin Thông Báo (Notification).
+ * JavaBean & JPA Entity: Đại diện cho một Bản Tin Thông Báo (Notification).
  * - Phục vụ hiển thị trên Quả Chuông 🔔 Header và Trung Tâm Thông Báo
  * - Hỗ trợ Deep-linking: Bấm vào thông báo là chuyển hướng thẳng tới Task/Dự án tương ứng
  */
+@Entity
+@Table(name = "notifications")
 public class Notification implements Serializable {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
+
+    @Column(name = "recipient_id", nullable = false)
     private int recipientId;          // ID của người nhận thông báo
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_id", insertable = false, updatable = false)
+    private User recipient;
+
+    @Column(name = "title", nullable = false)
     private String title;             // Tiêu đề: "Giao việc mới", "Lời mời dự án", "Tiến độ 100%"
+
+    @Column(name = "content")
     private String content;           // Nội dung chi tiết thông báo
+
+    @Column(name = "link")
     private String link;              // Đường link hành động (URL) khi nhấp chuột vào
+
+    @Column(name = "type")
     private String type;              // Loại: "INVITE", "TASK_ASSIGNED", "PROGRESS", "COMMENT", "GENERAL"
+
+    @Column(name = "is_read")
     private boolean isRead;           // Trạng thái đã đọc (true) hay chưa đọc (false)
+
+    @Column(name = "created_at", insertable = false, updatable = false)
     private String createdAt;         // Thời điểm phát thông báo (dd/MM/yyyy HH:mm)
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
@@ -68,6 +100,13 @@ public class Notification implements Serializable {
     }
     public void setRecipientId(int recipientId) {
         this.recipientId = recipientId;
+    }
+
+    public User getRecipient() {
+        return recipient;
+    }
+    public void setRecipient(User recipient) {
+        this.recipient = recipient;
     }
 
     public String getTitle() {

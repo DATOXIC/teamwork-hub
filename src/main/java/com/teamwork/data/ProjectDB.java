@@ -1,34 +1,28 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Project;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tầng Data Access Object (DAO): Quản lý dữ liệu Dự án (Project) kết nối Supabase PostgreSQL.
+ * Tầng Data Access Object (DAO): Quản lý dữ liệu Dự án (Project) qua Jakarta Persistence (JPA) / Hibernate.
  * 
- * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
- * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
- * - Tự động tính toán tiến độ (totalTasks, doneTasks) trực tiếp qua câu lệnh SQL tối ưu
- * - Sử dụng PreparedStatement an toàn chống SQL Injection
- * - Quản lý tài nguyên bằng try-with-resources
+ * - Sử dụng EntityManager và JPQL chuẩn hóa, loại bỏ hoàn toàn các cú pháp đặc thù riêng của từng DB.
+ * - Tự động tính toán tiến độ (totalTasks, doneTasks) bằng câu truy vấn JPQL tổng quát.
+ * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types) cho các Servlet.
  */
 public class ProjectDB {
 
     private static final Logger LOGGER = Logger.getLogger(ProjectDB.class.getName());
 
     /**
-     * Hàm phụ trợ ánh xạ 1 dòng từ ResultSet sang đối tượng JavaBean Project
-     * Tự động đọc số lượng task và task đã hoàn thành tính từ DB
+     * Hàm phụ trợ ánh xạ 1 dòng từ ResultSet sang đối tượng JavaBean Project (Tương thích ngược JDBC)
      */
-    public static Project mapResultSetToProject(ResultSet rs) throws SQLException {
+    public static Project mapResultSetToProject(java.sql.ResultSet rs) throws java.sql.SQLException {
         int id = rs.getInt("id");
         String projectCode = rs.getString("project_code");
         String name = rs.getString("name");
@@ -37,11 +31,18 @@ public class ProjectDB {
         try {
             String pt = rs.getString("project_type");
             if (pt != null && !pt.trim().isEmpty()) projectType = pt.trim().toUpperCase();
-        } catch (SQLException ignored) {}
+        } catch (java.sql.SQLException ignored) {}
         int ownerId = rs.getInt("owner_id");
-        String createdAt = rs.getString("created_at_str");
-        int totalTasks = rs.getInt("total_tasks");
-        int doneTasks = rs.getInt("done_tasks");
+        String createdAt = "";
+        try {
+            createdAt = rs.getString("created_at_str");
+        } catch (java.sql.SQLException ignored) {}
+        int totalTasks = 0;
+        int doneTasks = 0;
+        try {
+            totalTasks = rs.getInt("total_tasks");
+            doneTasks = rs.getInt("done_tasks");
+        } catch (java.sql.SQLException ignored) {}
 
         return new Project(
             id,
@@ -57,115 +58,99 @@ public class ProjectDB {
     }
 
     /**
-     * Hàm 1: Lấy toàn bộ danh sách dự án
-     * 
-     * @return Danh sách List<Project> kèm thông số tiến độ công việc
+     * Hàm phụ trợ tính toán số lượng task và task hoàn thành độc lập với loại DB
+     */
+    private static void populateTaskStats(EntityManager em, Project project) {
+        if (project == null || project.getId() <= 0) return;
+        try {
+            Long total = em.createQuery(
+                "SELECT COUNT(t) FROM Task t WHERE t.projectId = :pid", Long.class)
+                .setParameter("pid", project.getId())
+                .getSingleResult();
+
+            Long done = em.createQuery(
+                "SELECT COUNT(t) FROM Task t WHERE t.projectId = :pid AND (t.status = 'DONE' OR t.status = 'APPROVED')", Long.class)
+                .setParameter("pid", project.getId())
+                .getSingleResult();
+
+            project.setTotalTasks(total != null ? total.intValue() : 0);
+            project.setDoneTasks(done != null ? done.intValue() : 0);
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Không thể tính thống kê task cho Project ID: " + project.getId(), e);
+        }
+    }
+
+    /**
+     * Hàm 1: Lấy toàn bộ danh sách dự án bằng JPQL
      */
     public static List<Project> selectAll() {
-        List<Project> list = new ArrayList<>();
-        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, " +
-                     "       to_char(p.created_at, 'YYYY-MM-DD') AS created_at_str, " +
-                     "       COUNT(t.id) AS total_tasks, " +
-                     "       COUNT(t.id) FILTER (WHERE t.status = 'DONE' OR t.status = 'APPROVED') AS done_tasks " +
-                     "FROM projects p " +
-                     "LEFT JOIN tasks t ON p.id = t.project_id " +
-                     "GROUP BY p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, p.created_at " +
-                     "ORDER BY p.id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                list.add(mapResultSetToProject(rs));
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Project> list = em.createQuery("SELECT p FROM Project p ORDER BY p.id ASC", Project.class)
+                .getResultList();
+            for (Project p : list) {
+                populateTaskStats(em, p);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy toàn bộ danh sách Project", e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy toàn bộ danh sách Project qua JPA", e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return list;
     }
 
     /**
      * Hàm 2: Tìm dự án theo ID duy nhất
-     * 
-     * @param id Khóa chính định danh dự án
-     * @return Đối tượng Project nếu tìm thấy, ngược lại trả về null
      */
     public static Project selectById(int id) {
-        if (id <= 0) {
-            return null;
-        }
+        if (id <= 0) return null;
 
-        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, " +
-                     "       to_char(p.created_at, 'YYYY-MM-DD') AS created_at_str, " +
-                     "       COUNT(t.id) AS total_tasks, " +
-                     "       COUNT(t.id) FILTER (WHERE t.status = 'DONE' OR t.status = 'APPROVED') AS done_tasks " +
-                     "FROM projects p " +
-                     "LEFT JOIN tasks t ON p.id = t.project_id " +
-                     "WHERE p.id = ? " +
-                     "GROUP BY p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, p.created_at " +
-                     "LIMIT 1";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToProject(rs);
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Project project = em.find(Project.class, id);
+            if (project != null) {
+                populateTaskStats(em, project);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Project theo ID: " + id, e);
+            return project;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Project theo ID qua JPA: " + id, e);
+            return null;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return null;
     }
 
     /**
-     * Hàm 3: Tìm dự án theo Mã Dự Án (projectCode)
-     * Phục vụ Chiều 2: Thành viên nhập mã dự án để gửi yêu cầu Xin Gia Nhập
-     * 
-     * @param code Mã dự án (Ví dụ: "TW-HUB-01")
-     * @return Đối tượng Project nếu tìm thấy, ngược lại trả về null
+     * Hàm 3: Tìm dự án theo Mã Dự Án (projectCode) bằng JPQL
      */
     public static Project selectByCode(String code) {
-        if (code == null || code.trim().isEmpty()) {
-            return null;
-        }
+        if (code == null || code.trim().isEmpty()) return null;
 
-        String sql = "SELECT p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, " +
-                     "       to_char(p.created_at, 'YYYY-MM-DD') AS created_at_str, " +
-                     "       COUNT(t.id) AS total_tasks, " +
-                     "       COUNT(t.id) FILTER (WHERE t.status = 'DONE' OR t.status = 'APPROVED') AS done_tasks " +
-                     "FROM projects p " +
-                     "LEFT JOIN tasks t ON p.id = t.project_id " +
-                     "WHERE UPPER(p.project_code) = UPPER(?) " +
-                     "GROUP BY p.id, p.project_code, p.name, p.description, p.project_type, p.owner_id, p.created_at " +
-                     "LIMIT 1";
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            String jpql = "SELECT p FROM Project p WHERE UPPER(p.projectCode) = UPPER(:code)";
+            List<Project> list = em.createQuery(jpql, Project.class)
+                .setParameter("code", code.trim())
+                .setMaxResults(1)
+                .getResultList();
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, code.trim());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToProject(rs);
-                }
+            if (!list.isEmpty()) {
+                Project project = list.get(0);
+                populateTaskStats(em, project);
+                return project;
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Project theo Code: " + code, e);
+            return null;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Project theo Code qua JPA: " + code, e);
+            return null;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return null;
     }
 
     /**
-     * Hàm 4: Thêm dự án mới (Tự động cấp ID và tự động sinh Mã Dự Án nếu chưa có)
-     * Đồng thời tự động thêm người tạo làm OWNER trong bảng project_members
-     * 
-     * @param project Đối tượng Project chứa thông tin dự án mới
-     * @return ID tự tăng được tạo mới trong CSDL, hoặc 0 nếu thất bại
+     * Hàm 4: Thêm dự án mới qua em.persist()
      */
     public static int insert(Project project) {
         if (project == null || project.getName() == null || project.getName().trim().isEmpty()) {
@@ -176,61 +161,65 @@ public class ProjectDB {
         if (projectCode == null || projectCode.trim().isEmpty()) {
             projectCode = "PRJ-" + System.currentTimeMillis() % 100000;
         }
-        projectCode = projectCode.trim().toUpperCase();
+        project.setProjectCode(projectCode.trim().toUpperCase());
+        if (project.getDescription() == null) project.setDescription("");
+        if (project.getProjectType() == null) project.setProjectType("TEAM");
 
-        String sql = "INSERT INTO projects (project_code, name, description, project_type, owner_id, created_at) " +
-                     "VALUES (?, ?, ?, ?, ?, NOW()) RETURNING id";
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(project);
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, projectCode);
-            ps.setString(2, project.getName().trim());
-            ps.setString(3, project.getDescription() != null ? project.getDescription().trim() : "");
-            ps.setString(4, project.getProjectType() != null ? project.getProjectType() : "TEAM");
-            ps.setInt(5, project.getOwnerId());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    int generatedId = rs.getInt(1);
-                    project.setId(generatedId);
-                    project.setProjectCode(projectCode);
-
-                    // Tự động thêm Owner vào bảng project_members
-                    String memberSql = "INSERT INTO project_members (project_id, user_id, project_role, joined_at) " +
-                                       "VALUES (?, ?, 'OWNER', NOW()) ON CONFLICT (project_id, user_id) DO NOTHING";
-                    try (PreparedStatement memberPs = conn.prepareStatement(memberSql)) {
-                        memberPs.setInt(1, generatedId);
-                        memberPs.setInt(2, project.getOwnerId());
-                        memberPs.executeUpdate();
-                    }
-
-                    return generatedId;
-                }
+            // Thêm Owner vào project_members
+            try {
+                em.createNativeQuery("INSERT INTO project_members (project_id, user_id, project_role, joined_at) " +
+                                     "VALUES (:pid, :uid, 'OWNER', NOW())")
+                    .setParameter("pid", project.getId())
+                    .setParameter("uid", project.getOwnerId())
+                    .executeUpdate();
+            } catch (Exception memberEx) {
+                LOGGER.warning("Lưu ý khi thêm Owner vào project_members: " + memberEx.getMessage());
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi chèn Project mới: " + project.getName(), e);
+
+            tx.commit();
+            return project.getId();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi chèn Project mới qua JPA: " + project.getName(), e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return 0;
     }
 
     /**
-     * Hàm 5: Cập nhật thông tin dự án (Tên, mô tả, loại dự án)
+     * Hàm 5: Cập nhật thông tin dự án qua em.merge()
      */
     public static boolean update(Project project) {
         if (project == null || project.getId() <= 0) return false;
 
-        String sql = "UPDATE projects SET name = ?, description = ?, project_type = ? WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, project.getName().trim());
-            ps.setString(2, project.getDescription() != null ? project.getDescription().trim() : "");
-            ps.setString(3, project.getProjectType() != null ? project.getProjectType() : "TEAM");
-            ps.setInt(4, project.getId());
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật Project ID: " + project.getId(), e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Project managed = em.find(Project.class, project.getId());
+            if (managed != null) {
+                managed.setName(project.getName().trim());
+                managed.setDescription(project.getDescription() != null ? project.getDescription().trim() : "");
+                managed.setProjectType(project.getProjectType() != null ? project.getProjectType() : "TEAM");
+                em.merge(managed);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật Project ID qua JPA: " + project.getId(), e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 }

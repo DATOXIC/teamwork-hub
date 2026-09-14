@@ -3,30 +3,73 @@ package com.teamwork.business;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
- * JavaBean Model đại diện cho một Việc Con (Sub-task) trong Cây Phân Cấp & Quy Trình Nghiệm Thu 5 Cấp Độ.
+ * JavaBean & JPA Entity đại diện cho một Việc Con (Sub-task) trong Cây Phân Cấp & Quy Trình Nghiệm Thu 5 Cấp Độ.
  * - Quản lý 5 trạng thái: TODO (⚪), SUBMITTED (🟡), REVISE (🔵), REJECTED (🔴), APPROVED (🟢)
  * - Quản lý Hạn chót riêng (dueDate - YYYY-MM-DD) ràng buộc không được vượt quá Task cha
  * - Lưu vết ghi chú kết quả nộp bài của Cấp dưới (submissionNote) và nhận xét của Task Lead (feedbackNote)
  */
+@Entity
+@Table(name = "subtasks")
 public class SubTask implements Serializable {
 
     // ===================== CÁC THUỘC TÍNH =====================
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;                  // Khóa chính định danh việc con
+
+    @Column(name = "task_id", nullable = false)
     private int taskId;              // Thuộc task cha nào (Khóa ngoại trỏ đến Task.id)
 
-    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_id", insertable = false, updatable = false)
+    private Task task;
+
+    @Column(name = "title", nullable = false)
     private String title;            // Tiêu đề việc con (Ví dụ: "Viết cấu hình Dockerfile")
-    private int assigneeId;          // ID thành viên được giao việc con (trỏ đến User.id)
+
+    @Column(name = "assignee_id")
+    private Integer assigneeId;      // ID thành viên được giao việc con (trỏ đến User.id, null-safe)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id", insertable = false, updatable = false)
+    private User assignee;
+
+    @Transient
     private String assigneeName;     // Tên hiển thị người làm việc con
+
+    @Transient
     private boolean completed;       // Trạng thái cờ hoàn thành (true khi status = "APPROVED")
+
+    @Column(name = "status")
     private String status;           // 5 Trạng thái: "TODO", "SUBMITTED", "REVISE", "REJECTED", "APPROVED"
+
+    @Column(name = "due_date")
     private String dueDate;          // Hạn chót hoàn thành việc con (định dạng: YYYY-MM-DD)
+
+    @Column(name = "submission_note")
     private String submissionNote;   // Lời nhắn nộp bài / link kết quả bàn giao của cấp dưới
+
+    @Column(name = "feedback_note")
     private String feedbackNote;     // Ý kiến nhận xét / lý do trả về của Task Lead
+
+    @Column(name = "submitted_at", insertable = false, updatable = false)
     private String submittedAt;      // Thời điểm nộp bài (định dạng: YYYY-MM-DD HH:mm)
+
+    @Column(name = "reviewed_at", insertable = false, updatable = false)
     private String reviewedAt;       // Thời điểm duyệt / phản hồi (định dạng: YYYY-MM-DD HH:mm)
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
@@ -275,10 +318,27 @@ public class SubTask implements Serializable {
     }
 
     public int getAssigneeId() {
-        return this.assigneeId;
+        return this.assigneeId != null ? this.assigneeId : 0;
     }
     public void setAssigneeId(int assigneeId) {
-        this.assigneeId = assigneeId;
+        this.assigneeId = (assigneeId > 0) ? assigneeId : null;
+    }
+    public void setAssigneeId(Integer assigneeId) {
+        this.assigneeId = (assigneeId != null && assigneeId > 0) ? assigneeId : null;
+    }
+
+    public Task getTask() {
+        return this.task;
+    }
+    public void setTask(Task task) {
+        this.task = task;
+    }
+
+    public User getAssignee() {
+        return this.assignee;
+    }
+    public void setAssignee(User assignee) {
+        this.assignee = assignee;
     }
 
     public String getAssigneeName() {

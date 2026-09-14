@@ -5,25 +5,70 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
- * JavaBean Model dai dien cho mot ban ghi Nhat ky Hoat dong (Activity Log / Audit Trail).
- * Luu vet tu dong cac su kien: tao task, chuyen trang thai, PM phe duyet/yeu cau sua, them tai lieu...
+ * JavaBean & JPA Entity đại diện cho một bản ghi Nhật ký Hoạt động (Activity Log / Audit Trail).
+ * Lưu vết tự động các sự kiện: tạo task, chuyển trạng thái, PM phê duyệt/yêu cầu sửa, thêm tài liệu...
  */
+@Entity
+@Table(name = "activity_logs")
 public class ActivityLog implements Serializable {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
+
+    @Column(name = "project_id", nullable = false)
     private int projectId;
-    private int userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    private Project project;
+
+    @Column(name = "user_id")
+    private Integer userId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
+
+    @Transient
     private String userName;
+
+    @Transient
     private String userAvatar;
+
+    @Column(name = "action_type", nullable = false)
     private String actionType;      // TASK_CREATE, STATUS_CHANGE, TASK_SUBMIT, PM_APPROVE, PM_REVISE, PM_REJECT, DOC_CREATE, SUBTASK_CREATE
+
+    @Column(name = "target_type", nullable = false)
     private String targetType;      // TASK, DOC, MEMBER, PROJECT, SUBTASK
+
+    @Column(name = "target_id")
     private int targetId;
+
+    @Column(name = "target_title")
     private String targetTitle;
+
+    @Column(name = "description")
     private String description;
-    private String createdAt;       // Chuoi dinh dang ngay gio dd/MM/yyyy HH:mm
-    private Timestamp rawCreatedAt; // Timestamp goc tu database de tinh toan thoi gian tuong doi
+
+    @Transient
+    private String createdAt;       // Chuỗi định dạng ngày giờ dd/MM/yyyy HH:mm
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private Timestamp rawCreatedAt; // Timestamp gốc từ database để tính toán thời gian tương đối
 
     public ActivityLog() {
         this.id = 0;
@@ -187,8 +232,15 @@ public class ActivityLog implements Serializable {
     public int getProjectId() { return projectId; }
     public void setProjectId(int projectId) { this.projectId = projectId; }
 
-    public int getUserId() { return userId; }
-    public void setUserId(int userId) { this.userId = userId; }
+    public int getUserId() { return userId != null ? userId : 0; }
+    public void setUserId(int userId) { this.userId = userId > 0 ? userId : null; }
+    public void setUserId(Integer userId) { this.userId = (userId != null && userId > 0) ? userId : null; }
+
+    public Project getProject() { return project; }
+    public void setProject(Project project) { this.project = project; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <!-- ================================================================= -->
+    <!-- PERSISTENCE UNIT 1: CLOUD SUPABASE POSTGRESQL (MẶC ĐỊNH PRODUCTION) -->
+    <!-- ================================================================= -->
+    <persistence-unit name="teamwork-cloud" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        
+        <!-- Khai báo toàn bộ các JPA Entity trong hệ thống -->
+        <class>com.teamwork.business.User</class>
+        <class>com.teamwork.business.Project</class>
+        <class>com.teamwork.business.Task</class>
+        <class>com.teamwork.business.SubTask</class>
+        <class>com.teamwork.business.Label</class>
+        <class>com.teamwork.business.Doc</class>
+        <class>com.teamwork.business.Message</class>
+        <class>com.teamwork.business.Notification</class>
+        <class>com.teamwork.business.ActivityLog</class>
+        <class>com.teamwork.business.ProjectMember</class>
+        <class>com.teamwork.business.ProjectInvite</class>
+        <class>com.teamwork.business.TaskDoc</class>
+
+        <properties>
+            <!-- Cấu hình JDBC Driver & URL cho Supabase PostgreSQL -->
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver" />
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require&amp;prepareThreshold=5&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified&amp;ApplicationName=teamwork-hub" />
+            <property name="jakarta.persistence.jdbc.user" value="postgres.nppsoolbarfagwqdtcdm" />
+            <property name="jakarta.persistence.jdbc.password" value="matkhaudenho123" />
+
+            <!-- Hibernate Dialect cho PostgreSQL -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
+
+            <!-- Hiển thị SQL trong console để kiểm chứng JPA hoạt động -->
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.format_sql" value="true" />
+            <property name="hibernate.highlight_sql" value="true" />
+
+            <!-- Không tự ý drop/alter bảng trên cloud -->
+            <property name="hibernate.hbm2ddl.auto" value="none" />
+        </properties>
+    </persistence-unit>
+
+    <!-- ================================================================= -->
+    <!-- PERSISTENCE UNIT 2: LOCAL MYSQL (CHO GIẢNG VIÊN KIỂM CHỨNG TRÊN MÁY LỚP) -->
+    <!-- Để chuyển sang MySQL: chỉ cần đổi DEFAULT_UNIT_NAME thành "teamwork-mysql" trong JPAUtil -->
+    <!-- ================================================================= -->
+    <persistence-unit name="teamwork-mysql" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        
+        <!-- Khai báo toàn bộ các JPA Entity trong hệ thống -->
+        <class>com.teamwork.business.User</class>
+        <class>com.teamwork.business.Project</class>
+        <class>com.teamwork.business.Task</class>
+        <class>com.teamwork.business.SubTask</class>
+        <class>com.teamwork.business.Label</class>
+        <class>com.teamwork.business.Doc</class>
+        <class>com.teamwork.business.Message</class>
+        <class>com.teamwork.business.Notification</class>
+        <class>com.teamwork.business.ActivityLog</class>
+        <class>com.teamwork.business.ProjectMember</class>
+        <class>com.teamwork.business.ProjectInvite</class>
+        <class>com.teamwork.business.TaskDoc</class>
+
+        <properties>
+            <!-- Cấu hình JDBC Driver & URL cho Local MySQL -->
+            <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver" />
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/teamwork_hub?useSSL=false&amp;serverTimezone=UTC&amp;allowPublicKeyRetrieval=true&amp;characterEncoding=UTF-8" />
+            <property name="jakarta.persistence.jdbc.user" value="root" />
+            <property name="jakarta.persistence.jdbc.password" value="" />
+
+            <!-- Hibernate Dialect cho MySQL -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
+
+            <!-- Hiển thị SQL -->
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.format_sql" value="true" />
+
+            <!-- Tự động sinh bảng và cấu trúc schema khi chạy trên MySQL sạch -->
+            <property name="hibernate.hbm2ddl.auto" value="update" />
+        </properties>
+    </persistence-unit>
+
+</persistence>

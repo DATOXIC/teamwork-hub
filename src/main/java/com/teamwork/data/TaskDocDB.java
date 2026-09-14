@@ -1,23 +1,22 @@
 package com.teamwork.data;
 
 import com.teamwork.business.TaskDoc;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.teamwork.business.TaskDocId;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tầng Data Access Object (DAO): Quản lý liên kết Nhiều-Nhiều Task ↔ Doc kết nối Supabase PostgreSQL.
+ * Tầng Data Access Object (DAO): Quản lý liên kết Nhiều-Nhiều Task ↔ Doc sử dụng JPA / Hibernate ORM.
  * 
  * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
  * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
- * - Sử dụng JOIN bảng docs để lấy tiêu đề tài liệu (docTitle) chính xác
- * - Sử dụng PreparedStatement an toàn chống SQL Injection
- * - Quản lý tài nguyên bằng try-with-resources
+ * - Sử dụng JOIN FETCH bảng Doc để lấy tiêu đề tài liệu (docTitle) nhanh chóng, tránh N+1 query
+ * - Sử dụng JPQL chuẩn, tương thích cả PostgreSQL (Cloud) lẫn MySQL (Local)
+ * - Quản lý Transaction an toàn và giải phóng EntityManager trong finally
  */
 public class TaskDocDB {
 
@@ -27,58 +26,46 @@ public class TaskDocDB {
      * HÀM 1: Lấy danh sách tất cả các tài liệu đính kèm của MỘT CÔNG VIỆC (Task)
      */
     public static List<TaskDoc> selectByTaskId(int taskId) {
-        List<TaskDoc> resultList = new ArrayList<>();
-        if (taskId <= 0) return resultList;
-
-        String sql = "SELECT td.task_id, td.doc_id, d.title AS doc_title " +
-                     "FROM task_docs td " +
-                     "JOIN docs d ON td.doc_id = d.id " +
-                     "WHERE td.task_id = ? " +
-                     "ORDER BY d.id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, taskId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    resultList.add(new TaskDoc(
-                        rs.getInt("task_id"),
-                        rs.getInt("doc_id"),
-                        rs.getString("doc_title")
-                    ));
+        if (taskId <= 0) return new ArrayList<>();
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<TaskDoc> list = em.createQuery(
+                "SELECT td FROM TaskDoc td LEFT JOIN FETCH td.doc WHERE td.taskId = :taskId ORDER BY td.docId ASC",
+                TaskDoc.class)
+                .setParameter("taskId", taskId)
+                .getResultList();
+            for (TaskDoc td : list) {
+                if (td.getDoc() != null) {
+                    td.setDocTitle(td.getDoc().getTitle());
                 }
             }
-        } catch (SQLException e) {
+            return list;
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi lấy TaskDoc theo Task ID: " + taskId, e);
+            return new ArrayList<>();
+        } finally {
+            em.close();
         }
-        return resultList;
     }
 
     /**
      * HÀM 2: Lấy danh sách ID của các Task đang tham chiếu đến MỘT TÀI LIỆU (Doc)
      */
     public static List<Integer> selectTaskIdsByDocId(int docId) {
-        List<Integer> taskIds = new ArrayList<>();
-        if (docId <= 0) return taskIds;
-
-        String sql = "SELECT task_id FROM task_docs WHERE doc_id = ? ORDER BY task_id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, docId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    taskIds.add(rs.getInt("task_id"));
-                }
-            }
-        } catch (SQLException e) {
+        if (docId <= 0) return new ArrayList<>();
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT td.taskId FROM TaskDoc td WHERE td.docId = :docId ORDER BY td.taskId ASC",
+                Integer.class)
+                .setParameter("docId", docId)
+                .getResultList();
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi lấy taskIds theo Doc ID: " + docId, e);
+            return new ArrayList<>();
+        } finally {
+            em.close();
         }
-        return taskIds;
     }
 
     /**
@@ -86,20 +73,26 @@ public class TaskDocDB {
      */
     public static boolean insert(int taskId, int docId, String docTitle) {
         if (taskId <= 0 || docId <= 0) return false;
-
-        String sql = "INSERT INTO task_docs (task_id, doc_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, taskId);
-            ps.setInt(2, docId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            TaskDoc existing = em.find(TaskDoc.class, new TaskDocId(taskId, docId));
+            if (existing != null) {
+                tx.rollback();
+                return false;
+            }
+            TaskDoc td = new TaskDoc(taskId, docId, docTitle);
+            em.persist(td);
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
             LOGGER.log(Level.SEVERE, "Lỗi khi chèn TaskDoc", e);
+            return false;
+        } finally {
+            em.close();
         }
-        return false;
     }
 
     /**
@@ -107,16 +100,19 @@ public class TaskDocDB {
      */
     public static void deleteByTaskId(int taskId) {
         if (taskId <= 0) return;
-
-        String sql = "DELETE FROM task_docs WHERE task_id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, taskId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("DELETE FROM TaskDoc td WHERE td.taskId = :taskId")
+              .setParameter("taskId", taskId)
+              .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
             LOGGER.log(Level.SEVERE, "Lỗi khi xóa TaskDoc theo Task ID: " + taskId, e);
+        } finally {
+            em.close();
         }
     }
 
@@ -125,52 +121,46 @@ public class TaskDocDB {
      */
     public static void deleteByDocId(int docId) {
         if (docId <= 0) return;
-
-        String sql = "DELETE FROM task_docs WHERE doc_id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, docId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("DELETE FROM TaskDoc td WHERE td.docId = :docId")
+              .setParameter("docId", docId)
+              .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            if (tx.isActive()) tx.rollback();
             LOGGER.log(Level.SEVERE, "Lỗi khi xóa TaskDoc theo Doc ID: " + docId, e);
+        } finally {
+            em.close();
         }
     }
 
     /**
-     * HÀM BATCH MỚI: Lấy toàn bộ TaskDoc của TẤT CẢ các Task trong một Dự Án trong 1 câu SQL duy nhất!
+     * HÀM BATCH: Lấy toàn bộ TaskDoc của TẤT CẢ các Task trong một Dự Án trong 1 câu JPQL duy nhất!
      * Giúp loại bỏ N+1 query problem, tăng tốc độ tải trang gấp nhiều lần.
      */
     public static List<TaskDoc> selectByProjectId(int projectId) {
-        List<TaskDoc> resultList = new ArrayList<>();
-        if (projectId <= 0) return resultList;
-
-        String sql = "SELECT td.task_id, td.doc_id, d.title AS doc_title " +
-                     "FROM task_docs td " +
-                     "JOIN tasks t ON td.task_id = t.id " +
-                     "JOIN docs d ON td.doc_id = d.id " +
-                     "WHERE t.project_id = ? " +
-                     "ORDER BY d.id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    resultList.add(new TaskDoc(
-                        rs.getInt("task_id"),
-                        rs.getInt("doc_id"),
-                        rs.getString("doc_title")
-                    ));
+        if (projectId <= 0) return new ArrayList<>();
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<TaskDoc> list = em.createQuery(
+                "SELECT td FROM TaskDoc td LEFT JOIN FETCH td.doc d JOIN td.task t WHERE t.projectId = :projectId ORDER BY d.id ASC",
+                TaskDoc.class)
+                .setParameter("projectId", projectId)
+                .getResultList();
+            for (TaskDoc td : list) {
+                if (td.getDoc() != null) {
+                    td.setDocTitle(td.getDoc().getTitle());
                 }
             }
-        } catch (SQLException e) {
+            return list;
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi lấy batch TaskDoc theo Project ID: " + projectId, e);
+            return new ArrayList<>();
+        } finally {
+            em.close();
         }
-        return resultList;
     }
 }
-

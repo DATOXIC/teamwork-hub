@@ -3,33 +3,92 @@ package com.teamwork.business;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
- * JavaBean Model đại diện cho một Thẻ công việc lớn (Task Cha) trong Bảng Kanban & Quy Trình Nghiệm Thu 2 Tầng.
+ * JavaBean & JPA Entity đại diện cho một Thẻ công việc lớn (Task Cha) trong Bảng Kanban & Quy Trình Nghiệm Thu 2 Tầng.
  * Mỗi Task thuộc về một Project cụ thể và có trạng thái, mức độ ưu tiên, cùng biên bản bàn giao cho Trưởng Dự Án (PM).
  */
+@Entity
+@Table(name = "tasks")
 public class Task implements Serializable {
 
     // ===================== CÁC THUỘC TÍNH =====================
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;                     // Khóa chính định danh task
+
+    @Column(name = "project_id")
     private int projectId;              // Thuộc dự án nào (Khóa ngoại trỏ đến Project.id)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    private Project project;
+
+    @Column(name = "title", nullable = false)
     private String title;               // Tiêu đề công việc (Ví dụ: "Thiết kế CSDL")
+
+    @Column(name = "description")
     private String description;         // Mô tả chi tiết yêu cầu công việc
+
+    @Column(name = "status")
     private String status;              // Trạng thái: "TODO", "IN_PROGRESS", "SUBMITTED", "REVISE", "REJECTED", "DONE"
+
+    @Column(name = "priority")
     private String priority;            // Mức độ ưu tiên: "HIGH", "MEDIUM", "LOW"
+
+    @Column(name = "due_date")
     private String dueDate;             // Hạn chót hoàn thành (định dạng: YYYY-MM-DD)
-    private int assigneeId;             // ID Task Lead được giao việc (trỏ đến User.id)
-    private String assigneeName;        // Tên hiển thị người phụ trách
+
+    @Column(name = "assignee_id")
+    private Integer assigneeId;         // ID Task Lead được giao việc (hỗ trợ null khi chưa phân công)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id", insertable = false, updatable = false)
+    private User assignee;
+
+    @Transient
+    private String assigneeName;        // Tên hiển thị người phụ trách (Lấy từ User.fullName)
+
+    @Column(name = "final_deliverable_note")
     private String finalDeliverableNote;// Báo cáo tổng kết bàn giao của Task Lead cho PM
+
+    @Column(name = "pm_feedback")
     private String pmFeedback;          // Nhận xét đánh giá / dặn dò chỉnh sửa của Trưởng Dự Án (PM)
+
+    @Column(name = "submitted_at", insertable = false, updatable = false)
     private String submittedAt;         // Thời điểm Task Lead nộp bàn giao
+
+    @Column(name = "reviewed_at", insertable = false, updatable = false)
     private String reviewedAt;          // Thời điểm PM phê duyệt hoặc phản hồi
+
+    @Column(name = "deliverable_file")
     private String deliverableFile;     // Tên tệp đính kèm báo cáo / biên bản nghiệm thu chính thức
+
+    @Column(name = "quality_rating")
     private int qualityRating;          // Đánh giá chất lượng của PM (1 - 5 sao ⭐)
+
+    @Column(name = "planning_note")
     private String planningNote;        // Ghi chú kế hoạch phân rã Task Lead gửi PM thẩm định (Cổng 1)
+
+    @Column(name = "planning_reviewed_at", insertable = false, updatable = false)
     private String planningReviewedAt;  // Thời điểm PM phê duyệt & khóa kế hoạch phân rã
+
+    @Column(name = "labels")
     private String labels;              // Nhãn phân loại (Ví dụ: "BUG,BACKEND", "FEATURE,UI")
+
+    @Column(name = "requires_gate")
     private boolean requiresGate = true;// Cờ kiểm soát Quality Gate (true = Bắt buộc qua Gate 1 & 2; false = Fast-track)
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
@@ -228,10 +287,13 @@ public class Task implements Serializable {
     }
 
     public int getAssigneeId() {
-        return this.assigneeId;
+        return this.assigneeId != null ? this.assigneeId : 0;
+    }
+    public void setAssigneeId(Integer assigneeId) {
+        this.assigneeId = (assigneeId != null && assigneeId > 0) ? assigneeId : null;
     }
     public void setAssigneeId(int assigneeId) {
-        this.assigneeId = assigneeId;
+        this.assigneeId = assigneeId > 0 ? assigneeId : null;
     }
 
     public String getAssigneeName() {
@@ -564,6 +626,27 @@ public class Task implements Serializable {
                 return "⚡ Gấp";
             default:
                 return label;
+        }
+    }
+
+    public Project getProject() {
+        return project;
+    }
+    public void setProject(Project project) {
+        this.project = project;
+        if (project != null) {
+            this.projectId = project.getId();
+        }
+    }
+
+    public User getAssignee() {
+        return assignee;
+    }
+    public void setAssignee(User assignee) {
+        this.assignee = assignee;
+        if (assignee != null) {
+            this.assigneeId = assignee.getId();
+            this.assigneeName = assignee.getFullName();
         }
     }
 }

@@ -1,55 +1,49 @@
 package com.teamwork.data;
 
+import com.teamwork.business.Project;
 import com.teamwork.business.ProjectInvite;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.teamwork.business.User;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tầng Data Access Object (DAO): Quản lý Lời Mời & Yêu Cầu Xin Gia Nhập 2 Chiều kết nối Supabase PostgreSQL.
+ * Tầng Data Access Object (DAO): Quản lý Lời Mời & Yêu Cầu Xin Gia Nhập 2 Chiều qua JPA 3.1 / Hibernate.
  * 
  * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
  * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
- * - Sử dụng JOIN bảng projects, users để lấy đầy đủ tên dự án, mã dự án, tên người gửi, tên người nhận
- * - Sử dụng PreparedStatement an toàn chống SQL Injection
- * - Quản lý tài nguyên bằng try-with-resources
+ * - Sử dụng JPA EntityManager và JPQL chuẩn, tương thích cả PostgreSQL và MySQL
+ * - Tự động nạp tên dự án, mã dự án, tên người gửi và người nhận
  */
 public class ProjectInviteDB {
 
     private static final Logger LOGGER = Logger.getLogger(ProjectInviteDB.class.getName());
 
-    private static final String BASE_SELECT_SQL =
-        "SELECT pi.id, pi.project_id, p.name AS project_name, p.project_code, " +
-        "       pi.type::text AS type, pi.sender_id, u_sender.full_name AS sender_name, " +
-        "       pi.receiver_id, u_receiver.full_name AS receiver_name, " +
-        "       pi.status::text AS status, " +
-        "       to_char(pi.created_at, 'DD/MM/YYYY HH24:MI') AS created_at_str, " +
-        "       to_char(pi.expired_at, 'DD/MM/YYYY HH24:MI') AS expired_at_str " +
-        "FROM project_invites pi " +
-        "JOIN projects p ON pi.project_id = p.id " +
-        "JOIN users u_sender ON pi.sender_id = u_sender.id " +
-        "JOIN users u_receiver ON pi.receiver_id = u_receiver.id ";
-
-    private static ProjectInvite mapResultSetToProjectInvite(ResultSet rs) throws SQLException {
-        return new ProjectInvite(
-            rs.getInt("id"),
-            rs.getInt("project_id"),
-            rs.getString("project_name"),
-            rs.getString("project_code"),
-            rs.getString("type"),
-            rs.getInt("sender_id"),
-            rs.getString("sender_name"),
-            rs.getInt("receiver_id"),
-            rs.getString("receiver_name"),
-            rs.getString("status"),
-            rs.getString("created_at_str"),
-            rs.getString("expired_at_str")
-        );
+    private static void populateInviteDetails(EntityManager em, ProjectInvite pi) {
+        if (pi == null) return;
+        if (pi.getProjectId() > 0) {
+            Project p = em.find(Project.class, pi.getProjectId());
+            if (p != null) {
+                pi.setProjectName(p.getName() != null ? p.getName() : "");
+                pi.setProjectCode(p.getProjectCode() != null ? p.getProjectCode() : "");
+            }
+        }
+        if (pi.getSenderId() > 0) {
+            User sender = em.find(User.class, pi.getSenderId());
+            if (sender != null) {
+                pi.setSenderName(sender.getFullName() != null ? sender.getFullName() : "");
+            }
+        }
+        if (pi.getReceiverId() > 0) {
+            User receiver = em.find(User.class, pi.getReceiverId());
+            if (receiver != null) {
+                pi.setReceiverName(receiver.getFullName() != null ? receiver.getFullName() : "");
+            }
+        }
     }
 
     /**
@@ -60,31 +54,27 @@ public class ProjectInviteDB {
             return 0;
         }
 
-        String sql = "INSERT INTO project_invites (project_id, type, sender_id, receiver_id, status, created_at, expired_at) " +
-                     "VALUES (?, ?::invite_type_enum, ?, ?, ?::invite_status_enum, NOW(), NOW() + INTERVAL '7 days') RETURNING id";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, invite.getProjectId());
-            String type = invite.getType() != null && invite.getType().equalsIgnoreCase("JOIN_REQUEST") ? "JOIN_REQUEST" : "INVITATION";
-            ps.setString(2, type);
-            ps.setInt(3, invite.getSenderId());
-            ps.setInt(4, invite.getReceiverId());
-            String status = invite.getStatus() != null && !invite.getStatus().trim().isEmpty() ? invite.getStatus().trim().toUpperCase() : "PENDING";
-            ps.setString(5, status);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    int genId = rs.getInt(1);
-                    invite.setId(genId);
-                    return genId;
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi chèn ProjectInvite", e);
+        if (invite.getType() == null || invite.getType().trim().isEmpty()) {
+            invite.setType("INVITATION");
         }
-        return 0;
+        if (invite.getStatus() == null || invite.getStatus().trim().isEmpty()) {
+            invite.setStatus("PENDING");
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(invite);
+            tx.commit();
+            return invite.getId();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi chèn ProjectInvite qua JPA", e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
     }
 
     /**
@@ -93,72 +83,71 @@ public class ProjectInviteDB {
     public static ProjectInvite selectById(int id) {
         if (id <= 0) return null;
 
-        String sql = BASE_SELECT_SQL + "WHERE pi.id = ? LIMIT 1";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToProjectInvite(rs);
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            ProjectInvite pi = em.find(ProjectInvite.class, id);
+            if (pi != null) {
+                populateInviteDetails(em, pi);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tìm ProjectInvite ID: " + id, e);
+            return pi;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm ProjectInvite ID qua JPA: " + id, e);
+            return null;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return null;
     }
 
     /**
      * Hàm 3: Lấy danh sách Lời mời / Yêu cầu đang PENDING mà người dùng này CẦN DUYỆT
      */
     public static List<ProjectInvite> selectPendingByReceiverId(int receiverId) {
-        List<ProjectInvite> result = new ArrayList<>();
-        if (receiverId <= 0) return result;
+        if (receiverId <= 0) return new ArrayList<>();
 
-        String sql = BASE_SELECT_SQL + "WHERE pi.receiver_id = ? AND pi.status = 'PENDING' AND pi.expired_at > NOW() ORDER BY pi.id DESC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, receiverId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapResultSetToProjectInvite(rs));
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<ProjectInvite> query = em.createQuery(
+                "SELECT pi FROM ProjectInvite pi WHERE pi.receiverId = :receiverId AND pi.status = 'PENDING' ORDER BY pi.id DESC",
+                ProjectInvite.class
+            );
+            query.setParameter("receiverId", receiverId);
+            List<ProjectInvite> list = query.getResultList();
+            for (ProjectInvite pi : list) {
+                populateInviteDetails(em, pi);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy pending invites của User ID: " + receiverId, e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy pending invites của User ID qua JPA: " + receiverId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return result;
     }
 
     /**
      * Hàm 4: Lấy danh sách tất cả Lời mời / Yêu cầu của một Dự Án cụ thể
      */
     public static List<ProjectInvite> selectByProjectId(int projectId) {
-        List<ProjectInvite> result = new ArrayList<>();
-        if (projectId <= 0) return result;
+        if (projectId <= 0) return new ArrayList<>();
 
-        String sql = BASE_SELECT_SQL + "WHERE pi.project_id = ? ORDER BY pi.id DESC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapResultSetToProjectInvite(rs));
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<ProjectInvite> query = em.createQuery(
+                "SELECT pi FROM ProjectInvite pi WHERE pi.projectId = :projectId ORDER BY pi.id DESC",
+                ProjectInvite.class
+            );
+            query.setParameter("projectId", projectId);
+            List<ProjectInvite> list = query.getResultList();
+            for (ProjectInvite pi : list) {
+                populateInviteDetails(em, pi);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy invites theo Project ID: " + projectId, e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy invites theo Project ID qua JPA: " + projectId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return result;
     }
 
     /**
@@ -167,27 +156,26 @@ public class ProjectInviteDB {
     public static boolean hasPendingInvite(int projectId, int user1Id, int user2Id) {
         if (projectId <= 0 || user1Id <= 0 || user2Id <= 0) return false;
 
-        String sql = "SELECT 1 FROM project_invites " +
-                     "WHERE project_id = ? AND status = 'PENDING' AND expired_at > NOW() " +
-                     "  AND ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)) " +
-                     "LIMIT 1";
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long count = em.createQuery(
+                "SELECT COUNT(pi) FROM ProjectInvite pi " +
+                "WHERE pi.projectId = :projectId AND pi.status = 'PENDING' " +
+                "  AND ((pi.senderId = :u1 AND pi.receiverId = :u2) OR (pi.senderId = :u2 AND pi.receiverId = :u1))",
+                Long.class
+            )
+            .setParameter("projectId", projectId)
+            .setParameter("u1", user1Id)
+            .setParameter("u2", user2Id)
+            .getSingleResult();
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-            ps.setInt(2, user1Id);
-            ps.setInt(3, user2Id);
-            ps.setInt(4, user2Id);
-            ps.setInt(5, user1Id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra pending invite", e);
+            return count != null && count > 0;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra pending invite qua JPA", e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -196,17 +184,21 @@ public class ProjectInviteDB {
     public static void updateStatus(int id, String newStatus) {
         if (id <= 0 || newStatus == null || newStatus.trim().isEmpty()) return;
 
-        String sql = "UPDATE project_invites SET status = ?::invite_status_enum WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, newStatus.trim().toUpperCase());
-            ps.setInt(2, id);
-
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật trạng thái Invite ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            ProjectInvite pi = em.find(ProjectInvite.class, id);
+            if (pi != null) {
+                pi.setStatus(newStatus.trim().toUpperCase());
+                em.merge(pi);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật trạng thái Invite ID qua JPA: " + id, e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 
@@ -216,17 +208,25 @@ public class ProjectInviteDB {
     public static boolean delete(int id) {
         if (id <= 0) return false;
 
-        String sql = "DELETE FROM project_invites WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Invite ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            ProjectInvite pi = em.find(ProjectInvite.class, id);
+            if (pi != null) {
+                em.remove(pi);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Invite ID qua JPA: " + id, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -234,13 +234,20 @@ public class ProjectInviteDB {
      */
     public static void revokeAllPendingByProjectId(int projectId) {
         if (projectId <= 0) return;
-        String sql = "UPDATE project_invites SET status = 'REVOKED'::invite_status_enum WHERE project_id = ? AND status = 'PENDING'";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, projectId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi thu hồi invites của Project ID: " + projectId, e);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("UPDATE ProjectInvite pi SET pi.status = 'REVOKED' WHERE pi.projectId = :projectId AND pi.status = 'PENDING'")
+              .setParameter("projectId", projectId)
+              .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi thu hồi invites của Project ID qua JPA: " + projectId, e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 }

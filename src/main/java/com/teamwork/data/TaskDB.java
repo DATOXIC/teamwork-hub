@@ -1,181 +1,121 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Task;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
+import com.teamwork.business.User;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tầng Data Access Object (DAO): Quản lý dữ liệu Thẻ công việc (Task) kết nối Supabase PostgreSQL.
+ * Tầng Data Access Object (DAO): Quản lý dữ liệu Thẻ công việc (Task) qua Jakarta Persistence (JPA) / Hibernate.
  * 
- * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
- * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
- * - Sử dụng LEFT JOIN users để lấy tên người phụ trách (assigneeName) chính xác
- * - Hỗ trợ đầy đủ các cổng phê duyệt 2 tầng (Planning Gate & Deliverable Review)
- * - Sử dụng PreparedStatement an toàn chống SQL Injection
- * - Quản lý tài nguyên bằng try-with-resources
+ * - Sử dụng EntityManager và JPQL chuẩn hóa, hoạt động độc lập với RDBMS.
+ * - Quản lý trạng thái Kanban và Quality Gate 2 tầng an toàn giao dịch.
+ * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types) cho các Servlet.
  */
 public class TaskDB {
 
     private static final Logger LOGGER = Logger.getLogger(TaskDB.class.getName());
 
     /**
-     * Ánh xạ 1 dòng ResultSet sang đối tượng JavaBean Task
+     * Hàm phụ trợ lấy tên người phụ trách (assigneeName) an toàn qua JPA
      */
-    private static Task mapResultSetToTask(ResultSet rs) throws SQLException {
-        int id = rs.getInt("id");
-        int projectId = rs.getInt("project_id");
-        String title = rs.getString("title");
-        String description = rs.getString("description");
-        String status = rs.getString("status");
-        String priority = rs.getString("priority");
-        String dueDate = rs.getString("due_date_str");
-        int assigneeId = rs.getInt("assignee_id");
-        String assigneeName = rs.getString("assignee_name");
-        String finalDeliverableNote = rs.getString("final_deliverable_note");
-        String pmFeedback = rs.getString("pm_feedback");
-        String submittedAt = rs.getString("submitted_at_str");
-        String reviewedAt = rs.getString("reviewed_at_str");
-        String deliverableFile = rs.getString("deliverable_file");
-        int qualityRating = rs.getInt("quality_rating");
-        String planningNote = rs.getString("planning_note");
-        String planningReviewedAt = rs.getString("planning_reviewed_at_str");
-        String labels = rs.getString("labels");
-        boolean requiresGate = true;
-        try {
-            requiresGate = rs.getBoolean("requires_gate");
-        } catch (SQLException ignored) {}
-
-        Task task = new Task(
-            id,
-            projectId,
-            title != null ? title : "",
-            description != null ? description : "",
-            status != null ? status : "TODO",
-            priority != null ? priority : "MEDIUM",
-            dueDate != null ? dueDate : "",
-            assigneeId,
-            assigneeName != null && !assigneeName.trim().isEmpty() ? assigneeName : "Chưa phân công",
-            finalDeliverableNote != null ? finalDeliverableNote : "",
-            pmFeedback != null ? pmFeedback : "",
-            submittedAt != null ? submittedAt : "",
-            reviewedAt != null ? reviewedAt : "",
-            deliverableFile != null ? deliverableFile : "",
-            qualityRating > 0 ? qualityRating : 5,
-            planningNote != null ? planningNote : "",
-            planningReviewedAt != null ? planningReviewedAt : "",
-            requiresGate
-        );
-        task.setLabels(labels != null ? labels : "");
-        return task;
+    private static void populateAssigneeName(EntityManager em, Task task) {
+        if (task == null) return;
+        if (task.getAssigneeId() > 0) {
+            try {
+                User u = em.find(User.class, task.getAssigneeId());
+                task.setAssigneeName(u != null && u.getFullName() != null && !u.getFullName().isEmpty() 
+                    ? u.getFullName() 
+                    : (u != null ? u.getUsername() : "Chưa phân công"));
+            } catch (Exception e) {
+                task.setAssigneeName("Chưa phân công");
+            }
+        } else {
+            task.setAssigneeName("Chưa phân công");
+        }
     }
-
-    private static final String BASE_SELECT_SQL =
-        "SELECT t.id, t.project_id, t.title, t.description, t.status::text AS status, t.priority::text AS priority, " +
-        "       to_char(t.due_date, 'YYYY-MM-DD') AS due_date_str, " +
-        "       t.assignee_id, COALESCE(u.full_name, 'Chưa phân công') AS assignee_name, " +
-        "       t.final_deliverable_note, t.pm_feedback, " +
-        "       to_char(t.submitted_at, 'DD/MM/YYYY HH24:MI') AS submitted_at_str, " +
-        "       to_char(t.reviewed_at, 'DD/MM/YYYY HH24:MI') AS reviewed_at_str, " +
-        "       t.deliverable_file, t.quality_rating, " +
-        "       t.planning_note, " +
-        "       to_char(t.planning_reviewed_at, 'DD/MM/YYYY HH24:MI') AS planning_reviewed_at_str, " +
-        "       t.labels, " +
-        "       COALESCE(t.requires_gate, TRUE) AS requires_gate " +
-        "FROM tasks t " +
-        "LEFT JOIN users u ON t.assignee_id = u.id ";
 
     /**
      * HÀM 1: Lấy toàn bộ task trong hệ thống
      */
     public static List<Task> selectAll() {
-        List<Task> list = new ArrayList<>();
-        String sql = BASE_SELECT_SQL + "ORDER BY t.id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                list.add(mapResultSetToTask(rs));
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Task> list = em.createQuery("SELECT t FROM Task t ORDER BY t.id ASC", Task.class).getResultList();
+            for (Task t : list) {
+                populateAssigneeName(em, t);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy toàn bộ Task", e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy toàn bộ Task qua JPA", e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return list;
     }
 
     /**
      * HÀM 2: Lấy danh sách tất cả các task thuộc về MỘT DỰ ÁN cụ thể
      */
     public static List<Task> selectByProjectId(int projectId) {
-        List<Task> list = new ArrayList<>();
-        if (projectId <= 0) return list;
+        if (projectId <= 0) return new ArrayList<>();
 
-        String sql = BASE_SELECT_SQL + "WHERE t.project_id = ? ORDER BY t.id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToTask(rs));
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Task> list = em.createQuery("SELECT t FROM Task t WHERE t.projectId = :pid ORDER BY t.id ASC", Task.class)
+                .setParameter("pid", projectId)
+                .getResultList();
+            for (Task t : list) {
+                populateAssigneeName(em, t);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy Task theo Project ID: " + projectId, e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy Task theo Project ID qua JPA: " + projectId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return list;
     }
 
     /**
-     * HÀM 3: Lấy danh sách task của một dự án ĐƯỢC LỌC THEO 3 CỘT KANBAN:
-     * - TODO: Task có trạng thái TODO
-     * - IN_PROGRESS: PLANNING, IN_PROGRESS, SUBMITTED, REVISE, REJECTED
-     * - DONE: DONE, APPROVED
+     * HÀM 3: Lấy danh sách task của một dự án ĐƯỢC LỌC THEO 3 CỘT KANBAN
      */
     public static List<Task> selectByProjectAndStatus(int projectId, String status) {
-        List<Task> list = new ArrayList<>();
-        if (projectId <= 0 || status == null) return list;
+        if (projectId <= 0 || status == null) return new ArrayList<>();
 
-        String sql;
-        if ("TODO".equalsIgnoreCase(status)) {
-            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status = 'TODO' ORDER BY t.id ASC";
-        } else if ("IN_PROGRESS".equalsIgnoreCase(status)) {
-            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status IN ('PLANNING', 'IN_PROGRESS', 'SUBMITTED', 'REVISE', 'REJECTED') ORDER BY t.id ASC";
-        } else if ("DONE".equalsIgnoreCase(status)) {
-            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status IN ('DONE', 'APPROVED') ORDER BY t.id ASC";
-        } else {
-            sql = BASE_SELECT_SQL + "WHERE t.project_id = ? AND t.status::text = ? ORDER BY t.id ASC";
-        }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            String jpql;
+            if ("TODO".equalsIgnoreCase(status)) {
+                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND t.status = 'TODO' ORDER BY t.id ASC";
+            } else if ("IN_PROGRESS".equalsIgnoreCase(status)) {
+                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND t.status IN ('PLANNING', 'IN_PROGRESS', 'SUBMITTED', 'REVISE', 'REJECTED') ORDER BY t.id ASC";
+            } else if ("DONE".equalsIgnoreCase(status)) {
+                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND t.status IN ('DONE', 'APPROVED') ORDER BY t.id ASC";
+            } else {
+                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND UPPER(t.status) = :st ORDER BY t.id ASC";
+            }
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
+            var query = em.createQuery(jpql, Task.class).setParameter("pid", projectId);
             if (!"TODO".equalsIgnoreCase(status) && !"IN_PROGRESS".equalsIgnoreCase(status) && !"DONE".equalsIgnoreCase(status)) {
-                ps.setString(2, status.trim().toUpperCase());
+                query.setParameter("st", status.trim().toUpperCase());
             }
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToTask(rs));
-                }
+            List<Task> list = query.getResultList();
+            for (Task t : list) {
+                populateAssigneeName(em, t);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lọc Task theo Status", e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lọc Task theo Status qua JPA", e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return list;
     }
 
     /**
@@ -184,80 +124,53 @@ public class TaskDB {
     public static Task selectById(int id) {
         if (id <= 0) return null;
 
-        String sql = BASE_SELECT_SQL + "WHERE t.id = ? LIMIT 1";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToTask(rs);
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Task task = em.find(Task.class, id);
+            if (task != null) {
+                populateAssigneeName(em, task);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Task ID: " + id, e);
+            return task;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm Task ID qua JPA: " + id, e);
+            return null;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return null;
     }
 
     /**
-     * HÀM 5: Thêm task mới
+     * HÀM 5: Thêm task mới qua em.persist()
      */
     public static int insert(Task task) {
         if (task == null || task.getTitle() == null || task.getTitle().trim().isEmpty()) {
             return 0;
         }
 
-        String sql = "INSERT INTO tasks (project_id, title, description, status, priority, due_date, assignee_id, labels, " +
-                     "final_deliverable_note, pm_feedback, deliverable_file, quality_rating, planning_note, requires_gate, created_at) " +
-                     "VALUES (?, ?, ?, ?::task_status_enum, ?::priority_enum, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) RETURNING id";
+        if (task.getStatus() == null || task.getStatus().trim().isEmpty()) task.setStatus("TODO");
+        if (task.getPriority() == null || task.getPriority().trim().isEmpty()) task.setPriority("MEDIUM");
+        if (task.getDescription() == null) task.setDescription("");
+        if (task.getLabels() == null) task.setLabels("");
+        if (task.getFinalDeliverableNote() == null) task.setFinalDeliverableNote("");
+        if (task.getPmFeedback() == null) task.setPmFeedback("");
+        if (task.getDeliverableFile() == null) task.setDeliverableFile("");
+        if (task.getPlanningNote() == null) task.setPlanningNote("");
+        if (task.getQualityRating() <= 0) task.setQualityRating(5);
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, task.getProjectId());
-            ps.setString(2, task.getTitle().trim());
-            ps.setString(3, task.getDescription() != null ? task.getDescription().trim() : "");
-            ps.setString(4, task.getStatus() != null && !task.getStatus().trim().isEmpty() ? task.getStatus().trim().toUpperCase() : "TODO");
-            ps.setString(5, task.getPriority() != null && !task.getPriority().trim().isEmpty() ? task.getPriority().trim().toUpperCase() : "MEDIUM");
-
-            if (task.getDueDate() != null && !task.getDueDate().trim().isEmpty()) {
-                try {
-                    ps.setDate(6, Date.valueOf(task.getDueDate().trim()));
-                } catch (IllegalArgumentException ex) {
-                    ps.setNull(6, Types.DATE);
-                }
-            } else {
-                ps.setNull(6, Types.DATE);
-            }
-
-            if (task.getAssigneeId() > 0) {
-                ps.setInt(7, task.getAssigneeId());
-            } else {
-                ps.setNull(7, Types.INTEGER);
-            }
-
-            ps.setString(8, task.getLabels() != null ? task.getLabels().trim() : "");
-            ps.setString(9, task.getFinalDeliverableNote() != null ? task.getFinalDeliverableNote().trim() : "");
-            ps.setString(10, task.getPmFeedback() != null ? task.getPmFeedback().trim() : "");
-            ps.setString(11, task.getDeliverableFile() != null ? task.getDeliverableFile().trim() : "");
-            ps.setInt(12, task.getQualityRating() > 0 ? task.getQualityRating() : 5);
-            ps.setString(13, task.getPlanningNote() != null ? task.getPlanningNote().trim() : "");
-            ps.setBoolean(14, task.isRequiresGate());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    int genId = rs.getInt(1);
-                    task.setId(genId);
-                    return genId;
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi thêm Task mới: " + task.getTitle(), e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(task);
+            tx.commit();
+            return task.getId();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi thêm Task mới qua JPA: " + task.getTitle(), e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return 0;
     }
 
     /**
@@ -266,19 +179,26 @@ public class TaskDB {
     public static boolean updateStatus(int id, String newStatus) {
         if (id <= 0 || newStatus == null || newStatus.trim().isEmpty()) return false;
 
-        String sql = "UPDATE tasks SET status = ?::task_status_enum, updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, newStatus.trim().toUpperCase());
-            ps.setInt(2, id);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật status Task ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, id);
+            if (t != null) {
+                t.setStatus(newStatus.trim().toUpperCase());
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật status Task ID qua JPA: " + id, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -287,20 +207,28 @@ public class TaskDB {
     public static boolean submitTaskDeliverable(int taskId, String note, String deliverableFile, String submittedAt) {
         if (taskId <= 0) return false;
 
-        String sql = "UPDATE tasks SET status = 'SUBMITTED', final_deliverable_note = ?, deliverable_file = ?, submitted_at = NOW(), updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, note != null ? note.trim() : "");
-            ps.setString(2, deliverableFile != null ? deliverableFile.trim() : "");
-            ps.setInt(3, taskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi submit deliverable Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setStatus("SUBMITTED");
+                t.setFinalDeliverableNote(note != null ? note.trim() : "");
+                t.setDeliverableFile(deliverableFile != null ? deliverableFile.trim() : "");
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi submit deliverable Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     public static boolean submitTaskDeliverable(int taskId, String note, String submittedAt) {
@@ -313,20 +241,28 @@ public class TaskDB {
     public static boolean pmApproveTask(int taskId, String feedback, int qualityRating, String reviewedAt) {
         if (taskId <= 0) return false;
 
-        String sql = "UPDATE tasks SET status = 'DONE', pm_feedback = ?, quality_rating = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, feedback != null ? feedback.trim() : "PM đã phê duyệt nghiệm thu xuất sắc!");
-            ps.setInt(2, qualityRating > 0 ? qualityRating : 5);
-            ps.setInt(3, taskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi PM duyệt Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setStatus("DONE");
+                t.setPmFeedback(feedback != null ? feedback.trim() : "PM đã phê duyệt nghiệm thu xuất sắc!");
+                t.setQualityRating(qualityRating > 0 ? qualityRating : 5);
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM duyệt Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     public static boolean pmApproveTask(int taskId, String feedback, String reviewedAt) {
@@ -339,19 +275,27 @@ public class TaskDB {
     public static boolean pmReviseTask(int taskId, String feedback, String reviewedAt) {
         if (taskId <= 0) return false;
 
-        String sql = "UPDATE tasks SET status = 'REVISE', pm_feedback = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, feedback != null ? feedback.trim() : "");
-            ps.setInt(2, taskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi PM yêu cầu revise Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setStatus("REVISE");
+                t.setPmFeedback(feedback != null ? feedback.trim() : "");
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM yêu cầu revise Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -360,19 +304,28 @@ public class TaskDB {
     public static boolean pmRejectTask(int taskId, String feedback, String reviewedAt) {
         if (taskId <= 0) return false;
 
-        String sql = "UPDATE tasks SET status = 'REJECTED', pm_feedback = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, feedback != null ? feedback.trim() : "");
-            ps.setInt(2, taskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi PM reject Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setStatus("REVISE");
+                t.setStatus("REJECTED");
+                t.setPmFeedback(feedback != null ? feedback.trim() : "");
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM reject Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -381,19 +334,27 @@ public class TaskDB {
     public static boolean submitPlanningRequest(int taskId, String planningNote, String submittedAt) {
         if (taskId <= 0) return false;
 
-        String sql = "UPDATE tasks SET status = 'PLANNING', planning_note = ?, submitted_at = NOW(), updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, planningNote != null ? planningNote.trim() : "");
-            ps.setInt(2, taskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi submit planning Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setStatus("PLANNING");
+                t.setPlanningNote(planningNote != null ? planningNote.trim() : "");
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi submit planning Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -402,19 +363,27 @@ public class TaskDB {
     public static boolean pmApprovePlanning(int taskId, String pmFeedback, String reviewedAt) {
         if (taskId <= 0) return false;
 
-        String sql = "UPDATE tasks SET status = 'IN_PROGRESS', pm_feedback = ?, planning_reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, pmFeedback != null ? pmFeedback.trim() : "");
-            ps.setInt(2, taskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi PM approve planning Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setStatus("IN_PROGRESS");
+                t.setPmFeedback(pmFeedback != null ? pmFeedback.trim() : "");
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM approve planning Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -423,63 +392,62 @@ public class TaskDB {
     public static boolean pmRejectPlanning(int taskId, String pmFeedback, String reviewedAt) {
         if (taskId <= 0) return false;
 
-        String sql = "UPDATE tasks SET status = 'TODO', pm_feedback = ?, reviewed_at = NOW(), updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, pmFeedback != null ? pmFeedback.trim() : "");
-            ps.setInt(2, taskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi PM reject planning Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setStatus("TODO");
+                t.setPmFeedback(pmFeedback != null ? pmFeedback.trim() : "");
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi PM reject planning Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
-     * HÀM 14: Cập nhật thông tin toàn diện của Task
+     * HÀM 14: Cập nhật thông tin toàn diện của Task qua em.merge()
      */
     public static boolean update(Task updatedTask) {
         if (updatedTask == null || updatedTask.getId() <= 0) return false;
 
-        String sql = "UPDATE tasks SET title = ?, description = ?, status = ?::task_status_enum, priority = ?::priority_enum, " +
-                     "due_date = ?, assignee_id = ?, labels = ?, requires_gate = ?, updated_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, updatedTask.getTitle() != null ? updatedTask.getTitle().trim() : "");
-            ps.setString(2, updatedTask.getDescription() != null ? updatedTask.getDescription().trim() : "");
-            ps.setString(3, updatedTask.getStatus() != null && !updatedTask.getStatus().trim().isEmpty() ? updatedTask.getStatus().trim().toUpperCase() : "TODO");
-            ps.setString(4, updatedTask.getPriority() != null && !updatedTask.getPriority().trim().isEmpty() ? updatedTask.getPriority().trim().toUpperCase() : "MEDIUM");
-
-            if (updatedTask.getDueDate() != null && !updatedTask.getDueDate().trim().isEmpty()) {
-                try {
-                    ps.setDate(5, Date.valueOf(updatedTask.getDueDate().trim()));
-                } catch (IllegalArgumentException ex) {
-                    ps.setNull(5, Types.DATE);
-                }
-            } else {
-                ps.setNull(5, Types.DATE);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task managed = em.find(Task.class, updatedTask.getId());
+            if (managed != null) {
+                managed.setTitle(updatedTask.getTitle() != null ? updatedTask.getTitle().trim() : "");
+                managed.setDescription(updatedTask.getDescription() != null ? updatedTask.getDescription().trim() : "");
+                managed.setStatus(updatedTask.getStatus() != null ? updatedTask.getStatus().trim().toUpperCase() : "TODO");
+                managed.setPriority(updatedTask.getPriority() != null ? updatedTask.getPriority().trim().toUpperCase() : "MEDIUM");
+                managed.setDueDate(updatedTask.getDueDate());
+                managed.setAssigneeId(updatedTask.getAssigneeId());
+                managed.setLabels(updatedTask.getLabels() != null ? updatedTask.getLabels().trim() : "");
+                managed.setRequiresGate(updatedTask.isRequiresGate());
+                em.merge(managed);
+                tx.commit();
+                return true;
             }
-
-            if (updatedTask.getAssigneeId() > 0) {
-                ps.setInt(6, updatedTask.getAssigneeId());
-            } else {
-                ps.setNull(6, Types.INTEGER);
-            }
-
-            ps.setString(7, updatedTask.getLabels() != null ? updatedTask.getLabels().trim() : "");
-            ps.setBoolean(8, updatedTask.isRequiresGate());
-            ps.setInt(9, updatedTask.getId());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi update Task ID: " + updatedTask.getId(), e);
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi update Task ID qua JPA: " + updatedTask.getId(), e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -487,35 +455,54 @@ public class TaskDB {
      */
     public static boolean updateRequiresGate(int taskId, boolean requiresGate) {
         if (taskId <= 0) return false;
-        String sql = "UPDATE tasks SET requires_gate = ?, updated_at = NOW() WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setBoolean(1, requiresGate);
-            ps.setInt(2, taskId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi update requires_gate Task ID: " + taskId, e);
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, taskId);
+            if (t != null) {
+                t.setRequiresGate(requiresGate);
+                em.merge(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi update requires_gate Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
-     * HÀM 15: Xóa task theo ID
+     * HÀM 15: Xóa task theo ID qua em.remove()
      */
     public static boolean delete(int id) {
         if (id <= 0) return false;
 
-        String sql = "DELETE FROM tasks WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Task ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task t = em.find(Task.class, id);
+            if (t != null) {
+                em.remove(t);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Task ID qua JPA: " + id, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -524,24 +511,28 @@ public class TaskDB {
     public static void unassignUserFromProject(int projectId, int userId) {
         if (projectId <= 0 || userId <= 0) return;
 
-        String sql = "UPDATE tasks SET assignee_id = NULL, updated_at = NOW() WHERE project_id = ? AND assignee_id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-            ps.setInt(2, userId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi unassign user", e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("UPDATE Task t SET t.assigneeId = 0 WHERE t.projectId = :pid AND t.assigneeId = :uid")
+                .setParameter("pid", projectId)
+                .setParameter("uid", userId)
+                .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi unassign user qua JPA", e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 
     /**
-     * HÀM 17: Đồng bộ tên người phụ trách (tự động xử lý qua JOIN bảng users trong DB)
+     * HÀM 17: Đồng bộ tên người phụ trách (tự động xử lý qua JPA)
      */
     public static void syncAssigneeName(int userId, String newFullName) {
-        // Tự động đồng bộ qua JOIN users trong Database
+        // Tự động giải quyết qua relationship User -> fullName trong JPA
     }
 
     /**
@@ -550,21 +541,25 @@ public class TaskDB {
     public static void unlockAllTasksForSolo(int projectId, int ownerId) {
         if (projectId <= 0) return;
 
-        String sqlGate = "UPDATE tasks SET requires_gate = 0, assignee_id = ?, updated_at = NOW() WHERE project_id = ?";
-        String sqlStatus = "UPDATE tasks SET status = 'IN_PROGRESS', updated_at = NOW() WHERE project_id = ? AND status IN ('PLANNING', 'SUBMITTED')";
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("UPDATE Task t SET t.requiresGate = false, t.assigneeId = :oid WHERE t.projectId = :pid")
+                .setParameter("oid", ownerId)
+                .setParameter("pid", projectId)
+                .executeUpdate();
 
-        try (Connection conn = DBUtil.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(sqlGate)) {
-                ps.setInt(1, ownerId);
-                ps.setInt(2, projectId);
-                ps.executeUpdate();
-            }
-            try (PreparedStatement ps = conn.prepareStatement(sqlStatus)) {
-                ps.setInt(1, projectId);
-                ps.executeUpdate();
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi mở khóa tasks cho chế độ Solo: projectId=" + projectId, e);
+            em.createQuery("UPDATE Task t SET t.status = 'IN_PROGRESS' WHERE t.projectId = :pid AND t.status IN ('PLANNING', 'SUBMITTED')")
+                .setParameter("pid", projectId)
+                .executeUpdate();
+
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi mở khóa tasks cho chế độ Solo qua JPA", e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 }

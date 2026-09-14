@@ -1,40 +1,24 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Notification;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tầng Data Access Object (DAO): Quản lý Thông báo Hệ thống kết nối Supabase PostgreSQL.
+ * Tầng Data Access Object (DAO): Quản lý Thông báo Hệ thống qua JPA 3.1 / Hibernate.
  * 
  * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
  * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
- * - Sắp xếp created_at DESC để thông báo mới nhất luôn ở trên đầu
- * - Sử dụng PreparedStatement an toàn chống SQL Injection
- * - Quản lý tài nguyên bằng try-with-resources
+ * - Sử dụng JPA EntityManager và JPQL chuẩn, tương thích cả PostgreSQL và MySQL
  */
 public class NotificationDB {
 
     private static final Logger LOGGER = Logger.getLogger(NotificationDB.class.getName());
-
-    private static Notification mapResultSetToNotification(ResultSet rs) throws SQLException {
-        return new Notification(
-            rs.getInt("id"),
-            rs.getInt("recipient_id"),
-            rs.getString("title"),
-            rs.getString("content"),
-            rs.getString("link"),
-            rs.getString("type"),
-            rs.getBoolean("is_read"),
-            rs.getString("created_at_str")
-        );
-    }
 
     /**
      * Hàm 1: Phát tín hiệu gửi thông báo nhanh
@@ -44,21 +28,25 @@ public class NotificationDB {
             return;
         }
 
-        String sql = "INSERT INTO notifications (recipient_id, title, content, link, type, is_read, created_at) " +
-                     "VALUES (?, ?, ?, ?, ?::notification_type_enum, FALSE, NOW())";
+        Notification n = new Notification();
+        n.setRecipientId(recipientId);
+        n.setTitle(title.trim());
+        n.setContent(content != null ? content.trim() : "");
+        n.setLink(link != null && !link.trim().isEmpty() ? link.trim() : "#");
+        n.setType(type != null && !type.trim().isEmpty() ? type.trim().toUpperCase() : "GENERAL");
+        n.setRead(false);
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, recipientId);
-            ps.setString(2, title.trim());
-            ps.setString(3, content != null ? content.trim() : "");
-            ps.setString(4, link != null && !link.trim().isEmpty() ? link.trim() : "#");
-            ps.setString(5, type != null && !type.trim().isEmpty() ? type.trim().toUpperCase() : "GENERAL");
-
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi gửi thông báo cho User ID: " + recipientId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(n);
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi gửi thông báo qua JPA cho User ID: " + recipientId, e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 
@@ -66,29 +54,22 @@ public class NotificationDB {
      * Hàm 2: Lấy danh sách tất cả thông báo của một người dùng (Mới nhất nằm ở trên đầu)
      */
     public static List<Notification> selectByRecipientId(int recipientId) {
-        List<Notification> result = new ArrayList<>();
-        if (recipientId <= 0) return result;
+        if (recipientId <= 0) return new ArrayList<>();
 
-        String sql = "SELECT id, recipient_id, title, content, link, type::text AS type, is_read, " +
-                     "       to_char(created_at, 'DD/MM/YYYY HH24:MI') AS created_at_str " +
-                     "FROM notifications " +
-                     "WHERE recipient_id = ? " +
-                     "ORDER BY created_at DESC, id DESC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, recipientId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapResultSetToNotification(rs));
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy thông báo của User ID: " + recipientId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Notification> query = em.createQuery(
+                "SELECT n FROM Notification n WHERE n.recipientId = :recipientId ORDER BY n.id DESC",
+                Notification.class
+            );
+            query.setParameter("recipientId", recipientId);
+            return query.getResultList();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy thông báo của User ID qua JPA: " + recipientId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return result;
     }
 
     /**
@@ -97,22 +78,22 @@ public class NotificationDB {
     public static int countUnread(int recipientId) {
         if (recipientId <= 0) return 0;
 
-        String sql = "SELECT COUNT(*) FROM notifications WHERE recipient_id = ? AND is_read = FALSE";
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long count = em.createQuery(
+                "SELECT COUNT(n) FROM Notification n WHERE n.recipientId = :recipientId AND n.isRead = FALSE",
+                Long.class
+            )
+            .setParameter("recipientId", recipientId)
+            .getSingleResult();
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, recipientId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi đếm thông báo chưa đọc", e);
+            return count != null ? count.intValue() : 0;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi đếm thông báo chưa đọc qua JPA", e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return 0;
     }
 
     /**
@@ -121,15 +102,21 @@ public class NotificationDB {
     public static void markAsRead(int notificationId) {
         if (notificationId <= 0) return;
 
-        String sql = "UPDATE notifications SET is_read = TRUE WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, notificationId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi markAsRead Notification ID: " + notificationId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Notification n = em.find(Notification.class, notificationId);
+            if (n != null) {
+                n.setRead(true);
+                em.merge(n);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi markAsRead Notification ID qua JPA: " + notificationId, e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 
@@ -139,15 +126,19 @@ public class NotificationDB {
     public static void markAllAsRead(int recipientId) {
         if (recipientId <= 0) return;
 
-        String sql = "UPDATE notifications SET is_read = TRUE WHERE recipient_id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, recipientId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi markAllAsRead User ID: " + recipientId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("UPDATE Notification n SET n.isRead = TRUE WHERE n.recipientId = :recipientId")
+              .setParameter("recipientId", recipientId)
+              .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi markAllAsRead User ID qua JPA: " + recipientId, e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 
@@ -157,16 +148,24 @@ public class NotificationDB {
     public static boolean delete(int notificationId) {
         if (notificationId <= 0) return false;
 
-        String sql = "DELETE FROM notifications WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, notificationId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Notification ID: " + notificationId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Notification n = em.find(Notification.class, notificationId);
+            if (n != null) {
+                em.remove(n);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa Notification ID qua JPA: " + notificationId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 }

@@ -1,93 +1,65 @@
 package com.teamwork.data;
 
 import com.teamwork.business.SubTask;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
+import com.teamwork.business.User;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tầng Data Access Object (DAO): Quản lý dữ liệu Việc Con (SubTask) & Quy Trình Nghiệm Thu 5 Trạng Thái kết nối Supabase.
+ * Tầng Data Access Object (DAO): Quản lý dữ liệu Việc Con (SubTask) & Quy Trình Nghiệm Thu 5 Trạng Thái qua JPA 3.1 / Hibernate.
  * 
  * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
  * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
- * - Sử dụng LEFT JOIN users để lấy tên người phụ trách (assigneeName) chính xác
- * - Hỗ trợ đầy đủ các thao tác nộp bài, duyệt đạt, yêu cầu sửa và từ chối
- * - Sử dụng PreparedStatement an toàn chống SQL Injection
- * - Quản lý tài nguyên bằng try-with-resources
+ * - Sử dụng JPA EntityManager và JPQL chuẩn, tương thích cả PostgreSQL và MySQL
+ * - Tự động nạp tên người phụ trách (assigneeName) an toàn
  */
 public class SubTaskDB {
 
     private static final Logger LOGGER = Logger.getLogger(SubTaskDB.class.getName());
 
-    private static final String BASE_SELECT_SQL =
-        "SELECT st.id, st.task_id, st.title, st.assignee_id, COALESCE(u.full_name, 'Chưa phân công') AS assignee_name, " +
-        "       st.status::text AS status, " +
-        "       to_char(st.due_date, 'YYYY-MM-DD') AS due_date_str, " +
-        "       st.submission_note, st.feedback_note, " +
-        "       to_char(st.submitted_at, 'DD/MM/YYYY HH24:MI') AS submitted_at_str, " +
-        "       to_char(st.reviewed_at, 'DD/MM/YYYY HH24:MI') AS reviewed_at_str " +
-        "FROM subtasks st " +
-        "LEFT JOIN users u ON st.assignee_id = u.id ";
-
-    private static SubTask mapResultSetToSubTask(ResultSet rs) throws SQLException {
-        int id = rs.getInt("id");
-        int taskId = rs.getInt("task_id");
-        String title = rs.getString("title");
-        int assigneeId = rs.getInt("assignee_id");
-        String assigneeName = rs.getString("assignee_name");
-        String status = rs.getString("status");
-        String dueDate = rs.getString("due_date_str");
-        String submissionNote = rs.getString("submission_note");
-        String feedbackNote = rs.getString("feedback_note");
-        String submittedAt = rs.getString("submitted_at_str");
-        String reviewedAt = rs.getString("reviewed_at_str");
-
-        return new SubTask(
-            id,
-            taskId,
-            title != null ? title : "",
-            assigneeId,
-            assigneeName != null && !assigneeName.trim().isEmpty() ? assigneeName : "Chưa phân công",
-            status != null ? status : "TODO",
-            dueDate != null ? dueDate : "",
-            submissionNote != null ? submissionNote : "",
-            feedbackNote != null ? feedbackNote : "",
-            submittedAt != null ? submittedAt : "",
-            reviewedAt != null ? reviewedAt : ""
-        );
+    private static void populateAssigneeName(EntityManager em, SubTask st) {
+        if (st == null) return;
+        if (st.getAssigneeId() > 0) {
+            User u = em.find(User.class, st.getAssigneeId());
+            if (u != null && u.getFullName() != null && !u.getFullName().trim().isEmpty()) {
+                st.setAssigneeName(u.getFullName().trim());
+            } else {
+                st.setAssigneeName("Chưa phân công");
+            }
+        } else {
+            st.setAssigneeName("Chưa phân công");
+        }
     }
 
     /**
      * HÀM 1: Lấy danh sách tất cả các việc con của MỘT TASK CHA CỤ THỂ
      */
     public static List<SubTask> selectByTaskId(int taskId) {
-        List<SubTask> list = new ArrayList<>();
-        if (taskId <= 0) return list;
+        if (taskId <= 0) return new ArrayList<>();
 
-        String sql = BASE_SELECT_SQL + "WHERE st.task_id = ? ORDER BY st.id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, taskId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToSubTask(rs));
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<SubTask> query = em.createQuery(
+                "SELECT st FROM SubTask st WHERE st.taskId = :taskId ORDER BY st.id ASC",
+                SubTask.class
+            );
+            query.setParameter("taskId", taskId);
+            List<SubTask> list = query.getResultList();
+            for (SubTask st : list) {
+                populateAssigneeName(em, st);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy SubTask theo Task ID: " + taskId, e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy SubTask theo Task ID qua JPA: " + taskId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return list;
     }
 
     /**
@@ -96,22 +68,19 @@ public class SubTaskDB {
     public static SubTask selectById(int id) {
         if (id <= 0) return null;
 
-        String sql = BASE_SELECT_SQL + "WHERE st.id = ? LIMIT 1";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToSubTask(rs);
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            SubTask st = em.find(SubTask.class, id);
+            if (st != null) {
+                populateAssigneeName(em, st);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tìm SubTask ID: " + id, e);
+            return st;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm SubTask ID qua JPA: " + id, e);
+            return null;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return null;
     }
 
     /**
@@ -122,48 +91,27 @@ public class SubTaskDB {
             return 0;
         }
 
-        String sql = "INSERT INTO subtasks (task_id, title, assignee_id, status, due_date, submission_note, feedback_note, created_at) " +
-                     "VALUES (?, ?, ?, ?::subtask_status_enum, ?, ?, ?, NOW()) RETURNING id";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, subTask.getTaskId());
-            ps.setString(2, subTask.getTitle().trim());
-
-            if (subTask.getAssigneeId() > 0) {
-                ps.setInt(3, subTask.getAssigneeId());
-            } else {
-                ps.setNull(3, Types.INTEGER);
-            }
-
-            String status = subTask.getStatus() != null && !subTask.getStatus().trim().isEmpty() ? subTask.getStatus().trim().toUpperCase() : "TODO";
-            ps.setString(4, status);
-
-            if (subTask.getDueDate() != null && !subTask.getDueDate().trim().isEmpty()) {
-                try {
-                    ps.setDate(5, Date.valueOf(subTask.getDueDate().trim()));
-                } catch (IllegalArgumentException ex) {
-                    ps.setNull(5, Types.DATE);
-                }
-            } else {
-                ps.setNull(5, Types.DATE);
-            }
-
-            ps.setString(6, subTask.getSubmissionNote() != null ? subTask.getSubmissionNote().trim() : "");
-            ps.setString(7, subTask.getFeedbackNote() != null ? subTask.getFeedbackNote().trim() : "");
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    int genId = rs.getInt(1);
-                    subTask.setId(genId);
-                    return genId;
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi thêm SubTask mới: " + subTask.getTitle(), e);
+        if (subTask.getStatus() == null || subTask.getStatus().trim().isEmpty()) {
+            subTask.setStatus("TODO");
         }
-        return 0;
+        if (subTask.getDueDate() == null) subTask.setDueDate("");
+        if (subTask.getSubmissionNote() == null) subTask.setSubmissionNote("");
+        if (subTask.getFeedbackNote() == null) subTask.setFeedbackNote("");
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(subTask);
+            tx.commit();
+            return subTask.getId();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi thêm SubTask mới qua JPA: " + subTask.getTitle(), e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
     }
 
     /**
@@ -172,19 +120,27 @@ public class SubTaskDB {
     public static boolean submitDeliverable(int subTaskId, String submissionNote, String submittedAt) {
         if (subTaskId <= 0) return false;
 
-        String sql = "UPDATE subtasks SET status = 'SUBMITTED', submission_note = ?, submitted_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, submissionNote != null ? submissionNote.trim() : "");
-            ps.setInt(2, subTaskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi submit deliverable SubTask ID: " + subTaskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            SubTask st = em.find(SubTask.class, subTaskId);
+            if (st != null) {
+                st.setStatus("SUBMITTED");
+                st.setSubmissionNote(submissionNote != null ? submissionNote.trim() : "");
+                em.merge(st);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi submit deliverable SubTask ID qua JPA: " + subTaskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -193,18 +149,27 @@ public class SubTaskDB {
     public static boolean approveDeliverable(int subTaskId, String reviewedAt) {
         if (subTaskId <= 0) return false;
 
-        String sql = "UPDATE subtasks SET status = 'APPROVED', reviewed_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, subTaskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi approve deliverable SubTask ID: " + subTaskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            SubTask st = em.find(SubTask.class, subTaskId);
+            if (st != null) {
+                st.setStatus("APPROVED");
+                st.setCompleted(true);
+                em.merge(st);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi approve deliverable SubTask ID qua JPA: " + subTaskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -213,19 +178,27 @@ public class SubTaskDB {
     public static boolean reviseDeliverable(int subTaskId, String feedbackNote, String reviewedAt) {
         if (subTaskId <= 0) return false;
 
-        String sql = "UPDATE subtasks SET status = 'REVISE', feedback_note = ?, reviewed_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, feedbackNote != null ? feedbackNote.trim() : "");
-            ps.setInt(2, subTaskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi revise deliverable SubTask ID: " + subTaskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            SubTask st = em.find(SubTask.class, subTaskId);
+            if (st != null) {
+                st.setStatus("REVISE");
+                st.setFeedbackNote(feedbackNote != null ? feedbackNote.trim() : "");
+                em.merge(st);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi revise deliverable SubTask ID qua JPA: " + subTaskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -234,19 +207,27 @@ public class SubTaskDB {
     public static boolean rejectDeliverable(int subTaskId, String feedbackNote, String reviewedAt) {
         if (subTaskId <= 0) return false;
 
-        String sql = "UPDATE subtasks SET status = 'REJECTED', feedback_note = ?, reviewed_at = NOW() WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, feedbackNote != null ? feedbackNote.trim() : "");
-            ps.setInt(2, subTaskId);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi reject deliverable SubTask ID: " + subTaskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            SubTask st = em.find(SubTask.class, subTaskId);
+            if (st != null) {
+                st.setStatus("REJECTED");
+                st.setFeedbackNote(feedbackNote != null ? feedbackNote.trim() : "");
+                em.merge(st);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi reject deliverable SubTask ID qua JPA: " + subTaskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -255,19 +236,27 @@ public class SubTaskDB {
     public static boolean updateStatus(int id, boolean completed) {
         if (id <= 0) return false;
 
-        String sql = "UPDATE subtasks SET status = ?::subtask_status_enum WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, completed ? "APPROVED" : "TODO");
-            ps.setInt(2, id);
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi update status SubTask ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            SubTask st = em.find(SubTask.class, id);
+            if (st != null) {
+                st.setStatus(completed ? "APPROVED" : "TODO");
+                st.setCompleted(completed);
+                em.merge(st);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi update status SubTask ID qua JPA: " + id, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -276,17 +265,25 @@ public class SubTaskDB {
     public static boolean delete(int id) {
         if (id <= 0) return false;
 
-        String sql = "DELETE FROM subtasks WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi xóa SubTask ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            SubTask st = em.find(SubTask.class, id);
+            if (st != null) {
+                em.remove(st);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa SubTask ID qua JPA: " + id, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -295,15 +292,19 @@ public class SubTaskDB {
     public static void deleteByTaskId(int taskId) {
         if (taskId <= 0) return;
 
-        String sql = "DELETE FROM subtasks WHERE task_id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, taskId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi xóa SubTasks theo Task ID: " + taskId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery("DELETE FROM SubTask st WHERE st.taskId = :taskId")
+              .setParameter("taskId", taskId)
+              .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa SubTasks theo Task ID qua JPA: " + taskId, e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 
@@ -313,25 +314,28 @@ public class SubTaskDB {
     public static int calculateProgress(int taskId) {
         if (taskId <= 0) return 0;
 
-        String sql = "SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status = 'APPROVED') AS approved FROM subtasks WHERE task_id = ?";
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long total = em.createQuery(
+                "SELECT COUNT(st) FROM SubTask st WHERE st.taskId = :taskId", Long.class)
+                .setParameter("taskId", taskId)
+                .getSingleResult();
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (total == null || total == 0) return 0;
 
-            ps.setInt(1, taskId);
+            Long approved = em.createQuery(
+                "SELECT COUNT(st) FROM SubTask st WHERE st.taskId = :taskId AND st.status = 'APPROVED'", Long.class)
+                .setParameter("taskId", taskId)
+                .getSingleResult();
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    int total = rs.getInt("total");
-                    int approved = rs.getInt("approved");
-                    if (total == 0) return 0;
-                    return (int) Math.round(((double) approved / total) * 100);
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tính tiến độ SubTask", e);
+            long appVal = approved != null ? approved : 0;
+            return (int) Math.round(((double) appVal / total) * 100);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tính tiến độ SubTask qua JPA", e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return 0;
     }
 
     /**
@@ -340,39 +344,29 @@ public class SubTaskDB {
     public static boolean update(SubTask updatedSubTask) {
         if (updatedSubTask == null || updatedSubTask.getId() <= 0) return false;
 
-        String sql = "UPDATE subtasks SET title = ?, assignee_id = ?, status = ?::subtask_status_enum, due_date = ? WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, updatedSubTask.getTitle() != null ? updatedSubTask.getTitle().trim() : "");
-
-            if (updatedSubTask.getAssigneeId() > 0) {
-                ps.setInt(2, updatedSubTask.getAssigneeId());
-            } else {
-                ps.setNull(2, Types.INTEGER);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            SubTask existing = em.find(SubTask.class, updatedSubTask.getId());
+            if (existing != null) {
+                existing.setTitle(updatedSubTask.getTitle() != null ? updatedSubTask.getTitle().trim() : "");
+                existing.setAssigneeId(updatedSubTask.getAssigneeId());
+                existing.setStatus(updatedSubTask.getStatus() != null ? updatedSubTask.getStatus().trim().toUpperCase() : "TODO");
+                existing.setDueDate(updatedSubTask.getDueDate() != null ? updatedSubTask.getDueDate().trim() : "");
+                em.merge(existing);
+                tx.commit();
+                return true;
             }
-
-            String status = updatedSubTask.getStatus() != null ? updatedSubTask.getStatus().trim().toUpperCase() : "TODO";
-            ps.setString(3, status);
-
-            if (updatedSubTask.getDueDate() != null && !updatedSubTask.getDueDate().trim().isEmpty()) {
-                try {
-                    ps.setDate(4, Date.valueOf(updatedSubTask.getDueDate().trim()));
-                } catch (IllegalArgumentException ex) {
-                    ps.setNull(4, Types.DATE);
-                }
-            } else {
-                ps.setNull(4, Types.DATE);
-            }
-
-            ps.setInt(5, updatedSubTask.getId());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi update SubTask ID: " + updatedSubTask.getId(), e);
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi update SubTask ID qua JPA: " + updatedSubTask.getId(), e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -381,52 +375,58 @@ public class SubTaskDB {
     public static void unassignUserFromProject(int projectId, int userId) {
         if (projectId <= 0 || userId <= 0) return;
 
-        String sql = "UPDATE subtasks SET assignee_id = NULL WHERE assignee_id = ? AND task_id IN (SELECT id FROM tasks WHERE project_id = ?)";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, userId);
-            ps.setInt(2, projectId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi unassign user trong subtasks", e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.createQuery(
+                "UPDATE SubTask st SET st.assigneeId = NULL " +
+                "WHERE st.assigneeId = :userId AND st.taskId IN (SELECT t.id FROM Task t WHERE t.projectId = :projectId)"
+            )
+            .setParameter("userId", userId)
+            .setParameter("projectId", projectId)
+            .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi unassign user trong subtasks qua JPA", e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
     }
 
     /**
-     * HÀM 14: Đồng bộ tên người phụ trách mới (tự động xử lý qua JOIN bảng users trong DB)
+     * HÀM 14: Đồng bộ tên người phụ trách mới
      */
     public static void syncAssigneeName(int userId, String newFullName) {
-        // Tự động đồng bộ qua JOIN users trong Database
+        // Tự động đồng bộ qua JOIN User trong JPA
     }
 
     /**
-     * HÀM BATCH MỚI: Lấy toàn bộ subtasks của TẤT CẢ các task trong một Project trong 1 câu SQL duy nhất!
-     * Giúp loại bỏ N+1 query problem, tăng tốc độ tải trang gấp 10 lần.
+     * HÀM BATCH: Lấy toàn bộ subtasks của TẤT CẢ các task trong một Project trong 1 câu JPQL duy nhất!
      */
     public static List<SubTask> selectByProjectId(int projectId) {
-        List<SubTask> list = new ArrayList<>();
-        if (projectId <= 0) return list;
+        if (projectId <= 0) return new ArrayList<>();
 
-        String sql = BASE_SELECT_SQL +
-                     "JOIN tasks t ON st.task_id = t.id " +
-                     "WHERE t.project_id = ? ORDER BY st.id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSetToSubTask(rs));
-                }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<SubTask> query = em.createQuery(
+                "SELECT st FROM SubTask st JOIN Task t ON st.taskId = t.id " +
+                "WHERE t.projectId = :projectId ORDER BY st.id ASC",
+                SubTask.class
+            );
+            query.setParameter("projectId", projectId);
+            List<SubTask> list = query.getResultList();
+            for (SubTask st : list) {
+                populateAssigneeName(em, st);
             }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy batch SubTasks theo Project ID: " + projectId, e);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy batch SubTasks theo Project ID qua JPA: " + projectId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return list;
     }
 }
 

@@ -3,26 +3,75 @@ package com.teamwork.business;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
- * JavaBean Model: Đại diện cho Lời Mời / Yêu Cầu Gia Nhập Dự Án 2 Chiều (Project Invite & Join Request).
+ * JavaBean & JPA Entity: Đại diện cho Lời Mời / Yêu Cầu Gia Nhập Dự Án 2 Chiều (Project Invite & Join Request).
  * - Chiều 1: type = "INVITATION" (PM gửi lời mời cho Thành viên)
  * - Chiều 2: type = "JOIN_REQUEST" (Thành viên nhập Mã Dự Án xin gia nhập)
  * - Tự động tính toán hạn hết hạn 7 ngày (expiredAt)
  */
+@Entity
+@Table(name = "project_invites")
 public class ProjectInvite implements Serializable {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
+
+    @Column(name = "project_id", nullable = false)
     private int projectId;            // ID của Dự án
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    private Project project;
+
+    @Transient
     private String projectName;       // Tên Dự án
+
+    @Transient
     private String projectCode;       // Mã Dự Án (VD: TW-HUB-01)
+
+    @Column(name = "type", nullable = false)
     private String type;              // "INVITATION" (PM mời) hoặc "JOIN_REQUEST" (Xin gia nhập)
+
+    @Column(name = "sender_id", nullable = false)
     private int senderId;             // ID người gửi
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_id", insertable = false, updatable = false)
+    private User sender;
+
+    @Transient
     private String senderName;        // Tên người gửi
+
+    @Column(name = "receiver_id", nullable = false)
     private int receiverId;           // ID người nhận có thẩm quyền duyệt
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receiver_id", insertable = false, updatable = false)
+    private User receiver;
+
+    @Transient
     private String receiverName;      // Tên người nhận
+
+    @Column(name = "status", nullable = false)
     private String status;            // "PENDING", "ACCEPTED", "REJECTED", "REVOKED", "EXPIRED"
+
+    @Column(name = "created_at", insertable = false, updatable = false)
     private String createdAt;         // Thời điểm tạo (dd/MM/yyyy HH:mm)
+
+    @Column(name = "expired_at", insertable = false, updatable = false)
     private String expiredAt;         // Thời điểm hết hạn (dd/MM/yyyy HH:mm - Mặc định +7 ngày)
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
@@ -109,6 +158,27 @@ public class ProjectInvite implements Serializable {
     }
     public void setProjectId(int projectId) {
         this.projectId = projectId;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public User getSender() {
+        return sender;
+    }
+    public void setSender(User sender) {
+        this.sender = sender;
+    }
+
+    public User getReceiver() {
+        return receiver;
+    }
+    public void setReceiver(User receiver) {
+        this.receiver = receiver;
     }
 
     public String getProjectName() {

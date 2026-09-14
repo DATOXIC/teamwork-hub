@@ -1,22 +1,59 @@
 package com.teamwork.business;
 
 import java.io.Serializable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
- * JavaBean Model đại diện cho một Bài viết Tài liệu / Ghi chú Wiki (Doc) trong Dự án.
+ * JavaBean & JPA Entity đại diện cho một Bài viết Tài liệu / Ghi chú Wiki (Doc) trong Dự án.
  * Cho phép nhóm lưu trữ tài liệu kỹ thuật, biên bản cuộc họp và hướng dẫn dự án.
  */
+@Entity
+@Table(name = "docs")
 public class Doc implements Serializable {
 
     // ===================== CÁC THUỘC TÍNH =====================
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;             // Khóa chính định danh tài liệu
+
+    @Column(name = "project_id", nullable = false)
     private int projectId;      // Thuộc dự án nào (Khóa ngoại trỏ đến Project.id)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    private Project project;
+
+    @Column(name = "title", nullable = false)
     private String title;       // Tiêu đề tài liệu (Ví dụ: "Hướng dẫn cài đặt môi trường")
+
+    @Column(name = "content")
     private String content;     // Nội dung chi tiết bài viết (Hỗ trợ nhiều dòng văn bản)
-    private int authorId;       // ID người viết (trỏ đến User.id)
+
+    @Column(name = "author_id")
+    private Integer authorId;   // ID người viết (trỏ đến User.id, null-safe)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", insertable = false, updatable = false)
+    private User author;
+
+    @Transient
     private String authorName;  // Tên tác giả hiển thị (Ví dụ: "Trưởng Nhóm Admin")
+
+    @Column(name = "created_at", insertable = false, updatable = false)
     private String createdAt;   // Ngày giờ tạo bài (Định dạng: dd/MM/yyyy HH:mm)
+
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private String updatedAt;   // Ngày giờ chỉnh sửa lần cuối (Định dạng: dd/MM/yyyy HH:mm)
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
@@ -102,10 +139,27 @@ public class Doc implements Serializable {
     }
 
     public int getAuthorId() {
-        return this.authorId;
+        return this.authorId != null ? this.authorId : 0;
     }
     public void setAuthorId(int authorId) {
-        this.authorId = authorId;
+        this.authorId = authorId > 0 ? authorId : null;
+    }
+    public void setAuthorId(Integer authorId) {
+        this.authorId = (authorId != null && authorId > 0) ? authorId : null;
+    }
+
+    public Project getProject() {
+        return this.project;
+    }
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public User getAuthor() {
+        return this.author;
+    }
+    public void setAuthor(User author) {
+        this.author = author;
     }
 
     public String getAuthorName() {

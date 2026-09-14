@@ -3,25 +3,56 @@ package com.teamwork.business;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /**
- * JavaBean Model: Đại diện cho Người Dùng (User) trong hệ thống.
+ * JavaBean & JPA Entity: Đại diện cho Người Dùng (User) trong hệ thống.
  * - Quản lý thông tin xác thực (Username, Password)
  * - Quản lý thông tin Hồ Sơ Cá Nhân (Bio, Skills, GitHub/LinkedIn URLs)
  */
+@Entity
+@Table(name = "users")
 public class User implements Serializable {
 
     // ===================== CÁC THUỘC TÍNH =====================
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
+
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
+
+    @Column(name = "password", nullable = false)
     private String password;
+
+    @Column(name = "full_name", nullable = false)
     private String fullName;
+
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
+
+    @Column(name = "role")
     private String role;              // Chuyên môn / Chức danh (Project Manager, Developer, Designer, Tester...)
+
+    @Column(name = "avatar")
     private String avatar;            // Đường dẫn ảnh đại diện
+
+    @Column(name = "bio")
     private String bio;               // Lời giới thiệu ngắn bản thân (Tối đa 250 ký tự)
+
+    @Column(name = "skills")
     private String skills;            // Danh sách Kỹ năng cách nhau bằng dấu phẩy (Java, MySQL, Docker...)
+
+    @Column(name = "github_url")
     private String githubUrl;         // Link trang GitHub cá nhân
+
+    @Column(name = "linkedin_url")
     private String linkedinUrl;       // Link trang LinkedIn cá nhân
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================

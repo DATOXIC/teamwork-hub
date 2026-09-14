@@ -1,61 +1,45 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Label;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Tầng Data Access Object (DAO): Quản lý dữ liệu Nhãn phân loại (Label) kết nối Supabase PostgreSQL.
+ * Tầng Data Access Object (DAO): Quản lý dữ liệu Nhãn phân loại (Label) qua JPA 3.1 / Hibernate.
  * 
  * Áp dụng nguyên tắc Backend Code Mastery & Database API Design:
  * - Bảo toàn 100% hợp đồng giao tiếp (Method Signatures & Return Types)
- * - Sử dụng PreparedStatement an toàn chống SQL Injection
- * - Quản lý tài nguyên bằng try-with-resources
+ * - Sử dụng JPA EntityManager và JPQL chuẩn, tương thích cả PostgreSQL và MySQL
  */
 public class LabelDB {
 
     private static final Logger LOGGER = Logger.getLogger(LabelDB.class.getName());
 
-    private static Label mapResultSetToLabel(ResultSet rs) throws SQLException {
-        return new Label(
-            rs.getInt("id"),
-            rs.getInt("project_id"),
-            rs.getString("name"),
-            rs.getString("color_key"),
-            rs.getString("icon")
-        );
-    }
-
     /**
      * Nghiệp vụ 1: Lấy tất cả nhãn thuộc về một dự án cụ thể
      */
     public static List<Label> selectByProjectId(int projectId) {
-        List<Label> result = new ArrayList<>();
-        if (projectId <= 0) return result;
+        if (projectId <= 0) return new ArrayList<>();
 
-        String sql = "SELECT id, project_id, name, color_key::text AS color_key, icon FROM labels WHERE project_id = ? ORDER BY id ASC";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapResultSetToLabel(rs));
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy danh sách nhãn Project ID: " + projectId, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Label> query = em.createQuery(
+                "SELECT l FROM Label l WHERE l.projectId = :projectId ORDER BY l.id ASC",
+                Label.class
+            );
+            query.setParameter("projectId", projectId);
+            return query.getResultList();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy danh sách nhãn Project ID qua JPA: " + projectId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return result;
     }
 
     /**
@@ -64,22 +48,15 @@ public class LabelDB {
     public static Label selectById(int id) {
         if (id <= 0) return null;
 
-        String sql = "SELECT id, project_id, name, color_key::text AS color_key, icon FROM labels WHERE id = ? LIMIT 1";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapResultSetToLabel(rs);
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tìm nhãn ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.find(Label.class, id);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tìm nhãn ID qua JPA: " + id, e);
+            return null;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return null;
     }
 
     /**
@@ -90,22 +67,24 @@ public class LabelDB {
             return false;
         }
 
-        String sql = "SELECT 1 FROM labels WHERE project_id = ? AND LOWER(name) = LOWER(?) AND id <> ? LIMIT 1";
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long count = em.createQuery(
+                "SELECT COUNT(l) FROM Label l WHERE l.projectId = :projectId AND LOWER(l.name) = LOWER(:name) AND l.id <> :excludeId",
+                Long.class
+            )
+            .setParameter("projectId", projectId)
+            .setParameter("name", name.trim())
+            .setParameter("excludeId", excludeId)
+            .getSingleResult();
 
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, projectId);
-            ps.setString(2, name.trim());
-            ps.setInt(3, excludeId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra trùng tên nhãn", e);
+            return count != null && count > 0;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra trùng tên nhãn qua JPA", e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -116,29 +95,27 @@ public class LabelDB {
             return 0;
         }
 
-        String sql = "INSERT INTO labels (project_id, name, color_key, icon) " +
-                     "VALUES (?, ?, ?::label_color_enum, ?) RETURNING id";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, label.getProjectId());
-            ps.setString(2, label.getName().trim());
-            String color = label.getColorKey() != null && !label.getColorKey().trim().isEmpty() ? label.getColorKey().trim().toLowerCase() : "blue";
-            ps.setString(3, color);
-            ps.setString(4, label.getIcon() != null && !label.getIcon().trim().isEmpty() ? label.getIcon().trim() : "bi-tag-fill");
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    int genId = rs.getInt(1);
-                    label.setId(genId);
-                    return genId;
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi thêm nhãn mới: " + label.getName(), e);
+        if (label.getColorKey() == null || label.getColorKey().trim().isEmpty()) {
+            label.setColorKey("blue");
         }
-        return 0;
+        if (label.getIcon() == null || label.getIcon().trim().isEmpty()) {
+            label.setIcon("bi-tag-fill");
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(label);
+            tx.commit();
+            return label.getId();
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi thêm nhãn mới qua JPA: " + label.getName(), e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
     }
 
     /**
@@ -147,22 +124,28 @@ public class LabelDB {
     public static boolean update(Label updatedLabel) {
         if (updatedLabel == null || updatedLabel.getId() <= 0) return false;
 
-        String sql = "UPDATE labels SET name = ?, color_key = ?::label_color_enum, icon = ? WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, updatedLabel.getName() != null ? updatedLabel.getName().trim() : "");
-            String color = updatedLabel.getColorKey() != null ? updatedLabel.getColorKey().trim().toLowerCase() : "blue";
-            ps.setString(2, color);
-            ps.setString(3, updatedLabel.getIcon() != null ? updatedLabel.getIcon().trim() : "bi-tag-fill");
-            ps.setInt(4, updatedLabel.getId());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi update nhãn ID: " + updatedLabel.getId(), e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Label existing = em.find(Label.class, updatedLabel.getId());
+            if (existing != null) {
+                existing.setName(updatedLabel.getName() != null ? updatedLabel.getName().trim() : "");
+                existing.setColorKey(updatedLabel.getColorKey() != null ? updatedLabel.getColorKey().trim().toLowerCase() : "blue");
+                existing.setIcon(updatedLabel.getIcon() != null ? updatedLabel.getIcon().trim() : "bi-tag-fill");
+                em.merge(existing);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi update nhãn ID qua JPA: " + updatedLabel.getId(), e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 
     /**
@@ -171,16 +154,24 @@ public class LabelDB {
     public static boolean delete(int id) {
         if (id <= 0) return false;
 
-        String sql = "DELETE FROM labels WHERE id = ?";
-
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi xóa nhãn ID: " + id, e);
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Label label = em.find(Label.class, id);
+            if (label != null) {
+                em.remove(label);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi xóa nhãn ID qua JPA: " + id, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
         }
-        return false;
     }
 }

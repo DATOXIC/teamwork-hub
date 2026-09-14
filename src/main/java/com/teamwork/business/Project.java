@@ -1,23 +1,58 @@
 package com.teamwork.business;
 
 import java.io.Serializable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 /**
- * JavaBean Model: Đại diện cho một Dự Án (Project) trong hệ thống.
+ * JavaBean & JPA Entity: Đại diện cho một Dự Án (Project) trong hệ thống.
  * - Chứa Mã Dự Án (projectCode) phục vụ luồng Thành viên Xin Gia Nhập (Chiều 2)
  * - Chứa các thông tin thống kê tổng quan tiến độ % công việc
  */
+@Entity
+@Table(name = "projects")
 public class Project implements Serializable {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private int id;
+
+    @Column(name = "project_code", nullable = false, unique = true)
     private String projectCode;       // Mã định danh ngắn gọn duy nhất (VD: TW-HUB-01, ECOMMERCE-99)
+
+    @Column(name = "name", nullable = false)
     private String name;              // Tên dự án
+
+    @Column(name = "description")
     private String description;       // Mô tả mục tiêu dự án
+
+    @Column(name = "project_type")
     private String projectType;       // 'SOLO' (Cá nhân / Fast-track) hoặc 'TEAM' (Nhóm / Quality Gate)
+
+    @Column(name = "owner_id")
     private int ownerId;              // ID của Trưởng Dự Án (Project Manager / Owner)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", insertable = false, updatable = false)
+    private User owner;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
     private String createdAt;         // Ngày tạo
-    private int totalTasks;           // Tổng số Task lớn
-    private int doneTasks;            // Số Task lớn đã hoàn thành (DONE)
+
+    @Transient
+    private int totalTasks;           // Tổng số Task lớn (Tính toán động)
+
+    @Transient
+    private int doneTasks;            // Số Task lớn đã hoàn thành (Tính toán động)
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
     public Project() {
@@ -155,6 +190,16 @@ public class Project implements Serializable {
 
     public String getProjectTypeIcon() {
         return isSoloProject() ? "bi-person-fill" : "bi-people-fill";
+    }
+
+    public User getOwner() {
+        return owner;
+    }
+    public void setOwner(User owner) {
+        this.owner = owner;
+        if (owner != null) {
+            this.ownerId = owner.getId();
+        }
     }
 
     @Override
