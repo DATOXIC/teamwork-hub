@@ -153,19 +153,85 @@
         }, 120);
     }
 
+    // =========================================================================
+    // GLOBAL THEME SWITCHER (LIGHT / DARK MODE)
+    // =========================================================================
+    function applyGlobalTheme(theme) {
+        if (!theme || (theme !== 'dark' && theme !== 'light')) {
+            theme = 'light';
+        }
+
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.setAttribute('data-bs-theme', theme);
+
+        try {
+            localStorage.setItem('teamwork_theme', theme);
+            localStorage.setItem('teamwork_report_theme', theme);
+        } catch (e) {
+            console.warn('localStorage error:', e);
+        }
+
+        // Cập nhật nút Theme trên thanh Top Navbar (nếu có)
+        var navText = document.getElementById('globalThemeBtnText');
+        var navMoon = document.getElementById('globalThemeIconMoon');
+        var navSun  = document.getElementById('globalThemeIconSun');
+        if (navText) {
+            navText.textContent = (theme === 'dark') ? 'Sáng' : 'Tối';
+        }
+        if (navMoon && navSun) {
+            if (theme === 'dark') {
+                navMoon.classList.add('d-none');
+                navSun.classList.remove('d-none');
+            } else {
+                navSun.classList.add('d-none');
+                navMoon.classList.remove('d-none');
+            }
+        }
+
+        // Cập nhật nút Theme tại thanh Subnav của trang Báo cáo (nếu có)
+        var repText = document.getElementById('themeBtnText');
+        if (repText) {
+            repText.textContent = (theme === 'dark') ? 'Chế độ sáng' : 'Chế độ tối';
+        }
+    }
+
+    function toggleGlobalTheme() {
+        var current = document.documentElement.getAttribute('data-theme') || 'light';
+        var next = (current === 'dark') ? 'light' : 'dark';
+        applyGlobalTheme(next);
+    }
+
+    function initGlobalTheme() {
+        var savedTheme = null;
+        try {
+            savedTheme = localStorage.getItem('teamwork_theme') || localStorage.getItem('teamwork_report_theme');
+        } catch (e) {}
+
+        if (!savedTheme) {
+            savedTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        applyGlobalTheme(savedTheme);
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
+            initGlobalTheme();
             initToastsFromDOM();
             initProgressBars();
             initLanguage();
         });
     } else {
+        initGlobalTheme();
         initToastsFromDOM();
         initProgressBars();
         initLanguage();
     }
 
+    // Xuất ra phạm vi toàn cục (Global Window Scope) để các nút bấm JSP gọi được trực tiếp
     window.showToast = showToast;
+    window.applyGlobalTheme = applyGlobalTheme;
+    window.toggleGlobalTheme = toggleGlobalTheme;
+    window.toggleReportTheme = toggleGlobalTheme; // Alias tương thích 100% cho trang Báo cáo
 
 })();
 
