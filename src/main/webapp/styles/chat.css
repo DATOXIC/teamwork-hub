@@ -1,0 +1,869 @@
+/* ==========================================================================
+   TeamWork Hub — Chat & Discussion Module Stylesheet
+   Apple Glassmorphism & Arc Space Aesthetic with Full Dark Mode Support
+   ========================================================================== */
+
+/* =====================================================
+   1. CSS TOKENS & SYSTEM VARIABLES (LIGHT MODE)
+   ===================================================== */
+:root {
+    /* Ambient Canvas */
+    --chat-bg-ambient: radial-gradient(ellipse at 15% 10%, rgba(99, 142, 203, 0.16), transparent 50%),
+                       radial-gradient(ellipse at 85% 90%, rgba(57, 88, 134, 0.1), transparent 55%),
+                       #f8fafc;
+    
+    /* Glass Surfaces */
+    --chat-glass-surface: rgba(255, 255, 255, 0.72);
+    --chat-glass-surface-hover: rgba(255, 255, 255, 0.88);
+    --chat-glass-surface-subtle: rgba(255, 255, 255, 0.5);
+    --chat-glass-border: rgba(255, 255, 255, 0.75);
+    --chat-glass-border-subtle: rgba(0, 0, 0, 0.06);
+    --chat-glass-blur: blur(20px);
+    
+    /* Elevation Shadows */
+    --chat-shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --chat-shadow-island: 0 20px 45px -10px rgba(30, 41, 59, 0.15), 0 2px 10px -2px rgba(30, 41, 59, 0.05);
+    --chat-shadow-hover: 0 12px 36px 0 rgba(31, 38, 135, 0.12);
+    
+    /* Typography */
+    --chat-text-primary: #1e293b;
+    --chat-text-secondary: #475569;
+    --chat-text-muted: #94a3b8;
+    --chat-text-me: #ffffff;
+    
+    /* Message Bubbles */
+    --chat-bubble-me-bg: linear-gradient(135deg, #395886 0%, #4f73aa 100%);
+    --chat-bubble-me-border: rgba(255, 255, 255, 0.25);
+    --chat-bubble-me-shadow: 0 6px 20px -4px rgba(57, 88, 134, 0.35);
+    
+    --chat-bubble-other-bg: rgba(255, 255, 255, 0.82);
+    --chat-bubble-other-border: rgba(255, 255, 255, 0.9);
+    --chat-bubble-other-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.06);
+    
+    /* Floating Command Island */
+    --chat-island-bg: rgba(255, 255, 255, 0.86);
+    --chat-island-border: rgba(255, 255, 255, 0.85);
+    
+    /* Accents & Brand */
+    --chat-accent: #395886;
+    --chat-accent-light: #638ECB;
+    --chat-accent-glow: rgba(99, 142, 203, 0.22);
+    
+    /* Radii */
+    --chat-radius-pill: 9999px;
+    --chat-radius-card: 20px;
+    --chat-radius-bubble: 18px;
+    --chat-radius-sm: 10px;
+}
+
+/* =====================================================
+   2. DARK MODE OVERRIDES (DEEP OBSIDIAN & ARC SPACE)
+   ===================================================== */
+[data-theme="dark"],
+[data-bs-theme="dark"] {
+    /* Ambient Canvas */
+    --chat-bg-ambient: radial-gradient(ellipse at 15% 10%, rgba(99, 142, 203, 0.18), transparent 50%),
+                       radial-gradient(ellipse at 85% 90%, rgba(138, 174, 224, 0.1), transparent 55%),
+                       #0d1117;
+    
+    /* Glass Surfaces */
+    --chat-glass-surface: rgba(22, 27, 38, 0.72);
+    --chat-glass-surface-hover: rgba(30, 38, 54, 0.85);
+    --chat-glass-surface-subtle: rgba(22, 27, 38, 0.45);
+    --chat-glass-border: rgba(255, 255, 255, 0.1);
+    --chat-glass-border-subtle: rgba(255, 255, 255, 0.06);
+    
+    /* Elevation Shadows */
+    --chat-shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    --chat-shadow-island: 0 24px 50px -10px rgba(0, 0, 0, 0.65), 0 0 1px 1px rgba(255, 255, 255, 0.08);
+    --chat-shadow-hover: 0 14px 40px 0 rgba(0, 0, 0, 0.6);
+    
+    /* Typography */
+    --chat-text-primary: #f1f5f9;
+    --chat-text-secondary: #cbd5e1;
+    --chat-text-muted: #64748b;
+    --chat-text-me: #ffffff;
+    
+    /* Message Bubbles */
+    --chat-bubble-me-bg: linear-gradient(135deg, #426394 0%, #2f4b75 100%);
+    --chat-bubble-me-border: rgba(138, 174, 224, 0.35);
+    --chat-bubble-me-shadow: 0 6px 22px -4px rgba(0, 0, 0, 0.5);
+    
+    --chat-bubble-other-bg: rgba(26, 32, 48, 0.75);
+    --chat-bubble-other-border: rgba(255, 255, 255, 0.08);
+    --chat-bubble-other-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+    
+    /* Floating Command Island */
+    --chat-island-bg: rgba(20, 26, 42, 0.88);
+    --chat-island-border: rgba(255, 255, 255, 0.12);
+    
+    /* Accents & Brand */
+    --chat-accent: #8AAEE0;
+    --chat-accent-light: #638ECB;
+    --chat-accent-glow: rgba(99, 142, 203, 0.28);
+}
+
+/* =====================================================
+   3. SHELL & AMBIENT CANVAS
+   ===================================================== */
+.chat-shell {
+    background: var(--chat-bg-ambient) !important;
+    min-height: calc(100vh - 70px);
+    transition: background 0.3s ease;
+}
+
+/* =====================================================
+   4. GLASS SUBNAV & HEADER
+   ===================================================== */
+.chat-subnav {
+    background: var(--chat-glass-surface);
+    backdrop-filter: var(--chat-glass-blur);
+    -webkit-backdrop-filter: var(--chat-glass-blur);
+    border: 1px solid var(--chat-glass-border);
+    box-shadow: var(--chat-shadow-glass);
+    border-radius: var(--chat-radius-card);
+    transition: all 0.25s ease;
+}
+
+.chat-subnav-btn-back {
+    color: var(--chat-text-secondary);
+    border: 1px solid var(--chat-glass-border-subtle);
+    background: var(--chat-glass-surface-subtle);
+    transition: all 0.2s ease;
+}
+
+.chat-subnav-btn-back:hover {
+    color: var(--chat-text-primary);
+    background: var(--chat-glass-surface-hover);
+    transform: translateX(-2px);
+}
+
+.chat-subnav-title {
+    color: var(--chat-text-primary) !important;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* Pill Tabs */
+.chat-subnav-tabs {
+    background: var(--chat-glass-surface-subtle);
+    border: 1px solid var(--chat-glass-border-subtle);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.chat-tab-link {
+    color: var(--chat-text-secondary) !important;
+    border-radius: var(--chat-radius-pill);
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.chat-tab-link:hover {
+    color: var(--chat-text-primary) !important;
+    background: var(--chat-glass-surface-hover);
+}
+
+.chat-tab-link.active {
+    background: var(--chat-glass-surface);
+    color: var(--chat-accent) !important;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--chat-glass-border);
+}
+
+/* Live Pulse Badge */
+.chat-pulse-badge {
+    background: var(--chat-glass-surface);
+    border: 1px solid var(--chat-glass-border);
+    color: var(--chat-text-primary);
+    box-shadow: var(--chat-shadow-glass);
+}
+
+.pulse-indicator {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+}
+
+.pulse-indicator::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: #10b981;
+    border-radius: 50%;
+    animation: pulse-ring 2s infinite cubic-bezier(0.24, 0, 0.38, 1);
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* =====================================================
+   5. SIDEBAR: TEAM RADAR & RESOURCE SHELF
+   ===================================================== */
+.chat-sidebar-card {
+    background: var(--chat-glass-surface);
+    backdrop-filter: var(--chat-glass-blur);
+    -webkit-backdrop-filter: var(--chat-glass-blur);
+    border: 1px solid var(--chat-glass-border);
+    box-shadow: var(--chat-shadow-glass);
+    border-radius: var(--chat-radius-card);
+    transition: all 0.25s ease;
+}
+
+.chat-sidebar-title {
+    color: var(--chat-text-primary) !important;
+    font-weight: 700;
+    font-size: 0.92rem;
+}
+
+/* Member Item with Glow Status */
+.chat-member-item {
+    background: var(--chat-glass-surface-subtle);
+    border: 1px solid var(--chat-glass-border-subtle);
+    border-radius: 12px;
+    padding: 8px 12px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-member-item:hover {
+    background: var(--chat-glass-surface-hover);
+    border-color: var(--chat-glass-border);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.chat-avatar-ring {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--chat-accent) 0%, var(--chat-accent-light) 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 2px 8px var(--chat-accent-glow);
+}
+
+.chat-avatar-status {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 9px;
+    height: 9px;
+    background: #10b981;
+    border: 2px solid var(--chat-glass-surface);
+    border-radius: 50%;
+}
+
+.chat-member-name {
+    color: var(--chat-text-primary);
+    font-size: 0.83rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.chat-member-role {
+    color: var(--chat-text-muted);
+    font-size: 0.72rem;
+}
+
+/* Segmented Control for Resource Shelf */
+.chat-segmented-control {
+    background: var(--chat-glass-surface-subtle);
+    border: 1px solid var(--chat-glass-border-subtle);
+    border-radius: var(--chat-radius-pill);
+    padding: 3px;
+    display: flex;
+    gap: 3px;
+}
+
+.chat-segment-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--chat-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: var(--chat-radius-pill);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+}
+
+.chat-segment-btn:hover {
+    color: var(--chat-text-primary);
+}
+
+.chat-segment-btn.active {
+    background: var(--chat-glass-surface);
+    color: var(--chat-accent);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--chat-glass-border);
+}
+
+/* Resource Item Chips */
+.chat-resource-chip {
+    background: var(--chat-glass-surface-subtle);
+    border: 1px solid var(--chat-glass-border-subtle);
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-size: 0.78rem;
+    color: var(--chat-text-secondary);
+    text-decoration: none;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.chat-resource-chip:hover {
+    background: var(--chat-glass-surface-hover);
+    border-color: var(--chat-accent-light);
+    color: var(--chat-text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.chat-chip-tag {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.chat-chip-tag-doc {
+    background: rgba(99, 142, 203, 0.15);
+    color: var(--chat-accent);
+}
+
+.chat-chip-tag-task {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+/* =====================================================
+   6. MAIN CHAT CONTAINER & STREAM FEED
+   ===================================================== */
+.chat-main-card {
+    background: var(--chat-glass-surface);
+    backdrop-filter: var(--chat-glass-blur);
+    -webkit-backdrop-filter: var(--chat-glass-blur);
+    border: 1px solid var(--chat-glass-border);
+    box-shadow: var(--chat-shadow-glass);
+    border-radius: var(--chat-radius-card);
+    height: 76vh;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Channel Header */
+.chat-channel-header {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--chat-glass-border-subtle);
+    background: var(--chat-glass-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.chat-channel-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--chat-accent) 0%, var(--chat-accent-light) 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px var(--chat-accent-glow);
+}
+
+.chat-channel-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--chat-text-primary);
+    margin: 0;
+}
+
+.chat-channel-desc {
+    font-size: 0.75rem;
+    color: var(--chat-text-muted);
+}
+
+/* Message Feed Scroll Area */
+.chat-feed-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px 105px 24px; /* Space for Floating Island */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--chat-glass-border) transparent;
+}
+
+.chat-feed-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-feed-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-feed-container::-webkit-scrollbar-thumb {
+    background: var(--chat-glass-border);
+    border-radius: 6px;
+}
+
+/* Message Rows */
+.chat-row-me {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    position: relative;
+    max-width: 78%;
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.chat-row-other {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 82%;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+/* Bubbles */
+.chat-bubble-me {
+    background: var(--chat-bubble-me-bg);
+    border: 1px solid var(--chat-bubble-me-border);
+    box-shadow: var(--chat-bubble-me-shadow);
+    color: var(--chat-text-me);
+    padding: 12px 18px;
+    border-radius: 18px 18px 4px 18px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    position: relative;
+    word-break: break-word;
+}
+
+.chat-bubble-me .message-body {
+    color: var(--chat-text-me) !important;
+}
+
+.chat-bubble-other {
+    background: var(--chat-bubble-other-bg);
+    border: 1px solid var(--chat-bubble-other-border);
+    box-shadow: var(--chat-bubble-other-shadow);
+    color: var(--chat-text-primary);
+    padding: 12px 18px;
+    border-radius: 18px 18px 18px 4px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    position: relative;
+    word-break: break-word;
+}
+
+.chat-bubble-other .message-body {
+    color: var(--chat-text-primary) !important;
+}
+
+.chat-author-name {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--chat-text-primary);
+}
+
+.chat-time-meta {
+    font-size: 0.68rem;
+    opacity: 0.7;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 4px;
+}
+
+/* Hover Action Bar (Micro-dock on message cards) */
+.chat-hover-bar {
+    position: absolute;
+    top: -12px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--chat-island-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--chat-glass-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-radius: var(--chat-radius-pill);
+    padding: 3px 6px;
+    z-index: 15;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-row-me .chat-hover-bar {
+    right: 12px;
+}
+
+.chat-row-other .chat-hover-bar {
+    right: 12px;
+}
+
+.chat-row-me:hover .chat-hover-bar,
+.chat-row-other:hover .chat-hover-bar,
+.chat-row-me.show-actions .chat-hover-bar,
+.chat-row-other.show-actions .chat-hover-bar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.chat-hover-btn {
+    background: transparent;
+    border: none;
+    color: var(--chat-text-secondary);
+    font-size: 0.75rem;
+    padding: 3px 6px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+}
+
+.chat-hover-btn:hover {
+    color: var(--chat-accent);
+    background: var(--chat-glass-surface-hover);
+    transform: scale(1.1);
+}
+
+.chat-hover-btn-danger:hover {
+    color: #ef4444;
+}
+
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Smart Mention & Embed Badges */
+.chat-mention-doc {
+    background: rgba(99, 142, 203, 0.18);
+    color: var(--chat-accent) !important;
+    border: 1px solid rgba(99, 142, 203, 0.3);
+    border-radius: var(--chat-radius-pill);
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.chat-mention-doc:hover {
+    background: rgba(99, 142, 203, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(99, 142, 203, 0.2);
+}
+
+.chat-mention-task {
+    background: rgba(16, 185, 129, 0.18);
+    color: #10b981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: var(--chat-radius-pill);
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.chat-mention-task:hover {
+    background: rgba(16, 185, 129, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.2);
+}
+
+.chat-mention-user {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309 !important;
+    border: 1px solid rgba(245, 158, 11, 0.28);
+    border-radius: var(--chat-radius-pill);
+    padding: 2px 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+}
+
+.chat-mention-user:hover {
+    background: rgba(245, 158, 11, 0.22);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+/* Dark mode for mention user: Warm Amber Gold */
+[data-theme="dark"] .chat-mention-user,
+[data-bs-theme="dark"] .chat-mention-user {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24 !important;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+/* When mention is inside user's own sent bubble (gradient background) */
+.chat-bubble-me .chat-mention-user {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fef08a !important;
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* =====================================================
+   7. FLOATING COMMAND ISLAND (BOTTOM INPUT DOCK)
+   ===================================================== */
+.chat-floating-island-wrapper {
+    position: absolute;
+    bottom: 14px;
+    left: 18px;
+    right: 18px;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.chat-floating-island {
+    pointer-events: auto;
+    background: var(--chat-island-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid var(--chat-island-border);
+    border-radius: 22px;
+    box-shadow: var(--chat-shadow-island);
+    padding: 8px 12px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-floating-island:focus-within {
+    box-shadow: var(--chat-shadow-island), 0 0 0 3px var(--chat-accent-glow);
+    border-color: var(--chat-accent-light);
+}
+
+/* Quick Action Toolbar inside Island */
+.chat-quick-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 6px 4px;
+    border-bottom: 1px solid var(--chat-glass-border-subtle);
+    margin-bottom: 6px;
+}
+
+.chat-quick-chip {
+    background: var(--chat-glass-surface-subtle);
+    border: 1px solid var(--chat-glass-border-subtle);
+    color: var(--chat-text-secondary);
+    border-radius: var(--chat-radius-pill);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.chat-quick-chip:hover {
+    color: var(--chat-accent);
+    background: var(--chat-glass-surface-hover);
+    border-color: var(--chat-accent-light);
+    transform: translateY(-1px);
+}
+
+/* Emoji Quick Drawer */
+.chat-emoji-drawer {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    margin-bottom: 6px;
+    background: var(--chat-glass-surface-subtle);
+    border-radius: 12px;
+    border: 1px solid var(--chat-glass-border-subtle);
+    animation: fadeSlideUp 0.2s ease;
+}
+
+.chat-emoji-drawer.active {
+    display: flex;
+}
+
+.chat-emoji-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.1rem;
+    padding: 3px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.chat-emoji-btn:hover {
+    background: var(--chat-glass-surface-hover);
+    transform: scale(1.25);
+}
+
+/* Input Form Controls */
+.chat-input-field {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--chat-text-primary) !important;
+    font-size: 0.88rem;
+    padding: 6px 12px;
+}
+
+.chat-input-field::placeholder {
+    color: var(--chat-text-muted);
+}
+
+.chat-btn-send {
+    background: linear-gradient(135deg, var(--chat-accent) 0%, var(--chat-accent-light) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-radius: var(--chat-radius-pill);
+    padding: 8px 18px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 14px var(--chat-accent-glow);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-btn-send:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 6px 20px var(--chat-accent-glow);
+    color: #ffffff;
+}
+
+.chat-btn-send:active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* =====================================================
+   8. EMPTY STATE
+   ===================================================== */
+.chat-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    margin: auto;
+}
+
+.chat-empty-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: var(--chat-glass-surface);
+    border: 1px solid var(--chat-glass-border);
+    box-shadow: var(--chat-shadow-glass);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--chat-accent);
+    margin-bottom: 16px;
+    backdrop-filter: blur(12px);
+}
+
+/* =====================================================
+   9. OFFCANVAS MOBILE GLASS STYLING
+   ===================================================== */
+.chat-offcanvas {
+    background: var(--chat-glass-surface) !important;
+    backdrop-filter: blur(28px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+    border-right: 1px solid var(--chat-glass-border) !important;
+    color: var(--chat-text-primary);
+}
+
+.chat-offcanvas .offcanvas-header {
+    border-bottom: 1px solid var(--chat-glass-border-subtle);
+}
+
+/* =====================================================
+   10. MODAL GLASSMORPHISM & DIALOG POLISH
+   ===================================================== */
+.modal-backdrop.show {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(15, 23, 42, 0.45);
+}
+
+.modal-content.chat-sidebar-card {
+    border-radius: var(--chat-radius-card) !important;
+    animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+[data-theme="dark"] .modal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}

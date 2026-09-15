@@ -145,6 +145,10 @@ public class ChatServlet extends HttpServlet {
                 handleSendProjectMessage(request, response, currentUser, projectId);
                 break;
 
+            case "editProjectMessage":
+                handleEditProjectMessage(request, response, currentUser, projectId);
+                break;
+
             case "sendTaskComment":
                 handleSendTaskComment(request, response, currentUser, projectId);
                 break;
@@ -339,8 +343,12 @@ public class ChatServlet extends HttpServlet {
                 return;
             }
 
-            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án)
-            if (currentUser.getId() == msg.getAuthorId() || currentUser.getId() == project.getOwnerId()) {
+            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án HOẶC Quản trị viên ADMIN)
+            boolean isAuthor = (currentUser.getId() == msg.getAuthorId());
+            boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+            boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+
+            if (isAuthor || isProjectOwner || isAdmin) {
                 MessageDB.delete(messageId);
                 if (session != null) {
                     session.setAttribute("toastSuccess", "Đã xóa tin nhắn thành công.");
@@ -359,5 +367,57 @@ public class ChatServlet extends HttpServlet {
         } else {
             response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
         }
+    }
+
+    // =========================================================================
+    // CHI TIẾT NGHIỆP VỤ 5: SỬA TIN NHẮN (BẢO VỆ ĐA TẦNG & CHỐNG IDOR)
+    // =========================================================================
+    private void handleEditProjectMessage(HttpServletRequest request, HttpServletResponse response, User currentUser, int projectId)
+            throws IOException {
+
+        HttpSession session = request.getSession();
+        int messageId = safeParseInt(request.getParameter("messageId"), 0);
+        String content = request.getParameter("content");
+
+        if (messageId <= 0 || content == null || content.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
+            return;
+        }
+
+        Message msg = MessageDB.selectById(messageId);
+        Project project = ProjectDB.selectById(projectId);
+
+        if (msg != null && project != null) {
+            // RÀO BẢO MẬT 1: Chống IDOR xuyên dự án
+            if (msg.getProjectId() != projectId) {
+                if (session != null) {
+                    session.setAttribute("toastError", "Cảnh báo bảo mật: Tin nhắn không thuộc dự án này!");
+                }
+                response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
+                return;
+            }
+
+            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án HOẶC Quản trị viên ADMIN)
+            boolean isAuthor = (currentUser.getId() == msg.getAuthorId());
+            boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+            boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+
+            if (isAuthor || isProjectOwner || isAdmin) {
+                boolean success = MessageDB.update(messageId, content.trim());
+                if (session != null) {
+                    if (success) {
+                        session.setAttribute("toastSuccess", "Đã cập nhật nội dung tin nhắn thành công.");
+                    } else {
+                        session.setAttribute("toastError", "Không thể cập nhật tin nhắn. Vui lòng thử lại!");
+                    }
+                }
+            } else {
+                if (session != null) {
+                    session.setAttribute("toastError", "Bạn không có quyền chỉnh sửa tin nhắn của người khác!");
+                }
+            }
+        }
+
+        response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
     }
 }

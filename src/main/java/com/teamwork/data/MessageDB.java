@@ -22,7 +22,7 @@ public class MessageDB {
     private static final Logger LOGGER = Logger.getLogger(MessageDB.class.getName());
 
     /**
-     * HÀM 1: Lấy danh sách tin nhắn CHAT CHUNG của MỘT DỰ ÁN (taskId == 0)
+     * HÀM 1: Lấy danh sách tin nhắn CHAT CHUNG của MỘT DỰ ÁN (taskId == 0 hoặc null)
      */
     public static List<Message> selectByProjectId(int projectId) {
         if (projectId <= 0) return new ArrayList<>();
@@ -44,7 +44,7 @@ public class MessageDB {
     }
 
     /**
-     * HÀM 1b: Lấy danh sách N tin nhắn CHAT CHUNG gần đây nhất
+     * HÀM 1b: Lấy danh sách N tin nhắn CHAT CHUNG gần đây nhất theo thứ tự thời gian tăng dần
      */
     public static List<Message> selectRecentByProjectId(int projectId, int limit) {
         if (projectId <= 0) return new ArrayList<>();
@@ -59,7 +59,7 @@ public class MessageDB {
             query.setParameter("projectId", projectId);
             query.setMaxResults(safeLimit);
             List<Message> list = new ArrayList<>(query.getResultList());
-            Collections.reverse(list); // Reverse to display in chronological order
+            Collections.reverse(list); // Đảo ngược để hiển thị theo thứ tự thời gian tăng dần (cũ trên, mới dưới)
             return list;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi lấy tin nhắn recent Project ID qua JPA: " + projectId, e);
@@ -188,6 +188,33 @@ public class MessageDB {
     }
 
     /**
+     * HÀM 6b: Cập nhật nội dung một tin nhắn (Sửa tin nhắn)
+     */
+    public static boolean update(int id, String content) {
+        if (id <= 0 || content == null || content.trim().isEmpty()) return false;
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Message m = em.find(Message.class, id);
+            if (m != null) {
+                m.setContent(content.trim());
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật tin nhắn ID qua JPA: " + id, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
      * HÀM 7: Xóa toàn bộ bình luận của một Task khi Task bị xóa
      */
     public static void deleteByTaskId(int taskId) {
@@ -231,5 +258,3 @@ public class MessageDB {
         }
     }
 }
-
-
