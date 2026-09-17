@@ -422,34 +422,55 @@
 
                         <!-- A. HIERARCHICAL LIST VIEW (CLICKUP 3.0 LIST VIEW PHÂN CẤP CHA - CON) -->
                         <div id="task-subview-list" class="${taskView == 'list' ? '' : 'd-none'}">
-                            <div class="table-responsive">
-                                <table class="clickup-list-table">
-                                    <thead>
-                                        <tr class="clickup-list-header-row">
-                                            <th style="width: ${project.soloProject ? '58%' : '44%'};">Name</th>
-                                            <c:if test="${project.teamProject}">
-                                                <th style="width: 16%;">Assignee</th>
-                                            </c:if>
-                                            <th style="width: 14%;">Priority</th>
-                                            <th style="width: 14%;">Team / Nhãn</th>
-                                            <th style="width: ${project.soloProject ? '14%' : '12%'}; text-align: right;">Hạn chót</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- NHÓM 1: DONE (ĐÃ HOÀN THÀNH) -->
-                                        <tr class="clickup-group-header-row">
-                                            <td colspan="${project.soloProject ? 4 : 5}">
-                                                <div class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')">
-                                                    <i class="bi bi-chevron-down me-1" id="chevron-done"></i>
-                                                    <span class="clickup-group-badge bg-success text-white">DONE</span>
-                                                    <span class="text-secondary fs-8 ms-1" id="group-count-done">${doneTasks.size()}</span>
-                                                </div>
-                                            </td>
-                                        </tr>
+                            <div class="clickup-list-card shadow-xs mb-3">
+                                <div class="table-responsive mb-0">
+                                    <table class="clickup-list-table">
+                                        <thead>
+                                            <tr class="clickup-list-header-row">
+                                                <th class="ps-3" style="width: ${project.soloProject ? '54%' : '38%'};">
+                                                    <span class="d-inline-flex align-items-center gap-1.5">
+                                                        <i class="bi bi-card-checklist text-primary"></i> NAME
+                                                    </span>
+                                                </th>
+                                                <c:if test="${project.teamProject}">
+                                                    <th style="width: 18%;">
+                                                        <span class="d-inline-flex align-items-center gap-1.5">
+                                                            <i class="bi bi-person-fill text-info"></i> ASSIGNEE
+                                                        </span>
+                                                    </th>
+                                                </c:if>
+                                                <th style="width: 14%;">
+                                                    <span class="d-inline-flex align-items-center gap-1.5">
+                                                        <i class="bi bi-flag-fill text-warning"></i> PRIORITY
+                                                    </span>
+                                                </th>
+                                                <th style="width: 16%;">
+                                                    <span class="d-inline-flex align-items-center gap-1.5">
+                                                        <i class="bi bi-tags-fill text-purple"></i> TEAM / NHÃN
+                                                    </span>
+                                                </th>
+                                                <th class="pe-3" style="width: ${project.soloProject ? '16%' : '14%'}; text-align: right;">
+                                                    <span class="d-inline-flex align-items-center gap-1.5 justify-content-end w-100">
+                                                        <i class="bi bi-calendar-event text-danger"></i> HẠN CHÓT
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- NHÓM 1: DONE (ĐÃ HOÀN THÀNH) -->
+                                            <tr class="clickup-group-header-row">
+                                                <td colspan="${project.soloProject ? 4 : 5}">
+                                                    <div class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')">
+                                                        <i class="bi bi-chevron-down me-1" id="chevron-done"></i>
+                                                        <span class="clickup-group-badge bg-success text-white">DONE</span>
+                                                        <span class="clickup-group-count ms-1" id="group-count-done">${doneTasks.size()}</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
                                         <c:forEach items="${doneTasks}" var="task">
                                             <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2 ps-2">
+                                                <td class="ps-3">
+                                                    <div class="d-flex align-items-center gap-2">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
                                                                 <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
@@ -463,7 +484,7 @@
                                                         <span class="clickup-status-dot dot-done dot-locked" id="status-dot-${task.id}" onclick="event.stopPropagation();" title="Công việc đã hoàn thành (Đã khóa, không thể thay đổi)">
                                                             <i class="bi bi-check text-white"></i>
                                                         </span>
-                                                        <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
+                                                        <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${task.title}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
                                                             <span class="badge bg-light text-secondary border rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} việc con">
                                                                 <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
@@ -473,11 +494,11 @@
                                                 </td>
                                                 <c:if test="${project.teamProject}">
                                                     <td>
-                                                        <div class="d-flex align-items-center gap-1-5">
-                                                            <span class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${task.assigneeName}">
                                                                 ${task.assigneeName.substring(0, 1).toUpperCase()}
                                                             </span>
-                                                            <span class="fs-9 text-secondary text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                            <span class="fs-9 text-secondary fw-medium text-truncate" style="max-width: 130px;">${task.assigneeName}</span>
                                                         </div>
                                                     </td>
                                                 </c:if>
@@ -497,44 +518,44 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
-                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">
                                                                 ${task.getLabelDisplayName(task.labelList[0])}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9">Design</span>
+                                                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 fs-9 fw-semibold">Design</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
-                                                <td style="text-align: right;">
-                                                    <span class="fs-9 text-muted">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                <td class="pe-3" style="text-align: right;">
+                                                    <span class="fs-9 text-muted font-monospace">${not empty task.dueDate ? task.dueDate : '—'}</span>
                                                 </td>
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
                                                 <tr class="clickup-subtask-row group-done-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
-                                                    <td>
-                                                        <div class="d-flex align-items-center gap-2" style="padding-left: 36px;">
+                                                    <td class="ps-3">
+                                                        <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
                                                             <span class="clickup-status-dot dot-done dot-locked" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation();" title="Việc con đã hoàn tất (Đã khóa)">
                                                                 <i class="bi bi-check text-white"></i>
                                                             </span>
-                                                            <span class="text-secondary text-truncate fs-8 ${isStDone ? 'text-decoration-line-through' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
+                                                            <span class="text-secondary text-truncate fs-8 ${isStDone ? 'text-decoration-line-through' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${st.title}</span>
                                                         </div>
                                                     </td>
                                                     <c:if test="${project.teamProject}">
                                                         <td>
-                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
+                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 130px;">${st.assigneeName}</span>
                                                         </td>
                                                     </c:if>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-1-5 py-0 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
+                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-2 py-0.5 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
                                                     </td>
-                                                    <td style="text-align: right;">
-                                                        <span class="fs-9 text-muted">${not empty st.dueDate ? st.dueDate : '—'}</span>
+                                                    <td class="pe-3" style="text-align: right;">
+                                                        <span class="fs-9 text-muted font-monospace">${not empty st.dueDate ? st.dueDate : '—'}</span>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -543,17 +564,17 @@
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row">
                                             <td colspan="${project.soloProject ? 4 : 5}">
-                                                <div class="clickup-group-banner text-primary mt-3 d-flex align-items-center" onclick="toggleClickUpGroup('inprog')">
+                                                <div class="clickup-group-banner text-primary d-flex align-items-center" onclick="toggleClickUpGroup('inprog')">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-inprog"></i>
                                                     <span class="clickup-group-badge bg-primary text-white">IN PROGRESS</span>
-                                                    <span class="text-secondary fs-8 ms-1" id="group-count-inprog">${inProgressTasks.size()}</span>
+                                                    <span class="clickup-group-count ms-1" id="group-count-inprog">${inProgressTasks.size()}</span>
                                                 </div>
                                             </td>
                                         </tr>
                                         <c:forEach items="${inProgressTasks}" var="task">
                                             <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2 ps-2">
+                                                <td class="ps-3">
+                                                    <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
                                                                 <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
@@ -565,9 +586,9 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                         <span class="clickup-status-dot dot-inprog" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
-                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
+                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${task.title}</span>
                                                         <c:if test="${task.status == 'SUBMITTED'}">
-                                                            <span class="badge bg-purple text-white rounded-pill px-1-5 py-0 fs-9 ms-1" title="Nhiệm vụ đã nộp báo cáo kết quả, chờ PM duyệt">
+                                                            <span class="badge bg-purple text-white rounded-pill px-2 py-0-5 fs-9 ms-1" title="Nhiệm vụ đã nộp báo cáo kết quả, chờ PM duyệt">
                                                                 <i class="bi bi-send-check me-0-5"></i>Chờ duyệt
                                                             </span>
                                                         </c:if>
@@ -583,11 +604,11 @@
                                                 </td>
                                                 <c:if test="${project.teamProject}">
                                                     <td>
-                                                        <div class="d-flex align-items-center gap-1-5">
-                                                            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${task.assigneeName}">
                                                                 ${task.assigneeName.substring(0, 1).toUpperCase()}
                                                             </span>
-                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 130px;">${task.assigneeName}</span>
                                                         </div>
                                                     </td>
                                                 </c:if>
@@ -607,46 +628,46 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
-                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">
                                                                 ${task.getLabelDisplayName(task.labelList[0])}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-0-5 fs-9">PMM</span>
+                                                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">PMM</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
-                                                <td style="text-align: right;">
-                                                    <span class="fs-9 text-dark fw-medium">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                <td class="pe-3" style="text-align: right;">
+                                                    <span class="fs-9 text-dark fw-semibold font-monospace">${not empty task.dueDate ? task.dueDate : '—'}</span>
                                                 </td>
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
                                                 <tr class="clickup-subtask-row group-inprog-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
-                                                    <td>
-                                                        <div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">
+                                                    <td class="ps-3">
+                                                        <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
                                                             <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
                                                                 <c:if test="${isStDone}">
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
                                                             </span>
-                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
+                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${st.title}</span>
                                                         </div>
                                                     </td>
                                                     <c:if test="${project.teamProject}">
                                                         <td>
-                                                            <span class="fs-9 text-dark text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
+                                                            <span class="fs-9 text-dark text-truncate" style="max-width: 130px;">${st.assigneeName}</span>
                                                         </td>
                                                     </c:if>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-1-5 py-0 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
+                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-2 py-0.5 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
                                                     </td>
-                                                    <td style="text-align: right;">
-                                                        <span class="fs-9 text-muted">—</span>
+                                                    <td class="pe-3" style="text-align: right;">
+                                                        <span class="fs-9 text-muted font-monospace">—</span>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -658,7 +679,7 @@
                                                 <div class="clickup-group-banner text-secondary mt-3 d-flex align-items-center" onclick="toggleClickUpGroup('todo')">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-todo"></i>
                                                     <span class="clickup-group-badge bg-secondary text-white">TO DO</span>
-                                                    <span class="text-secondary fs-8 ms-1" id="group-count-todo">${todoTasks.size()}</span>
+                                                    <span class="clickup-group-count ms-1" id="group-count-todo">${todoTasks.size()}</span>
                                                     <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('todo');" title="Thêm công việc vào TO DO">
                                                         <i class="bi bi-plus-lg"></i>
                                                     </button>
@@ -667,8 +688,8 @@
                                         </tr>
                                         <!-- Inline Quick Task Create for TO DO -->
                                         <tr id="inline-task-row-todo" class="clickup-inline-create-row d-none">
-                                            <td>
-                                                <div class="d-flex align-items-center gap-2 ps-2">
+                                            <td class="ps-3">
+                                                <div class="d-flex align-items-center gap-2 ps-1">
                                                     <span class="clickup-status-dot dot-todo"></span>
                                                     <input type="text" id="inline-task-title-todo" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc cần làm mới... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'todo')" />
                                                 </div>
@@ -698,7 +719,7 @@
                                             <td>
                                                 <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-0-5 fs-9">TO DO</span>
                                             </td>
-                                            <td style="text-align: right;">
+                                            <td class="pe-3" style="text-align: right;">
                                                 <div class="d-inline-flex align-items-center gap-1">
                                                     <input type="date" id="inline-task-due-todo" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
                                                     <button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8" onclick="submitInlineCreateTask('todo')" title="Lưu việc"><i class="bi bi-check-lg"></i></button>
@@ -708,8 +729,8 @@
                                         </tr>
                                         <c:forEach items="${todoTasks}" var="task">
                                             <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2 ps-2">
+                                                <td class="ps-3">
+                                                    <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
                                                                 <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng việc con">
@@ -721,7 +742,7 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                         <span class="clickup-status-dot dot-todo" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
-                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 300px;">${task.title}</span>
+                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${task.title}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
                                                             <span class="badge bg-light text-secondary border rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} việc con">
                                                                 <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
@@ -734,11 +755,11 @@
                                                 </td>
                                                 <c:if test="${project.teamProject}">
                                                     <td>
-                                                        <div class="d-flex align-items-center gap-1-5">
-                                                            <span class="avatar-circle-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px; font-size: 0.65rem;" title="${task.assigneeName}">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="avatar-circle-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${task.assigneeName}">
                                                                 ${task.assigneeName.substring(0, 1).toUpperCase()}
                                                             </span>
-                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${task.assigneeName}</span>
+                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 130px;">${task.assigneeName}</span>
                                                         </div>
                                                     </td>
                                                 </c:if>
@@ -758,46 +779,46 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
-                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5 fs-9">
+                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">
                                                                 ${task.getLabelDisplayName(task.labelList[0])}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9">General</span>
+                                                            <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 fs-9 fw-semibold">General</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
-                                                <td style="text-align: right;">
-                                                    <span class="fs-9 text-muted">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                <td class="pe-3" style="text-align: right;">
+                                                    <span class="fs-9 text-muted font-monospace">${not empty task.dueDate ? task.dueDate : '—'}</span>
                                                 </td>
                                             </tr>
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
                                                 <tr class="clickup-subtask-row group-todo-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
-                                                    <td>
-                                                        <div class="d-flex align-items-center gap-2 ps-4" style="padding-left: 36px !important;">
+                                                    <td class="ps-3">
+                                                        <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
                                                             <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
                                                                 <c:if test="${isStDone}">
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
                                                             </span>
-                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 290px;">${st.title}</span>
+                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${st.title}</span>
                                                         </div>
                                                     </td>
                                                     <c:if test="${project.teamProject}">
                                                         <td>
-                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 90px;">${st.assigneeName}</span>
+                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 130px;">${st.assigneeName}</span>
                                                         </td>
                                                     </c:if>
                                                     <td>
                                                         <span class="fs-9 text-muted">Subtask</span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-1-5 py-0 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
+                                                        <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-2 py-0.5 fs-9" id="subtask-badge-${st.id}">${st.status}</span>
                                                     </td>
-                                                    <td style="text-align: right;">
-                                                        <span class="fs-9 text-muted">—</span>
+                                                    <td class="pe-3" style="text-align: right;">
+                                                        <span class="fs-9 text-muted font-monospace">—</span>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -812,6 +833,7 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
                         </div>
 
                         <!-- ClickUp Floating Status Popover Menu -->
