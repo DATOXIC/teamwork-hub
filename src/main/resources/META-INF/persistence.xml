@@ -25,7 +25,7 @@
         <class>com.teamwork.business.TaskDoc</class>
 
         <properties>
-            <!-- Cấu hình JDBC Driver & URL cho Supabase PostgreSQL -->
+            
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver" />
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require&amp;prepareThreshold=5&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified&amp;ApplicationName=teamwork-hub" />
             <property name="jakarta.persistence.jdbc.user" value="postgres.nppsoolbarfagwqdtcdm" />
@@ -35,9 +35,9 @@
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
 
             <!-- Hiển thị SQL trong console để kiểm chứng JPA hoạt động -->
-            <property name="hibernate.show_sql" value="true" />
-            <property name="hibernate.format_sql" value="true" />
-            <property name="hibernate.highlight_sql" value="true" />
+            <property name="hibernate.show_sql" value="false" />
+            <property name="hibernate.format_sql" value="false" />
+            <property name="hibernate.highlight_sql" value="false" />
 
             <!-- Không tự ý drop/alter bảng trên cloud -->
             <property name="hibernate.hbm2ddl.auto" value="none" />
@@ -81,6 +81,45 @@
 
             <!-- Tự động sinh bảng và cấu trúc schema khi chạy trên MySQL sạch -->
             <property name="hibernate.hbm2ddl.auto" value="update" />
+        </properties>
+    </persistence-unit>
+
+    <!-- ================================================================= -->
+    <!-- PERSISTENCE UNIT 3: LOCAL MICROSOFT SQL SERVER (SSMS)             -->
+    <!-- Để chuyển sang SQL Server/SSMS: đổi DEFAULT_UNIT_NAME thành "teamwork-sqlserver" trong JPAUtil -->
+    <!-- ================================================================= -->
+    <persistence-unit name="teamwork-sqlserver" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        
+        <!-- Khai báo toàn bộ các JPA Entity trong hệ thống -->
+        <class>com.teamwork.business.User</class>
+        <class>com.teamwork.business.Project</class>
+        <class>com.teamwork.business.Task</class>
+        <class>com.teamwork.business.SubTask</class>
+        <class>com.teamwork.business.Label</class>
+        <class>com.teamwork.business.Doc</class>
+        <class>com.teamwork.business.Message</class>
+        <class>com.teamwork.business.Notification</class>
+        <class>com.teamwork.business.ActivityLog</class>
+        <class>com.teamwork.business.ProjectMember</class>
+        <class>com.teamwork.business.ProjectInvite</class>
+        <class>com.teamwork.business.TaskDoc</class>
+
+        <properties>
+            <!-- Cấu hình JDBC Driver & URL cho Microsoft SQL Server (SSMS) -->
+            <property name="jakarta.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:sqlserver://localhost:1433;databaseName=teamwork_hub;encrypt=false;trustServerCertificate=true" />
+            <property name="jakarta.persistence.jdbc.user" value="sa" />
+            <property name="jakarta.persistence.jdbc.password" value="123456" />
+
+            <!-- Hibernate Dialect cho SQL Server -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.SQLServerDialect" />
+
+            <property name="hibernate.show_sql" value="false" />
+            <property name="hibernate.format_sql" value="false" />
+
+            <!-- Vì bạn đã chạy schema.sql trong SSMS nên để none -->
+            <property name="hibernate.hbm2ddl.auto" value="none" />
         </properties>
     </persistence-unit>
 
