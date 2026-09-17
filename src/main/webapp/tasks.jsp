@@ -113,15 +113,105 @@
                             </div>
                             <div class="d-flex flex-column gap-1 mb-2">
                                 <c:forEach items="${userProjects}" var="p">
-                                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" class="clickup-space-item ${p.id == project.id ? 'active' : ''}" title="${p.name}">
-                                        <span class="clickup-space-icon ${p.id == project.id ? 'active-icon' : ''}">
-                                            <i class="bi ${p.id == project.id ? 'bi-folder-check' : 'bi-folder2'}"></i>
-                                        </span>
-                                        <span class="text-truncate flex-grow-1 fs-8 fw-semibold space-name-text">${p.name}</span>
-                                        <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold">
-                                            ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
-                                        </span>
-                                    </a>
+                                    <c:choose>
+                                        <c:when test="${p.id == project.id}">
+                                            <!-- Không gian dự án hiện tại: Cây thư mục phân hệ (Tree View) -->
+                                            <div class="clickup-tree-node is-active-project" id="project-tree-${p.id}">
+                                                <div class="clickup-space-item active d-flex align-items-center gap-1.5 p-1-5">
+                                                    <button type="button" 
+                                                            class="tree-toggle-btn p-0 border-0 bg-transparent text-secondary d-flex align-items-center justify-content-center" 
+                                                            onclick="toggleProjectTree(${p.id}, event)" 
+                                                            title="Thu gọn / Mở rộng phân hệ" 
+                                                            aria-expanded="true"
+                                                            aria-label="Thu gọn hoặc mở rộng phân hệ dự án">
+                                                        <i class="bi bi-chevron-down tree-chevron-icon" id="tree-chevron-${p.id}"></i>
+                                                    </button>
+                                                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
+                                                       class="d-flex align-items-center gap-2 flex-grow-1 text-decoration-none overflow-hidden" 
+                                                       title="${p.name}">
+                                                        <span class="clickup-space-icon active-icon flex-shrink-0">
+                                                            <i class="bi bi-folder2-open"></i>
+                                                        </span>
+                                                        <span class="text-truncate flex-grow-1 fs-8 fw-semibold text-dark space-name-text">${p.name}</span>
+                                                        <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold flex-shrink-0">
+                                                            ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
+                                                        </span>
+                                                    </a>
+                                                </div>
+
+                                                <!-- Cây thư mục phân hệ (Collapsible Tree View) - Không có badge số đếm -->
+                                                <div class="clickup-tree-sublist" id="tree-sublist-${p.id}">
+                                                    <!-- 1. Công việc -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" 
+                                                       id="tab-btn-tasks" 
+                                                       title="Công việc">
+                                                        <i class="bi bi-list-task tree-item-icon"></i>
+                                                        <span class="tree-item-label">Công việc</span>
+                                                    </a>
+
+                                                    <!-- 2. Thảo luận -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'chat' ? 'active' : ''}" 
+                                                       id="tab-btn-chat" 
+                                                       title="Thảo luận">
+                                                        <i class="bi bi-chat-dots tree-item-icon"></i>
+                                                        <span class="tree-item-label">Thảo luận</span>
+                                                    </a>
+
+                                                    <!-- 3. Tài liệu -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'docs' ? 'active' : ''}" 
+                                                       id="tab-btn-docs" 
+                                                       title="Tài liệu">
+                                                        <i class="bi bi-journal-text tree-item-icon"></i>
+                                                        <span class="tree-item-label">Tài liệu</span>
+                                                    </a>
+
+                                                    <!-- 4. Lịch biểu -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'schedule' ? 'active' : ''}" 
+                                                       id="tab-btn-schedule" 
+                                                       title="Lịch biểu">
+                                                        <i class="bi bi-calendar-event tree-item-icon"></i>
+                                                        <span class="tree-item-label">Lịch biểu</span>
+                                                    </a>
+
+                                                    <!-- 5. Phân bổ công việc -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" 
+                                                       id="tab-btn-metrics" 
+                                                       title="Phân bổ công việc">
+                                                        <i class="bi bi-pie-chart-fill text-info tree-item-icon"></i>
+                                                        <span class="tree-item-label">Phân bổ công việc</span>
+                                                    </a>
+
+                                                    <!-- 6. Hoạt động -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'activity' ? 'active' : ''}" 
+                                                       id="tab-btn-activity" 
+                                                       title="Hoạt động">
+                                                        <i class="bi bi-clock-history tree-item-icon"></i>
+                                                        <span class="tree-item-label">Hoạt động</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <!-- Các dự án khác: Hiển thị mục gọn gàng, chuyển trang khi click -->
+                                            <div class="clickup-tree-node" id="project-tree-${p.id}">
+                                                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" class="clickup-space-item" title="${p.name}">
+                                                    <span class="clickup-space-icon flex-shrink-0">
+                                                        <i class="bi bi-folder2"></i>
+                                                    </span>
+                                                    <span class="text-truncate flex-grow-1 fs-8 fw-semibold space-name-text">${p.name}</span>
+                                                    <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold flex-shrink-0">
+                                                        ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </c:forEach>
                             </div>
 
@@ -228,52 +318,6 @@
                                     <span class="fs-8">Xuất Excel</span>
                                 </a>
                             </div>
-                        </div>
-
-                        <!-- Hàng 2: Multi-View Tabs (Phân hệ dự án chính - Độc quyền tại Header) -->
-                        <div class="clickup-multiview-bar">
-                            <ul class="clickup-tabs">
-                                <li>
-                                    <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" class="clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" id="tab-btn-tasks">
-                                        <i class="bi bi-list-task"></i> Công việc
-                                        <span class="badge bg-light text-muted border rounded-pill fs-9 ms-1">${not empty allProjectTasks ? allProjectTasks.size() : 0}</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" class="clickup-tab-link ${currentView == 'chat' ? 'active' : ''}" id="tab-btn-chat">
-                                        <i class="bi bi-chat-dots"></i> Thảo luận
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" class="clickup-tab-link ${currentView == 'docs' ? 'active' : ''}" id="tab-btn-docs">
-                                        <i class="bi bi-journal-text"></i> Tài liệu
-                                        <c:if test="${not empty docList}">
-                                            <span class="badge bg-light text-muted border rounded-pill fs-9 ms-1">${docList.size()}</span>
-                                        </c:if>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0)" onclick="switchClickUpTab('schedule')" class="clickup-tab-link ${currentView == 'schedule' ? 'active' : ''}" id="tab-btn-schedule">
-                                        <i class="bi bi-calendar-event"></i> Lịch biểu
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" class="clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" id="tab-btn-metrics">
-                                        <i class="bi bi-pie-chart-fill text-info"></i> Phân bổ công việc
-                                        <span class="badge bg-info-subtle text-info rounded-pill px-1.5 py-0 fs-10 fw-bold ms-1">
-                                            ${userWorkloadList.size()}
-                                        </span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" class="clickup-tab-link ${currentView == 'activity' ? 'active' : ''}" id="tab-btn-activity">
-                                        <i class="bi bi-clock-history"></i> Hoạt động
-                                        <c:if test="${not empty activityLogs}">
-                                            <span class="badge bg-light text-secondary border rounded-pill fs-9 ms-1">${activityLogs.size()}</span>
-                                        </c:if>
-                                    </a>
-                                </li>
-                            </ul>
                         </div>
                     </div>
 
@@ -1283,7 +1327,7 @@
                  TAB 2: PROJECT CHAT VIEW (# CHAT)
                  ========================================================================= -->
             <div id="clickup-view-chat" class="clickup-view-pane ${currentView == 'chat' ? '' : 'd-none'}">
-                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden d-flex flex-column" style="height: calc(100vh - 180px);">
+                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden d-flex flex-column flex-grow-1" style="height: calc(100vh - 75px);">
                     <!-- Chat Channel Header -->
                     <div class="px-3 py-2-5 border-bottom bg-white d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
@@ -2266,6 +2310,48 @@
             expandBtns.forEach(function(btn) {
                 btn.classList.remove('d-none');
             });
+        }
+    });
+
+    // 1.5. Cây thư mục phân hệ dự án trong Sidebar (ui-ux-pro-max)
+    function toggleProjectTree(projectId, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        var sublist = document.getElementById('tree-sublist-' + projectId);
+        var chevron = document.getElementById('tree-chevron-' + projectId);
+        var btn = event ? event.currentTarget : document.querySelector('#project-tree-' + projectId + ' .tree-toggle-btn');
+        if (!sublist) return;
+
+        var isCollapsed = sublist.classList.toggle('d-none');
+        if (chevron) {
+            if (isCollapsed) {
+                chevron.classList.remove('bi-chevron-down');
+                chevron.classList.add('bi-chevron-right', 'collapsed');
+            } else {
+                chevron.classList.remove('bi-chevron-right', 'collapsed');
+                chevron.classList.add('bi-chevron-down');
+            }
+        }
+        if (btn) {
+            btn.setAttribute('aria-expanded', !isCollapsed);
+        }
+        try {
+            localStorage.setItem('project_tree_collapsed_' + projectId, isCollapsed ? 'true' : 'false');
+        } catch(e) {}
+    }
+
+    // Khôi phục trạng thái thu gọn/mở rộng cây thư mục từ localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+        var currentProjectId = "${project.id}";
+        if (currentProjectId) {
+            try {
+                var savedTreeState = localStorage.getItem('project_tree_collapsed_' + currentProjectId);
+                if (savedTreeState === 'true') {
+                    toggleProjectTree(currentProjectId);
+                }
+            } catch(e) {}
         }
     });
 
