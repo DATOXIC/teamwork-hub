@@ -20,6 +20,7 @@ public class JPAUtil {
     private static final Logger LOGGER = Logger.getLogger(JPAUtil.class.getName());
     private static EntityManagerFactory emf;
     private static String persistenceUnitName = "teamwork-cloud"; // Mặc định Cloud Supabase
+    // private static String persistenceUnitName = "teamwork-sqlserver";
 
     static {
         try {

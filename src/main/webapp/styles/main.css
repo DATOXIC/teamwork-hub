@@ -3047,9 +3047,16 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
-    background-color: #ffffff;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    background-color: transparent;
+    border: none;
+}
+
+#task-subview-list .clickup-list-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
 }
 
 #task-subview-list .table-responsive {
@@ -3057,7 +3064,21 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     overflow-y: auto;
     overflow-x: auto;
     min-height: 0;
-    padding-bottom: 16px;
+    padding-bottom: 24px;
+}
+
+#task-subview-list .table-responsive::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+#task-subview-list .table-responsive::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+#task-subview-list .table-responsive::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
 }
 
 #task-subview-board {
@@ -3093,12 +3114,21 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     background-color: #f8fafc;
 }
 
-/* 8. ClickUp Hierarchical List View */
+/* 8. ClickUp Hierarchical List View - High-End Redesign */
+.clickup-list-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+}
+
 .clickup-list-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     margin-bottom: 0;
+    table-layout: fixed;
 }
 
 .clickup-list-table thead th {
@@ -3106,44 +3136,87 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     top: 0;
     z-index: 20;
     background-color: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    border-bottom: 2px solid #cbd5e1;
+    padding: 12px 16px;
+    vertical-align: middle;
 }
 
 .clickup-list-header-row {
-    font-size: 0.74rem;
-    font-weight: 600;
+    font-size: 0.78rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #94a3b8;
-    height: 38px;
+    letter-spacing: 0.06em;
+    color: #1e293b;
+    height: 46px;
+}
+
+.clickup-list-header-row th {
+    color: #334155 !important;
+}
+
+.clickup-list-header-row th i {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.clickup-group-header-row td {
+    background-color: #ffffff;
+    padding: 14px 16px 6px 16px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .clickup-group-banner {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
     font-size: 0.82rem;
     font-weight: 700;
-    margin: 16px 0 6px 0;
+    margin: 0;
     cursor: pointer;
     user-select: none;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+}
+
+.clickup-group-banner:hover {
+    background-color: #f1f5f9;
 }
 
 .clickup-group-badge {
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.72rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.74rem;
     font-weight: 750;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.04em;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.clickup-group-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background-color: #f1f5f9;
+    color: #64748b;
+    font-size: 0.74rem;
+    font-weight: 600;
 }
 
 .clickup-task-row {
     border-bottom: 1px solid #f1f5f9;
-    height: 42px;
-    transition: background 0.12s;
-    font-size: 0.85rem;
+    height: 48px;
+    transition: background-color 0.12s ease;
+    font-size: 0.86rem;
     cursor: pointer;
+}
+
+.clickup-task-row td {
+    padding: 10px 16px;
+    vertical-align: middle;
 }
 
 .clickup-task-row:hover {
@@ -3152,10 +3225,15 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .clickup-subtask-row {
     border-bottom: 1px solid #f8fafc;
-    height: 38px;
+    height: 42px;
     background-color: #fafbfc;
     font-size: 0.82rem;
-    transition: background 0.12s;
+    transition: background-color 0.12s ease;
+}
+
+.clickup-subtask-row td {
+    padding: 8px 16px;
+    vertical-align: middle;
 }
 
 .clickup-subtask-row:hover {
