@@ -73,7 +73,8 @@ CREATE TYPE subtask_status_enum AS ENUM (
     'SUBMITTED',  -- Cấp dưới đã nộp, chờ Task Lead duyệt
     'REVISE',     -- Task Lead yêu cầu cân chỉnh
     'REJECTED',   -- Task Lead từ chối — chưa đạt
-    'APPROVED'    -- Đã nghiệm thu đạt
+    'DONE',       -- Assignee tự đánh dấu đã xong (chưa qua nghiệm thu)
+    'APPROVED'    -- Task Lead đã nghiệm thu đạt
 );
 
 CREATE TYPE priority_enum          AS ENUM ('HIGH', 'MEDIUM', 'LOW');

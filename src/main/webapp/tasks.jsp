@@ -2117,7 +2117,7 @@
                                         <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-bell me-1"></i>Hệ thống</span>
                                     </c:otherwise>
                                 </c:choose>
-                                <span class="fs-9 text-muted"><i class="bi bi-clock me-1"></i>${notif.createdAtStr}</span>
+                                <span class="fs-9 text-muted"><i class="bi bi-clock me-1"></i>${notif.createdAt}</span>
                             </div>
                             <c:if test="${!notif.read}">
                                 <span class="notif-unread-dot" title="Chưa đọc"></span>

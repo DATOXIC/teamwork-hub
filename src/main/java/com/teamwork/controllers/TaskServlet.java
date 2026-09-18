@@ -1087,6 +1087,18 @@ public class TaskServlet extends HttpServlet {
                     String notificationText = "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
                     Message systemMessage = new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", notificationText, now);
                     MessageDB.insert(systemMessage);
+
+                    // 4. Bắn thông báo 🔔 cho Task Lead khi Assignee đánh dấu hoàn thành (chế độ Quality Gate)
+                    // Để Task Lead biết cần vào duyệt nghiệm thu, tránh việc con "trôi" mà không ai kiểm duyệt.
+                    if (isGateEnforced && parentTask.getAssigneeId() > 0 && parentTask.getAssigneeId() != currentUser.getId()) {
+                        NotificationDB.send(
+                            parentTask.getAssigneeId(),
+                            "📋 Cần duyệt việc con",
+                            st.getAssigneeName() + " đã đánh dấu hoàn thành việc con [" + st.getTitle() + "]. Hãy vào kiểm tra và duyệt nghiệm thu!",
+                            "/task?action=list&projectId=" + projectId,
+                            "bi-clipboard-check text-warning"
+                        );
+                    }
                 }
 
                 if (isAjax) {
@@ -1438,7 +1450,9 @@ public class TaskServlet extends HttpServlet {
                     int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
 
                     // CƠ CHẾ DOMINO TỰ ĐỘNG CHUYỂN CỘT KANBAN:
-                    if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) {
+                    // Chỉ auto-complete khi TẤT CẢ subtask đều APPROVED (không chỉ DONE)
+                    boolean allApproved = SubTaskDB.areAllSubtasksApproved(st.getTaskId());
+                    if (allApproved && !"DONE".equals(parentTask.getStatus())) {
                         TaskDB.updateStatus(parentTask.getId(), "DONE");
                         String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã được duyệt nghiệm thu ĐẠT (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));

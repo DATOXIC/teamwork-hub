@@ -231,7 +231,9 @@ public class SubTaskDB {
     }
 
     /**
-     * HÀM 8: Cập nhật trạng thái hoàn thành trực tiếp
+     * HÀM 8: Cập nhật trạng thái hoàn thành trực tiếp (Assignee tự đánh dấu)
+     * GHI CHÚ: Ghi status = DONE ("Đã làm xong, chưa duyệt"), KHÔNG phải APPROVED.
+     * APPROVED chỉ được ghi bởi Task Lead qua hàm approveDeliverable().
      */
     public static boolean updateStatus(int id, boolean completed) {
         if (id <= 0) return false;
@@ -242,7 +244,7 @@ public class SubTaskDB {
             tx.begin();
             SubTask st = em.find(SubTask.class, id);
             if (st != null) {
-                st.setStatus(completed ? "APPROVED" : "TODO");
+                st.setStatus(completed ? "DONE" : "TODO");
                 st.setCompleted(completed);
                 em.merge(st);
                 tx.commit();
@@ -309,7 +311,9 @@ public class SubTaskDB {
     }
 
     /**
-     * HÀM 11: Tính toán % tiến độ hoàn thành dựa trên các việc con ĐÃ DUYỆT (APPROVED)
+     * HÀM 11: Tính toán % tiến độ hoàn thành dựa trên các việc con ĐÃ HOÀN THÀNH (DONE hoặc APPROVED)
+     * - DONE = Assignee đánh dấu đã làm xong (chưa qua kiểm duyệt)
+     * - APPROVED = Task Lead đã thẩm định và duyệt ĐẠT
      */
     public static int calculateProgress(int taskId) {
         if (taskId <= 0) return 0;
@@ -323,16 +327,46 @@ public class SubTaskDB {
 
             if (total == null || total == 0) return 0;
 
-            Long approved = em.createQuery(
+            Long doneCount = em.createQuery(
+                "SELECT COUNT(st) FROM SubTask st WHERE st.taskId = :taskId AND st.status IN ('DONE', 'APPROVED')", Long.class)
+                .setParameter("taskId", taskId)
+                .getSingleResult();
+
+            long doneVal = doneCount != null ? doneCount : 0;
+            return (int) Math.round(((double) doneVal / total) * 100);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tính tiến độ SubTask qua JPA", e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
+     * HÀM 11b: Kiểm tra xem TẤT CẢ việc con đã được Task Lead DUYỆT NGHIỆM THU (APPROVED) hay chưa.
+     * Dùng cho chế độ Quality Gate: Task cha chỉ auto-complete khi mọi subtask đều APPROVED.
+     */
+    public static boolean areAllSubtasksApproved(int taskId) {
+        if (taskId <= 0) return false;
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long total = em.createQuery(
+                "SELECT COUNT(st) FROM SubTask st WHERE st.taskId = :taskId", Long.class)
+                .setParameter("taskId", taskId)
+                .getSingleResult();
+
+            if (total == null || total == 0) return false;
+
+            Long approvedCount = em.createQuery(
                 "SELECT COUNT(st) FROM SubTask st WHERE st.taskId = :taskId AND st.status = 'APPROVED'", Long.class)
                 .setParameter("taskId", taskId)
                 .getSingleResult();
 
-            long appVal = approved != null ? approved : 0;
-            return (int) Math.round(((double) appVal / total) * 100);
+            return approvedCount != null && approvedCount.equals(total);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi tính tiến độ SubTask qua JPA", e);
-            return 0;
+            LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra trạng thái duyệt SubTask qua JPA", e);
+            return false;
         } finally {
             JPAUtil.closeEntityManager(em);
         }

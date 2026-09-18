@@ -52,10 +52,10 @@ public class SubTask implements Serializable {
     private String assigneeName;     // Tên hiển thị người làm việc con
 
     @Transient
-    private boolean completed;       // Trạng thái cờ hoàn thành (true khi status = "APPROVED")
+    private boolean completed;       // Trạng thái cờ hoàn thành (true khi status = "DONE" hoặc "APPROVED")
 
     @Column(name = "status")
-    private String status;           // 5 Trạng thái: "TODO", "SUBMITTED", "REVISE", "REJECTED", "APPROVED"
+    private String status;           // 6 Trạng thái: "TODO", "SUBMITTED", "REVISE", "REJECTED", "DONE", "APPROVED"
 
     @Column(name = "due_date")
     private String dueDate;          // Hạn chót hoàn thành việc con (định dạng: YYYY-MM-DD)
@@ -100,7 +100,7 @@ public class SubTask implements Serializable {
         this.assigneeId = assigneeId;
         this.assigneeName = assigneeName;
         this.status = (status != null && !status.trim().isEmpty()) ? status.trim().toUpperCase() : "TODO";
-        this.completed = "APPROVED".equalsIgnoreCase(this.status);
+        this.completed = "APPROVED".equalsIgnoreCase(this.status) || "DONE".equalsIgnoreCase(this.status);
         this.dueDate = (dueDate != null) ? dueDate.trim() : "";
         this.submissionNote = (submissionNote != null) ? submissionNote.trim() : "";
         this.feedbackNote = (feedbackNote != null) ? feedbackNote.trim() : "";
@@ -117,26 +117,27 @@ public class SubTask implements Serializable {
 
     // Constructor tương thích ngược 2: dạng đơn giản
     public SubTask(int id, int taskId, String title, int assigneeId, String assigneeName, boolean completed) {
-        this(id, taskId, title, assigneeId, assigneeName, completed ? "APPROVED" : "TODO", "", "", "", "", "");
+        this(id, taskId, title, assigneeId, assigneeName, completed ? "DONE" : "TODO", "", "", "", "", "");
     }
 
     // ===================== CÁC HÀM TIỆN ÍCH TRẠNG THÁI & MÀU SẮC =====================
 
     /**
-     * Kiểm tra xem việc con đã được nghiệm thu ĐẠT hay chưa
+     * Kiểm tra xem việc con đã hoàn thành (DONE hoặc APPROVED) hay chưa
      */
     public boolean isCompleted() {
-        return "APPROVED".equalsIgnoreCase(this.status) || this.completed;
+        return "APPROVED".equalsIgnoreCase(this.status) || "DONE".equalsIgnoreCase(this.status) || this.completed;
     }
 
     /**
-     * Trả về lớp màu CSS Bootstrap tương ứng với 5 trạng thái
+     * Trả về lớp màu CSS Bootstrap tương ứng với các trạng thái
      */
     public String getStatusBadgeClass() {
         if ("SUBMITTED".equalsIgnoreCase(this.status)) return "bg-warning text-dark";
         if ("REVISE".equalsIgnoreCase(this.status)) return "bg-primary text-white"; // 🔵 Màu Xanh Dương: Cần cân chỉnh nhỏ
         if ("REJECTED".equalsIgnoreCase(this.status)) return "bg-danger text-white"; // 🔴 Màu Đỏ: Chưa đạt yêu cầu
-        if ("APPROVED".equalsIgnoreCase(this.status) || isCompleted()) return "bg-success text-white"; // 🟢 Màu Xanh Lá: Đã nghiệm thu
+        if ("APPROVED".equalsIgnoreCase(this.status)) return "bg-success text-white"; // 🟢 Màu Xanh Lá: Đã nghiệm thu
+        if ("DONE".equalsIgnoreCase(this.status) || isCompleted()) return "bg-success-subtle text-success border border-success-subtle"; // 🟢 Màu Xanh Nhạt: Đã xong
         return "bg-light text-secondary border"; // ⚪ TODO: Đang làm
     }
 
@@ -147,7 +148,8 @@ public class SubTask implements Serializable {
         if ("SUBMITTED".equalsIgnoreCase(this.status)) return "🟡 Chờ duyệt";
         if ("REVISE".equalsIgnoreCase(this.status)) return "🔵 Cần cân chỉnh";
         if ("REJECTED".equalsIgnoreCase(this.status)) return "🔴 Chưa đạt yêu cầu";
-        if ("APPROVED".equalsIgnoreCase(this.status) || isCompleted()) return "🟢 Đã nghiệm thu";
+        if ("APPROVED".equalsIgnoreCase(this.status)) return "🟢 Đã nghiệm thu";
+        if ("DONE".equalsIgnoreCase(this.status)) return "✅ Đã xong";
         return "⚪ Đang làm";
     }
 
@@ -350,8 +352,10 @@ public class SubTask implements Serializable {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
-        if (completed) {
-            this.status = "APPROVED";
+        if (completed && !"APPROVED".equalsIgnoreCase(this.status)) {
+            this.status = "DONE";
+        } else if (!completed) {
+            this.status = "TODO";
         }
     }
 
@@ -360,7 +364,7 @@ public class SubTask implements Serializable {
     }
     public void setStatus(String status) {
         this.status = (status != null) ? status.trim().toUpperCase() : "TODO";
-        this.completed = "APPROVED".equalsIgnoreCase(this.status);
+        this.completed = "APPROVED".equalsIgnoreCase(this.status) || "DONE".equalsIgnoreCase(this.status);
     }
 
     public String getDueDate() {
