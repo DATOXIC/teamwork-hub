@@ -274,7 +274,7 @@
                                                 aria-label="Chỉnh sửa tin nhắn">
                                             <i class="bi bi-pencil" aria-hidden="true"></i>
                                         </button>
-                                        <c:if test="${msg.authorId == sessionScope.currentUser.id || sessionScope.currentUser.role == 'ADMIN' || project.ownerId == sessionScope.currentUser.id}">
+                                        <c:if test="${msg.authorId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
                                             <button type="button" 
                                                     class="chat-hover-btn chat-hover-btn-danger" 
                                                     onclick="confirmDeleteMessage('${project.id}', '${msg.id}')" 
@@ -319,7 +319,7 @@
                                                     aria-label="Trích dẫn tin nhắn">
                                                 <i class="bi bi-reply-fill" aria-hidden="true"></i>
                                             </button>
-                                            <c:if test="${sessionScope.currentUser.role == 'ADMIN' || project.ownerId == sessionScope.currentUser.id}">
+                                            <c:if test="${project.ownerId == sessionScope.currentUser.id}">
                                                 <button type="button" 
                                                         class="chat-hover-btn" 
                                                         onclick="openEditModal('${msg.id}')" 

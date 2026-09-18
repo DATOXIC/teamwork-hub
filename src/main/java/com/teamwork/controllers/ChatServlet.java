@@ -343,12 +343,16 @@ public class ChatServlet extends HttpServlet {
                 return;
             }
 
-            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án HOẶC Quản trị viên ADMIN)
+            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án)
+            //
+            // KHÔNG được dùng User.role để phân quyền: cột đó là "Chuyên môn / Chức danh"
+            // do chính người dùng tự nhập ở trang Hồ sơ (profile.jsp), nên bất kỳ ai cũng có
+            // thể gõ "ADMIN" vào đó để tự cấp quyền cho mình. Chỉ so sánh ID do server cung
+            // cấp (authorId, ownerId) mới là căn cứ phân quyền an toàn.
             boolean isAuthor = (currentUser.getId() == msg.getAuthorId());
             boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
-            boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
 
-            if (isAuthor || isProjectOwner || isAdmin) {
+            if (isAuthor || isProjectOwner) {
                 MessageDB.delete(messageId);
                 if (session != null) {
                     session.setAttribute("toastSuccess", "Đã xóa tin nhắn thành công.");
@@ -397,12 +401,16 @@ public class ChatServlet extends HttpServlet {
                 return;
             }
 
-            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án HOẶC Quản trị viên ADMIN)
+            // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án)
+            //
+            // KHÔNG được dùng User.role để phân quyền: cột đó là "Chuyên môn / Chức danh"
+            // do chính người dùng tự nhập ở trang Hồ sơ (profile.jsp), nên bất kỳ ai cũng có
+            // thể gõ "ADMIN" vào đó để tự cấp quyền cho mình. Chỉ so sánh ID do server cung
+            // cấp (authorId, ownerId) mới là căn cứ phân quyền an toàn.
             boolean isAuthor = (currentUser.getId() == msg.getAuthorId());
             boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
-            boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
 
-            if (isAuthor || isProjectOwner || isAdmin) {
+            if (isAuthor || isProjectOwner) {
                 boolean success = MessageDB.update(messageId, content.trim());
                 if (session != null) {
                     if (success) {

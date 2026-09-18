@@ -257,9 +257,6 @@
                                     <span class="fs-9 text-muted">${sessionScope.currentUser.email}</span>
                                 </li>
                                 <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
-                                <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
-                                    <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/admin?action=dashboard"><i class="bi bi-shield-lock me-2 text-warning"></i>Quản trị hệ thống</a></li>
-                                </c:if>
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                             </ul>
