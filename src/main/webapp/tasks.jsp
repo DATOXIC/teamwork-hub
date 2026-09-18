@@ -150,20 +150,20 @@
                                                         <span class="tree-item-label">Công việc</span>
                                                     </a>
 
-                                                    <!-- 2. Thảo luận -->
-                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('chat')" 
-                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'chat' ? 'active' : ''}" 
+                                                    <!-- 2. Thảo luận (Chuyển trực tiếp sang trang Chat riêng) -->
+                                                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
+                                                       class="clickup-tree-item ${currentView == 'chat' ? 'active' : ''}" 
                                                        id="tab-btn-chat" 
-                                                       title="Thảo luận">
+                                                       title="Kênh thảo luận trực tiếp">
                                                         <i class="bi bi-chat-dots tree-item-icon"></i>
                                                         <span class="tree-item-label">Thảo luận</span>
                                                     </a>
 
-                                                    <!-- 3. Tài liệu -->
-                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('docs')" 
-                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'docs' ? 'active' : ''}" 
+                                                    <!-- 3. Tài liệu (Chuyển trực tiếp sang trang Wiki Tài liệu riêng) -->
+                                                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
+                                                       class="clickup-tree-item ${currentView == 'docs' ? 'active' : ''}" 
                                                        id="tab-btn-docs" 
-                                                       title="Tài liệu">
+                                                       title="Kho tài liệu Wiki dự án">
                                                         <i class="bi bi-journal-text tree-item-icon"></i>
                                                         <span class="tree-item-label">Tài liệu</span>
                                                     </a>
@@ -1346,173 +1346,6 @@
             </div><!-- /clickup-view-tasks -->
 
             <!-- =========================================================================
-                 TAB 2: PROJECT CHAT VIEW (# CHAT)
-                 ========================================================================= -->
-            <div id="clickup-view-chat" class="clickup-view-pane ${currentView == 'chat' ? '' : 'd-none'}">
-                <div class="card border-0 shadow-2xs rounded-3 overflow-hidden d-flex flex-column flex-grow-1" style="height: calc(100vh - 75px);">
-                    <!-- Chat Channel Header -->
-                    <div class="px-3 py-2-5 border-bottom bg-white d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="avatar-circle-sm bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-weight: 700;">
-                                #
-                            </span>
-                            <div>
-                                <div class="fw-bold text-dark fs-8">kênh-thảo-luận-chung</div>
-                                <div class="fs-9 text-muted">Kênh trao đổi nội bộ cho dự án "${project.name}" &bull; ${projectChatMessages.size()} tin nhắn</div>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9">
-                                <i class="bi bi-box-arrow-up-right me-1"></i> Mở trang Chat riêng
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Chat Messages Body -->
-                    <div class="flex-grow-1 p-3 overflow-y-auto d-flex flex-column gap-3 bg-light-subtle" id="clickupChatMessages" style="background-color: #f8f9fc;">
-                        <c:if test="${empty projectChatMessages}">
-                            <div class="text-center py-5 my-auto text-muted">
-                                <i class="bi bi-chat-dots fs-1 d-block mb-2 text-secondary opacity-50"></i>
-                                <div class="fw-semibold fs-7">Chưa có tin nhắn nào trong kênh này</div>
-                                <div class="fs-9">Hãy bắt đầu cuộc trò chuyện với nhóm của bạn ngay bên dưới!</div>
-                            </div>
-                        </c:if>
-                        <c:forEach items="${projectChatMessages}" var="msg">
-                            <c:choose>
-                                <c:when test="${msg.authorId == sessionScope.currentUser.id}">
-                                    <div class="chat-row-me" id="shell-msg-${msg.id}">
-                                        <c:if test="${msg.authorId == sessionScope.currentUser.id || sessionScope.currentUser.role == 'ADMIN' || project.ownerId == sessionScope.currentUser.id}">
-                                            <a href="${pageContext.request.contextPath}/chat?action=delete&projectId=${project.id}&messageId=${msg.id}&source=taskShell" 
-                                               class="text-muted text-hover-danger fs-9 text-decoration-none opacity-50 hover-opacity-100 me-1"
-                                               onclick="return confirm('Bạn có chắc chắn muốn xóa tin nhắn này không?');"
-                                               title="Xóa tin nhắn">
-                                                <i class="bi bi-trash3"></i>
-                                            </a>
-                                        </c:if>
-                                        <div class="chat-bubble-me">
-                                            <div class="message-body fs-8 lh-base text-white" style="word-break: break-word; white-space: pre-line;"><c:out value="${msg.content}" /></div>
-                                            <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
-                                                <span class="chat-time-me"><i class="bi bi-clock me-1"></i>${msg.sentAt}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </c:when>
-                                <c:otherwise>
-                                    <div class="chat-row-other" id="shell-msg-${msg.id}">
-                                        <div class="avatar-circle bg-dark text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-8 flex-shrink-0 shadow-2xs"
-                                             style="width: 32px; height: 32px;">
-                                            ${msg.authorInitial}
-                                        </div>
-                                        <div class="chat-bubble-other">
-                                            <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
-                                                <span class="fw-bold text-dark fs-8">${msg.authorName}</span>
-                                                <span class="chat-time-other fs-9 text-muted"><i class="bi bi-clock me-1"></i>${msg.sentAt}</span>
-                                            </div>
-                                            <div class="message-body fs-8 lh-base text-secondary" style="word-break: break-word; white-space: pre-line;"><c:out value="${msg.content}" /></div>
-                                        </div>
-                                        <c:if test="${sessionScope.currentUser.role == 'ADMIN' || project.ownerId == sessionScope.currentUser.id}">
-                                            <a href="${pageContext.request.contextPath}/chat?action=delete&projectId=${project.id}&messageId=${msg.id}&source=taskShell" 
-                                               class="text-muted text-hover-danger fs-9 text-decoration-none opacity-50 hover-opacity-100 ms-1"
-                                               onclick="return confirm('Xóa tin nhắn này của thành viên?');"
-                                               title="Xóa tin nhắn">
-                                                <i class="bi bi-trash3"></i>
-                                            </a>
-                                        </c:if>
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
-                        </c:forEach>
-                    </div>
-
-                    <!-- Chat Input Form -->
-                    <div class="p-2-5 bg-white border-top">
-                        <form method="post" action="${pageContext.request.contextPath}/chat" class="d-flex align-items-center gap-2">
-                            <input type="hidden" name="action" value="sendProjectMessage">
-                            <input type="hidden" name="projectId" value="${project.id}">
-                            <input type="hidden" name="source" value="taskShell">
-                            <div class="input-group">
-                                <input type="text" name="content" class="form-control fs-8 border-end-0 rounded-start-pill ps-3" placeholder="Nhập tin nhắn... (Gõ #task-id hoặc #doc-id để liên kết)" autocomplete="off" required>
-                                <button type="submit" class="btn btn-primary-custom rounded-end-pill px-3 fs-8">
-                                    <i class="bi bi-send-fill me-1"></i> Gửi
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- =========================================================================
-                 TAB 3: PROJECT DOCS VIEW (DOCS)
-                 ========================================================================= -->
-            <div id="clickup-view-docs" class="clickup-view-pane ${currentView == 'docs' ? '' : 'd-none'}">
-                <div class="d-flex align-items-center justify-content-between mb-3 px-1">
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0 fs-7">Tài liệu & Wiki dự án</h6>
-                        <span class="fs-9 text-muted">Tổng hợp tài liệu yêu cầu, phân tích và hướng dẫn kỹ thuật</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fs-9">
-                            <i class="bi bi-journal-text me-1"></i> Mở không gian Wiki đầy đủ
-                        </a>
-                    </div>
-                </div>
-
-                <c:if test="${empty docList}">
-                    <div class="card border-0 shadow-2xs rounded-3 p-5 text-center bg-white my-3">
-                        <i class="bi bi-file-earmark-text text-muted fs-1 mb-2"></i>
-                        <h6 class="fw-bold text-dark fs-7">Chưa có tài liệu nào trong dự án này</h6>
-                        <p class="text-muted fs-9 mb-3">Tạo tài liệu mới để chia sẻ kiến thức và gắn kèm vào các công việc liên quan.</p>
-                        <div>
-                            <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="btn btn-sm btn-primary-custom rounded-pill px-3 py-1 fs-8">
-                                <i class="bi bi-pencil-square me-1"></i> Mở trang tài liệu để tạo
-                            </a>
-                        </div>
-                    </div>
-                </c:if>
-
-                <c:if test="${not empty docList}">
-                    <div class="row g-3">
-                        <c:forEach items="${docList}" var="doc">
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="card border-0 shadow-2xs rounded-3 p-3 h-100 bg-white hover-shadow-sm transition-all position-relative">
-                                    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <span class="avatar-circle-sm bg-info-subtle text-info rounded-2 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                                                <i class="bi bi-file-earmark-richtext fs-7"></i>
-                                            </span>
-                                            <span class="badge bg-light text-muted border rounded-pill fs-9">#doc-${doc.id}</span>
-                                        </div>
-                                        <span class="fs-9 text-muted"><i class="bi bi-clock me-1"></i>${doc.updatedAt}</span>
-                                    </div>
-                                    <h6 class="fw-bold text-dark fs-7 mb-1 text-truncate-2">
-                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${doc.id}" class="text-dark text-decoration-none hover-primary">
-                                            ${doc.title}
-                                        </a>
-                                    </h6>
-                                    <p class="text-muted fs-8 text-truncate-3 mb-3 flex-grow-1" style="min-height: 48px;">
-                                        <c:choose>
-                                            <c:when test="${not empty doc.content}">
-                                                ${doc.content}
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="fst-italic text-muted opacity-75">(Chưa có nội dung chi tiết)</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </p>
-                                    <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9">
-                                        <span class="text-muted"><i class="bi bi-person me-1"></i>${doc.authorName}</span>
-                                        <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${doc.id}" class="text-primary fw-semibold text-decoration-none">
-                                            Đọc bài <i class="bi bi-arrow-right"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </c:forEach>
-                    </div>
-                </c:if>
-            </div>
-
-            <!-- =========================================================================
                  TAB 4: METRICS & WORKLOAD VIEW (THỐNG KÊ)
                  ========================================================================= -->
             <div id="clickup-view-metrics" class="clickup-view-pane ${currentView == 'metrics' ? '' : 'd-none'}">
@@ -2377,8 +2210,17 @@
         }
     });
 
-    // 2. Tab switching: chat, tasks, docs, metrics, schedule
+    // 2. Tab switching: tasks, metrics, schedule, activity (chat & docs load dedicated pages)
     function switchClickUpTab(tab) {
+        if (tab === 'chat') {
+            window.location.href = '${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}';
+            return;
+        }
+        if (tab === 'docs') {
+            window.location.href = '${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}';
+            return;
+        }
+
         document.querySelectorAll('.clickup-tab-link').forEach(function(el) {
             el.classList.remove('active');
         });
@@ -2417,11 +2259,6 @@
             url.searchParams.set('view', tab);
             window.history.replaceState({}, '', url);
         } catch(e) {}
-
-        if (tab === 'chat') {
-            var chatBox = document.getElementById('clickupChatMessages');
-            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
-        }
     }
 
     // 3. Task subview switching: list vs board
