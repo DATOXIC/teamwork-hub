@@ -1042,14 +1042,19 @@ public class TaskServlet extends HttpServlet {
             }
 
             if (parentTask != null && project != null && parentTask.getProjectId() == projectId && canManageSubTask(currentUser, st, parentTask, project)) {
-                // 1. Cập nhật trạng thái hoàn thành [☑] trong kho SubTaskDB
-                SubTaskDB.updateStatus(subTaskId, isCompleted);
+                // Xác định chế độ TRƯỚC khi ghi — cờ này quyết định ô tick mang ý nghĩa gì.
+                boolean isGateEnforced = (project.isTeamProject() && parentTask.isRequiresGate());
+
+                // 1. Ghi trạng thái theo đúng chế độ của dự án:
+                //    - Quality Gate (nhóm) : tick = NỘP BÀI  -> "SUBMITTED", chờ Task Lead nghiệm thu.
+                //    - Fast-track / Solo   : tick = XONG HẲN -> "DONE", không ai phải duyệt.
+                //    Người làm KHÔNG bao giờ tự ghi được "APPROVED" — đó là đặc quyền của Task Lead.
+                String targetStatus = isCompleted ? (isGateEnforced ? "SUBMITTED" : "DONE") : "TODO";
+                SubTaskDB.updateStatus(subTaskId, targetStatus);
 
                 int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
-
-                boolean isGateEnforced = (project.isTeamProject() && parentTask.isRequiresGate());
 
                 // 2. CƠ CHẾ TỰ ĐỘNG CHUYỂN CỘT KANBAN CHO TASK LỚN:
                 if (!isGateEnforced) {
@@ -1073,18 +1078,19 @@ public class TaskServlet extends HttpServlet {
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));
                     }
                 } else {
-                    // Chế độ Quality Gate (Nhóm): Đủ 100% việc con thì nhắc Task Lead nộp nghiệm thu Cổng 2 (không tự ý nhảy DONE)
-                    if (newProgress == 100 && "IN_PROGRESS".equals(parentTask.getStatus())) {
-                        String readyText = "✨ [SẴN SÀNG NGHIỆM THU]: Toàn bộ việc con của Task [" + parentTask.getTitle() + "] đã hoàn thành 100%! Task Lead hãy chuẩn bị báo cáo để nộp nghiệm thu Cổng 2 lên PM.";
-                        MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", readyText, now));
-                    } else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
+                    // Chế độ Quality Gate (Nhóm): việc con vừa chuyển sang SUBMITTED nên CHƯA tính vào tiến độ.
+                    // Tiến độ chỉ tăng khi Task Lead duyệt (APPROVED) — xem handleApproveSubTask.
+                    // Vì vậy ở đây không dựa vào newProgress, chỉ ghi nhận "đã bắt đầu thực hiện".
+                    if (isCompleted && "TODO".equals(parentTask.getStatus())) {
                         TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
                     }
                 }
 
-                // 3. Thông báo ghi nhận cá nhân vừa hoàn thành việc con
+                // 3. Ghi nhận lên Luồng Thảo Luận (nội dung khác nhau theo chế độ)
                 if (isCompleted) {
-                    String notificationText = "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
+                    String notificationText = isGateEnforced
+                        ? "📤 " + st.getAssigneeName() + " vừa nộp việc con: [" + st.getTitle() + "] — Đang chờ Task Lead nghiệm thu."
+                        : "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
                     Message systemMessage = new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", notificationText, now);
                     MessageDB.insert(systemMessage);
 
@@ -1094,7 +1100,7 @@ public class TaskServlet extends HttpServlet {
                         NotificationDB.send(
                             parentTask.getAssigneeId(),
                             "📋 Cần duyệt việc con",
-                            st.getAssigneeName() + " đã đánh dấu hoàn thành việc con [" + st.getTitle() + "]. Hãy vào kiểm tra và duyệt nghiệm thu!",
+                            st.getAssigneeName() + " vừa nộp việc con [" + st.getTitle() + "]. Hãy vào kiểm tra và duyệt nghiệm thu!",
                             "/task?action=list&projectId=" + projectId,
                             "bi-clipboard-check text-warning"
                         );
@@ -1102,7 +1108,9 @@ public class TaskServlet extends HttpServlet {
                 }
 
                 if (isAjax) {
-                    String msg = isCompleted ? "Đã đánh dấu hoàn thành việc con!" : "Đã chuyển việc con về cần làm.";
+                    String msg = isCompleted
+                            ? (isGateEnforced ? "Đã nộp việc con — chờ Task Lead duyệt nghiệm thu!" : "Đã đánh dấu hoàn thành việc con!")
+                            : "Đã chuyển việc con về cần làm.";
                     sendJsonResponse(response, true, msg, "{\"subTaskId\":" + subTaskId + ",\"parentTaskId\":" + st.getTaskId() + ",\"isCompleted\":" + isCompleted + ",\"newProgress\":" + newProgress + ",\"parentStatus\":\"" + escapeJson(parentTask.getStatus()) + "\"}");
                     return;
                 }

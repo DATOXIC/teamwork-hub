@@ -509,7 +509,7 @@
                                                 </td>
                                             </tr>
                                         <c:forEach items="${doneTasks}" var="task">
-                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2">
                                                         <c:choose>
@@ -575,6 +575,7 @@
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
+                                                <c:set var="isStMarked" value="${isStDone || st.status == 'SUBMITTED'}" />
                                                 <tr class="clickup-subtask-row group-done-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td class="ps-3">
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
@@ -613,7 +614,7 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${inProgressTasks}" var="task">
-                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
@@ -685,10 +686,11 @@
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
+                                                <c:set var="isStMarked" value="${isStDone || st.status == 'SUBMITTED'}" />
                                                 <tr class="clickup-subtask-row group-inprog-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td class="ps-3">
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
-                                                            <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
+                                                            <span class="clickup-status-dot dot-${isStMarked ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
                                                                 <c:if test="${isStDone}">
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
@@ -769,7 +771,7 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${todoTasks}" var="task">
-                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
@@ -836,10 +838,11 @@
                                             <!-- Subtasks -->
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
+                                                <c:set var="isStMarked" value="${isStDone || st.status == 'SUBMITTED'}" />
                                                 <tr class="clickup-subtask-row group-todo-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td class="ps-3">
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
-                                                            <span class="clickup-status-dot dot-${isStDone ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
+                                                            <span class="clickup-status-dot dot-${isStMarked ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Việc con: ${st.status} (Bấm để đổi)">
                                                                 <c:if test="${isStDone}">
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
@@ -2479,7 +2482,12 @@
 
         if (isSubtask) {
             if (header) header.textContent = 'Trạng thái việc con';
-            var isDone = (currentStatus === 'APPROVED' || currentStatus === 'DONE');
+            var isDone = (currentStatus === 'APPROVED' || currentStatus === 'DONE' || currentStatus === 'SUBMITTED');
+            // Ở chế độ Quality Gate, tick nghĩa là NỘP BÀI chờ Task Lead duyệt (server ghi SUBMITTED);
+            // Fast-track/Solo thì tick là xong hẳn (server ghi DONE). Nhãn phải nói đúng điều đó.
+            var gateRow = document.querySelector('.clickup-task-row[data-task-id="' + parentTaskId + '"]');
+            var gateOn = !!(gateRow && gateRow.getAttribute('data-requires-gate') === 'true');
+            var doneLabel = gateOn ? 'Nộp bài (chờ Task Lead duyệt)' : 'Hoàn thành (DONE)';
             container.innerHTML = 
                 '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-2 px-2-5 rounded-2 hover-bg-light border-0 mb-1 ' + (!isDone ? 'bg-light fw-bold text-primary' : 'text-dark') + '" onclick="event.stopPropagation(); executeInlineStatusChange(\'TODO\')">' +
                     '<span class="clickup-status-dot dot-todo"></span>' +
@@ -2487,7 +2495,7 @@
                 '</button>' +
                 '<button type="button" class="btn btn-sm w-100 text-start d-flex align-items-center gap-2 py-2 px-2-5 rounded-2 hover-bg-light border-0 ' + (isDone ? 'bg-light fw-bold text-success' : 'text-dark') + '" onclick="event.stopPropagation(); executeInlineStatusChange(\'DONE\')">' +
                     '<span class="clickup-status-dot dot-done"><i class="bi bi-check text-white fs-9"></i></span>' +
-                    '<span class="fs-8">Hoàn thành (DONE)</span>' +
+                    '<span class="fs-8">' + doneLabel + '</span>' +
                 '</button>';
         } else {
             if (header) header.textContent = 'Trạng thái công việc';

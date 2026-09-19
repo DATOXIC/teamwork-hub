@@ -231,12 +231,14 @@ public class SubTaskDB {
     }
 
     /**
-     * HÀM 8: Cập nhật trạng thái hoàn thành trực tiếp (Assignee tự đánh dấu)
-     * GHI CHÚ: Ghi status = DONE ("Đã làm xong, chưa duyệt"), KHÔNG phải APPROVED.
-     * APPROVED chỉ được ghi bởi Task Lead qua hàm approveDeliverable().
+     * HÀM 8b: Ghi trực tiếp một trạng thái đích cho việc con (dùng cho ô tick trên bảng).
+     * - Chế độ Quality Gate  : ghi "SUBMITTED" — người làm đã nộp, CHỜ Task Lead nghiệm thu.
+     * - Chế độ Fast-track/Solo: ghi "DONE"      — xong hẳn, không ai phải duyệt.
+     * KHÔNG gọi setCompleted() ở đây: setStatus() đã tự suy ra cờ completed, còn
+     * setCompleted(true) sẽ ghi đè "SUBMITTED" thành "DONE" (xem SubTask.setCompleted).
      */
-    public static boolean updateStatus(int id, boolean completed) {
-        if (id <= 0) return false;
+    public static boolean updateStatus(int id, String targetStatus) {
+        if (id <= 0 || targetStatus == null || targetStatus.trim().isEmpty()) return false;
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -244,8 +246,7 @@ public class SubTaskDB {
             tx.begin();
             SubTask st = em.find(SubTask.class, id);
             if (st != null) {
-                st.setStatus(completed ? "DONE" : "TODO");
-                st.setCompleted(completed);
+                st.setStatus(targetStatus);
                 em.merge(st);
                 tx.commit();
                 return true;
@@ -254,7 +255,7 @@ public class SubTaskDB {
             return false;
         } catch (Exception e) {
             JPAUtil.rollbackIfActive(tx);
-            LOGGER.log(Level.SEVERE, "Lỗi khi update status SubTask ID qua JPA: " + id, e);
+            LOGGER.log(Level.SEVERE, "Lỗi khi ghi status [" + targetStatus + "] cho SubTask ID qua JPA: " + id, e);
             return false;
         } finally {
             JPAUtil.closeEntityManager(em);
