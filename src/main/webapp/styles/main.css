@@ -1139,6 +1139,20 @@ input, select, textarea, button {
     border-color: #fecaca;
 }
 
+/* Cổng Chất Lượng — dùng đúng sắc tím của badge "Gate" trên thẻ công việc,
+   để thông báo và badge cùng trỏ về một khái niệm người dùng đã quen mặt. */
+.toast-item.toast-gate {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+    border-color: #e9d5ff;
+}
+
+.toast-item.toast-warning {
+    background-color: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
 .toast-item.toast-dismissing {
     animation: toast-slide-out 0.3s ease forwards;
 }

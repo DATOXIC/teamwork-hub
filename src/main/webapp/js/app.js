@@ -86,13 +86,22 @@
             document.body.appendChild(container);
         }
 
-        var isSuccess = (type === 'success');
-        var iconHtml = isSuccess
-            ? '<i class="bi bi-check-circle-fill toast-icon text-success"></i>'
-            : '<i class="bi bi-exclamation-triangle-fill toast-icon text-danger"></i>';
+        // Mỗi biến thể có màu nền, màu chữ và biểu tượng riêng (xem .toast-* trong main.css).
+        // 'gate' dùng biểu tượng khiên trùng với badge "Gate" trên thẻ công việc.
+        var variants = {
+            success: { cls: 'toast-success', icon: 'bi-check-circle-fill' },
+            error:   { cls: 'toast-error',   icon: 'bi-exclamation-triangle-fill' },
+            warning: { cls: 'toast-warning', icon: 'bi-exclamation-circle-fill' },
+            info:    { cls: 'toast-gate',    icon: 'bi-info-circle-fill' },
+            gate:    { cls: 'toast-gate',    icon: 'bi-shield-check' }
+        };
+        var variant = variants[type] || variants.error;
+
+        // Biểu tượng thừa hưởng màu chữ của toast nên mỗi biến thể tự hoà sắc.
+        var iconHtml = '<i class="bi ' + variant.icon + ' toast-icon"></i>';
 
         var toast = document.createElement('div');
-        toast.className = 'toast-item ' + (isSuccess ? 'toast-success' : 'toast-error');
+        toast.className = 'toast-item ' + variant.cls;
         
         var contentSpan = document.createElement('span');
         contentSpan.className = 'flex-grow-1';
@@ -121,7 +130,10 @@
         });
 
         toast.addEventListener('click', dismiss);
-        setTimeout(dismiss, 4000);
+
+        // Thông điệp hướng dẫn dài cần nhiều thời gian đọc hơn thông báo ngắn.
+        var readingTime = Math.min(9000, Math.max(4000, message.trim().length * 70));
+        setTimeout(dismiss, readingTime);
     }
 
     function initToastsFromDOM() {
@@ -227,8 +239,86 @@
         initLanguage();
     }
 
+    /**
+     * Hộp thoại xác nhận dựng trong giao diện, thay cho window.confirm() của trình duyệt
+     * (hộp thoại gốc hiển thị tên miền "localhost:8080 cho biết..." và không theo thiết kế chung).
+     *
+     * options = { title, message, confirmLabel, cancelLabel, variant, onConfirm, onCancel }
+     *   variant: 'warning' (mặc định) | 'danger' | 'primary'
+     * Nếu Bootstrap chưa nạp thì rơi về confirm() gốc để không mất chức năng.
+     */
+    function confirmAction(options) {
+        var opts = options || {};
+        var title = opts.title || 'Xác nhận';
+        var message = opts.message || '';
+        var confirmLabel = opts.confirmLabel || 'Đồng ý';
+        var cancelLabel = opts.cancelLabel || 'Quay lại';
+        var variant = opts.variant || 'warning';
+        var onConfirm = typeof opts.onConfirm === 'function' ? opts.onConfirm : function () {};
+        var onCancel = typeof opts.onCancel === 'function' ? opts.onCancel : function () {};
+
+        if (!window.bootstrap || !window.bootstrap.Modal) {
+            if (window.confirm(title + ' — ' + message)) { onConfirm(); } else { onCancel(); }
+            return;
+        }
+
+        var previous = document.getElementById('appConfirmModal');
+        if (previous) previous.remove();
+
+        var skins = {
+            warning: { badge: 'bg-warning-subtle text-dark border-warning-subtle', icon: 'bi-exclamation-triangle-fill', btn: 'btn-warning' },
+            danger:  { badge: 'bg-danger-subtle text-danger border-danger-subtle', icon: 'bi-trash3-fill',              btn: 'btn-danger'  },
+            primary: { badge: 'bg-primary-subtle text-primary border-primary-subtle', icon: 'bi-info-circle-fill',     btn: 'btn-primary' }
+        };
+        var skin = skins[variant] || skins.warning;
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'modal fade';
+        wrapper.id = 'appConfirmModal';
+        wrapper.tabIndex = -1;
+        wrapper.setAttribute('aria-hidden', 'true');
+        wrapper.innerHTML =
+            '<div class="modal-dialog modal-dialog-centered">' +
+              '<div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">' +
+                '<div class="modal-header bg-white px-4 py-3 border-bottom d-flex align-items-center">' +
+                  '<span class="badge border rounded-pill px-2-5 py-1 fs-9 fw-bold ' + skin.badge + '">' +
+                    '<i class="bi ' + skin.icon + ' me-1"></i><span data-role="title"></span>' +
+                  '</span>' +
+                  '<button type="button" class="btn-close fs-9 ms-auto" data-bs-dismiss="modal" aria-label="Đóng"></button>' +
+                '</div>' +
+                '<div class="modal-body px-4 py-3 fs-8 lh-base" data-role="message"></div>' +
+                '<div class="modal-footer bg-light px-4 py-3 border-top d-flex justify-content-end gap-2">' +
+                  '<button type="button" class="btn btn-light border btn-sm rounded-3 fs-8 px-3" data-bs-dismiss="modal" data-role="cancel"></button>' +
+                  '<button type="button" class="btn btn-sm rounded-3 fs-8 px-3 ' + skin.btn + '" data-role="ok"></button>' +
+                '</div>' +
+              '</div>' +
+            '</div>';
+
+        // Dùng textContent cho phần nội dung vì có thể chứa dữ liệu người dùng nhập (tên công việc).
+        wrapper.querySelector('[data-role="title"]').textContent = title;
+        wrapper.querySelector('[data-role="message"]').textContent = message;
+        wrapper.querySelector('[data-role="cancel"]').textContent = cancelLabel;
+        wrapper.querySelector('[data-role="ok"]').textContent = confirmLabel;
+
+        document.body.appendChild(wrapper);
+        var modal = new window.bootstrap.Modal(wrapper);
+        var accepted = false;
+
+        wrapper.querySelector('[data-role="ok"]').addEventListener('click', function () {
+            accepted = true;
+            modal.hide();
+        });
+        wrapper.addEventListener('hidden.bs.modal', function () {
+            wrapper.remove();
+            if (accepted) { onConfirm(); } else { onCancel(); }
+        });
+
+        modal.show();
+    }
+
     // Xuất ra phạm vi toàn cục (Global Window Scope) để các nút bấm JSP gọi được trực tiếp
     window.showToast = showToast;
+    window.confirmAction = confirmAction;
     window.applyGlobalTheme = applyGlobalTheme;
     window.toggleGlobalTheme = toggleGlobalTheme;
     window.toggleReportTheme = toggleGlobalTheme; // Alias tương thích 100% cho trang Báo cáo

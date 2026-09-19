@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function()
     let activeCard = null;
     let placeholder = null;
     let originalColumn = null;
+    let originalNextSibling = null;   // Vị trí gốc của thẻ, dùng để trả về khi thao tác bị chặn
     let currentTargetColumn = null;
     let offsetX = 0;
     let offsetY = 0;
@@ -42,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function()
         cardWidth = rect.width;
         cardHeight = rect.height;
         originalColumn = card.closest('.kanban-task-list');
+        originalNextSibling = card.nextElementSibling;
         currentTargetColumn = originalColumn;
 
         document.addEventListener('mousemove', onMouseMove);
@@ -169,46 +171,68 @@ document.addEventListener('DOMContentLoaded', function()
             if (newStatus && oldStatus && newStatus !== oldStatus && taskId) 
             {
                 const isGateEnforced = activeCard.getAttribute('data-requires-gate') === 'true';
+                const droppedCard = activeCard;
+                const homeColumn = originalColumn;
+                const homeNextSibling = originalNextSibling;
 
-                // Kiểm tra ràng buộc khi kéo thả TODO sang IN_PROGRESS
-                if (oldStatus === 'TODO' && newStatus === 'IN_PROGRESS') {
-                    if (isGateEnforced) {
-                        const assigneeId = parseInt(activeCard.getAttribute('data-assignee-id') || '0', 10);
-                        const subtaskCount = parseInt(activeCard.getAttribute('data-subtask-count') || '0', 10);
-
-                        if (assigneeId <= 0) {
-                            alert('⚠️ [Quality Gate] Không thể chuyển sang Đang Làm! Công việc chưa được phân công Người phụ trách (Task Lead).');
-                            window.location.reload();
-                            return;
-                        }
-                        if (subtaskCount <= 0) {
-                            alert('⚠️ [Quality Gate] Không thể chuyển sang Đang Làm! Công việc chưa có danh mục việc con (Sub-task WBS). Cần phân rã ít nhất 1 việc con để lập kế hoạch trước.');
-                            window.location.reload();
-                            return;
-                        }
+                // Trả thẻ về đúng chỗ cũ bằng DOM thay vì tải lại trang:
+                // reload sẽ xoá mất toast vừa hiện, khiến người dùng không kịp đọc lý do.
+                const revertCard = function () {
+                    if (homeColumn && droppedCard) {
+                        homeColumn.insertBefore(droppedCard, homeNextSibling);
                     }
-                }
+                };
 
-                // Kiểm tra ràng buộc khi kéo thả sang DONE
-                if (newStatus === 'DONE') {
-                    if (isGateEnforced) {
-                        alert('🛡️ [Quality Gate 2] Công việc này áp dụng Cổng Nghiệm Thu! Vui lòng mở chi tiết công việc để nộp báo cáo bàn giao và chờ PM thẩm định chấm điểm sao.');
-                        window.location.reload();
-                        return;
+                const blockWithReason = function (reason) {
+                    revertCard();
+                    if (window.showToast) {
+                        window.showToast(reason, 'gate');
                     } else {
-                        const progress = parseInt(activeCard.getAttribute('data-progress') || '0', 10);
-                        const subtaskCount = parseInt(activeCard.getAttribute('data-subtask-count') || '0', 10);
+                        alert(reason);
+                    }
+                };
 
-                        if (subtaskCount > 0 && progress < 100) {
-                            if (!confirm('⚠️ Vẫn còn việc con chưa xong (Tiến độ: ' + progress + '%). Bạn có chắc chắn muốn hoàn thành công việc này ngay?')) {
-                                window.location.reload();
-                                return;
-                            }
+                // Các luật dưới đây phải khớp TaskServlet.handleUpdateTaskStatus: khi Gate bật,
+                // cả hai lối chuyển đều bị chặn VÔ ĐIỀU KIỆN — không phụ thuộc đã phân công
+                // hay đã có việc con hay chưa. Nói sai điều kiện sẽ khiến người dùng làm theo
+                // hướng dẫn rồi vẫn bị chặn, chỉ khác thông báo.
+                if (oldStatus === 'TODO' && newStatus === 'IN_PROGRESS' && isGateEnforced) {
+                    blockWithReason('Công việc này đi qua Cổng Kế Hoạch nên không kéo thẳng sang Đang làm được. '
+                        + 'Mở chi tiết công việc để phân rã việc con — công việc tự chuyển sang Đang làm khi việc con đầu tiên được nộp.');
+                }
+                else if (newStatus === 'DONE' && isGateEnforced) {
+                    blockWithReason('Công việc này đi qua Cổng Nghiệm Thu. '
+                        + 'Mở chi tiết công việc và bấm "Bàn Giao Cho PM" để Trưởng Dự Án phê duyệt.');
+                }
+                else if (newStatus === 'DONE') {
+                    // Fast-track không có cổng, nhưng task đã Hoàn thành sẽ bị khoá vĩnh viễn,
+                    // nên hỏi lại khi việc con còn dở dang.
+                    const progress = parseInt(droppedCard.getAttribute('data-progress') || '0', 10);
+                    const subtaskCount = parseInt(droppedCard.getAttribute('data-subtask-count') || '0', 10);
+
+                    if (subtaskCount > 0 && progress < 100) {
+                        revertCard();
+                        const proceed = function () { sendDataToServer(taskId, newStatus); };
+
+                        if (window.confirmAction) {
+                            window.confirmAction({
+                                title: 'Việc con chưa xong',
+                                message: 'Mới hoàn thành ' + progress + '% việc con. Công việc chuyển sang Hoàn thành sẽ bị khoá và không đổi trạng thái lại được.',
+                                confirmLabel: 'Vẫn hoàn thành',
+                                cancelLabel: 'Quay lại',
+                                variant: 'warning',
+                                onConfirm: proceed
+                            });
+                        } else if (confirm('Mới hoàn thành ' + progress + '% việc con. Vẫn chuyển sang Hoàn thành?')) {
+                            proceed();
                         }
+                    } else {
+                        sendDataToServer(taskId, newStatus);
                     }
                 }
-
-                sendDataToServer(taskId, newStatus);
+                else {
+                    sendDataToServer(taskId, newStatus);
+                }
             }
 
             // Chặn click mở modal sau khi vừa thả thẻ

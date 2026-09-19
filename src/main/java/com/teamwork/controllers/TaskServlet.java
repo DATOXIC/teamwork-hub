@@ -808,6 +808,29 @@ public class TaskServlet extends HttpServlet {
                     return;
                 }
 
+                Project currentPrj = ProjectDB.selectById(projectId);
+
+                // CHỐT 1 — THẨM QUYỀN TRÊN TỪNG CÔNG VIỆC:
+                // Trước đây hàm này KHÔNG kiểm tra quyền (handler duy nhất trong TaskServlet bị thiếu),
+                // nên mọi thành viên dự án đều kéo-thả / đổi được trạng thái task của người khác.
+                // doPost() chỉ chặn tới mức "có phải thành viên dự án không", chưa xét quyền trên task.
+                // Quy ước lấy theo handleEditTask và handleDeleteTask: PM hoặc Task Lead của chính task đó.
+                User currentUser = getCurrentUser(request);
+                boolean isPm = isProjectOwner(currentUser, currentPrj);
+                boolean isLead = isTaskLead(currentUser, task);
+
+                if (!isPm && !isLead) {
+                    String errMsg = "Bạn không có quyền đổi trạng thái công việc [" + task.getTitle()
+                            + "]! Chỉ Người phụ trách (Task Lead) hoặc Trưởng Dự Án (PM) mới được phép.";
+                    if (isAjax) {
+                        sendJsonResponse(response, false, errMsg, null);
+                        return;
+                    }
+                    if (session != null) session.setAttribute("toastError", errMsg);
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+
                 // RÀNG BUỘC KHÓA BẤT BIẾN: TASK ĐÃ HOÀN TẤT THÌ KHÔNG ĐỔI TRẠNG THÁI ĐƯỢC NỮA.
                 // Xét cả "APPROVED" vì handleShowKanban coi nó tương đương DONE, và dữ liệu cũ
                 // có thể đã mang giá trị này từ trước khi có CHỐT 0.
@@ -821,7 +844,7 @@ public class TaskServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                     return;
                 }
-                Project currentPrj = ProjectDB.selectById(projectId);
+
                 boolean isGateEnforced = (currentPrj != null && currentPrj.isTeamProject() && task.isRequiresGate());
 
                 // =========================================================================
