@@ -63,6 +63,13 @@ import java.nio.charset.StandardCharsets;
 @WebServlet("/task")
 public class TaskServlet extends HttpServlet {
 
+    /**
+     * Ba trạng thái DUY NHẤT mà thao tác kéo-thả / đổi trạng thái trên bảng Kanban được phép đặt.
+     * Các trạng thái thuộc quy trình nghiệm thu (PLANNING, SUBMITTED, REVISE, REJECTED, APPROVED)
+     * chỉ được đặt bởi handler chuyên trách của chúng, không nhận từ tham số request.
+     */
+    private static final Set<String> BOARD_STATUS = Set.of("TODO", "IN_PROGRESS", "DONE");
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -783,12 +790,29 @@ public class TaskServlet extends HttpServlet {
         if (taskId > 0 && projectId > 0 && newStatus != null && !newStatus.trim().isEmpty()) {
             Task task = TaskDB.selectById(taskId);
             if (task != null && task.getProjectId() == projectId) {
-                String status = newStatus.trim();
+                String status = newStatus.trim().toUpperCase();
                 HttpSession session = request.getSession(false);
 
-                // RÀNG BUỘC KHÓA BẤT BIẾN: TASK ĐÃ DONE KHÔNG THỂ THAY ĐỔI SANG TRẠNG THÁI KHÁC
-                if ("DONE".equalsIgnoreCase(task.getStatus())) {
-                    String errMsg = "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành (DONE) và được khóa vĩnh viễn, không thể thay đổi trạng thái!";
+                // CHỐT 0 — LỌC TRẠNG THÁI ĐẦU VÀO:
+                // Thiếu chốt này, request gửi "newStatus=APPROVED" sẽ đi xuyên qua Cổng 2 bên dưới
+                // (vì Cổng 2 chỉ so sánh với chuỗi "DONE"), trong khi giao diện lại xếp APPROVED
+                // vào cột Đã xong với nhãn "Đã nghiệm thu" — tức hoàn tất task mà không qua PM.
+                if (!BOARD_STATUS.contains(status)) {
+                    String errMsg = "Trạng thái [" + status + "] không hợp lệ cho thao tác trên bảng công việc!";
+                    if (isAjax) {
+                        sendJsonResponse(response, false, errMsg, null);
+                        return;
+                    }
+                    if (session != null) session.setAttribute("toastError", errMsg);
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+
+                // RÀNG BUỘC KHÓA BẤT BIẾN: TASK ĐÃ HOÀN TẤT THÌ KHÔNG ĐỔI TRẠNG THÁI ĐƯỢC NỮA.
+                // Xét cả "APPROVED" vì handleShowKanban coi nó tương đương DONE, và dữ liệu cũ
+                // có thể đã mang giá trị này từ trước khi có CHỐT 0.
+                if ("DONE".equalsIgnoreCase(task.getStatus()) || "APPROVED".equalsIgnoreCase(task.getStatus())) {
+                    String errMsg = "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành và được khóa vĩnh viễn, không thể thay đổi trạng thái!";
                     if (isAjax) {
                         sendJsonResponse(response, false, errMsg, null);
                         return;
@@ -844,21 +868,24 @@ public class TaskServlet extends HttpServlet {
                 // RÀNG BUỘC GIAI ĐOẠN 2: CHUYỂN SANG DONE (HOÀN THÀNH)
                 // =========================================================================
                 if ("DONE".equalsIgnoreCase(status)) {
-                    List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
-                    int progress = SubTaskDB.calculateProgress(taskId);
-                    String taskTitle = task.getTitle();
-
                     if (isGateEnforced) {
-                        if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
-                            String errMsg = "⚠️ Không thể đánh dấu hoàn thành Task [" + taskTitle + "]! [Quality Gate] Vẫn còn việc con chưa hoàn tất (Tiến độ: " + progress + "%). Hãy hoàn thành và nghiệm thu đủ 100% việc con trước.";
-                            if (isAjax) {
-                                sendJsonResponse(response, false, errMsg, null);
-                                return;
-                            }
-                            if (session != null) session.setAttribute("toastError", errMsg);
-                            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                        // CỔNG 2 — Task bật Quality Gate CHỈ hoàn tất được qua đúng một đường:
+                        // Task Lead nộp bàn giao (handleSubmitParentTask) -> PM phê duyệt (handlePmApproveTask).
+                        //
+                        // KHÔNG xét việc con nữa. Điều kiện cũ là:
+                        //     (subTasks != null && !subTasks.isEmpty() && progress < 100)
+                        // nên MỌI task chưa có việc con đều đi lọt thẳng sang DONE — bỏ qua cả hai cổng.
+                        // Câu hỏi đúng ở đây là "PM đã phê duyệt chưa?" (thẩm quyền),
+                        // không phải "việc con xong chưa?" (tiến độ) — tiến độ vô nghĩa khi chưa có việc con.
+                        String errMsg = "🛡️ [Quality Gate 2] Task [" + task.getTitle() + "] bắt buộc qua nghiệm thu! "
+                                + "Task Lead hãy mở chi tiết công việc và bấm 'Nộp bàn giao' để PM phê duyệt.";
+                        if (isAjax) {
+                            sendJsonResponse(response, false, errMsg, null);
                             return;
                         }
+                        if (session != null) session.setAttribute("toastError", errMsg);
+                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                        return;
                     }
                 }
 
