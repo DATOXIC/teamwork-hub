@@ -99,15 +99,15 @@ public class NotificationDB {
     /**
      * Hàm 4: Đánh dấu một thông báo cụ thể là Đã Đọc
      */
-    public static void markAsRead(int notificationId) {
-        if (notificationId <= 0) return;
+    public static void markAsRead(int notificationId, int recipientId) {
+        if (notificationId <= 0 || recipientId <= 0) return;
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
             Notification n = em.find(Notification.class, notificationId);
-            if (n != null) {
+            if (n != null && n.getRecipientId() == recipientId) {
                 n.setRead(true);
                 em.merge(n);
             }
@@ -145,15 +145,15 @@ public class NotificationDB {
     /**
      * Hàm 6: Xóa một thông báo
      */
-    public static boolean delete(int notificationId) {
-        if (notificationId <= 0) return false;
+    public static boolean delete(int notificationId, int recipientId) {
+        if (notificationId <= 0 || recipientId <= 0) return false;
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
             Notification n = em.find(Notification.class, notificationId);
-            if (n != null) {
+            if (n != null && n.getRecipientId() == recipientId) {
                 em.remove(n);
                 tx.commit();
                 return true;
