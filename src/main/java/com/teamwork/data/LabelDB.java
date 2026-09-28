@@ -43,6 +43,28 @@ public class LabelDB {
     }
 
     /**
+     * Lấy danh sách nhãn của dự án; nếu dự án chưa có nhãn nào thì tạo 5 nhãn mặc định rồi trả về
+     */
+    public static List<Label> ensureDefaults(int projectId) {
+        List<Label> labels = selectByProjectId(projectId);
+        if (projectId <= 0 || !labels.isEmpty()) {
+            return labels;
+        }
+
+        String[][] defaults = {
+            {"Bug", "red", "bi-bug-fill"},
+            {"Feature", "blue", "bi-stars"},
+            {"UI/UX", "purple", "bi-palette-fill"},
+            {"Backend", "amber", "bi-gear-fill"},
+            {"Docs", "green", "bi-journal-bookmark-fill"}
+        };
+        for (String[] d : defaults) {
+            insert(new Label(0, projectId, d[0], d[1], d[2]));
+        }
+        return selectByProjectId(projectId);
+    }
+
+    /**
      * Nghiệp vụ 2: Tìm nhãn theo ID
      */
     public static Label selectById(int id) {

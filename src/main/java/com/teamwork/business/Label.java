@@ -179,6 +179,57 @@ public class Label implements Serializable {
         }
     }
 
+    /**
+     * Khóa nhãn được lưu trong chuỗi tasks.labels (tên viết hoa, ví dụ "BUG", "UI/UX")
+     */
+    public String getKey() {
+        return name == null ? "" : name.trim().toUpperCase(java.util.Locale.ROOT);
+    }
+
+    /**
+     * CSS class nút chọn nhãn (Bootstrap outline) tương ứng với màu
+     */
+    public String getButtonClass() {
+        switch (colorKey == null ? "" : colorKey.toLowerCase()) {
+            case "red":    return "btn-outline-danger";
+            case "purple": return "btn-outline-purple";
+            case "amber":  return "btn-outline-warning text-dark";
+            case "green":  return "btn-outline-success";
+            case "pink":   return "btn-outline-danger";
+            case "cyan":   return "btn-outline-info text-dark";
+            case "slate":  return "btn-outline-secondary";
+            case "blue":
+            default:       return "btn-outline-primary";
+        }
+    }
+
+    /**
+     * Emoji đứng trước tên nhãn: 5 nhãn mặc định có emoji riêng, nhãn khác dùng chấm màu
+     */
+    public String getIconEmoji() {
+        switch (getKey()) {
+            case "BUG":     return "🔴";
+            case "FEATURE": return "✨";
+            case "UI":
+            case "UI/UX":   return "🎨";
+            case "BACKEND": return "⚙️";
+            case "DOCS":    return "📚";
+            default:
+                break;
+        }
+        switch (colorKey == null ? "" : colorKey.toLowerCase()) {
+            case "red":    return "🔴";
+            case "purple": return "🟣";
+            case "amber":  return "🟡";
+            case "green":  return "🟢";
+            case "pink":   return "🌸";
+            case "cyan":   return "💎";
+            case "slate":  return "🔘";
+            case "blue":
+            default:       return "🔵";
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

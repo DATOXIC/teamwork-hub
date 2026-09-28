@@ -88,6 +88,9 @@ public class Task implements Serializable {
     @Column(name = "labels")
     private String labels;              // Nhãn phân loại (Ví dụ: "BUG,BACKEND", "FEATURE,UI")
 
+    @Transient
+    private java.util.Map<String, Label> labelLookup;   // Bảng tra nhãn của dự án, chỉ dùng để hiển thị
+
     @Column(name = "requires_gate")
     private boolean requiresGate = true;// Cờ kiểm soát Quality Gate (true = Bắt buộc qua Gate 1 & 2; false = Fast-track)
 
@@ -554,9 +557,23 @@ public class Task implements Serializable {
     }
 
     /**
+     * Gắn bảng tra nhãn của dự án (key viết hoa -> Label) để hiển thị đúng màu nhãn tùy biến
+     */
+    public void setLabelLookup(java.util.Map<String, Label> labelLookup)
+    {
+        this.labelLookup = labelLookup;
+    }
+
+    private Label findProjectLabel(String label)
+    {
+        if (labelLookup == null || label == null) return null;
+        return labelLookup.get(label.trim().toUpperCase(java.util.Locale.ROOT));
+    }
+
+    /**
      * Tách chuỗi nhãn phân cách dấu phẩy thành List các tag sạch sẽ
      */
-    public java.util.List<String> getLabelList() 
+    public java.util.List<String> getLabelList()
     {
         java.util.List<String> list = new java.util.ArrayList<>();
         if (this.labels != null && !this.labels.trim().isEmpty()) 
@@ -580,6 +597,8 @@ public class Task implements Serializable {
     public String getLabelBadgeClass(String label) 
     {
         if (label == null) return "bg-light text-secondary border";
+        Label projectLabel = findProjectLabel(label);
+        if (projectLabel != null) return projectLabel.getBadgeClass();
         String upper = label.trim().toUpperCase();
         switch (upper) 
         {
@@ -608,6 +627,8 @@ public class Task implements Serializable {
     public String getLabelDisplayName(String label) 
     {
         if (label == null) return "";
+        Label projectLabel = findProjectLabel(label);
+        if (projectLabel != null) return projectLabel.getIconEmoji() + " " + projectLabel.getName();
         String upper = label.trim().toUpperCase();
         switch (upper) 
         {

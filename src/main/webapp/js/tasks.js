@@ -470,58 +470,93 @@ window.handleQuickCreateLabel = function() {
 
     var labelName = nameInput.value.trim();
     var colorKey = colorSelect ? colorSelect.value : 'blue';
-    var labelKey = labelName.toUpperCase();
+    var form = labelGroup.closest('form');
+    var projectIdInput = form ? form.querySelector('input[name="projectId"]') : null;
+    if (!form || !projectIdInput) return;
 
-    // Map mã màu sang class nút
-    var colorClass = 'btn-outline-primary';
-    var dotEmoji = '🔵';
-    switch (colorKey) {
-        case 'red':    colorClass = 'btn-outline-danger'; dotEmoji = '🔴'; break;
-        case 'blue':   colorClass = 'btn-outline-primary'; dotEmoji = '🔵'; break;
-        case 'purple': colorClass = 'btn-outline-purple'; dotEmoji = '🟣'; break;
-        case 'amber':  colorClass = 'btn-outline-warning text-dark'; dotEmoji = '🟡'; break;
-        case 'green':  colorClass = 'btn-outline-success'; dotEmoji = '🟢'; break;
-        case 'pink':   colorClass = 'btn-outline-danger'; dotEmoji = '🌸'; break;
-        case 'cyan':   colorClass = 'btn-outline-info text-dark'; dotEmoji = '💎'; break;
-        case 'slate':  colorClass = 'btn-outline-secondary'; dotEmoji = '🔘'; break;
+    function findLabelButton(key) {
+        var buttons = labelGroup.querySelectorAll('.label-toggle-btn');
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].getAttribute('data-label') === key) return buttons[i];
+        }
+        return null;
     }
 
-    // Kiểm tra xem nút nhãn đã có trên giao diện chưa
-    var existingBtn = labelGroup.querySelector('[data-label="' + labelKey + '"]');
-    if (!existingBtn) {
-        var newBtn = document.createElement('button');
-        newBtn.type = 'button';
-        newBtn.className = 'btn btn-sm ' + colorClass + ' rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn active';
-        newBtn.setAttribute('data-label', labelKey);
-        newBtn.innerHTML = dotEmoji + ' ' + labelName;
-        newBtn.onclick = function() {
-            window.toggleTaskLabel(this, labelKey);
-        };
-        labelGroup.appendChild(newBtn);
-    } else {
-        existingBtn.classList.add('active');
-    }
-
-    // Tự động tích chọn nhãn này vào input ẩn
-    if (selectedLabelsInput) {
-        var current = selectedLabelsInput.value ? selectedLabelsInput.value.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
-        if (current.indexOf(labelKey) === -1) {
-            current.push(labelKey);
-            selectedLabelsInput.value = current.join(',');
+    // Reset ô nhập và thu gọn khung tạo nhãn; nếu select = true thì tích chọn nhãn vào input ẩn
+    function finishSelect(labelKey, select) {
+        if (select && selectedLabelsInput) {
+            var current = selectedLabelsInput.value ? selectedLabelsInput.value.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+            if (current.indexOf(labelKey) === -1) {
+                current.push(labelKey);
+                selectedLabelsInput.value = current.join(',');
+            }
+        }
+        nameInput.value = '';
+        var collapseEl = document.getElementById('inlineCreateLabelBox');
+        if (collapseEl) {
+            var bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
+            if (bsCollapse) {
+                bsCollapse.hide();
+            } else {
+                collapseEl.classList.remove('show');
+            }
         }
     }
 
-    // Reset ô nhập và thu gọn khung tạo nhãn
-    nameInput.value = '';
-    var collapseEl = document.getElementById('inlineCreateLabelBox');
-    if (collapseEl) {
-        var bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
-        if (bsCollapse) {
-            bsCollapse.hide();
+    function notifyError(message) {
+        if (window.showToast) {
+            window.showToast(message, 'error');
         } else {
-            collapseEl.classList.remove('show');
+            alert(message);
         }
     }
+
+    // Nhãn đã có nút trên giao diện thì chỉ cần chọn lại, không gọi server
+    var existingBtn = findLabelButton(labelName.toUpperCase());
+    if (existingBtn) {
+        existingBtn.classList.add('active');
+        finishSelect(existingBtn.getAttribute('data-label'), true);
+        return;
+    }
+
+    var body = new URLSearchParams();
+    body.append('action', 'createLabel');
+    body.append('projectId', projectIdInput.value);
+    body.append('name', labelName);
+    body.append('color', colorKey);
+
+    fetch(form.getAttribute('action'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        credentials: 'same-origin',
+        body: body.toString()
+    })
+    .then(function(res) {
+        return res.json().catch(function() {
+            return { ok: false, message: 'Không thể lưu nhãn, vui lòng thử lại!' };
+        });
+    })
+    .then(function(data) {
+        if (!data.ok) {
+            notifyError(data.message);
+            return;
+        }
+        if (!findLabelButton(data.key)) {
+            var newBtn = document.createElement('button');
+            newBtn.type = 'button';
+            newBtn.className = 'btn btn-sm ' + data.buttonClass + ' rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn';
+            newBtn.setAttribute('data-label', data.key);
+            newBtn.textContent = data.emoji + ' ' + data.name;
+            newBtn.onclick = function() {
+                window.toggleTaskLabel(this, this.getAttribute('data-label'));
+            };
+            labelGroup.appendChild(newBtn);
+        }
+        finishSelect(data.key, false);
+    })
+    .catch(function() {
+        notifyError('Không thể kết nối máy chủ để lưu nhãn!');
+    });
 };
 
 // =========================================================================

@@ -551,7 +551,7 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
-                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">
+                                                            <span class="badge ${task.getLabelBadgeClass(task.labelList[0])} rounded-pill px-2.5 py-1 fs-9 fw-semibold">
                                                                 ${task.getLabelDisplayName(task.labelList[0])}
                                                             </span>
                                                         </c:when>
@@ -662,7 +662,7 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
-                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">
+                                                            <span class="badge ${task.getLabelBadgeClass(task.labelList[0])} rounded-pill px-2.5 py-1 fs-9 fw-semibold">
                                                                 ${task.getLabelDisplayName(task.labelList[0])}
                                                             </span>
                                                         </c:when>
@@ -814,7 +814,7 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
-                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">
+                                                            <span class="badge ${task.getLabelBadgeClass(task.labelList[0])} rounded-pill px-2.5 py-1 fs-9 fw-semibold">
                                                                 ${task.getLabelDisplayName(task.labelList[0])}
                                                             </span>
                                                         </c:when>
@@ -4721,23 +4721,12 @@
 
                                 <!-- Danh sách các nút nhãn hiện có -->
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="labelButtonGroup">
-                                    <button type="button"
-                                        class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn"
-                                        data-label="BUG" onclick="toggleTaskLabel(this, 'BUG')">🔴 Bug</button>
-                                    <button type="button"
-                                        class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn"
-                                        data-label="FEATURE" onclick="toggleTaskLabel(this, 'FEATURE')">✨
-                                        Feature</button>
-                                    <button type="button"
-                                        class="btn btn-sm btn-outline-purple rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn"
-                                        data-label="UI" onclick="toggleTaskLabel(this, 'UI')">🎨 UI/UX</button>
-                                    <button type="button"
-                                        class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn text-dark"
-                                        data-label="BACKEND" onclick="toggleTaskLabel(this, 'BACKEND')">⚙️
-                                        Backend</button>
-                                    <button type="button"
-                                        class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn"
-                                        data-label="DOCS" onclick="toggleTaskLabel(this, 'DOCS')">📚 Docs</button>
+                                    <c:forEach items="${projectLabels}" var="lb">
+                                        <button type="button"
+                                            class="btn btn-sm ${lb.buttonClass} rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn"
+                                            data-label="<c:out value='${lb.key}'/>"
+                                            onclick="toggleTaskLabel(this, this.dataset.label)">${lb.iconEmoji} <c:out value="${lb.name}"/></button>
+                                    </c:forEach>
                                 </div>
                                 <input type="hidden" name="labels" id="taskSelectedLabels" value="">
 
@@ -4785,7 +4774,7 @@
                                                 <button type="button"
                                                     class="btn btn-sm btn-primary-custom w-100 rounded-2 fs-8 fw-semibold"
                                                     onclick="handleQuickCreateLabel()">
-                                                    <i class="bi bi-plus-lg me-1"></i> Tạo & Chọn
+                                                    <i class="bi bi-plus-lg me-1"></i> Tạo nhãn
                                                 </button>
                                             </div>
                                         </div>
@@ -5512,7 +5501,8 @@
         </div>
 
         <!-- 7. NẠP FILE JAVASCRIPT KÉO THẢ & LỌC TỨC THÌ (0.01 GIÂY) -->
-        <script src="${pageContext.request.contextPath}/js/tasks.js"></script>
+        <jsp:useBean id="assetStamp" class="java.util.Date" />
+        <script src="${pageContext.request.contextPath}/js/tasks.js?v=${assetStamp.time}"></script>
 
         <!-- Bootstrap 5.3.3 JS Bundle CDN -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>

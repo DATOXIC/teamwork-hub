@@ -200,6 +200,10 @@ public class TaskServlet extends HttpServlet {
                 handleAddTask(request, response);
                 break;
 
+            case "createLabel":
+                handleCreateLabel(request, response);
+                break;
+
             case "updateStatus":
                 handleUpdateTaskStatus(request, response);
                 break;
@@ -325,6 +329,16 @@ public class TaskServlet extends HttpServlet {
             } else {
                 todoTasks.add(t);
             }
+        }
+
+        // 2.5. Nạp nhãn của dự án (tự tạo 5 nhãn mặc định nếu dự án chưa có) và gắn bảng tra màu cho từng Task
+        List<Label> projectLabels = LabelDB.ensureDefaults(projectId);
+        Map<String, Label> labelLookup = new HashMap<>();
+        for (Label l : projectLabels) {
+            labelLookup.put(l.getKey(), l);
+        }
+        for (Task t : allProjectTasks) {
+            t.setLabelLookup(labelLookup);
         }
 
         // 3. Lấy thành viên dự án và nạp thông tin user từ danh sách hệ thống (Tối ưu Session Cache)
@@ -491,6 +505,7 @@ public class TaskServlet extends HttpServlet {
         request.setAttribute("inProgressTasks", inProgressTasks);
         request.setAttribute("doneTasks", doneTasks);
         request.setAttribute("allProjectTasks", allProjectTasks);
+        request.setAttribute("projectLabels", projectLabels);
         request.setAttribute("userList", userList);
         request.setAttribute("docList", docList);
         request.setAttribute("taskDocsMap", taskDocsMap);
@@ -2161,6 +2176,70 @@ public class TaskServlet extends HttpServlet {
             workloadList.add(uw);
         }
         return workloadList;
+    }
+
+    // ==================== TẠO NHÃN TÙY BIẾN (AJAX, TRẢ VỀ JSON) ====================
+
+    private static final java.util.regex.Pattern LABEL_NAME_PATTERN =
+            java.util.regex.Pattern.compile("^[\\p{L}\\p{N}][\\p{L}\\p{N} /_.+-]{0,29}$");
+    private static final Set<String> LABEL_COLORS =
+            Set.of("red", "blue", "purple", "amber", "green", "pink", "cyan", "slate");
+
+    /**
+     * Tạo nhãn mới cho dự án (POST /task action=createLabel). Tên nhãn không được chứa dấu phẩy,
+     * dấu nháy hay ký tự HTML vì tên được lưu trong chuỗi tasks.labels và in thẳng ra giao diện.
+     */
+    private void handleCreateLabel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        User currentUser = getCurrentUser(request);
+        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        String name = request.getParameter("name") != null ? request.getParameter("name").trim() : "";
+        String color = request.getParameter("color") != null ? request.getParameter("color").trim().toLowerCase() : "blue";
+
+        if (currentUser == null) {
+            writeLabelJson(response, 401, null, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
+            return;
+        }
+        if (projectId <= 0 || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            writeLabelJson(response, 403, null, "Bạn không có quyền thao tác trong dự án này!");
+            return;
+        }
+        if (!LABEL_NAME_PATTERN.matcher(name).matches()) {
+            writeLabelJson(response, 400, null, "Tên nhãn chỉ gồm chữ, số, khoảng trắng và / _ . + - (tối đa 30 ký tự)!");
+            return;
+        }
+        if (!LABEL_COLORS.contains(color)) {
+            color = "blue";
+        }
+        if (LabelDB.existsByName(projectId, name, 0)) {
+            writeLabelJson(response, 409, null, "Nhãn \"" + name + "\" đã tồn tại trong dự án!");
+            return;
+        }
+
+        Label label = new Label(0, projectId, name, color, "bi-tag-fill");
+        if (LabelDB.insert(label) <= 0) {
+            writeLabelJson(response, 500, null, "Không thể lưu nhãn, vui lòng thử lại!");
+            return;
+        }
+        writeLabelJson(response, 200, label, null);
+    }
+
+    private void writeLabelJson(HttpServletResponse response, int status, Label label, String error) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        String json;
+        if (label != null) {
+            json = "{\"ok\":true,\"key\":" + jsonString(label.getKey())
+                    + ",\"name\":" + jsonString(label.getName())
+                    + ",\"buttonClass\":" + jsonString(label.getButtonClass())
+                    + ",\"emoji\":" + jsonString(label.getIconEmoji()) + "}";
+        } else {
+            json = "{\"ok\":false,\"message\":" + jsonString(error) + "}";
+        }
+        response.getWriter().write(json);
+    }
+
+    private String jsonString(String s) {
+        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     // ==================== BỘ TIỆN ÍCH TRÍCH XUẤT & PHÂN QUYỀN CHUẨN BACKEND CODE MASTERY ====================
