@@ -139,21 +139,38 @@ public class ProjectServlet extends HttpServlet {
         request.setAttribute("otherProjects", otherProjects);
         request.setAttribute("projects", allProjects);
 
-        // 2. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
+        // 2. TÍNH TOÁN CÁC CHỈ SỐ KPI TỔNG QUAN (Bento KPI Bar trên projects.jsp)
+        int kpiPmCount = 0;
+        int kpiTotalTasks = 0;
+        int kpiDoneTasks = 0;
+        if (currentUser != null) {
+            for (Project p : myProjects) {
+                if (p.getOwnerId() == currentUser.getId()) {
+                    kpiPmCount++;
+                }
+                kpiTotalTasks += p.getTotalTasks();
+                kpiDoneTasks += p.getDoneTasks();
+            }
+        }
+        request.setAttribute("kpiPmCount", kpiPmCount);
+        request.setAttribute("kpiTotalTasks", kpiTotalTasks);
+        request.setAttribute("kpiDoneTasks", kpiDoneTasks);
+
+        // 3. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
         Map<Integer, Integer> memberCountMap = new HashMap<>();
         for (Project p : allProjects) {
             memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
         }
         request.setAttribute("memberCountMap", memberCountMap);
 
-        // 3. LẤY DANH SÁCH LỜI MỜI / YÊU CẦU ĐANG CHỜ NGƯỜI DÙNG DUYỆT (Hộp thư
+        // 4. LẤY DANH SÁCH LỜI MỜI / YÊU CẦU ĐANG CHỜ NGƯỜI DÙNG DUYỆT (Hộp thư
         // Dashboard)
         if (currentUser != null) {
             List<ProjectInvite> pendingInvites = ProjectInviteDB.selectPendingByReceiverId(currentUser.getId());
             request.setAttribute("pendingInvites", pendingInvites);
         }
 
-        // 4. XỬ LÝ THÔNG BÁO FLASH (Toast Messages)
+        // 5. XỬ LÝ THÔNG BÁO FLASH (Toast Messages)
         if (session != null) {
             String toastSuccess = (String) session.getAttribute("toastSuccess");
             if (toastSuccess != null) {

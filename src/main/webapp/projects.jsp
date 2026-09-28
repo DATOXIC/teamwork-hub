@@ -48,26 +48,8 @@
                 <!-- =========================================================================
                      4. BENTO KPI BAR: CHỈ SỐ HOẠT ĐỘNG TỔNG QUAN (QUICK METRICS)
                      ========================================================================= -->
-                <%
-                    // Tính toán nhanh số dự án người dùng làm Trưởng nhóm (PM)
-                    int pmCount = 0;
-                    int totalTasksCount = 0;
-                    int doneTasksCount = 0;
-                    java.util.List<com.teamwork.business.Project> myProjectsList = (java.util.List<com.teamwork.business.Project>) request.getAttribute("myProjects");
-                    com.teamwork.business.User cUser = (com.teamwork.business.User) session.getAttribute("currentUser");
-                    if (myProjectsList != null && cUser != null) {
-                        for (com.teamwork.business.Project prj : myProjectsList) {
-                            if (prj.getOwnerId() == cUser.getId()) {
-                                pmCount++;
-                            }
-                            totalTasksCount += prj.getTotalTasks();
-                            doneTasksCount += prj.getDoneTasks();
-                        }
-                    }
-                    request.setAttribute("kpiPmCount", pmCount);
-                    request.setAttribute("kpiTotalTasks", totalTasksCount);
-                    request.setAttribute("kpiDoneTasks", doneTasksCount);
-                %>
+                <%-- Ba chỉ số kpiPmCount / kpiTotalTasks / kpiDoneTasks được ProjectServlet
+                     tính sẵn và đặt vào request scope (xem showProjectList, mục 2) --%>
                 <div class="row g-3 mb-4">
                     <!-- KPI 1: Tổng dự án tham gia -->
                     <div class="col-6 col-md-3">
