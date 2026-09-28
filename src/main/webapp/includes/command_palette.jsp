@@ -19,7 +19,7 @@
      COMMAND PALETTE (CTRL + K) — HỘP ĐIỀU HƯỚNG LỆNH THÔNG MINH TOÀN HỆ THỐNG
      Phong cách: Linear / Raycast / Big Tech Glassmorphism
      ========================================================================= -->
-<div id="commandPaletteOverlay" class="cp-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Command Palette">
+<div id="commandPaletteOverlay" class="cp-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Bảng lệnh">
     <div class="cp-container" id="commandPaletteContainer">
         
         <!-- Header: Search Input & Shortcuts -->
@@ -28,7 +28,7 @@
             <input type="text" id="commandPaletteInput" class="cp-input" 
                    placeholder="Tìm kiếm công việc, dự án, tài liệu hoặc gõ lệnh..." 
                    autocomplete="off" spellcheck="false">
-            <button type="button" class="cp-close-btn" id="commandPaletteCloseBtn" title="Đóng (Esc)" aria-label="Đóng Command Palette">
+            <button type="button" class="cp-close-btn" id="commandPaletteCloseBtn" title="Đóng (Esc)" aria-label="Đóng Bảng lệnh">
                 <kbd class="cp-kbd">Esc</kbd>
             </button>
         </div>
@@ -57,7 +57,7 @@
                                 <div class="cp-item-title">Mở Kho Tài Liệu & Wiki</div>
                                 <div class="cp-item-desc">Đọc và soạn thảo tài liệu tri thức dự án</div>
                             </div>
-                            <span class="cp-item-badge">Docs</span>
+                            <span class="cp-item-badge">Tài liệu</span>
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
@@ -67,7 +67,7 @@
                                 <div class="cp-item-title">Mở Kênh Thảo Luận Nhóm</div>
                                 <div class="cp-item-desc">Trò chuyện thời gian thực cùng đồng đội</div>
                             </div>
-                            <span class="cp-item-badge">Chat</span>
+                            <span class="cp-item-badge">Thảo luận</span>
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
@@ -77,27 +77,27 @@
                                 <div class="cp-item-title">Xem Báo Cáo Tiến Độ Dự Án</div>
                                 <div class="cp-item-desc">Xem chỉ số KPI, tỷ lệ hoàn thành và cảnh báo điểm nghẽn</div>
                             </div>
-                            <span class="cp-item-badge">Report</span>
+                            <span class="cp-item-badge">Báo cáo</span>
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
                         <li class="cp-item" data-action="print" data-search="in an print pdf xuat ban in bao cao ${project.name}">
                             <div class="cp-item-icon"><i class="bi bi-printer"></i></div>
                             <div class="cp-item-content">
-                                <div class="cp-item-title">In Báo Cáo / Xuất File PDF (A4)</div>
+                                <div class="cp-item-title">In Báo Cáo / Xuất tệp PDF (A4)</div>
                                 <div class="cp-item-desc">Kích hoạt trình in ấn trình duyệt chuẩn khổ A4</div>
                             </div>
-                            <span class="cp-item-badge">Action</span>
+                            <span class="cp-item-badge">Thao tác</span>
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
                         <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" data-search="xuat csv excel download tai ve export ${project.name}">
                             <div class="cp-item-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
                             <div class="cp-item-content">
-                                <div class="cp-item-title">Xuất Danh Sách Công Việc Ra File CSV</div>
-                                <div class="cp-item-desc">Tải file Excel .csv chuẩn mã UTF-8 BOM</div>
+                                <div class="cp-item-title">Xuất Danh Sách Công Việc Ra tệp CSV</div>
+                                <div class="cp-item-desc">Tải tệp Excel .csv chuẩn mã UTF-8 BOM</div>
                             </div>
-                            <span class="cp-item-badge">Export</span>
+                            <span class="cp-item-badge">Xuất dữ liệu</span>
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
                     </ul>
@@ -141,7 +141,7 @@
                     <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/project?action=list" data-search="khong gian lam viec danh sach du an projects workspace dashboard">
                         <div class="cp-item-icon"><i class="bi bi-grid-1x2"></i></div>
                         <div class="cp-item-content">
-                            <div class="cp-item-title">Vào Không Gian Làm Việc (Dashboard)</div>
+                            <div class="cp-item-title">Vào Không Gian Làm Việc</div>
                             <div class="cp-item-desc">Xem toàn bộ danh sách các dự án bạn đang tham gia</div>
                         </div>
                         <span class="cp-item-badge">Điều hướng</span>
@@ -197,7 +197,7 @@
                 </div>
             </div>
             <div class="d-none d-sm-block text-muted">
-                <strong>TeamWork Hub</strong> &bull; Command Palette
+                <strong>TeamWork Hub</strong> &bull; Bảng lệnh
             </div>
         </div>
 

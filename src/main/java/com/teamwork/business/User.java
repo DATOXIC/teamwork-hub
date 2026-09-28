@@ -62,7 +62,7 @@ public class User implements Serializable {
         this.password = "";
         this.fullName = "";
         this.email = "";
-        this.role = "Developer";
+        this.role = "Lập trình viên";
         this.avatar = "images/default_avatar.png";
         this.bio = "";
         this.skills = "";

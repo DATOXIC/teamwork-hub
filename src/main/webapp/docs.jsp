@@ -34,7 +34,7 @@
             <a href="${pageContext.request.contextPath}/project?action=list" 
                class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none" 
                title="Quay về danh sách dự án">
-                <i class="bi bi-arrow-left me-1"></i> Dashboard
+                <i class="bi bi-arrow-left me-1"></i> Danh sách dự án
             </a>
             
             <div class="border-start ps-3 d-flex align-items-center gap-3">

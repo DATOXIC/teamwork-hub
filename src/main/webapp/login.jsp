@@ -97,7 +97,7 @@
                     <img src="${pageContext.request.contextPath}/images/ute_logo.png" alt="Logo HCMUTE" />
                     <div class="branding-header-text">
                         <h4>TRƯỜNG ĐẠI HỌC CÔNG NGHỆ KỸ THUẬT TP.HCM</h4>
-                        <p>Khoa Đào tạo Tiên tiến &bull; Web Programming</p>
+                        <p>Khoa Đào tạo Tiên tiến &bull; Lập trình Web</p>
                     </div>
                 </div>
 
@@ -242,17 +242,17 @@
                             <button type="button" class="quick-login-btn"
                                     onclick="fillLogin('admin', 'admin123')">
                                 <i class="bi bi-shield-lock-fill text-primary"></i>
-                                <strong>admin</strong> (PM)
+                                <strong>admin</strong> (Trưởng dự án)
                             </button>
                             <button type="button" class="quick-login-btn"
                                     onclick="fillLogin('member1', 'pass123')">
                                 <i class="bi bi-code-slash text-success"></i>
-                                <strong>member1</strong> (Dev)
+                                <strong>member1</strong> (Lập trình)
                             </button>
                             <button type="button" class="quick-login-btn"
                                     onclick="fillLogin('carol', 'carol123')">
                                 <i class="bi bi-palette-fill text-info"></i>
-                                <strong>carol</strong> (Designer)
+                                <strong>carol</strong> (Thiết kế)
                             </button>
                             <button type="button" class="quick-login-btn"
                                     onclick="fillLogin('david', 'david123')">
@@ -298,7 +298,7 @@
                         <div class="login-input-group">
                             <i class="bi bi-envelope input-icon"></i>
                             <input type="email" id="reg-email" name="email"
-                                   value="${regEmail}" placeholder="name@example.com" required>
+                                   value="${regEmail}" placeholder="ten@vidu.com" required>
                         </div>
 
                         <%-- Mật khẩu + Xác nhận (2 cột) — Password & Confirm --%>

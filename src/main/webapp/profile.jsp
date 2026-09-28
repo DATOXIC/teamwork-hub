@@ -12,7 +12,7 @@
          * isOwner (Boolean): true nếu currentUser.id == profileUser.id (chính chủ)
          * userProjects (List<Project>): Danh sách các dự án thành viên tham gia
          * availableProjectsToInvite (List<Project>): Danh sách dự án PM có thể mời
-         * leadTaskCount (int): Số nhiệm vụ lớn đang chủ trì (Task Lead)
+         * leadTaskCount (int): Số công việc lớn đang chủ trì (Task Lead)
          * completedSubTasks (int) / totalSubTasks (int): Thống kê việc con hoàn thành
          * completionRate (int): Tỷ lệ % hoàn thành tổng thể
      ========================================================================= --%>
@@ -165,13 +165,13 @@
             <div class="col-6 col-md-3">
                 <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="fs-8 text-muted fw-semibold">Task Lead chủ trì</span>
+                        <span class="fs-8 text-muted fw-semibold">Trưởng nhóm công việc chủ trì</span>
                         <span class="p-1 bg-warning-subtle text-warning-emphasis rounded-2 lh-1">
                             <i class="bi bi-person-workspace fs-7"></i>
                         </span>
                     </div>
                     <h3 class="fw-extrabold text-warning mb-0">${leadTaskCount}</h3>
-                    <span class="fs-9 text-muted mt-1">nhiệm vụ lớn</span>
+                    <span class="fs-9 text-muted mt-1">công việc lớn</span>
                 </div>
             </div>
 
@@ -179,7 +179,7 @@
             <div class="col-6 col-md-3">
                 <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="fs-8 text-muted fw-semibold">Việc con đã xong</span>
+                        <span class="fs-8 text-muted fw-semibold">Nhiệm vụ đã xong</span>
                         <span class="p-1 bg-success-subtle text-success rounded-2 lh-1">
                             <i class="bi bi-check-all fs-7"></i>
                         </span>
@@ -277,7 +277,7 @@
                     <h5 class="modal-title fw-bold text-dark" id="editProfileModalLabel">
                         <i class="bi bi-pencil-square text-primary me-2"></i>Chỉnh sửa hồ sơ cá nhân
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
 
                 <form action="${pageContext.request.contextPath}/profile" method="post">
@@ -292,7 +292,7 @@
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="inputRole" class="form-label fw-semibold fs-7 text-dark">Chuyên môn / Chức danh</label>
-                                <input type="text" class="form-control fs-7 rounded-3" id="inputRole" name="role" value="${profileUser.role}" placeholder="Ví dụ: Senior Backend Developer">
+                                <input type="text" class="form-control fs-7 rounded-3" id="inputRole" name="role" value="${profileUser.role}" placeholder="Ví dụ: Lập trình viên Backend cao cấp">
                             </div>
                         </div>
 
@@ -307,7 +307,7 @@
 
                         <div class="mb-3">
                             <label for="inputSkills" class="form-label fw-semibold fs-7 text-dark">
-                                Kỹ năng chuyên môn (Tech Stack)
+                                Kỹ năng chuyên môn
                             </label>
                             <input type="text" class="form-control fs-7 rounded-3" id="inputSkills" name="skills" value="${profileUser.skills}" 
                                    placeholder="Cách nhau bằng dấu phẩy, ví dụ: Java, Jakarta EE, MySQL, Docker, RESTful API">
@@ -374,7 +374,7 @@
                     <h5 class="modal-title fw-bold text-dark" id="quickInviteModalLabel">
                         <i class="bi bi-person-plus-fill text-success me-2"></i>Mời ${profileUser.fullName} vào Dự án
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
 
                 <form action="${pageContext.request.contextPath}/invite" method="post">

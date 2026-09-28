@@ -197,12 +197,12 @@ document.addEventListener('DOMContentLoaded', function()
                 // hay đã có việc con hay chưa. Nói sai điều kiện sẽ khiến người dùng làm theo
                 // hướng dẫn rồi vẫn bị chặn, chỉ khác thông báo.
                 if (oldStatus === 'TODO' && newStatus === 'IN_PROGRESS' && isGateEnforced) {
-                    blockWithReason('Công việc này đi qua Cổng Kế Hoạch nên không kéo thẳng sang Đang làm được. '
-                        + 'Mở chi tiết công việc để phân rã việc con — công việc tự chuyển sang Đang làm khi việc con đầu tiên được nộp.');
+                    blockWithReason('Công việc này cần được duyệt kế hoạch nên không kéo thẳng sang Đang làm được. '
+                        + 'Mở chi tiết công việc để phân rã nhiệm vụ — công việc tự chuyển sang Đang làm khi nhiệm vụ đầu tiên được nộp.');
                 }
                 else if (newStatus === 'DONE' && isGateEnforced) {
-                    blockWithReason('Công việc này đi qua Cổng Nghiệm Thu. '
-                        + 'Mở chi tiết công việc và bấm "Bàn Giao Cho PM" để Trưởng Dự Án phê duyệt.');
+                    blockWithReason('Công việc này cần nghiệm thu. '
+                        + 'Mở chi tiết công việc và bấm "Bàn Giao Cho Trưởng Dự Án" để Trưởng Dự Án phê duyệt.');
                 }
                 else if (newStatus === 'DONE') {
                     // Fast-track không có cổng, nhưng task đã Hoàn thành sẽ bị khoá vĩnh viễn,
@@ -216,14 +216,14 @@ document.addEventListener('DOMContentLoaded', function()
 
                         if (window.confirmAction) {
                             window.confirmAction({
-                                title: 'Việc con chưa xong',
-                                message: 'Mới hoàn thành ' + progress + '% việc con. Công việc chuyển sang Hoàn thành sẽ bị khoá và không đổi trạng thái lại được.',
+                                title: 'Nhiệm vụ chưa xong',
+                                message: 'Mới hoàn thành ' + progress + '% nhiệm vụ. Công việc chuyển sang Hoàn thành sẽ bị khoá và không đổi trạng thái lại được.',
                                 confirmLabel: 'Vẫn hoàn thành',
                                 cancelLabel: 'Quay lại',
                                 variant: 'warning',
                                 onConfirm: proceed
                             });
-                        } else if (confirm('Mới hoàn thành ' + progress + '% việc con. Vẫn chuyển sang Hoàn thành?')) {
+                        } else if (confirm('Mới hoàn thành ' + progress + '% nhiệm vụ. Vẫn chuyển sang Hoàn thành?')) {
                             proceed();
                         }
                     } else {

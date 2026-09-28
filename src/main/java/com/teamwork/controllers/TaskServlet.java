@@ -583,7 +583,7 @@ public class TaskServlet extends HttpServlet {
                 if ("DONE".equalsIgnoreCase(task.getStatus())) {
                     HttpSession session = request.getSession(false);
                     if (session != null) {
-                        session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành (DONE) và được khóa vĩnh viễn, không thể xóa!");
+                        session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành và được khóa vĩnh viễn, không thể xóa!");
                     }
                     response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                     return;
@@ -632,7 +632,7 @@ public class TaskServlet extends HttpServlet {
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
 
         // Dòng tiêu đề các cột chuẩn
-        writer.println("Mã công việc,Tiêu đề công việc,Mô tả tóm tắt,Trạng thái,Mức ưu tiên,Người phụ trách,Hạn chót,Số việc con,Tiến độ hoàn thành (%),Ngày nộp bàn giao,Ngày duyệt");
+        writer.println("Mã công việc,Tiêu đề công việc,Mô tả tóm tắt,Trạng thái,Mức ưu tiên,Người phụ trách,Hạn chót,Số nhiệm vụ,Tiến độ hoàn thành (%),Ngày nộp bàn giao,Ngày duyệt");
 
         for (Task t : taskList) {
             List<SubTask> subs = SubTaskDB.selectByTaskId(t.getId());
@@ -749,7 +749,7 @@ public class TaskServlet extends HttpServlet {
                     session.setAttribute("toastError", "Người phụ trách được chọn không còn là thành viên của dự án này! Vui lòng chọn lại.");
                 } else {
                     // Người dùng chưa chọn ai
-                    session.setAttribute("toastError", "Vui lòng chọn người phụ trách (Task Lead) trong danh sách thành viên dự án!");
+                    session.setAttribute("toastError", "Vui lòng chọn người phụ trách trong danh sách thành viên dự án!");
                 }
             }
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
@@ -868,7 +868,7 @@ public class TaskServlet extends HttpServlet {
 
                 if (!isPm && !isLead) {
                     String errMsg = "Bạn không có quyền đổi trạng thái công việc [" + task.getTitle()
-                            + "]! Chỉ Người phụ trách (Task Lead) hoặc Trưởng Dự Án (PM) mới được phép.";
+                            + "]! Chỉ Người phụ trách hoặc Trưởng Dự Án mới được phép.";
                     if (isAjax) {
                         sendJsonResponse(response, false, errMsg, null);
                         return;
@@ -903,7 +903,7 @@ public class TaskServlet extends HttpServlet {
                     // Ràng buộc Quality Gate: Chặn kéo thả trực tiếp từ TODO sang IN_PROGRESS.
                     // Bắt buộc phải nộp Kế hoạch WBS và được PM phê duyệt (Gate 1)
                     if (isGateEnforced) {
-                        String errMsg = "🛡️ [Quality Gate 1] Công việc này áp dụng Cổng Kế Hoạch! Vui lòng mở chi tiết công việc, phân rã việc con (WBS) và bấm 'Gửi duyệt kế hoạch' để PM phê duyệt trước khi bắt đầu.";
+                        String errMsg = "🛡️ [Cần duyệt kế hoạch] Công việc này bắt buộc kiểm duyệt! Vui lòng mở chi tiết công việc, phân rã nhiệm vụ và bấm 'Gửi duyệt kế hoạch' để trưởng dự án phê duyệt trước khi bắt đầu.";
                         if (isAjax) {
                             sendJsonResponse(response, false, errMsg, null);
                             return;
@@ -922,7 +922,7 @@ public class TaskServlet extends HttpServlet {
                             task.setAssigneeName(curUser.getFullName());
                             TaskDB.update(task);
                         } else {
-                            String errMsg = "⚠️ Không thể bắt đầu Task [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.";
+                            String errMsg = "⚠️ Không thể bắt đầu công việc [" + taskTitle + "]! Công việc chưa được phân công. Vui lòng bấm 'Chỉnh sửa' để chọn Người phụ trách trước.";
                             if (isAjax) {
                                 sendJsonResponse(response, false, errMsg, null);
                                 return;
@@ -947,8 +947,8 @@ public class TaskServlet extends HttpServlet {
                         // nên MỌI task chưa có việc con đều đi lọt thẳng sang DONE — bỏ qua cả hai cổng.
                         // Câu hỏi đúng ở đây là "PM đã phê duyệt chưa?" (thẩm quyền),
                         // không phải "việc con xong chưa?" (tiến độ) — tiến độ vô nghĩa khi chưa có việc con.
-                        String errMsg = "🛡️ [Quality Gate 2] Task [" + task.getTitle() + "] bắt buộc qua nghiệm thu! "
-                                + "Task Lead hãy mở chi tiết công việc và bấm 'Nộp bàn giao' để PM phê duyệt.";
+                        String errMsg = "🛡️ [Cần nghiệm thu] Công việc [" + task.getTitle() + "] bắt buộc qua nghiệm thu! "
+                                + "Trưởng nhóm công việc hãy mở chi tiết công việc và bấm 'Nộp bàn giao' để trưởng dự án phê duyệt.";
                         if (isAjax) {
                             sendJsonResponse(response, false, errMsg, null);
                             return;
@@ -1047,7 +1047,7 @@ public class TaskServlet extends HttpServlet {
             if (!"TODO".equalsIgnoreCase(parentTask.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(parentTask.getStatus())) {
                 if (session != null) {
                     session.setAttribute("toastError", 
-                        "⚠️ Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm việc con mới!");
+                        "⚠️ Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm nhiệm vụ mới!");
                 }
                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                 return;
@@ -1062,7 +1062,7 @@ public class TaskServlet extends HttpServlet {
                     if (subDate.isAfter(parentDate)) {
                         if (session != null) {
                             session.setAttribute("toastError", 
-                                "Việc con phải được hoàn thành trước hạn chót của công việc lớn (" + parentTask.getDueDate().trim() + ")!");
+                                "Nhiệm vụ phải được hoàn thành trước hạn chót của công việc lớn (" + parentTask.getDueDate().trim() + ")!");
                         }
                         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                         return;
@@ -1087,10 +1087,10 @@ public class TaskServlet extends HttpServlet {
                     ""
                 );
                 SubTaskDB.insert(newSubTask);
-                if (session != null) session.setAttribute("toastSuccess", "Đã thêm việc con vào kế hoạch phân rã thành công!");
+                if (session != null) session.setAttribute("toastSuccess", "Đã thêm nhiệm vụ vào kế hoạch phân rã thành công!");
             }
         } else {
-            if (session != null) session.setAttribute("toastError", "Bạn không có quyền phân rã việc con cho Task này!");
+            if (session != null) session.setAttribute("toastError", "Bạn không có quyền phân rã nhiệm vụ cho công việc này!");
         }
 
         // Áp dụng PRG: Redirect về lại bảng Kanban
@@ -1127,7 +1127,7 @@ public class TaskServlet extends HttpServlet {
             Project project = ProjectDB.selectById(projectId);
 
             if (parentTask != null && "DONE".equalsIgnoreCase(parentTask.getStatus())) {
-                String errMsg = "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành (DONE) và được khóa, không thể thay đổi việc con!";
+                String errMsg = "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành và được khóa, không thể thay đổi nhiệm vụ!";
                 if (isAjax) {
                     sendJsonResponse(response, false, errMsg, null);
                     return;
@@ -1159,19 +1159,19 @@ public class TaskServlet extends HttpServlet {
                     if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) 
                     {
                         TaskDB.updateStatus(parentTask.getId(), "DONE");
-                        String celebrationText = "🏆 CHÚC MỪNG: Tất cả việc con đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
+                        String celebrationText = "🏆 CHÚC MỪNG: Tất cả nhiệm vụ đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
                     } 
                     else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) 
                     {
                         TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
-                        String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
+                        String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% nhiệm vụ. Công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
                     } 
                     else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) 
                     {
                         TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
-                        String reopenText = "⚠️ CẬP NHẬT: Còn việc con chưa xong (" + newProgress + "%). Task [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
+                        String reopenText = "⚠️ CẬP NHẬT: Còn nhiệm vụ chưa xong (" + newProgress + "%). Công việc [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", reopenText, now));
                     }
                 } else {
@@ -1186,8 +1186,8 @@ public class TaskServlet extends HttpServlet {
                 // 3. Ghi nhận lên Luồng Thảo Luận (nội dung khác nhau theo chế độ)
                 if (isCompleted) {
                     String notificationText = isGateEnforced
-                        ? "📤 " + st.getAssigneeName() + " vừa nộp việc con: [" + st.getTitle() + "] — Đang chờ Task Lead nghiệm thu."
-                        : "🎉 " + st.getAssigneeName() + " vừa hoàn thành việc con: [" + st.getTitle() + "] — Đóng góp đưa tiến độ Task lên " + newProgress + "%!";
+                        ? "📤 " + st.getAssigneeName() + " vừa nộp nhiệm vụ: [" + st.getTitle() + "] — Đang chờ trưởng nhóm công việc nghiệm thu."
+                        : "🎉 " + st.getAssigneeName() + " vừa hoàn thành nhiệm vụ: [" + st.getTitle() + "] — Đóng góp đưa tiến độ công việc lên " + newProgress + "%!";
                     Message systemMessage = new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", notificationText, now);
                     MessageDB.insert(systemMessage);
 
@@ -1196,8 +1196,8 @@ public class TaskServlet extends HttpServlet {
                     if (isGateEnforced && parentTask.getAssigneeId() > 0 && parentTask.getAssigneeId() != currentUser.getId()) {
                         NotificationDB.send(
                             parentTask.getAssigneeId(),
-                            "📋 Cần duyệt việc con",
-                            st.getAssigneeName() + " vừa nộp việc con [" + st.getTitle() + "]. Hãy vào kiểm tra và duyệt nghiệm thu!",
+                            "📋 Cần duyệt nhiệm vụ",
+                            st.getAssigneeName() + " vừa nộp nhiệm vụ [" + st.getTitle() + "]. Hãy vào kiểm tra và duyệt nghiệm thu!",
                             "/task?action=list&projectId=" + projectId,
                             "bi-clipboard-check text-warning"
                         );
@@ -1206,17 +1206,17 @@ public class TaskServlet extends HttpServlet {
 
                 if (isAjax) {
                     String msg = isCompleted
-                            ? (isGateEnforced ? "Đã nộp việc con — chờ Task Lead duyệt nghiệm thu!" : "Đã đánh dấu hoàn thành việc con!")
-                            : "Đã chuyển việc con về cần làm.";
+                            ? (isGateEnforced ? "Đã nộp nhiệm vụ — chờ trưởng nhóm công việc duyệt nghiệm thu!" : "Đã đánh dấu hoàn thành nhiệm vụ!")
+                            : "Đã chuyển nhiệm vụ về cần làm.";
                     sendJsonResponse(response, true, msg, "{\"subTaskId\":" + subTaskId + ",\"parentTaskId\":" + st.getTaskId() + ",\"isCompleted\":" + isCompleted + ",\"newProgress\":" + newProgress + ",\"parentStatus\":\"" + escapeJson(parentTask.getStatus()) + "\"}");
                     return;
                 }
             } else if (isAjax) {
-                sendJsonResponse(response, false, "Bạn không có quyền thao tác trên việc con này!", null);
+                sendJsonResponse(response, false, "Bạn không có quyền thao tác trên nhiệm vụ này!", null);
                 return;
             }
         } else if (isAjax) {
-            sendJsonResponse(response, false, "Không tìm thấy việc con tương ứng!", null);
+            sendJsonResponse(response, false, "Không tìm thấy nhiệm vụ tương ứng!", null);
             return;
         }
 
@@ -1251,7 +1251,7 @@ public class TaskServlet extends HttpServlet {
                 if (!"TODO".equalsIgnoreCase(parentTask.getStatus())) {
                     if (session != null) {
                         session.setAttribute("toastError", 
-                            "⚠️ Kế hoạch phân rã đã được trình PM hoặc đã khóa (Scope Lock). Không thể xóa việc con!");
+                            "⚠️ Kế hoạch phân rã đã được trình trưởng dự án hoặc đã khóa. Không thể xóa nhiệm vụ!");
                     }
                     response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                     return;
@@ -1260,9 +1260,9 @@ public class TaskServlet extends HttpServlet {
                 // KIỂM SOÁT THẨM QUYỀN: Chỉ Task Lead của chính Task này HOẶC Trưởng Dự Án mới được xóa việc con
                 if (isTaskLead(currentUser, parentTask) || isProjectOwner(currentUser, project)) {
                     SubTaskDB.delete(subTaskId);
-                    if (session != null) session.setAttribute("toastSuccess", "Đã xóa việc con khỏi kế hoạch phân rã!");
+                    if (session != null) session.setAttribute("toastSuccess", "Đã xóa nhiệm vụ khỏi kế hoạch phân rã!");
                 } else {
-                    if (session != null) session.setAttribute("toastError", "Bạn không có quyền xóa việc con này!");
+                    if (session != null) session.setAttribute("toastError", "Bạn không có quyền xóa nhiệm vụ này!");
                 }
             }
         }
@@ -1303,7 +1303,7 @@ public class TaskServlet extends HttpServlet {
 
         // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG THỂ CHỈNH SỬA THÔNG TIN TASK ĐÃ DONE
         if ("DONE".equalsIgnoreCase(task.getStatus())) {
-            if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành (DONE) và được khóa vĩnh viễn, không thể chỉnh sửa!");
+            if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành và được khóa vĩnh viễn, không thể chỉnh sửa!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
@@ -1350,8 +1350,8 @@ public class TaskServlet extends HttpServlet {
                         // Gửi thông báo cho người mới được giao task
                         NotificationDB.send(
                             newAssigneeId,
-                            "Phân Công Nhiệm Vụ Mới",
-                            "Bạn vừa được Trưởng Dự Án phân công làm Task Lead cho công việc [" + task.getTitle() + "].",
+                            "Phân Công Công Việc Mới",
+                            "Bạn vừa được Trưởng Dự Án phân công làm trưởng nhóm công việc cho công việc [" + task.getTitle() + "].",
                             "/task?action=list&projectId=" + projectId,
                             "TASK"
                         );
@@ -1399,7 +1399,7 @@ public class TaskServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         if (subTask == null || project == null) {
-            if (session != null) session.setAttribute("toastError", "Không tìm thấy việc con cần sửa!");
+            if (session != null) session.setAttribute("toastError", "Không tìm thấy nhiệm vụ cần sửa!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -1413,21 +1413,21 @@ public class TaskServlet extends HttpServlet {
 
         // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG THỂ SỬA VIỆC CON KHI TASK CHA ĐÃ DONE
         if ("DONE".equalsIgnoreCase(parentTask.getStatus())) {
-            if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành (DONE) và được khóa, không thể sửa việc con!");
+            if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành và được khóa, không thể sửa nhiệm vụ!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
 
         // Kiểm tra thẩm quyền: PM hoặc Task Lead của parentTask
         if (!isProjectOwner(currentUser, project) && !isTaskLead(currentUser, parentTask)) {
-            if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án hoặc Task Lead mới có quyền sửa việc con!");
+            if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án hoặc trưởng nhóm công việc mới có quyền sửa nhiệm vụ!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
 
         // Validate tiêu đề
         if (title == null || title.trim().isEmpty()) {
-            if (session != null) session.setAttribute("toastError", "Tiêu đề việc con không được để trống!");
+            if (session != null) session.setAttribute("toastError", "Tiêu đề nhiệm vụ không được để trống!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
@@ -1450,7 +1450,7 @@ public class TaskServlet extends HttpServlet {
         SubTaskDB.update(subTask);
 
         if (session != null) {
-            session.setAttribute("toastSuccess", "Đã cập nhật thông tin việc con [" + subTask.getTitle() + "] thành công!");
+            session.setAttribute("toastSuccess", "Đã cập nhật thông tin nhiệm vụ [" + subTask.getTitle() + "] thành công!");
         }
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
     }
@@ -1497,20 +1497,20 @@ public class TaskServlet extends HttpServlet {
                     if (leadId > 0 && leadId != currentUser.getId()) {
                         NotificationDB.send(
                             leadId,
-                            "🟡 Báo cáo nộp việc con",
-                            currentUser.getFullName() + " vừa nộp kết quả việc con [" + st.getTitle() + "], mời bạn nghiệm thu!",
+                            "🟡 Báo cáo nộp nhiệm vụ",
+                            currentUser.getFullName() + " vừa nộp kết quả nhiệm vụ [" + st.getTitle() + "], mời bạn nghiệm thu!",
                             "/task?action=list&projectId=" + projectId,
                             "bi-hourglass-split text-warning"
                         );
                     }
 
                     // Thông báo lên Luồng Thảo luận
-                    String msgContent = "📤 " + currentUser.getFullName() + " vừa nộp kết quả việc con: [" + st.getTitle() + "] — Ghi chú: \"" + (submissionNote != null && !submissionNote.trim().isEmpty() ? submissionNote : "Đã hoàn tất công việc") + "\"";
+                    String msgContent = "📤 " + currentUser.getFullName() + " vừa nộp kết quả nhiệm vụ: [" + st.getTitle() + "] — Ghi chú: \"" + (submissionNote != null && !submissionNote.trim().isEmpty() ? submissionNote : "Đã hoàn tất công việc") + "\"";
                     MessageDB.insert(new Message(0, projectId, st.getTaskId(), 0, "Hệ Thống", msgContent, now));
 
-                    if (session != null) session.setAttribute("toastSuccess", "Đã nộp báo cáo kết quả việc con thành công! Đang chờ Task Lead duyệt.");
+                    if (session != null) session.setAttribute("toastSuccess", "Đã nộp báo cáo kết quả nhiệm vụ thành công! Đang chờ trưởng nhóm công việc duyệt.");
                 } else {
-                    if (session != null) session.setAttribute("toastError", "Bạn không có quyền nộp bài cho việc con của người khác!");
+                    if (session != null) session.setAttribute("toastError", "Bạn không có quyền nộp bài cho nhiệm vụ của người khác!");
                 }
             }
         }
@@ -1559,12 +1559,12 @@ public class TaskServlet extends HttpServlet {
                     boolean allApproved = SubTaskDB.areAllSubtasksApproved(st.getTaskId());
                     if (allApproved && !"DONE".equals(parentTask.getStatus())) {
                         TaskDB.updateStatus(parentTask.getId(), "DONE");
-                        String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả việc con đã được duyệt nghiệm thu ĐẠT (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
+                        String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả nhiệm vụ đã được duyệt nghiệm thu ĐẠT (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
                     } 
                     else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
                         TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
-                        String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã nghiệm thu " + newProgress + "% việc con. Task [" + parentTask.getTitle() + "] chuyển sang ĐANG LÀM!";
+                        String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã nghiệm thu " + newProgress + "% nhiệm vụ. Công việc [" + parentTask.getTitle() + "] chuyển sang ĐANG LÀM!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
                     }
 
@@ -1573,15 +1573,15 @@ public class TaskServlet extends HttpServlet {
                         NotificationDB.send(
                             st.getAssigneeId(),
                             "🟢 Nghiệm thu ĐẠT",
-                            "Việc con [" + st.getTitle() + "] của bạn đã được Leader duyệt đạt 100%!",
+                            "Nhiệm vụ [" + st.getTitle() + "] của bạn đã được Leader duyệt đạt 100%!",
                             "/task?action=list&projectId=" + projectId,
                             "bi-check-circle-fill text-success"
                         );
                     }
 
-                    if (session != null) session.setAttribute("toastSuccess", "Đã duyệt nghiệm thu ĐẠT cho việc con!");
+                    if (session != null) session.setAttribute("toastSuccess", "Đã duyệt nghiệm thu ĐẠT cho nhiệm vụ!");
                 } else {
-                    if (session != null) session.setAttribute("toastError", "Thẩm quyền thẩm định việc con thuộc về Trưởng Nhóm Task (Task Lead) của công việc này!");
+                    if (session != null) session.setAttribute("toastError", "Thẩm quyền thẩm định nhiệm vụ thuộc về Trưởng nhóm công việc của công việc này!");
                 }
             }
         }
@@ -1624,8 +1624,8 @@ public class TaskServlet extends HttpServlet {
                     if (st.getAssigneeId() > 0 && st.getAssigneeId() != currentUser.getId()) {
                         NotificationDB.send(
                             st.getAssigneeId(),
-                            "🔵 Yêu cầu cân chỉnh việc con",
-                            "Leader dặn dò: \"" + (feedbackNote != null ? feedbackNote : "Cần cân chỉnh một số chi tiết") + "\" đối với việc con [" + st.getTitle() + "]",
+                            "🔵 Yêu cầu cân chỉnh nhiệm vụ",
+                            "Leader dặn dò: \"" + (feedbackNote != null ? feedbackNote : "Cần cân chỉnh một số chi tiết") + "\" đối với nhiệm vụ [" + st.getTitle() + "]",
                             "/task?action=list&projectId=" + projectId,
                             "bi-pencil-square text-primary"
                         );
@@ -1633,7 +1633,7 @@ public class TaskServlet extends HttpServlet {
 
                     if (session != null) session.setAttribute("toastSuccess", "Đã gửi yêu cầu cân chỉnh nhỏ (🔵 Xanh Dương) tới thành viên!");
                 } else {
-                    if (session != null) session.setAttribute("toastError", "Thẩm quyền thẩm định việc con thuộc về Trưởng Nhóm Task (Task Lead) của công việc này!");
+                    if (session != null) session.setAttribute("toastError", "Thẩm quyền thẩm định nhiệm vụ thuộc về Trưởng nhóm công việc của công việc này!");
                 }
             }
         }
@@ -1675,16 +1675,16 @@ public class TaskServlet extends HttpServlet {
                     if (st.getAssigneeId() > 0 && st.getAssigneeId() != currentUser.getId()) {
                         NotificationDB.send(
                             st.getAssigneeId(),
-                            "🔴 Việc con chưa đạt yêu cầu",
-                            "Leader phản hồi lỗi: \"" + (feedbackNote != null ? feedbackNote : "Chưa đạt yêu cầu đề ra") + "\" đối với việc con [" + st.getTitle() + "]",
+                            "🔴 Nhiệm vụ chưa đạt yêu cầu",
+                            "Leader phản hồi lỗi: \"" + (feedbackNote != null ? feedbackNote : "Chưa đạt yêu cầu đề ra") + "\" đối với nhiệm vụ [" + st.getTitle() + "]",
                             "/task?action=list&projectId=" + projectId,
                             "bi-exclamation-triangle-fill text-danger"
                         );
                     }
 
-                    if (session != null) session.setAttribute("toastSuccess", "Đã trả về việc con và gửi phản hồi (🔴 Màu Đỏ) cho thành viên!");
+                    if (session != null) session.setAttribute("toastSuccess", "Đã trả về nhiệm vụ và gửi phản hồi (🔴 Màu Đỏ) cho thành viên!");
                 } else {
-                    if (session != null) session.setAttribute("toastError", "Thẩm quyền thẩm định việc con thuộc về Trưởng Nhóm Task (Task Lead) của công việc này!");
+                    if (session != null) session.setAttribute("toastError", "Thẩm quyền thẩm định nhiệm vụ thuộc về Trưởng nhóm công việc của công việc này!");
                 }
             }
         }
@@ -1732,7 +1732,7 @@ public class TaskServlet extends HttpServlet {
                 if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
                     if (session != null) {
                         session.setAttribute("toastError", 
-                            "⚠️ Không thể nộp bàn giao Task [" + task.getTitle() + "] cho PM khi danh sách việc con chưa đạt 100% (Tiến độ hiện tại: " + progress + "%). Hãy hoàn thành các việc con trước!");
+                            "⚠️ Không thể nộp bàn giao công việc [" + task.getTitle() + "] cho trưởng dự án khi danh sách nhiệm vụ chưa đạt 100% (Tiến độ hiện tại: " + progress + "%). Hãy hoàn thành các nhiệm vụ trước!");
                     }
                     response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                     return;
@@ -1753,7 +1753,7 @@ public class TaskServlet extends HttpServlet {
                     sb.append("🧪 [Kết quả kiểm thử]: ").append(testResult.trim()).append("\n\n");
                 }
                 if (testingGuide != null && !testingGuide.trim().isEmpty()) {
-                    sb.append("🧭 [Hướng dẫn PM nghiệm thu]: ").append(testingGuide.trim());
+                    sb.append("🧭 [Hướng dẫn trưởng dự án nghiệm thu]: ").append(testingGuide.trim());
                 }
 
                 String finalNote = sb.toString().trim();
@@ -1773,26 +1773,26 @@ public class TaskServlet extends HttpServlet {
                 TaskDB.submitTaskDeliverable(taskId, finalNote, deliverableFile.trim(), now);
 
                 // Ghi nhận Activity Log
-                ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu kèm tệp [" + deliverableFile.trim() + "] lên PM");
+                ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu kèm tệp [" + deliverableFile.trim() + "] lên trưởng dự án");
 
                 // Bắn thông báo thời gian thực 🔔 cho Trưởng Dự Án (PM)
                 if (project.getOwnerId() > 0 && project.getOwnerId() != currentUser.getId()) {
                     NotificationDB.send(
                         project.getOwnerId(),
-                        "🟡 Bàn giao Task lớn",
-                        currentUser.getFullName() + " vừa nộp báo cáo bàn giao Task [" + task.getTitle() + "] kèm tệp đính kèm, kính mời PM nghiệm thu!",
+                        "🟡 Bàn giao công việc lớn",
+                        currentUser.getFullName() + " vừa nộp báo cáo bàn giao công việc [" + task.getTitle() + "] kèm tệp đính kèm, kính mời trưởng dự án nghiệm thu!",
                         "/task?action=list&projectId=" + projectId,
                         "bi-box-seam-fill text-warning"
                     );
                 }
 
                 // Thông báo lên Luồng Thảo luận
-                String msgContent = "📦 [BÀN GIAO TASK]: " + currentUser.getFullName() + " đã nộp hồ sơ bàn giao Task [" + task.getTitle() + "] kèm tệp [" + deliverableFile.trim() + "] lên PM!";
+                String msgContent = "📦 [BÀN GIAO CÔNG VIỆC]: " + currentUser.getFullName() + " đã nộp hồ sơ bàn giao công việc [" + task.getTitle() + "] kèm tệp [" + deliverableFile.trim() + "] lên trưởng dự án!";
                 MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
 
-                if (session != null) session.setAttribute("toastSuccess", "Đã nộp báo cáo bàn giao Task lớn thành công! Đang chờ PM phê duyệt.");
+                if (session != null) session.setAttribute("toastSuccess", "Đã nộp báo cáo bàn giao công việc lớn thành công! Đang chờ trưởng dự án phê duyệt.");
             } else {
-                if (session != null) session.setAttribute("toastError", "Bạn không phải là Task Lead của thẻ công việc này!");
+                if (session != null) session.setAttribute("toastError", "Bạn không phải là trưởng nhóm công việc của thẻ công việc này!");
             }
         }
 
@@ -1827,7 +1827,7 @@ public class TaskServlet extends HttpServlet {
                 if (subTasks == null || subTasks.isEmpty()) {
                     if (session != null) {
                         session.setAttribute("toastError", 
-                            "⚠️ Không thể trình kế hoạch rỗng! Vui lòng phân rã ít nhất 1 việc con (Sub-task) trước khi gửi PM duyệt.");
+                            "⚠️ Không thể trình kế hoạch rỗng! Vui lòng phân rã ít nhất 1 nhiệm vụ trước khi gửi trưởng dự án duyệt.");
                     }
                     response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                     return;
@@ -1842,20 +1842,20 @@ public class TaskServlet extends HttpServlet {
                 if (project.getOwnerId() > 0 && project.getOwnerId() != currentUser.getId()) {
                     NotificationDB.send(
                         project.getOwnerId(),
-                        "🟣 Trình Kế Hoạch Phân Rã Việc Con",
-                        currentUser.getFullName() + " vừa trình kế hoạch phân rã " + subTasks.size() + " việc con cho Task [" + task.getTitle() + "], kính mời PM xem xét và khóa kế hoạch!",
+                        "🟣 Trình Kế Hoạch Phân Rã Nhiệm Vụ",
+                        currentUser.getFullName() + " vừa trình kế hoạch phân rã " + subTasks.size() + " nhiệm vụ cho công việc [" + task.getTitle() + "], kính mời trưởng dự án xem xét và khóa kế hoạch!",
                         "/task?action=list&projectId=" + projectId,
                         "bi-diagram-3-fill text-primary"
                     );
                 }
 
                 // Thông báo lên Luồng Thảo luận
-                String msgContent = "📋 [TRÌNH KẾ HOẠCH PHÂN RÃ]: " + currentUser.getFullName() + " đã phân rã xong " + subTasks.size() + " việc con cho Task [" + task.getTitle() + "] và trình lên Trưởng Dự Án (PM) phê duyệt khóa phạm vi!";
+                String msgContent = "📋 [TRÌNH KẾ HOẠCH PHÂN RÃ]: " + currentUser.getFullName() + " đã phân rã xong " + subTasks.size() + " nhiệm vụ cho công việc [" + task.getTitle() + "] và trình lên Trưởng Dự Án phê duyệt khóa phạm vi!";
                 MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
 
-                if (session != null) session.setAttribute("toastSuccess", "Đã trình kế hoạch phân rã việc con lên Trưởng Dự Án (PM) thành công! Đang chờ PM phê duyệt khóa phạm vi.");
+                if (session != null) session.setAttribute("toastSuccess", "Đã trình kế hoạch phân rã nhiệm vụ lên Trưởng Dự Án thành công! Đang chờ trưởng dự án phê duyệt khóa phạm vi.");
             } else {
-                if (session != null) session.setAttribute("toastError", "Bạn không phải là Task Lead của thẻ công việc này!");
+                if (session != null) session.setAttribute("toastError", "Bạn không phải là trưởng nhóm công việc của thẻ công việc này!");
             }
         }
 
@@ -1895,20 +1895,20 @@ public class TaskServlet extends HttpServlet {
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(
                         task.getAssigneeId(),
-                        "🔒 PM Đã Phê Duyệt & Khóa Kế Hoạch",
-                        "Trưởng Dự Án đã duyệt ma trận phân rã " + (subTasks != null ? subTasks.size() : 0) + " việc con của Task [" + task.getTitle() + "]. Kế hoạch đã khóa (Scope Lock), đội ngũ bắt tay thực thi!",
+                        "🔒 Trưởng Dự Án Đã Phê Duyệt & Khóa Kế Hoạch",
+                        "Trưởng Dự Án đã duyệt ma trận phân rã " + (subTasks != null ? subTasks.size() : 0) + " nhiệm vụ của công việc [" + task.getTitle() + "]. Kế hoạch đã khóa, đội ngũ bắt tay thực thi!",
                         "/task?action=list&projectId=" + projectId,
                         "bi-lock-fill text-success"
                     );
                 }
 
                 // Thông báo lên Luồng Thảo luận
-                String msgContent = "🔒 [PM KHÓA KẾ HOẠCH PHÂN RÃ]: Trưởng Dự Án đã duyệt danh mục " + (subTasks != null ? subTasks.size() : 0) + " việc con của Task [" + task.getTitle() + "]! Phạm vi công việc chính thức được KHÓA (Scope Baseline Lock). Đội ngũ bắt đầu thực thi!";
+                String msgContent = "🔒 [TRƯỞNG DỰ ÁN KHÓA KẾ HOẠCH PHÂN RÃ]: Trưởng Dự Án đã duyệt danh mục " + (subTasks != null ? subTasks.size() : 0) + " nhiệm vụ của công việc [" + task.getTitle() + "]! Phạm vi công việc chính thức được KHÓA (Scope Baseline Lock). Đội ngũ bắt đầu thực thi!";
                 MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
 
-                if (session != null) session.setAttribute("toastSuccess", "Trưởng Dự Án đã phê duyệt và khóa kế hoạch phân rã thành công! Task chuyển sang Đang Làm.");
+                if (session != null) session.setAttribute("toastSuccess", "Trưởng Dự Án đã phê duyệt và khóa kế hoạch phân rã thành công! Công việc chuyển sang Đang Làm.");
             } else {
-                if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án (PM) mới có thẩm quyền duyệt và khóa kế hoạch phân rã!");
+                if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có thẩm quyền duyệt và khóa kế hoạch phân rã!");
             }
         }
 
@@ -1946,18 +1946,18 @@ public class TaskServlet extends HttpServlet {
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(
                         task.getAssigneeId(),
-                        "↩️ PM Yêu Cầu Chỉnh Sửa Kế Hoạch",
-                        "Trưởng Dự Án yêu cầu bổ sung kế hoạch Task [" + task.getTitle() + "]: \"" + (feedback != null ? feedback : "Cần bóc tách thêm việc con") + "\"",
+                        "↩️ Trưởng Dự Án Yêu Cầu Chỉnh Sửa Kế Hoạch",
+                        "Trưởng Dự Án yêu cầu bổ sung kế hoạch công việc [" + task.getTitle() + "]: \"" + (feedback != null ? feedback : "Cần bóc tách thêm nhiệm vụ") + "\"",
                         "/task?action=list&projectId=" + projectId,
                         "bi-arrow-counterclockwise text-warning"
                     );
                 }
 
                 // Thông báo lên Luồng Thảo luận
-                String msgContent = "↩️ [PM YÊU CẦU ĐIỀU CHỈNH KẾ HOẠCH]: Trưởng Dự Án yêu cầu Task Lead hoàn thiện lại danh mục việc con của Task [" + task.getTitle() + "]. Lý do: \"" + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Cần phân rã chi tiết hơn") + "\"";
+                String msgContent = "↩️ [TRƯỞNG DỰ ÁN YÊU CẦU ĐIỀU CHỈNH KẾ HOẠCH]: Trưởng Dự Án yêu cầu trưởng nhóm công việc hoàn thiện lại danh mục nhiệm vụ của công việc [" + task.getTitle() + "]. Lý do: \"" + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Cần phân rã chi tiết hơn") + "\"";
                 MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
 
-                if (session != null) session.setAttribute("toastSuccess", "Đã trả về kế hoạch phân rã để Task Lead tiếp tục hoàn thiện.");
+                if (session != null) session.setAttribute("toastSuccess", "Đã trả về kế hoạch phân rã để trưởng nhóm công việc tiếp tục hoàn thiện.");
             } else {
                 if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có quyền đưa ra quyết định này!");
             }
@@ -1996,7 +1996,7 @@ public class TaskServlet extends HttpServlet {
                 if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
                     if (session != null) {
                         session.setAttribute("toastError", 
-                            "⚠️ Không thể duyệt đạt Task [" + task.getTitle() + "]! Vẫn còn " + (100 - progress) + "% việc con chưa được hoàn tất nghiệm thu.");
+                            "⚠️ Không thể duyệt đạt công việc [" + task.getTitle() + "]! Vẫn còn " + (100 - progress) + "% nhiệm vụ chưa được hoàn tất nghiệm thu.");
                     }
                     response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                     return;
@@ -2008,27 +2008,27 @@ public class TaskServlet extends HttpServlet {
                 TaskDB.pmApproveTask(taskId, feedback, qualityRating, now);
 
                 // Ghi nhận Activity Log
-                String approveDesc = "PM đã phê duyệt nghiệm thu (" + qualityRating + " ⭐): " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Đạt chất lượng xuất sắc!");
+                String approveDesc = "Trưởng dự án đã phê duyệt nghiệm thu (" + qualityRating + " ⭐): " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Đạt chất lượng xuất sắc!");
                 ActivityLogDB.logAsync(projectId, currentUser.getId(), "PM_APPROVE", "TASK", taskId, task.getTitle(), approveDesc);
 
                 // Bắn thông báo thời gian thực 🔔 cho Task Lead
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(
                         task.getAssigneeId(),
-                        "🏆 PM Phê Duyệt Nghiệm Thu (" + qualityRating + " ⭐)",
-                        "Trưởng Dự Án đã chính thức ký duyệt nghiệm thu hoàn tất 100% và chấm " + qualityRating + " sao cho Task [" + task.getTitle() + "]!",
+                        "🏆 Trưởng Dự Án Phê Duyệt Nghiệm Thu (" + qualityRating + " ⭐)",
+                        "Trưởng Dự Án đã chính thức ký duyệt nghiệm thu hoàn tất 100% và chấm " + qualityRating + " sao cho công việc [" + task.getTitle() + "]!",
                         "/task?action=list&projectId=" + projectId,
                         "bi-trophy-fill text-warning"
                     );
                 }
 
                 // Thông báo cúp vàng lên Thảo luận
-                String msgContent = "🏆 [PM KÝ DUYỆT ĐÓNG TASK]: Trưởng Dự Án đã nghiệm thu hoàn thành 100% (Đánh giá: " + qualityRating + " ⭐) cho Task [" + task.getTitle() + "]! Lời nhận xét: \"" + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Đạt chất lượng xuất sắc!") + "\"";
+                String msgContent = "🏆 [TRƯỞNG DỰ ÁN KÝ DUYỆT ĐÓNG CÔNG VIỆC]: Trưởng Dự Án đã nghiệm thu hoàn thành 100% (Đánh giá: " + qualityRating + " ⭐) cho công việc [" + task.getTitle() + "]! Lời nhận xét: \"" + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Đạt chất lượng xuất sắc!") + "\"";
                 MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
 
-                if (session != null) session.setAttribute("toastSuccess", "Trưởng Dự Án đã phê duyệt nghiệm thu thành công! Task đã hoàn tất 100%.");
+                if (session != null) session.setAttribute("toastSuccess", "Trưởng Dự Án đã phê duyệt nghiệm thu thành công! Công việc đã hoàn tất 100%.");
             } else {
-                if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án (PM) mới có thẩm quyền phê duyệt nghiệm thu tối cao!");
+                if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có thẩm quyền phê duyệt nghiệm thu tối cao!");
             }
         }
 
@@ -2063,20 +2063,20 @@ public class TaskServlet extends HttpServlet {
                 TaskDB.pmReviseTask(taskId, feedback, now);
 
                 // Ghi nhận Activity Log
-                String reviseDesc = "PM yêu cầu cân chỉnh nhỏ: " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Cần hoàn thiện thêm chi tiết");
+                String reviseDesc = "Trưởng dự án yêu cầu cân chỉnh nhỏ: " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Cần hoàn thiện thêm chi tiết");
                 ActivityLogDB.logAsync(projectId, currentUser.getId(), "PM_REVISE", "TASK", taskId, task.getTitle(), reviseDesc);
 
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(
                         task.getAssigneeId(),
-                        "🔵 PM Yêu Cầu Cân Chỉnh",
-                        "Trưởng Dự Án dặn dò: \"" + (feedback != null ? feedback : "Cần cân chỉnh thêm một số chi tiết") + "\" đối với Task [" + task.getTitle() + "]",
+                        "🔵 Trưởng Dự Án Yêu Cầu Cân Chỉnh",
+                        "Trưởng Dự Án dặn dò: \"" + (feedback != null ? feedback : "Cần cân chỉnh thêm một số chi tiết") + "\" đối với công việc [" + task.getTitle() + "]",
                         "/task?action=list&projectId=" + projectId,
                         "bi-pencil-square text-primary"
                     );
                 }
 
-                if (session != null) session.setAttribute("toastSuccess", "Đã gửi yêu cầu cân chỉnh nhỏ (🔵 Xanh Dương) tới Task Lead!");
+                if (session != null) session.setAttribute("toastSuccess", "Đã gửi yêu cầu cân chỉnh nhỏ (🔵 Xanh Dương) tới trưởng nhóm công việc!");
             } else {
                 if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có quyền đưa ra quyết định này!");
             }
@@ -2113,20 +2113,20 @@ public class TaskServlet extends HttpServlet {
                 TaskDB.pmRejectTask(taskId, feedback, now);
 
                 // Ghi nhận Activity Log
-                String rejectDesc = "PM từ chối nghiệm thu: " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Chưa đạt yêu cầu đề ra");
+                String rejectDesc = "Trưởng dự án từ chối nghiệm thu: " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Chưa đạt yêu cầu đề ra");
                 ActivityLogDB.logAsync(projectId, currentUser.getId(), "PM_REJECT", "TASK", taskId, task.getTitle(), rejectDesc);
 
                 if (task.getAssigneeId() > 0 && task.getAssigneeId() != currentUser.getId()) {
                     NotificationDB.send(
                         task.getAssigneeId(),
-                        "🔴 PM Chưa Đạt Yêu Cầu",
-                        "Trưởng Dự Án phản hồi lỗi: \"" + (feedback != null ? feedback : "Chưa đạt chuẩn đề ra") + "\" đối với Task [" + task.getTitle() + "]",
+                        "🔴 Trưởng Dự Án Chưa Đạt Yêu Cầu",
+                        "Trưởng Dự Án phản hồi lỗi: \"" + (feedback != null ? feedback : "Chưa đạt chuẩn đề ra") + "\" đối với công việc [" + task.getTitle() + "]",
                         "/task?action=list&projectId=" + projectId,
                         "bi-exclamation-triangle-fill text-danger"
                     );
                 }
 
-                if (session != null) session.setAttribute("toastSuccess", "Đã trả về Task lớn và gửi phản hồi (🔴 Màu Đỏ) cho Task Lead!");
+                if (session != null) session.setAttribute("toastSuccess", "Đã trả về công việc lớn và gửi phản hồi (🔴 Màu Đỏ) cho trưởng nhóm công việc!");
             } else {
                 if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có quyền đưa ra quyết định này!");
             }
@@ -2454,7 +2454,7 @@ public class TaskServlet extends HttpServlet {
         int assigneeId = safeParseInt(request.getParameter("assigneeId"), 0);
 
         if (projectId <= 0 || taskId <= 0 || title == null || title.trim().isEmpty()) {
-            sendJsonResponse(response, false, "Tiêu đề việc con không được để trống!", null);
+            sendJsonResponse(response, false, "Tiêu đề nhiệm vụ không được để trống!", null);
             return;
         }
 
@@ -2472,12 +2472,12 @@ public class TaskServlet extends HttpServlet {
         }
 
         if (!isTaskLead(currentUser, parentTask) && !isProjectOwner(currentUser, project)) {
-            sendJsonResponse(response, false, "Bạn không có quyền phân rã việc con cho Task này!", null);
+            sendJsonResponse(response, false, "Bạn không có quyền phân rã nhiệm vụ cho công việc này!", null);
             return;
         }
 
         if (!"TODO".equalsIgnoreCase(parentTask.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(parentTask.getStatus())) {
-            sendJsonResponse(response, false, "Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm việc con mới!", null);
+            sendJsonResponse(response, false, "Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm nhiệm vụ mới!", null);
             return;
         }
 
@@ -2511,13 +2511,13 @@ public class TaskServlet extends HttpServlet {
         );
         int subId = SubTaskDB.insert(newSubTask);
         if (subId <= 0) {
-            sendJsonResponse(response, false, "Lỗi khi lưu việc con vào cơ sở dữ liệu!", null);
+            sendJsonResponse(response, false, "Lỗi khi lưu nhiệm vụ vào cơ sở dữ liệu!", null);
             return;
         }
         newSubTask.setId(subId);
 
         // Ghi nhận Activity Log
-        ActivityLogDB.logAsync(projectId, currentUser.getId(), "SUBTASK_CREATE", "SUBTASK", subId, newSubTask.getTitle(), "Thêm việc con: " + newSubTask.getTitle() + " cho Task #" + taskId);
+        ActivityLogDB.logAsync(projectId, currentUser.getId(), "SUBTASK_CREATE", "SUBTASK", subId, newSubTask.getTitle(), "Thêm nhiệm vụ: " + newSubTask.getTitle() + " cho công việc #" + taskId);
 
         String dataJson = String.format(
             "{\"id\":%d,\"taskId\":%d,\"title\":\"%s\",\"status\":\"%s\",\"dueDate\":\"%s\",\"assigneeId\":%d,\"assigneeName\":\"%s\"}",
@@ -2530,7 +2530,7 @@ public class TaskServlet extends HttpServlet {
             escapeJson(newSubTask.getAssigneeName())
         );
 
-        sendJsonResponse(response, true, "Đã thêm việc con thành công!", dataJson);
+        sendJsonResponse(response, true, "Đã thêm nhiệm vụ thành công!", dataJson);
     }
 
     /**

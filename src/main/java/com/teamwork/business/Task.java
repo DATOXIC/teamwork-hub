@@ -229,8 +229,8 @@ public class Task implements Serializable {
      * Trả về tên nhãn hiển thị tiếng Việt kèm icon cho Task Lớn
      */
     public String getStatusLabel() {
-        if ("PLANNING".equalsIgnoreCase(status)) return "🟣 Chờ PM duyệt kế hoạch";
-        if ("SUBMITTED".equalsIgnoreCase(status)) return "🟡 Chờ PM duyệt nghiệm thu";
+        if ("PLANNING".equalsIgnoreCase(status)) return "🟣 Chờ trưởng dự án duyệt kế hoạch";
+        if ("SUBMITTED".equalsIgnoreCase(status)) return "🟡 Chờ trưởng dự án duyệt nghiệm thu";
         if ("REVISE".equalsIgnoreCase(status)) return "🔵 Cần cân chỉnh";
         if ("REJECTED".equalsIgnoreCase(status)) return "🔴 Chưa đạt yêu cầu";
         if ("DONE".equalsIgnoreCase(status) || "APPROVED".equalsIgnoreCase(status)) return "🟢 Đã nghiệm thu";

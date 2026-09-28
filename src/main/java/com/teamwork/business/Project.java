@@ -181,7 +181,7 @@ public class Project implements Serializable {
     }
 
     public String getProjectTypeLabel() {
-        return isSoloProject() ? "Cá nhân (Linh hoạt)" : "Nhóm (Quality Gate)";
+        return isSoloProject() ? "Cá nhân (Linh hoạt)" : "Nhóm (Có kiểm duyệt)";
     }
 
     public String getProjectTypeBadgeClass() {

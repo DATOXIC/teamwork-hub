@@ -154,7 +154,7 @@ public class ProjectInviteServlet extends HttpServlet {
 
         // --- RÀO BẢO MẬT 1: QUYỀN HẠN (Chỉ PM mới có quyền mời) ---
         if (project.getOwnerId() != currentUser.getId()) {
-            session.setAttribute("toastError", "Chỉ Trưởng Dự Án (PM) mới có thẩm quyền gửi lời mời!");
+            session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có thẩm quyền gửi lời mời!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
@@ -238,7 +238,7 @@ public class ProjectInviteServlet extends HttpServlet {
         String projectCode = request.getParameter("projectCode");
 
         if (projectCode == null || projectCode.trim().isEmpty()) {
-            session.setAttribute("toastError", "Vui lòng nhập Mã Dự Án (Project Code)!");
+            session.setAttribute("toastError", "Vui lòng nhập Mã Dự Án!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -498,7 +498,7 @@ public class ProjectInviteServlet extends HttpServlet {
 
         // Ràng buộc bảo mật: Trưởng Dự Án (PM/Owner) không thể tự rời khỏi dự án của mình
         if (project.getOwnerId() == currentUser.getId()) {
-            session.setAttribute("toastError", "Bạn là Trưởng Dự Án (PM/Owner), không thể rời dự án của chính mình!");
+            session.setAttribute("toastError", "Bạn là Trưởng Dự Án, không thể rời dự án của chính mình!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
@@ -554,7 +554,7 @@ public class ProjectInviteServlet extends HttpServlet {
 
         // Ràng buộc bảo mật: Chỉ Trưởng Dự Án (PM/Owner) mới có quyền mời rời thành viên
         if (project.getOwnerId() != currentUser.getId()) {
-            session.setAttribute("toastError", "Chỉ Trưởng Dự Án (PM) mới có quyền mời thành viên rời dự án!");
+            session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có quyền mời thành viên rời dự án!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }

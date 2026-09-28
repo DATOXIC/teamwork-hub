@@ -13,7 +13,7 @@
                 </span>
             </div>
             <ul class="nav col-md-4 justify-content-end list-unstyled d-flex gap-3 mb-0">
-                <li><a href="${pageContext.request.contextPath}/project?action=list" class="text-muted text-decoration-none fs-8"><i class="bi bi-grid me-1"></i>Dashboard</a></li>
+                <li><a href="${pageContext.request.contextPath}/project?action=list" class="text-muted text-decoration-none fs-8"><i class="bi bi-grid me-1"></i>Danh sách dự án</a></li>
                 <li><a href="${pageContext.request.contextPath}/auth?action=logout" class="text-muted text-decoration-none fs-8"><i class="bi bi-box-arrow-right me-1"></i>Đăng xuất</a></li>
             </ul>
         </div>

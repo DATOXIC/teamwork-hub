@@ -28,7 +28,7 @@
         </a>
 
         <!-- Mobile Toggle Button -->
-        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Bật/tắt thanh điều hướng">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -51,7 +51,7 @@
                         onclick="openCommandPalette()" 
                         data-cp-trigger
                         title="Mở thanh tìm kiếm & điều hướng lệnh (Ctrl + K)" 
-                        aria-label="Mở Command Palette">
+                        aria-label="Mở Bảng lệnh">
                     <i class="bi bi-search fs-9"></i>
                     <span class="d-none d-lg-inline fs-9">Tìm kiếm hoặc lệnh...</span>
                     <kbd class="cp-kbd d-none d-sm-inline-flex">Ctrl K</kbd>

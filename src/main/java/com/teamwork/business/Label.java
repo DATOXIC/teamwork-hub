@@ -167,15 +167,15 @@ public class Label implements Serializable {
     public String getColorDisplayName() {
         if (colorKey == null) return "Xanh d\u01B0\u01A1ng";
         switch (colorKey.toLowerCase()) {
-            case "red":    return "\u0110\u1ECF Coral";
+            case "red":    return "\u0110\u1ECF san h\u00F4";
             case "blue":   return "Xanh D\u01B0\u01A1ng";
-            case "purple": return "T\u00EDm Pastel";
+            case "purple": return "T\u00EDm nh\u1EA1t";
             case "amber":  return "V\u00E0ng H\u1ED5 Ph\u00E1ch";
             case "green":  return "Xanh L\u00E1";
             case "pink":   return "H\u1ED3ng";
             case "cyan":   return "Xanh Ng\u1ECDc";
             case "slate":
-            default:       return "X\u00E1m Slate";
+            default:       return "X\u00E1m \u0111\u00E1";
         }
     }
 

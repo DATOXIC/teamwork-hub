@@ -440,7 +440,7 @@
                             <h5 class="modal-title fw-bold text-dark" id="joinByCodeModalLabel">
                                 <i class="bi bi-key-fill text-primary me-2"></i>Xin gia nhập dự án bằng Mã
                             </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                         </div>
 
                         <form action="${pageContext.request.contextPath}/invite" method="post">
@@ -448,7 +448,7 @@
 
                             <div class="modal-body py-3">
                                 <p class="text-muted fs-8 mb-3">
-                                    Nhập <strong>Mã Dự Án (Project Code)</strong> do Trưởng nhóm cung cấp (ví dụ:
+                                    Nhập <strong>Mã Dự Án</strong> do Trưởng nhóm cung cấp (ví dụ:
                                     <code>TW-HUB-01</code>) để gửi yêu cầu xin gia nhập.
                                 </p>
 
@@ -494,7 +494,7 @@
                             <h5 class="modal-title fw-bold text-dark" id="createProjectModalLabel">
                                 <i class="bi bi-plus-circle text-primary me-2"></i>Tạo dự án mới
                             </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                         </div>
 
                         <!-- FORM SUBMIT POST VỀ PROJECTSERVLET -->
@@ -544,7 +544,7 @@
                                                     <strong class="fs-8 text-dark">Dự Án Nhóm</strong>
                                                 </div>
                                                 <p class="fs-9 text-secondary mb-0 lh-sm">
-                                                    Áp dụng <strong>Quality Gate 2 tầng</strong>: duyệt kế hoạch phân rã và nghiệm thu có chấm sao.
+                                                    Áp dụng <strong>kiểm duyệt 2 bước</strong>: duyệt kế hoạch và nghiệm thu có chấm sao.
                                                 </p>
                                             </label>
                                         </div>
@@ -553,10 +553,10 @@
                                                 <input type="radio" name="projectType" value="SOLO" class="form-check-input position-absolute top-0 end-0 m-2" onchange="document.getElementById('card-type-solo').classList.add('border-primary','bg-primary-subtle','bg-opacity-10'); document.getElementById('card-type-team').classList.remove('border-primary','bg-primary-subtle','bg-opacity-10');">
                                                 <div class="d-flex align-items-center gap-1-5 mb-1 pe-3">
                                                     <span class="badge bg-info text-white rounded-circle p-1 lh-1"><i class="bi bi-person-fill fs-9"></i></span>
-                                                    <strong class="fs-8 text-dark">Cá Nhân (Fast-track)</strong>
+                                                    <strong class="fs-8 text-dark">Cá Nhân (Không cần duyệt)</strong>
                                                 </div>
                                                 <p class="fs-9 text-secondary mb-0 lh-sm">
-                                                    Linh hoạt như <strong>ClickUp</strong>: tự do đổi trạng thái, việc con là checklist, không cần qua duyệt.
+                                                    Linh hoạt: tự do đổi trạng thái, nhiệm vụ là danh sách kiểm tra, không cần qua duyệt.
                                                 </p>
                                             </label>
                                         </div>
@@ -587,7 +587,7 @@
                             <span>Đã sao chép mã dự án: <strong id="copiedCodeText" class="text-info"></strong></span>
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
-                            aria-label="Close"></button>
+                            aria-label="Đóng"></button>
                     </div>
                 </div>
             </div>

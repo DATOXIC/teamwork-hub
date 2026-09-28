@@ -248,7 +248,7 @@ public class TaskDB {
             Task t = em.find(Task.class, taskId);
             if (t != null) {
                 t.setStatus("DONE");
-                t.setPmFeedback(feedback != null ? feedback.trim() : "PM đã phê duyệt nghiệm thu xuất sắc!");
+                t.setPmFeedback(feedback != null ? feedback.trim() : "Trưởng dự án đã phê duyệt nghiệm thu xuất sắc!");
                 t.setQualityRating(qualityRating > 0 ? qualityRating : 5);
                 em.merge(t);
                 tx.commit();

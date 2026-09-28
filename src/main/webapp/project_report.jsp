@@ -49,7 +49,7 @@
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <a href="${pageContext.request.contextPath}/project?action=list"
                 class="btn btn-sm rounded-pill px-3 py-1-5 shadow-none d-flex align-items-center gap-1 report-btn-back"
-                title="Quay về danh sách dự án (Dashboard)">
+                title="Quay về danh sách dự án">
                 <i class="bi bi-arrow-left report-btn-back-icon"></i> <span class="d-none d-sm-inline">Dự án</span>
             </a>
             <div class="border-start ps-2 d-flex align-items-center gap-2 report-nav-divider">
@@ -93,13 +93,13 @@
 
             <button type="button" onclick="window.print()"
                 class="btn btn-primary-custom btn-sm rounded-pill px-3 py-1-5 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-2 text-white"
-                aria-label="In báo cáo tiến độ hoặc lưu file PDF">
+                aria-label="In báo cáo tiến độ hoặc lưu tệp PDF">
                 <i class="bi bi-printer-fill"></i> In Báo Cáo / PDF
             </button>
             <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}"
                 class="btn btn-outline-success btn-sm rounded-pill px-3 py-1-5 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-2"
-                title="Tải toàn bộ danh sách công việc của dự án ra file Excel (.csv chuẩn UTF-8 BOM)"
-                aria-label="Xuất danh sách công việc ra file Excel CSV">
+                title="Tải toàn bộ danh sách công việc của dự án ra tệp Excel (.csv chuẩn UTF-8 BOM)"
+                aria-label="Xuất danh sách công việc ra tệp Excel CSV">
                 <i class="bi bi-file-earmark-spreadsheet-fill"></i> Xuất CSV
             </a>
         </div>
@@ -188,7 +188,7 @@
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-1">
                                             <span class="badge bg-dark-navy text-white fs-9 rounded-pill">#${b.id}</span>
-                                            <span class="badge ${b.priorityBadgeClass} fs-9">${b.priority}</span>
+                                            <span class="badge ${b.priorityBadgeClass} fs-9">${b.priorityLabel}</span>
                                         </div>
                                         <div class="fw-bold text-dark fs-8 text-truncate mb-1" title="${b.title}">${b.title}</div>
                                         <div class="fs-9 text-muted mb-2">
@@ -209,7 +209,7 @@
                                         <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
                                             class="text-decoration-none fw-bold fs-9 text-primary no-print"
                                             aria-label="Xem chi tiết công việc #${b.id}: ${b.title}">
-                                            Xem task &rarr;
+                                            Xem công việc &rarr;
                                         </a>
                                     </div>
                                 </div>
@@ -223,7 +223,7 @@
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-shield-check-fill fs-5 text-success"></i>
                         <div>
-                            <div class="fw-bold fs-8">Dự án không có điểm nghẽn (No Active Blockers)</div>
+                            <div class="fw-bold fs-8">Dự án không có điểm nghẽn</div>
                             <div class="fs-9 text-muted">Toàn bộ công việc đang chạy đúng kế hoạch, không có công việc nào bị quá hạn hoặc bị từ chối duyệt.</div>
                         </div>
                     </div>
@@ -295,7 +295,7 @@
                 onclick="handleKpiCardClick('PENDING_REVIEW')" onkeydown="if(event.key==='Enter'||event.key===' ')handleKpiCardClick('PENDING_REVIEW')"
                 title="Click để lọc các công việc đang chờ duyệt kế hoạch hoặc nghiệm thu">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="report-card-title text-warning-emphasis">Chờ PM Duyệt</span>
+                    <span class="report-card-title text-warning-emphasis">Chờ Trưởng Dự Án Duyệt</span>
                     <i class="bi bi-hourglass-split text-warning fs-5"></i>
                 </div>
                 <div class="report-stat-number text-warning-emphasis">${submittedCount + planningCount}</div>
@@ -378,7 +378,7 @@
                     <!-- High Priority -->
                     <div>
                         <div class="d-flex justify-content-between align-items-center fs-8 mb-1">
-                            <span class="fw-semibold text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i> Ưu tiên Cao (HIGH)</span>
+                            <span class="fw-semibold text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i> Ưu tiên Cao</span>
                             <span class="fw-bold">${highPriorityCount} việc</span>
                         </div>
                         <div class="progress progress-mini" role="progressbar"
@@ -394,7 +394,7 @@
                     <!-- Medium Priority -->
                     <div>
                         <div class="d-flex justify-content-between align-items-center fs-8 mb-1">
-                            <span class="fw-semibold text-warning-emphasis"><i class="bi bi-dash-circle-fill me-1"></i> Ưu tiên Trung bình (MEDIUM)</span>
+                            <span class="fw-semibold text-warning-emphasis"><i class="bi bi-dash-circle-fill me-1"></i> Ưu tiên Trung bình</span>
                             <span class="fw-bold">${mediumPriorityCount} việc</span>
                         </div>
                         <div class="progress progress-mini" role="progressbar"
@@ -410,7 +410,7 @@
                     <!-- Low Priority -->
                     <div>
                         <div class="d-flex justify-content-between align-items-center fs-8 mb-1">
-                            <span class="fw-semibold text-info-emphasis"><i class="bi bi-arrow-down-circle-fill me-1"></i> Ưu tiên Thấp (LOW)</span>
+                            <span class="fw-semibold text-info-emphasis"><i class="bi bi-arrow-down-circle-fill me-1"></i> Ưu tiên Thấp</span>
                             <span class="fw-bold">${lowPriorityCount} việc</span>
                         </div>
                         <div class="progress progress-mini" role="progressbar"
@@ -479,7 +479,7 @@
                                 <c:choose>
                                     <c:when test="${stat.member.projectRole == 'OWNER'}">
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill fs-9 mt-1">
-                                            <i class="bi bi-star-fill me-1"></i> Trưởng dự án (PM)
+                                            <i class="bi bi-star-fill me-1"></i> Trưởng dự án
                                         </span>
                                     </c:when>
                                     <c:otherwise>
@@ -533,7 +533,7 @@
                                 <div class="report-empty-state">
                                     <i class="bi bi-people empty-icon d-block"></i>
                                     <h6 class="fw-bold text-dark mb-1">Chưa có thành viên nào trong dự án</h6>
-                                    <p class="text-muted fs-8 mb-3">Dự án này chưa được phân công thành viên tham gia thực hiện nhiệm vụ.</p>
+                                    <p class="text-muted fs-8 mb-3">Dự án này chưa được phân công thành viên tham gia thực hiện công việc.</p>
                                     <a href="${pageContext.request.contextPath}/project?action=members&projectId=${project.id}" class="btn btn-outline-primary btn-sm rounded-pill px-3 no-print">
                                         <i class="bi bi-person-plus me-1"></i> Phân công thành viên
                                     </a>
@@ -555,7 +555,7 @@
                 <h5 class="fw-bold fs-6 mb-1 d-flex align-items-center gap-2 report-section-header-title">
                     <i class="bi bi-card-checklist report-section-icon"></i> Bảng Kê Công Việc & Nghiệm Thu
                 </h5>
-                <p class="text-muted fs-8 mb-0">Quản lý chi tiết tiến độ, đầu ra nghiệm thu và đánh giá chất lượng từng nhiệm vụ.</p>
+                <p class="text-muted fs-8 mb-0">Quản lý chi tiết tiến độ, đầu ra nghiệm thu và đánh giá chất lượng từng công việc.</p>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge border rounded-pill px-3 py-2 fs-8 report-count-summary-badge" id="tasksVisibleCount">
@@ -724,7 +724,7 @@
                                     </div>
                                 </c:if>
                                 <c:if test="${not empty t.pmFeedback}">
-                                    <div class="fs-9 text-muted mt-1"><em>PM: "${t.pmFeedback}"</em></div>
+                                    <div class="fs-9 text-muted mt-1"><em>Trưởng dự án: "${t.pmFeedback}"</em></div>
                                 </c:if>
                                 <c:if test="${empty t.finalDeliverableNote && empty t.deliverableFile && empty t.pmFeedback}">
                                     <span class="text-muted fs-9">—</span>
@@ -748,7 +748,7 @@
                                 <div class="report-empty-state">
                                     <i class="bi bi-clipboard-check empty-icon d-block"></i>
                                     <h6 class="fw-bold text-dark mb-1">Dự án chưa có công việc nào</h6>
-                                    <p class="text-muted fs-8 mb-3">Hãy tạo các nhiệm vụ trên bảng Kanban để bắt đầu theo dõi tiến độ dự án.</p>
+                                    <p class="text-muted fs-8 mb-3">Hãy tạo các công việc trên bảng Kanban để bắt đầu theo dõi tiến độ dự án.</p>
                                     <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" class="btn btn-primary-custom text-white btn-sm rounded-pill px-3 no-print">
                                         <i class="bi bi-plus-lg me-1"></i> Tạo công việc mới
                                     </a>
@@ -808,7 +808,7 @@
                     <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2 report-section-header-title">
                         <i class="bi bi-chat-dots-fill report-chat-header-icon"></i> Tương Tác & Thảo Luận Nhóm
                     </h6>
-                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="no-print fs-9 text-decoration-none fw-semibold report-view-all-link">Vào phòng chat &rarr;</a>
+                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" class="no-print fs-9 text-decoration-none fw-semibold report-view-all-link">Vào phòng thảo luận &rarr;</a>
                 </div>
                 <div class="p-3 rounded-3 mb-3 report-chat-metrics-box">
                     <div class="d-flex align-items-center justify-content-between mb-2">
@@ -847,7 +847,7 @@
     <div class="d-flex justify-content-end mt-4 pt-3 avoid-break">
         <div class="col-12 col-sm-6 col-md-4">
             <div class="signature-box">
-                <div class="fw-bold fs-8 text-uppercase tracking-wider report-signoff-title">TRƯỞNG DỰ ÁN (PROJECT MANAGER)</div>
+                <div class="fw-bold fs-8 text-uppercase tracking-wider report-signoff-title">TRƯỞNG DỰ ÁN</div>
                 <div class="text-muted fs-9 mb-1">(Ký và ghi rõ họ tên)</div>
                 <div class="signature-line"></div>
                 <c:set var="projectOwnerName" value="" />

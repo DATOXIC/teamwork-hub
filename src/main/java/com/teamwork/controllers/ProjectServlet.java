@@ -311,7 +311,7 @@ public class ProjectServlet extends HttpServlet {
                 int memberCount = ProjectMemberDB.countMembers(projectId);
                 if (memberCount > 1) {
                     if (session != null) {
-                        session.setAttribute("toastError", "Dự án hiện đang có " + memberCount + " thành viên. Bạn không thể chuyển sang chế độ Cá nhân (Solo) khi vẫn còn thành viên khác trong nhóm! Vui lòng mời các thành viên rời dự án trước.");
+                        session.setAttribute("toastError", "Dự án hiện đang có " + memberCount + " thành viên. Bạn không thể chuyển sang chế độ Cá nhân khi vẫn còn thành viên khác trong nhóm! Vui lòng mời các thành viên rời dự án trước.");
                     }
                     String redirectUrl = request.getParameter("redirectUrl");
                     if (redirectUrl != null && !redirectUrl.trim().isEmpty()) {
@@ -340,7 +340,7 @@ public class ProjectServlet extends HttpServlet {
                 // Thu hồi tất cả lời mời PENDING của dự án này
                 com.teamwork.data.ProjectInviteDB.revokeAllPendingByProjectId(projectId);
                 if (session != null) {
-                    session.setAttribute("toastSuccess", "Đã chuyển dự án sang chế độ Cá Nhân (Solo) siêu tối giản! Toàn bộ công việc đã được tự động mở khóa tự do.");
+                    session.setAttribute("toastSuccess", "Đã chuyển dự án sang chế độ Cá Nhân siêu tối giản! Toàn bộ công việc đã được tự động mở khóa tự do.");
                 }
             } else {
                 if (session != null) {
@@ -556,21 +556,21 @@ public class ProjectServlet extends HttpServlet {
             healthLabel = "Dự Án Đúng Tiến Độ (On Track)";
             healthBadgeClass = "badge-health-healthy";
             healthIcon = "bi-check-circle-fill";
-            healthDescription = "Tất cả công việc đang vận hành theo đúng kế hoạch, không có task nào bị trễ hạn hoặc tắc nghẽn.";
+            healthDescription = "Tất cả công việc đang vận hành theo đúng kế hoạch, không có công việc nào bị trễ hạn hoặc tắc nghẽn.";
         } else if (overdueCount <= 2 && (rejectedCount + reviseCount) <= 2) {
             projectHealth = "AT_RISK";
             healthLabel = "Có Nguy Cơ Chậm Trễ (At Risk)";
             healthBadgeClass = "badge-health-warning";
             healthIcon = "bi-exclamation-circle-fill";
             healthDescription = "Phát sinh " + overdueCount
-                    + " công việc quá hạn hoặc cần chỉnh sửa. Cần Task Lead bám sát tiến độ.";
+                    + " công việc quá hạn hoặc cần chỉnh sửa. Cần trưởng nhóm công việc bám sát tiến độ.";
         } else {
             projectHealth = "CRITICAL";
             healthLabel = "Cần Can Thiệp Khẩn Cấp (Critical)";
             healthBadgeClass = "badge-health-critical";
             healthIcon = "bi-exclamation-triangle-fill";
             healthDescription = "Dự án có " + blockerCount
-                    + " điểm nghẽn nghiêm trọng vượt ngưỡng an toàn. Yêu cầu PM và đội ngũ xử lý ngay.";
+                    + " điểm nghẽn nghiêm trọng vượt ngưỡng an toàn. Yêu cầu trưởng dự án và đội ngũ xử lý ngay.";
         }
 
         // 8. Đưa toàn bộ dữ liệu sang View

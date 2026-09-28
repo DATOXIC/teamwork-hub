@@ -42,7 +42,7 @@
 
         <!-- Ảnh Dashboard Peek (Screenshot nhô lên với hiệu ứng nổi 3D giữa hào quang) -->
         <div class="hero-dashboard-peek">
-            <img src="${pageContext.request.contextPath}/images/dashboard-hero.png" alt="Dashboard Teamwork Hub"
+            <img src="${pageContext.request.contextPath}/images/dashboard-hero.png" alt="Giao diện tổng quan TeamWork Hub"
                 class="hero-screenshot-natural">
         </div>
     </section>
@@ -57,7 +57,7 @@
             </div>
             <h2 class="feature-title scroll-reveal" data-delay="1">Bảng Kanban Trực Quan</h2>
             <p class="feature-desc mx-auto scroll-reveal" data-delay="1">
-                Không còn task thất lạc trong chat — mọi việc đều có vị trí rõ ràng trên bảng.
+                Không còn công việc thất lạc trong tin nhắn — mọi việc đều có vị trí rõ ràng trên bảng.
                 Kéo thả 3 cột trạng thái, bộ lọc tức thì, nắm bắt tiến độ chỉ bằng một cái nhìn.
             </p>
             <div class="scroll-reveal" data-delay="2">
@@ -77,7 +77,7 @@
             </div>
             <h2 class="feature-title scroll-reveal" data-delay="1">Tài Liệu Wiki Thông Minh</h2>
             <p class="feature-desc mx-auto scroll-reveal" data-delay="1">
-                Ngừng tìm kiếm file trong hàng chục tin nhắn — mọi tài liệu đều sống trong cùng dự án.
+                Ngừng tìm kiếm tệp trong hàng chục tin nhắn — mọi tài liệu đều sống trong cùng dự án.
                 Bố cục thoáng đãng, liên kết trực tiếp đến từng thẻ công việc.
             </p>
             <div class="scroll-reveal" data-delay="2">
@@ -98,7 +98,7 @@
             <h2 class="feature-title scroll-reveal" data-delay="1">Thảo Luận Nhóm Tập Trung</h2>
             <p class="feature-desc mx-auto scroll-reveal" data-delay="1">
                 Trao đổi ngay trong dự án, không cần rời app. @nhắc tên đồng đội,
-                #liên kết thẳng đến task — mọi cuộc trò chuyện đều có ngữ cảnh rõ ràng.
+                #liên kết thẳng đến công việc — mọi cuộc trò chuyện đều có ngữ cảnh rõ ràng.
             </p>
             <div class="scroll-reveal" data-delay="2">
                 <img src="${pageContext.request.contextPath}/images/chat.png" alt="Thảo Luận Nhóm Tập Trung"

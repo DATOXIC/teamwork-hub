@@ -228,7 +228,7 @@ public class ProfileServlet extends HttpServlet {
 
         // Cập nhật thông tin vào đối tượng currentUser
         currentUser.setFullName(fullName.trim());
-        currentUser.setRole((role != null && !role.trim().isEmpty()) ? role.trim() : "Developer");
+        currentUser.setRole((role != null && !role.trim().isEmpty()) ? role.trim() : "Lập trình viên");
         currentUser.setBio((bio != null) ? bio.trim() : "");
         currentUser.setSkills((skills != null) ? skills.trim() : "");
         currentUser.setGithubUrl(githubUrl);

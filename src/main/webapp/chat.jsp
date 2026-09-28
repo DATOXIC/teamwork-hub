@@ -38,7 +38,7 @@
                title="Quay về danh sách dự án"
                aria-label="Quay về danh sách dự án">
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
-                <span>Dashboard</span>
+                <span>Danh sách dự án</span>
             </a>
             
             <div class="border-start ps-3 d-flex flex-wrap align-items-center gap-2 gap-md-3 chat-border-glass-subtle">
@@ -112,10 +112,10 @@
                     <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom chat-border-glass-subtle">
                         <h2 class="chat-sidebar-title mb-0 d-flex align-items-center gap-2">
                             <i class="bi bi-people-fill chat-icon-accent" aria-hidden="true"></i>
-                            <span>Team Radar</span>
+                            <span>Thành viên nhóm</span>
                         </h2>
                         <span class="badge rounded-pill px-2 py-1 fs-9 chat-badge-online">
-                            ${userList.size()} online
+                            ${userList.size()} thành viên
                         </span>
                     </div>
 
@@ -159,9 +159,9 @@
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <h2 class="chat-sidebar-title mb-0 d-flex align-items-center gap-2">
                             <i class="bi bi-layers-half chat-icon-accent-light" aria-hidden="true"></i>
-                            <span>Resource Shelf</span>
+                            <span>Kho tài nguyên</span>
                         </h2>
-                        <span class="fs-9 text-muted">1-Click Insert</span>
+                        <span class="fs-9 text-muted">Chèn nhanh</span>
                     </div>
 
                     <!-- Segmented Control Button Tabs -->
@@ -171,14 +171,14 @@
                                 id="tabBtnDocs" 
                                 onclick="switchResourceTab('docs')"
                                 aria-label="Xem danh sách tài liệu">
-                            <i class="bi bi-journal-text" aria-hidden="true"></i> Docs (${docList.size()})
+                            <i class="bi bi-journal-text" aria-hidden="true"></i> Tài liệu (${docList.size()})
                         </button>
                         <button type="button" 
                                 class="chat-segment-btn" 
                                 id="tabBtnTasks" 
                                 onclick="switchResourceTab('tasks')"
                                 aria-label="Xem danh sách công việc">
-                            <i class="bi bi-check2-circle" aria-hidden="true"></i> Tasks (${taskList.size()})
+                            <i class="bi bi-check2-circle" aria-hidden="true"></i> Công việc (${taskList.size()})
                         </button>
                     </div>
 
@@ -417,15 +417,15 @@
                                         class="chat-quick-chip" 
                                         id="btnToggleEmoji"
                                         onclick="toggleEmojiDrawer()" 
-                                        title="Mở bảng Emoji nhanh">
+                                        title="Mở bảng biểu cảm nhanh">
                                     <span>😊</span>
-                                    <span>Emoji</span>
+                                    <span>Biểu cảm</span>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Ngăn kéo chọn Emoji nhanh -->
-                        <div class="chat-emoji-drawer" id="emojiDrawer" role="region" aria-label="Bảng chọn emoji nhanh">
+                        <div class="chat-emoji-drawer" id="emojiDrawer" role="region" aria-label="Bảng chọn biểu cảm nhanh">
                             <button type="button" class="chat-emoji-btn" onclick="insertEmoji('👍')" title="Thích">👍</button>
                             <button type="button" class="chat-emoji-btn" onclick="insertEmoji('🚀')" title="Tên lửa">🚀</button>
                             <button type="button" class="chat-emoji-btn" onclick="insertEmoji('❤️')" title="Trái tim">❤️</button>
@@ -483,7 +483,7 @@
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom chat-border-glass-subtle">
                 <span class="chat-sidebar-title mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-people-fill chat-icon-accent" aria-hidden="true"></i>
-                    Team Radar (${userList.size()})
+                    Thành viên nhóm (${userList.size()})
                 </span>
             </div>
             <div class="d-flex flex-column gap-2 overflow-y-auto chat-offcanvas-members-scroll">

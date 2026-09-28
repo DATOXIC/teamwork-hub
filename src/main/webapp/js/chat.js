@@ -45,7 +45,7 @@ function convertRawTextToMentionHtml(rawText, projectId, ctxPath) {
     var taskRegex = /#task-(\d+)/g;
     resultHtml = resultHtml.replace(taskRegex, function(match, taskId) {
         var taskUrl = ctxPath + "/task?action=list&projectId=" + projectId;
-        return '<a href="' + taskUrl + '" class="chat-mention-task" title="Mở thẻ Kanban Task #' + taskId + '" aria-label="Mở thẻ công việc số ' + taskId + '">'
+        return '<a href="' + taskUrl + '" class="chat-mention-task" title="Mở thẻ Kanban công việc #' + taskId + '" aria-label="Mở thẻ công việc số ' + taskId + '">'
              + '<i class="bi bi-check2-circle" aria-hidden="true"></i>'
              + '<span>#task-' + taskId + '</span>'
              + '</a>';

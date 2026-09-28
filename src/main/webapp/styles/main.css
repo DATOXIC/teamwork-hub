@@ -3363,6 +3363,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .clickup-list-header-row th {
     color: #334155 !important;
+    text-align: center;
 }
 
 .clickup-list-header-row th i {
@@ -3370,28 +3371,56 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     opacity: 0.9;
 }
 
+/* Header nhóm trạng thái: dải băng màu trải hết chiều ngang, có viền màu bên trái,
+   để không bị nhầm với một hàng dữ liệu nằm trong cột Name */
+.clickup-group-header-row {
+    --grp-bg: #f1f5f9;
+    --grp-accent: #64748b;
+    --grp-border: #e2e8f0;
+    margin-top: 12px;
+}
+
+.clickup-list-table tbody > .clickup-group-header-row:first-child {
+    margin-top: 0;
+}
+
+.group-header-done   { --grp-bg: #ecfdf5; --grp-accent: #10b981; --grp-border: #bbf7d0; }
+.group-header-inprog { --grp-bg: #eff6ff; --grp-accent: #3b82f6; --grp-border: #bfdbfe; }
+.group-header-todo   { --grp-bg: #f1f5f9; --grp-accent: #64748b; --grp-border: #cbd5e1; }
+
 .clickup-group-header-row td {
-    background-color: #ffffff;
-    padding: 14px 16px 6px 16px;
-    border-bottom: 1px solid #f1f5f9;
+    padding: 0;
+    background-color: var(--grp-bg);
+    border-left: 4px solid var(--grp-accent);
+    border-top: 1px solid var(--grp-border);
+    border-bottom: 1px solid var(--grp-border);
 }
 
 .clickup-group-banner {
-    display: inline-flex;
+    display: flex;
+    width: 100%;
     align-items: center;
     gap: 8px;
     font-size: 0.82rem;
     font-weight: 700;
-    margin: 0;
     cursor: pointer;
     user-select: none;
-    padding: 4px 8px;
-    border-radius: 6px;
+    padding: 9px 16px 9px 12px;
+    border-radius: 0;
     transition: background-color 0.15s ease;
 }
 
+.clickup-list-table .clickup-group-banner {
+    margin: 0 !important;
+}
+
 .clickup-group-banner:hover {
-    background-color: #f1f5f9;
+    background-color: rgba(255, 255, 255, 0.55);
+}
+
+.clickup-group-header-row .clickup-group-count {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 1px var(--grp-border);
 }
 
 .clickup-group-badge {

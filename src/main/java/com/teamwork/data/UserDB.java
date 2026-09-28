@@ -126,7 +126,7 @@ public class UserDB {
             user.setFullName(user.getUsername().trim());
         }
         if (user.getEmail() == null) user.setEmail("");
-        if (user.getRole() == null || user.getRole().trim().isEmpty()) user.setRole("Developer");
+        if (user.getRole() == null || user.getRole().trim().isEmpty()) user.setRole("Lập trình viên");
         if (user.getAvatar() == null || user.getAvatar().trim().isEmpty()) user.setAvatar("images/default_avatar.png");
         if (user.getBio() == null) user.setBio("");
         if (user.getSkills() == null) user.setSkills("");
@@ -164,7 +164,7 @@ public class UserDB {
             User managed = em.find(User.class, updatedUser.getId());
             if (managed != null) {
                 managed.setFullName(updatedUser.getFullName() != null ? updatedUser.getFullName().trim() : "");
-                managed.setRole(updatedUser.getRole() != null ? updatedUser.getRole().trim() : "Developer");
+                managed.setRole(updatedUser.getRole() != null ? updatedUser.getRole().trim() : "Lập trình viên");
                 managed.setAvatar(updatedUser.getAvatar() != null ? updatedUser.getAvatar().trim() : "images/default_avatar.png");
                 managed.setBio(updatedUser.getBio() != null ? updatedUser.getBio().trim() : "");
                 managed.setSkills(updatedUser.getSkills() != null ? updatedUser.getSkills().trim() : "");
