@@ -2495,8 +2495,15 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     min-width: 250px;
     height: 100%;
     border-radius: 0;
-    background-color: #F0F3FA;
-    border-right: 1px solid #D5DEEF;
+    /* Bảng màu sidebar: nền xanh đậm hơn nền trắng của khu vực chính, chữ xanh navy để không bị chìm */
+    --sb-bg: #D6E2F4;
+    --sb-border: #B4C7E3;
+    --sb-hover: rgba(255, 255, 255, 0.55);
+    --sb-title: #2D456A;
+    --sb-text: #2D456A;
+    --sb-muted: #46607F;
+    background-color: var(--sb-bg);
+    border-right: 1px solid var(--sb-border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -2519,12 +2526,12 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .clickup-sidebar-header {
     padding: 10px 12px;
-    border-bottom: 1px solid #D5DEEF;
+    border-bottom: 1px solid var(--sb-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-shrink: 0;
-    background-color: #ffffff;
+    background-color: transparent;
 }
 
 .clickup-sidebar-scroll {
@@ -2538,7 +2545,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-sidebar-scroll::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
+    background-color: rgba(45, 69, 106, 0.28);
     border-radius: 4px;
 }
 
@@ -2549,7 +2556,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .sidebar-brand-btn:hover {
-    background-color: #E2EAF8 !important;
+    background-color: var(--sb-hover) !important;
 }
 
 .sidebar-collapse-indicator {
@@ -2562,7 +2569,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .sidebar-brand-btn:hover .sidebar-collapse-indicator {
     opacity: 1;
-    background-color: #D5DEEF;
+    background-color: rgba(255, 255, 255, 0.7);
     color: #1E2D42 !important;
 }
 
@@ -2573,9 +2580,9 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* Modern Search Box (ui-ux-pro-max) */
 .clickup-search-box {
     background-color: #ffffff;
-    border: 1px solid #D5DEEF;
+    border: 1px solid var(--sb-border);
     border-radius: 9px;
-    box-shadow: 0 1px 2px rgba(57, 88, 134, 0.04);
+    box-shadow: 0 1px 2px rgba(57, 88, 134, 0.08);
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -2613,7 +2620,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     font-weight: 750;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #395886;
+    color: var(--sb-title);
     padding: 4px 8px;
     margin-bottom: 2px;
     display: flex;
@@ -2627,7 +2634,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     align-items: center;
     justify-content: space-between;
     padding: 6px 9px;
-    color: #395886;
+    color: var(--sb-text);
     text-decoration: none;
     border-radius: 8px;
     font-weight: 550;
@@ -2636,7 +2643,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-nav-link:hover {
-    background-color: #E2EAF8;
+    background-color: var(--sb-hover);
     color: #1E2D42;
     transform: translateX(2px);
 }
@@ -2653,6 +2660,16 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     transition: all 0.18s ease;
 }
 
+/* Ô icon điều hướng nền trắng để nổi trên nền xanh của sidebar */
+.clickup-sidebar .clickup-nav-icon {
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(30, 45, 66, 0.14);
+}
+
+.clickup-sidebar .clickup-nav-icon.text-secondary {
+    color: #395886 !important;
+}
+
 .clickup-nav-link:hover .clickup-nav-icon {
     transform: scale(1.06);
 }
@@ -2664,7 +2681,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     gap: 8px;
     padding: 6px 9px;
     border-radius: 8px;
-    color: #395886;
+    color: var(--sb-text);
     text-decoration: none;
     font-weight: 500;
     font-size: 0.83rem;
@@ -2674,23 +2691,25 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-space-item:hover {
-    background-color: #E2EAF8;
+    background-color: var(--sb-hover);
     color: #1E2D42;
     transform: translateX(2px);
 }
 
 .clickup-space-item.active {
-    background-color: #E2EAF8 !important;
+    background-color: #ffffff !important;
     border-left-color: #395886 !important;
     color: #395886 !important;
     font-weight: 650;
+    box-shadow: 0 1px 3px rgba(30, 45, 66, 0.12);
 }
 
 .clickup-space-icon {
     width: 24px;
     height: 24px;
     border-radius: 6px;
-    background-color: #E8EEF8;
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(30, 45, 66, 0.12);
     color: #395886;
     display: flex;
     align-items: center;
@@ -2707,7 +2726,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-space-item:hover .clickup-space-icon:not(.active-icon) {
-    background-color: #D5DEEF;
+    background-color: #EAF1FB;
     color: #1E2D42;
 }
 
@@ -2740,7 +2759,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .tree-toggle-btn:hover {
-    background-color: #D5DEEF;
+    background-color: rgba(255, 255, 255, 0.7);
     color: #1E2D42 !important;
 }
 
@@ -2757,7 +2776,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     position: relative;
     margin-left: 17px;
     padding-left: 10px;
-    border-left: 1.5px solid #D5DEEF;
+    border-left: 1.5px solid #9FB6D9;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -2772,7 +2791,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     gap: 8px;
     padding: 5.5px 9px;
     border-radius: 7px;
-    color: #475569;
+    color: var(--sb-text);
     text-decoration: none;
     font-size: 0.81rem;
     font-weight: 500;
@@ -2782,36 +2801,48 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-tree-item:hover {
-    background-color: #E2EAF8;
+    background-color: var(--sb-hover);
     color: #1E2D42;
     transform: translateX(2px);
 }
 
 .clickup-tree-item.active {
-    background-color: #E2EAF8 !important;
+    background-color: #ffffff !important;
     color: #395886 !important;
     border-left-color: #395886 !important;
     font-weight: 650;
+    box-shadow: 0 1px 3px rgba(30, 45, 66, 0.12);
 }
 
+/* Icon phân hệ: ô vuông bo góc nền màu riêng cho từng mục, glyph trắng */
 .clickup-tree-item .tree-item-icon {
-    font-size: 0.85rem;
-    width: 18px;
+    --icon-bg: linear-gradient(135deg, #395886 0%, #628ECB 100%);
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    font-size: 0.75rem;
+    color: #ffffff;
+    background: var(--icon-bg);
+    box-shadow: 0 1px 3px rgba(30, 45, 66, 0.28);
     flex-shrink: 0;
-    transition: color 0.16s ease, transform 0.16s ease;
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 
+.tree-icon-tasks    { --icon-bg: linear-gradient(135deg, #2A64C9 0%, #4C8DEB 100%); }
+.tree-icon-chat     { --icon-bg: linear-gradient(135deg, #0B8A5F 0%, #22C08A 100%); }
+.tree-icon-docs     { --icon-bg: linear-gradient(135deg, #C96A04 0%, #F0A020 100%); }
+.tree-icon-metrics  { --icon-bg: linear-gradient(135deg, #0C7C99 0%, #14AECB 100%); }
+.tree-icon-activity { --icon-bg: linear-gradient(135deg, #6D33D9 0%, #9A6EF2 100%); }
+
 .clickup-tree-item:hover .tree-item-icon {
-    color: #395886;
     transform: scale(1.08);
 }
 
 .clickup-tree-item.active .tree-item-icon {
-    color: #395886;
+    box-shadow: 0 0 0 2px #ffffff, 0 2px 6px rgba(30, 45, 66, 0.3);
 }
 
 .clickup-tree-item .tree-item-label {
@@ -2840,7 +2871,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .btn-join-code {
     background-color: #ffffff;
-    border: 1px solid #D5DEEF;
+    border: 1px solid var(--sb-border);
     color: #395886;
     font-weight: 500;
     transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2856,8 +2887,8 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* Sidebar Footer */
 .clickup-sidebar-footer {
     padding: 10px 12px;
-    background-color: #ffffff;
-    border-top: 1px solid #D5DEEF;
+    background-color: transparent;
+    border-top: 1px solid var(--sb-border);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2870,7 +2901,21 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .sidebar-user-card:hover {
-    background-color: #f1f5f9;
+    background-color: var(--sb-hover);
+}
+
+/* Chữ mờ trong sidebar được làm đậm lại để đủ tương phản trên nền xanh */
+.clickup-sidebar .text-muted,
+.clickup-sidebar .text-secondary {
+    color: var(--sb-muted) !important;
+}
+
+.clickup-sidebar .opacity-50 {
+    opacity: 0.8 !important;
+}
+
+.clickup-sidebar .sidebar-brand-btn .text-primary {
+    color: #1F4E9C !important;
 }
 
 .user-status-dot {

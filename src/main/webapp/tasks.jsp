@@ -146,7 +146,7 @@
                                                        class="clickup-tree-item clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" 
                                                        id="tab-btn-tasks" 
                                                        title="Công việc">
-                                                        <i class="bi bi-list-task tree-item-icon"></i>
+                                                        <span class="tree-item-icon tree-icon-tasks"><i class="bi bi-kanban-fill"></i></span>
                                                         <span class="tree-item-label">Công việc</span>
                                                     </a>
 
@@ -155,7 +155,7 @@
                                                        class="clickup-tree-item ${currentView == 'chat' ? 'active' : ''}" 
                                                        id="tab-btn-chat" 
                                                        title="Kênh thảo luận trực tiếp">
-                                                        <i class="bi bi-chat-dots tree-item-icon"></i>
+                                                        <span class="tree-item-icon tree-icon-chat"><i class="bi bi-chat-dots-fill"></i></span>
                                                         <span class="tree-item-label">Thảo luận</span>
                                                     </a>
 
@@ -164,7 +164,7 @@
                                                        class="clickup-tree-item ${currentView == 'docs' ? 'active' : ''}" 
                                                        id="tab-btn-docs" 
                                                        title="Kho tài liệu Wiki dự án">
-                                                        <i class="bi bi-journal-text tree-item-icon"></i>
+                                                        <span class="tree-item-icon tree-icon-docs"><i class="bi bi-file-earmark-text-fill"></i></span>
                                                         <span class="tree-item-label">Tài liệu</span>
                                                     </a>
 
@@ -174,7 +174,7 @@
                                                        class="clickup-tree-item clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" 
                                                        id="tab-btn-metrics" 
                                                        title="Phân bổ công việc">
-                                                        <i class="bi bi-pie-chart-fill text-info tree-item-icon"></i>
+                                                        <span class="tree-item-icon tree-icon-metrics"><i class="bi bi-pie-chart-fill"></i></span>
                                                         <span class="tree-item-label">Phân bổ công việc</span>
                                                     </a>
 
@@ -183,7 +183,7 @@
                                                        class="clickup-tree-item clickup-tab-link ${currentView == 'activity' ? 'active' : ''}" 
                                                        id="tab-btn-activity" 
                                                        title="Hoạt động">
-                                                        <i class="bi bi-clock-history tree-item-icon"></i>
+                                                        <span class="tree-item-icon tree-icon-activity"><i class="bi bi-clock-history"></i></span>
                                                         <span class="tree-item-label">Hoạt động</span>
                                                     </a>
                                                 </div>
@@ -222,7 +222,7 @@
                     </div>
 
                     <!-- Footer Sidebar: User Profile Card & Phím tắt Help -->
-                    <div class="clickup-sidebar-footer p-2.5 border-top d-flex align-items-center justify-content-between bg-white">
+                    <div class="clickup-sidebar-footer d-flex align-items-center justify-content-between">
                         <div class="dropdown flex-grow-1 me-2">
                             <a href="#" class="sidebar-user-card d-flex align-items-center gap-2 text-decoration-none text-dark p-1 rounded-2" data-bs-toggle="dropdown" title="${sessionScope.currentUser.fullName}">
                                 <div class="user-avatar-wrap position-relative flex-shrink-0">
