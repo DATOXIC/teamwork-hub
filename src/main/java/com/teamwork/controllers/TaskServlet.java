@@ -47,18 +47,50 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Controller phụ trách Bảng công việc Kanban (Tasks Module) & Cây Phân Cấp Việc Con (Sub-tasks):
- * - Hiển thị 3 cột công việc TODO, IN_PROGRESS, DONE kèm Tài liệu, Bình luận, Việc con & % Tiến độ (GET /task?action=list)
- * - Thêm công việc lớn (Task Cha) kèm đính kèm tài liệu (POST /task?action=add)
- * - Cập nhật trạng thái công việc khi kéo thả HTML5 (POST /task?action=updateStatus)
- * - Xóa công việc lớn có kiểm soát thẩm quyền Task Lead / PM (GET /task?action=delete)
- * - Thêm việc con có kiểm soát thẩm quyền Task Lead / PM (POST /task?action=addSubTask)
- * - Tick chọn hoàn thành việc con [☑] có kiểm soát thẩm quyền 3 bên (POST /task?action=toggleSubTask)
- * - Xóa việc con có kiểm soát thẩm quyền Task Lead / PM (POST /task?action=deleteSubTask)
- * - Nộp báo cáo việc con kèm ghi chú (POST /task?action=submitSubTask)
- * - Nghiệm thu việc con: Duyệt Đạt / Cân Chỉnh / Trả Về (POST /task?action=approveSubTask / reviseSubTask / rejectSubTask)
- * - Nộp bàn giao Task lớn lên cho PM (POST /task?action=submitParentTask)
- * - PM Nghiệm thu Task lớn: Duyệt Đạt / Cân Chỉnh / Trả Về (POST /task?action=pmApproveTask / pmReviseTask / pmRejectTask)
+ * TaskServlet — Controller phụ trách Bảng Công Việc Kanban (Tasks Module).
+ *
+ * <p><b>Các luồng GET được xử lý:</b></p>
+ * <ul>
+ *   <li>GET /task?action=list&projectId=X  → Hiển thị Bảng Kanban 3 cột (TODO / IN_PROGRESS / DONE)</li>
+ *   <li>GET /task?action=delete&taskId=X   → Xóa Task lớn (kiểm soát quyền Task Lead / PM)</li>
+ * </ul>
+ *
+ * <p><b>Các luồng POST được xử lý:</b></p>
+ * <ul>
+ *   <li>action=add              → Thêm Task cha mới kèm đính kèm tài liệu</li>
+ *   <li>action=updateStatus     → Cập nhật trạng thái khi kéo thả HTML5 Drag-and-Drop</li>
+ *   <li>action=addSubTask       → Thêm Việc con (Sub-task) có kiểm soát quyền 3 bên</li>
+ *   <li>action=toggleSubTask    → Tick ☑ hoàn thành Việc con</li>
+ *   <li>action=deleteSubTask    → Xóa Việc con có kiểm soát quyền</li>
+ *   <li>action=submitSubTask    → Thành viên nộp báo cáo Việc con kèm ghi chú</li>
+ *   <li>action=approveSubTask   → Task Lead duyệt Đạt Việc con</li>
+ *   <li>action=reviseSubTask    → Task Lead yêu cầu Cân Chỉnh Việc con</li>
+ *   <li>action=rejectSubTask    → Task Lead Trả Về Việc con</li>
+ *   <li>action=submitParentTask → Thành viên nộp bàn giao Task lớn lên PM</li>
+ *   <li>action=pmApproveTask    → PM Nghiệm thu Task lớn: Duyệt Đạt</li>
+ *   <li>action=pmReviseTask     → PM Nghiệm thu Task lớn: Cân Chỉnh</li>
+ *   <li>action=pmRejectTask     → PM Nghiệm thu Task lớn: Trả Về</li>
+ * </ul>
+ *
+ * <p><b>Kiến trúc MVC:</b></p>
+ * <pre>
+ *   Browser → TaskServlet (Controller) → TaskDB / SubTaskDB / ProjectMemberDB (Model) → tasks.jsp (View)
+ * </pre>
+ *
+ * <p><b>Mô hình Quality Gate 2 tầng (chế độ TEAM):</b></p>
+ * <pre>
+ *   Tầng 1: Task Lead / Task Assignee ← duyệt từng Sub-task (Việc con)
+ *   Tầng 2: PM (Project Owner)        ← nghiệm thu Task cha tổng thể
+ * </pre>
+ *
+ * <p><b>TODO — Điểm mở rộng phổ biến (Extension Points):</b></p>
+ * <ul>
+ *   <li>Thêm action mới vào switch trong {@code doPost} theo mẫu các action hiện có</li>
+ *   <li>Thêm trường dữ liệu mới cho Task (ví dụ: estimated hours, sprint number)</li>
+ *   <li>Thêm bộ lọc/sắp xếp Task theo priority hoặc deadline trong {@code showKanbanBoard}</li>
+ *   <li>Thêm rule kiểm tra business khi đổi trạng thái (ví dụ: không cho DONE nếu còn sub-task chưa xong)</li>
+ *   <li>Tích hợp gửi email notification khi Task thay đổi trạng thái</li>
+ * </ul>
  */
 @WebServlet("/task")
 public class TaskServlet extends HttpServlet {

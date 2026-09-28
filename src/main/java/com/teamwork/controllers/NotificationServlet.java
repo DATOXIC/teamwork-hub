@@ -12,9 +12,24 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Controller: Quản lý Quả Chuông 🔔 & Trung Tâm Thông Báo (/notification)
- * - Đánh dấu thông báo đã đọc & Tự động điều hướng đến đúng Task/Dự án (Deep-linking)
- * - Đánh dấu tất cả thông báo là đã đọc (Xóa số đỏ 🔴 trên chuông)
+ * NotificationServlet — Controller quản lý Trung Tâm Thông Báo 🔔 (/notification).
+ *
+ * <p><b>Các luồng được xử lý:</b></p>
+ * <ul>
+ *   <li>GET /notification?action=read&id=X&redirect=...  → {@link #handleMarkAsReadAndRedirect} — Đọc 1 thông báo + Deep-link tới mục tiêu</li>
+ *   <li>GET /notification?action=readAll                 → {@link #handleMarkAllAsRead} — Đọc tất cả (xóa số đỏ 🔴)</li>
+ *   <li>GET /notification?action=delete&id=X             → {@link #handleDelete} — Xóa 1 thông báo</li>
+ * </ul>
+ *
+ * <p><b>Lưu ý thiết kế:</b> Cả {@code doGet} và {@code doPost} đều được định tuyến về cùng
+ * một logic, giúp form HTML có thể gọi qua POST mà không cần thêm handler riêng.</p>
+ *
+ * <p><b>TODO — Điểm mở rộng phổ biến (Extension Points):</b></p>
+ * <ul>
+ *   <li>Thêm action mới "deleteAll" — xóa toàn bộ thông báo đã đọc</li>
+ *   <li>Thêm action "list" — hiển thị trang lịch sử tất cả thông báo</li>
+ *   <li>Thêm filter theo loại thông báo (INVITE / TASK / SYSTEM)</li>
+ * </ul>
  */
 @WebServlet("/notification")
 public class NotificationServlet extends HttpServlet {

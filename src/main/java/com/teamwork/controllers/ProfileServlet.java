@@ -20,11 +20,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controller phụ trách Quản lý & Hiển thị Hồ Sơ Cá Nhân Công Khai (/profile)
- * - Hiển thị CV Portfolio chuyên môn, Kỹ năng, Liên kết mạng xã hội
- * - Tính toán các chỉ số năng suất Real-time khách quan từ CSDL
- * - Thực thi bảo mật 2 lớp: Chỉ chính chủ mới có quyền cập nhật thông tin
- * - Tự động đồng bộ tên mới sang toàn bộ hệ thống (ProjectMember, Task, SubTask)
+ * ProfileServlet — Controller quản lý Hồ Sơ Cá Nhân Công Khai (/profile).
+ *
+ * <p><b>Các luồng được xử lý:</b></p>
+ * <ul>
+ *   <li>GET  /profile?userId=X   → Hiển thị hồ sơ công khai của người dùng X</li>
+ *   <li>GET  /profile             → Hiển thị hồ sơ của chính mình (userId = currentUser)</li>
+ *   <li>POST /profile (action=update) → {@link #handleUpdateProfile} — Cập nhật thông tin hồ sơ</li>
+ * </ul>
+ *
+ * <p><b>Tính năng nổi bật:</b></p>
+ * <ul>
+ *   <li>Tính toán chỉ số năng suất Real-time từ DB (Lead Task, Sub-task, Completion Rate)</li>
+ *   <li>Bảo mật chính chủ: chỉ chủ hồ sơ mới được chỉnh sửa (chống IDOR)</li>
+ *   <li>Đồng bộ tên sang toàn bộ hệ thống (ProjectMember / Task / SubTask) khi đổi tên</li>
+ *   <li>Sanitize URL mạng xã hội: chặn javascript: và data: scheme, tự thêm https://</li>
+ * </ul>
+ *
+ * <p><b>TODO — Điểm mở rộng phổ biến (Extension Points):</b></p>
+ * <ul>
+ *   <li>Thêm chức năng upload ảnh đại diện (Avatar Upload) với Multipart Servlet</li>
+ *   <li>Thêm trường mới vào form profile (ví dụ: số điện thoại, chuyên ngành)</li>
+ *   <li>Thêm bảng xếp hạng năng suất (Leaderboard) so sánh giữa các thành viên</li>
+ *   <li>Thêm validation email khi đổi thông tin profile</li>
+ * </ul>
  */
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {

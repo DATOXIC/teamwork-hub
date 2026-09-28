@@ -27,10 +27,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controller phụ trách Quản lý Dự án:
- * - Xem danh sách dự án (GET /project?action=list)
- * - Tạo dự án mới (POST /project?action=create)
- * - Nạp danh sách Lời Mời đang chờ (pendingInvites) cho Dashboard
+ * ProjectServlet — Controller phụ trách Quản lý Dự án (Project Management Module).
+ *
+ * <p><b>Các luồng được xử lý:</b></p>
+ * <ul>
+ *   <li>GET  /project?action=list          → {@link #showProjectList} — Trang Dashboard dự án</li>
+ *   <li>GET  /project?action=detail        → {@link #showProjectDetail} — Chi tiết dự án (Kanban)</li>
+ *   <li>GET  /project?action=report        → {@link #showProjectReport} — Báo cáo tiến độ dự án</li>
+ *   <li>POST /project (action=create)      → {@link #createProject} — Tạo dự án mới</li>
+ *   <li>POST /project (action=update)      → {@link #updateProject} — Cập nhật thông tin dự án</li>
+ * </ul>
+ *
+ * <p><b>Kiến trúc MVC:</b></p>
+ * <pre>
+ *   Browser → ProjectServlet (Controller) → ProjectDB / TaskDB / ... (Model) → projects.jsp / project_report.jsp (View)
+ * </pre>
+ *
+ * <p><b>TODO — Điểm mở rộng phổ biến (Extension Points):</b></p>
+ * <ul>
+ *   <li>Thêm action mới vào switch trong {@code doGet}/{@code doPost}</li>
+ *   <li>Thêm bộ lọc tìm kiếm/sắp xếp dự án trong {@link #showProjectList}</li>
+ *   <li>Thêm loại biểu đồ mới trong {@link #showProjectReport}</li>
+ *   <li>Thêm rule validation mới khi tạo dự án trong {@link #createProject}</li>
+ *   <li>Tích hợp ghi ActivityLog khi tạo/cập nhật dự án</li>
+ * </ul>
  */
 @WebServlet("/project")
 public class ProjectServlet extends HttpServlet {

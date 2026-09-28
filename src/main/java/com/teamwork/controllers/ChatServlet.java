@@ -25,11 +25,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controller phụ trách Phân hệ Thảo luận & Chat nhóm (Team Chat & Comment Threads):
- * - FLOW 1: Mở xem kênh chat chung của dự án (GET /chat?action=view)
- * - FLOW 2: Gửi tin nhắn chat chung dự án (POST /chat với action=sendProjectMessage)
- * - FLOW 3: Gửi bình luận của một Task cụ thể (POST /chat với action=sendTaskComment)
- * - FLOW 4: Xóa tin nhắn bảo mật đa tầng, chống IDOR (GET/POST /chat với action=delete)
+ * ChatServlet — Controller phụ trách Phân hệ Thảo luận &amp; Chat nhóm (Team Chat &amp; Comment Threads).
+ *
+ * <p><b>Các luồng được xử lý:</b></p>
+ * <ul>
+ *   <li>GET  /chat?action=view&projectId=X      → Mở kênh chat chung của dự án X</li>
+ *   <li>POST /chat (action=sendProjectMessage)  → Gửi tin nhắn chat chung dự án</li>
+ *   <li>POST /chat (action=sendTaskComment)     → Gửi bình luận của một Task cụ thể</li>
+ *   <li>GET/POST /chat (action=delete)          → Xóa tin nhắn (bảo mật đa tầng, chống IDOR)</li>
+ * </ul>
+ *
+ * <p><b>Kiến trúc MVC:</b></p>
+ * <pre>
+ *   Browser → ChatServlet (Controller) → MessageDB (Model) → chat.jsp (View)
+ * </pre>
+ *
+ * <p><b>TODO — Điểm mở rộng phổ biến (Extension Points):</b></p>
+ * <ul>
+ *   <li>Thêm chức năng chỉnh sửa tin nhắn (Edit Message)</li>
+ *   <li>Thêm chức năng phản hồi / trả lời tin nhắn (Reply Thread)</li>
+ *   <li>Thêm emoji reaction cho từng tin nhắn</li>
+ *   <li>Tích hợp WebSocket cho real-time chat mà không cần refresh</li>
+ *   <li>Thêm giới hạn độ dài tin nhắn và validate nội dung</li>
+ * </ul>
  */
 @WebServlet("/chat")
 public class ChatServlet extends HttpServlet {

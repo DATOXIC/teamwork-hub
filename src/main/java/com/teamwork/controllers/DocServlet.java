@@ -24,11 +24,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Controller phụ trách Quản lý Tài liệu & Ghi chú Wiki nhóm (/doc):
- * - Xem danh mục bài viết, đọc chi tiết bài và danh sách các Task đang áp dụng bài viết này (GET /doc?action=list hoặc action=view)
- * - Tạo bài viết mới (POST /doc?action=create)
- * - Chỉnh sửa cập nhật bài viết an toàn, chống IDOR (POST /doc?action=update)
- * - Xóa bài viết và tự động dọn dẹp các liên kết TaskDoc (GET/POST /doc?action=delete)
+ * DocServlet — Controller phụ trách Quản lý Tài liệu &amp; Ghi chú Wiki nhóm (/doc).
+ *
+ * <p><b>Các luồng được xử lý:</b></p>
+ * <ul>
+ *   <li>GET  /doc?action=list&projectId=X     → Danh mục bài viết của dự án</li>
+ *   <li>GET  /doc?action=view&docId=X         → Đọc chi tiết bài viết + danh sách Task áp dụng</li>
+ *   <li>POST /doc (action=create)             → Tạo bài viết mới</li>
+ *   <li>POST /doc (action=update)             → Chỉnh sửa bài viết an toàn (chống IDOR)</li>
+ *   <li>GET/POST /doc (action=delete)         → Xóa bài viết + dọn dẹp liên kết TaskDoc</li>
+ * </ul>
+ *
+ * <p><b>Kiến trúc MVC:</b></p>
+ * <pre>
+ *   Browser → DocServlet (Controller) → DocDB / TaskDocDB (Model) → docs.jsp (View)
+ * </pre>
+ *
+ * <p><b>TODO — Điểm mở rộng phổ biến (Extension Points):</b></p>
+ * <ul>
+ *   <li>Thêm chức năng tìm kiếm full-text trong nội dung bài viết</li>
+ *   <li>Thêm phân loại bài viết theo Category/Tag</li>
+ *   <li>Thêm lịch sử chỉnh sửa bài viết (Version History)</li>
+ *   <li>Thêm chức năng export bài viết ra file .md hoặc .txt</li>
+ *   <li>Thêm validation độ dài title và content</li>
+ * </ul>
  */
 @WebServlet("/doc")
 public class DocServlet extends HttpServlet {
