@@ -3249,7 +3249,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* Danh sách dạng lưới: mọi hàng dùng chung một bảng cột (--list-cols) nên các cột luôn thẳng hàng.
    Cột Name co giãn theo chiều rộng còn lại, các cột còn lại có bề rộng cố định. */
 .clickup-list-table {
-    --list-cols: minmax(0, 1fr) 190px 120px 150px 130px;
+    --list-cols: minmax(0, 1fr) 200px 132px 150px 128px;
     display: block;
     width: 100%;
     min-width: 780px;
@@ -3257,7 +3257,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .clickup-list-table.is-solo {
-    --list-cols: minmax(0, 1fr) 120px 150px 130px;
+    --list-cols: minmax(0, 1fr) 132px 150px 128px;
     min-width: 600px;
 }
 
@@ -3280,6 +3280,16 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .clickup-list-table td[colspan] {
     grid-column: 1 / -1;
+}
+
+/* Nội dung các cột nhỏ luôn nằm giữa cột (khớp với tiêu đề) dù kéo đổi độ rộng; chỉ cột tên công việc căn trái.
+   !important để thắng style="text-align: right" gắn sẵn trên ô hạn chót */
+.clickup-list-table tbody td:not(:first-child) {
+    text-align: center !important;
+}
+
+.clickup-list-table tbody td:not(:first-child) > .d-flex {
+    justify-content: center;
 }
 
 .clickup-list-table thead {
@@ -4645,5 +4655,141 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     transform: rotate(180deg);
 }
 
+/* ==========================================================================
+   TYPOGRAPHY — KHÔNG GIAN CÔNG VIỆC (chỉ áp dụng cho trang có .clickup-shell)
+   Thang chữ (px): 11.5 nhãn nhỏ | 12 chú thích, badge | 13 phụ, nút | 14 nội dung | 16 tiêu đề dự án
+   Dòng cao 1.45-1.55 để dấu tiếng Việt xếp chồng (Ệ, Ẫ, Ộ...) không bị cắt.
+   ========================================================================== */
+body:has(.clickup-shell) {
+    font-size: 0.875rem;
+    line-height: 1.55;
+    letter-spacing: 0;
+}
 
-
+body:has(.clickup-shell) :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+}
+
+body:has(.clickup-shell) .fs-7 {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+}
+
+body:has(.clickup-shell) .fs-8 {
+    font-size: 0.8125rem !important;
+    line-height: 1.5 !important;
+}
+
+body:has(.clickup-shell) .fs-9 {
+    font-size: 0.75rem !important;
+    line-height: 1.45 !important;
+}
+
+body:has(.clickup-shell) .fs-10 {
+    font-size: 0.71875rem !important;
+    line-height: 1.4 !important;
+}
+
+/* Số và ngày dùng chung họ chữ với giao diện (chữ số đều nhau) thay vì phông monospace hệ thống */
+body:has(.clickup-shell) .font-monospace {
+    font-family: var(--font-sans) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+}
+
+/* Tiêu đề dự án */
+body:has(.clickup-shell) .clickup-project-title-row h6 {
+    font-size: 1rem !important;
+    font-weight: 700;
+}
+
+/* Sidebar */
+body:has(.clickup-shell) .clickup-nav-link,
+body:has(.clickup-shell) .clickup-space-item {
+    font-size: 0.875rem;
+}
+
+body:has(.clickup-shell) .clickup-tree-item {
+    font-size: 0.84rem;
+}
+
+body:has(.clickup-shell) .clickup-section-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+}
+
+body:has(.clickup-shell) .search-kbd-badge {
+    font-size: 0.7rem;
+}
+
+/* Thanh công cụ */
+body:has(.clickup-shell) .clickup-view-btn,
+body:has(.clickup-shell) .assignee-filter-btn,
+body:has(.clickup-shell) .status-filter-btn {
+    font-size: 0.8125rem;
+}
+
+/* Danh sách công việc */
+body:has(.clickup-shell) .clickup-task-row {
+    font-size: 0.875rem;
+}
+
+body:has(.clickup-shell) .clickup-subtask-row {
+    font-size: 0.8125rem;
+}
+
+body:has(.clickup-shell) .clickup-priority-flag {
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+
+body:has(.clickup-shell) .clickup-list-table tbody td:not(:first-child) {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+body:has(.clickup-shell) .clickup-group-badge,
+body:has(.clickup-shell) .clickup-group-count {
+    font-size: 0.75rem;
+}
+
+/* Thẻ Kanban và các chip nhỏ */
+body:has(.clickup-shell) .kanban-meta-item,
+body:has(.clickup-shell) .kanban-header-pill,
+body:has(.clickup-shell) .kanban-header-pill .pill-count,
+body:has(.clickup-shell) .status-count-pill,
+body:has(.clickup-shell) .task-sidebar-section-title {
+    font-size: 0.75rem;
+}
+
+/* Tiêu đề cột không xuống dòng; nút ở chân sidebar giữ trên một dòng */
+body:has(.clickup-shell) .clickup-list-header-row th {
+    white-space: nowrap;
+}
+
+body:has(.clickup-shell) .clickup-list-header-row th:not(:first-child) {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+body:has(.clickup-shell) .btn-create-space,
+body:has(.clickup-shell) .btn-join-code {
+    white-space: nowrap;
+    font-size: 0.78rem !important;
+}
+
+/* Cột Người phụ trách (dự án nhóm): avatar và tên căn trái cùng một mép, tiêu đề cột căn trái theo */
+body:has(.clickup-shell) .clickup-list-table.is-team tbody td:nth-child(2) {
+    text-align: left !important;
+    padding-left: 24px;
+}
+
+body:has(.clickup-shell) .clickup-list-table.is-team tbody td:nth-child(2) > .d-flex {
+    justify-content: flex-start;
+}
+
+body:has(.clickup-shell) .clickup-list-table.is-team .clickup-list-header-row th:nth-child(2) {
+    text-align: left;
+    padding-left: 24px;
+}
