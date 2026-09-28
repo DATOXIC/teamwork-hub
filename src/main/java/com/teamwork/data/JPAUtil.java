@@ -18,32 +18,67 @@ import java.util.logging.Logger;
 public class JPAUtil {
 
     private static final Logger LOGGER = Logger.getLogger(JPAUtil.class.getName());
-    private static EntityManagerFactory emf;
+    private static final int MAX_INIT_ATTEMPTS = 2;
+    private static final long RETRY_DELAY_MS = 1000;
+
+    private static volatile EntityManagerFactory emf;
     private static String persistenceUnitName = "teamwork-cloud"; // Mặc định Cloud Supabase
     // private static String persistenceUnitName = "teamwork-sqlserver";
 
     static {
-        try {
-            // Kiểm tra cấu hình trong db.properties nếu có ghi đè persistence unit
-            try (InputStream in = JPAUtil.class.getClassLoader().getResourceAsStream("db.properties")) {
-                if (in != null) {
-                    Properties props = new Properties();
-                    props.load(in);
-                    String unit = props.getProperty("jpa.unit");
-                    if (unit != null && !unit.trim().isEmpty()) {
-                        persistenceUnitName = unit.trim();
-                    }
+        // Kiểm tra cấu hình trong db.properties nếu có ghi đè persistence unit
+        try (InputStream in = JPAUtil.class.getClassLoader().getResourceAsStream("db.properties")) {
+            if (in != null) {
+                Properties props = new Properties();
+                props.load(in);
+                String unit = props.getProperty("jpa.unit");
+                if (unit != null && !unit.trim().isEmpty()) {
+                    persistenceUnitName = unit.trim();
                 }
-            } catch (Exception e) {
-                LOGGER.warning("JPAUtil: Không thể đọc jpa.unit từ db.properties, dùng mặc định: " + persistenceUnitName);
+            }
+        } catch (Exception e) {
+            LOGGER.warning("JPAUtil: Không thể đọc jpa.unit từ db.properties, dùng mặc định: " + persistenceUnitName);
+        }
+    }
+
+    /**
+     * Khởi tạo EntityManagerFactory khi cần và cho phép thử lại ở lần gọi sau.
+     * Không tạo trong khối static: nếu lần kết nối đầu bị ngắt (ví dụ TLS handshake tới Supabase),
+     * khối static hỏng sẽ làm JPAUtil không dùng được cho tới khi khởi động lại Tomcat.
+     */
+    private static EntityManagerFactory getFactory() {
+        EntityManagerFactory current = emf;
+        if (current != null && current.isOpen()) {
+            return current;
+        }
+
+        synchronized (JPAUtil.class) {
+            if (emf != null && emf.isOpen()) {
+                return emf;
             }
 
-            LOGGER.info("JPAUtil: Đang khởi tạo EntityManagerFactory cho Persistence Unit: [" + persistenceUnitName + "]...");
-            emf = Persistence.createEntityManagerFactory(persistenceUnitName);
-            LOGGER.info("JPAUtil: Khởi tạo EntityManagerFactory [" + persistenceUnitName + "] thành công!");
-        } catch (Throwable ex) {
-            LOGGER.log(Level.SEVERE, "JPAUtil: Khởi tạo EntityManagerFactory thất bại!", ex);
-            throw new ExceptionInInitializerError(ex);
+            RuntimeException lastError = null;
+            for (int attempt = 1; attempt <= MAX_INIT_ATTEMPTS; attempt++) {
+                try {
+                    LOGGER.info("JPAUtil: Đang khởi tạo EntityManagerFactory cho Persistence Unit: [" + persistenceUnitName
+                            + "] (lần " + attempt + "/" + MAX_INIT_ATTEMPTS + ")...");
+                    emf = Persistence.createEntityManagerFactory(persistenceUnitName);
+                    LOGGER.info("JPAUtil: Khởi tạo EntityManagerFactory [" + persistenceUnitName + "] thành công!");
+                    return emf;
+                } catch (RuntimeException ex) {
+                    lastError = ex;
+                    LOGGER.log(Level.SEVERE, "JPAUtil: Khởi tạo EntityManagerFactory thất bại (lần " + attempt + ")!", ex);
+                    if (attempt < MAX_INIT_ATTEMPTS) {
+                        try {
+                            Thread.sleep(RETRY_DELAY_MS);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            }
+            throw new IllegalStateException("Không thể kết nối cơ sở dữ liệu, vui lòng thử lại sau ít phút!", lastError);
         }
     }
 
@@ -52,10 +87,7 @@ public class JPAUtil {
      * @return EntityManager đối tượng quản lý Entity
      */
     public static EntityManager getEntityManager() {
-        if (emf == null || !emf.isOpen()) {
-            throw new IllegalStateException("EntityManagerFactory chưa được khởi tạo hoặc đã bị đóng!");
-        }
-        return emf.createEntityManager();
+        return getFactory().createEntityManager();
     }
 
     /**
