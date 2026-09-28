@@ -1,52 +1,64 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-        <%-- 1. Đặt tiêu đề cho tab trình duyệt và nhúng Header, Navbar --%>
-            <c:set var="pageTitle" value="Không gian làm việc &bull; TeamWork Hub" />
-            <jsp:include page="/includes/header.jsp" />
-            <jsp:include page="/includes/navbar.jsp" />
+<%-- =========================================================================
+     [MVC VIEW SKELETON: WORKSPACE DASHBOARD & PROJECT MANAGEMENT]
+     VI: Bảng điều khiển không gian làm việc, danh sách dự án và hộp thư lời mời
+     EN: Workspace dashboard, project portfolio, and pending invitations management
+     - Controller: com.teamwork.controllers.ProjectServlet (/project?action=list)
+     - Partner Controller: com.teamwork.controllers.ProjectInviteServlet (/invite)
+     - Model: com.teamwork.business.Project, com.teamwork.business.ProjectMember,
+              com.teamwork.business.ProjectInvite, com.teamwork.business.User
+     - Session Attributes: currentUser, toastSuccess, toastError
+     - Request Attributes: myProjects, otherProjects, kpiPmCount, kpiTotalTasks,
+                           kpiDoneTasks, memberCountMap, pendingInvites
+     - Form Actions: POST /invite (action=accept | reject | requestJoin),
+                     POST /project (action=create)
+     ========================================================================= --%>
 
-            <div class="container py-4 my-auto">
+<%-- 1. Đặt tiêu đề cho tab trình duyệt và nhúng Header, Navbar --%>
+<c:set var="pageTitle" value="Không gian làm việc &bull; TeamWork Hub" />
+<jsp:include page="/includes/header.jsp" />
+<jsp:include page="/includes/navbar.jsp" />
 
-                <!-- 2. Header Section: Tiêu đề trang & Nút Tạo dự án mới -->
-                <div
-                    class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3"
-                    style="border-bottom: 1px solid #D5DEEF;">
-                    <div>
-                        <h3 class="fw-bold mb-1 d-flex align-items-center gap-2" style="color: #1E2D42;">
-                            <i class="bi bi-grid-1x2-fill" style="color: #395886;"></i>
-                            <span>Không Gian Làm Việc</span>
-                        </h3>
-                        <p class="fs-8 mb-0" style="color: #627D98;">
-                            Chào mừng trở lại, <strong style="color: #1E2D42;">${sessionScope.currentUser.fullName}</strong>! Bạn đang tham gia
-                            <strong style="color: #395886;">${myProjects.size()} dự án</strong>.
-                        </p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <!-- Nút mở Modal Xin Gia Nhập Bằng Mã -->
-                        <button type="button"
-                            class="btn px-3 py-1-5 rounded-pill fw-semibold shadow-2xs fs-8 d-flex align-items-center gap-2"
-                            style="background-color: #ffffff; color: #395886; border: 1px solid #D5DEEF; transition: all 0.2s;"
-                            onmouseover="this.style.borderColor='#8AAEE0'; this.style.backgroundColor='#F0F3FA';"
-                            onmouseout="this.style.borderColor='#D5DEEF'; this.style.backgroundColor='#ffffff';"
-                            data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
-                            <i class="bi bi-key-fill" style="color: #638ECB;"></i> Nhập Mã Xin Vào
-                        </button>
+<div class="container py-4 my-auto">
 
-                        <!-- Nút kích hoạt Modal Tạo Dự Án Mới -->
-                        <button type="button"
-                            class="btn btn-primary-custom px-3-5 py-1-5 rounded-pill fw-semibold shadow-2xs fs-8 d-flex align-items-center gap-2 text-white"
-                            data-bs-toggle="modal" data-bs-target="#createProjectModal">
-                            <i class="bi bi-plus-circle-fill"></i> Tạo dự án mới
-                        </button>
-                    </div>
-                </div>
+    <!-- 2. Header Section: Tiêu đề trang & Nút Tạo dự án mới -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 workspace-header-bar">
+        <div>
+            <h3 class="fw-bold mb-1 d-flex align-items-center gap-2 workspace-title">
+                <i class="bi bi-grid-1x2-fill workspace-title-icon"></i>
+                <span>Không Gian Làm Việc</span>
+            </h3>
+            <p class="fs-8 mb-0 workspace-subtitle">
+                Chào mừng trở lại, <strong class="workspace-user-highlight">${sessionScope.currentUser.fullName}</strong>! Bạn đang tham gia
+                <strong class="workspace-count-highlight">${myProjects.size()} dự án</strong>.
+            </p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <!-- Nút mở Modal Xin Gia Nhập Bằng Mã -->
+            <button type="button"
+                class="btn btn-join-code-trigger px-3 py-1-5 rounded-pill fw-semibold shadow-2xs fs-8 d-flex align-items-center gap-2"
+                data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
+                <i class="bi bi-key-fill text-accent-soft"></i> Nhập Mã Xin Vào
+            </button>
+
+            <!-- Nút kích hoạt Modal Tạo Dự Án Mới -->
+            <button type="button"
+                class="btn btn-primary-custom px-3-5 py-1-5 rounded-pill fw-semibold shadow-2xs fs-8 d-flex align-items-center gap-2 text-white"
+                data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                <i class="bi bi-plus-circle-fill"></i> Tạo dự án mới
+            </button>
+        </div>
+    </div>
 
                 <!-- 3. Thông báo Flash — UI-04: Floating Toast (tự biến mất sau 4 giây) -->
                 <jsp:include page="/includes/toast.jsp" />
 
                 <!-- =========================================================================
                      4. BENTO KPI BAR: CHỈ SỐ HOẠT ĐỘNG TỔNG QUAN (QUICK METRICS)
+                     VI: Thống kê nhanh các chỉ số dự án, tiến độ chung và hộp thư
+                     EN: Quick summary metrics for owned/joined projects, task completion and invites
                      ========================================================================= -->
                 <%-- Ba chỉ số kpiPmCount / kpiTotalTasks / kpiDoneTasks được ProjectServlet
                      tính sẵn và đặt vào request scope (xem showProjectList, mục 2) --%>
@@ -59,8 +71,8 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Dự án của bạn</div>
-                                <h4 class="fw-bold mb-0" style="color: #1E2D42;">${myProjects.size()}</h4>
-                                <span class="fs-9" style="color: #627D98;">(${kpiPmCount} làm Trưởng nhóm)</span>
+                                <h4 class="fw-bold mb-0 workspace-kpi-value">${myProjects.size()}</h4>
+                                <span class="fs-9 workspace-kpi-desc">(${kpiPmCount} làm Trưởng nhóm)</span>
                             </div>
                         </div>
                     </div>
@@ -73,8 +85,8 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Khám phá</div>
-                                <h4 class="fw-bold mb-0" style="color: #1E2D42;">${otherProjects.size()}</h4>
-                                <span class="fs-9" style="color: #627D98;">Dự án đang mở</span>
+                                <h4 class="fw-bold mb-0 workspace-kpi-value">${otherProjects.size()}</h4>
+                                <span class="fs-9 workspace-kpi-desc">Dự án đang mở</span>
                             </div>
                         </div>
                     </div>
@@ -87,7 +99,7 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Tiến độ chung</div>
-                                <h4 class="fw-bold mb-0" style="color: #1E2D42;">${kpiDoneTasks}/${kpiTotalTasks}</h4>
+                                <h4 class="fw-bold mb-0 workspace-kpi-value">${kpiDoneTasks}/${kpiTotalTasks}</h4>
                                 <span class="fs-9 text-success fw-medium">Đã giải quyết</span>
                             </div>
                         </div>
@@ -101,8 +113,8 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Hộp thư lời mời</div>
-                                <h4 class="fw-bold mb-0" style="color: #1E2D42;">${not empty pendingInvites ? pendingInvites.size() : 0}</h4>
-                                <span class="fs-9" style="color: #F57F17;">Chờ bạn xử lý</span>
+                                <h4 class="fw-bold mb-0 workspace-kpi-value">${not empty pendingInvites ? pendingInvites.size() : 0}</h4>
+                                <span class="fs-9 workspace-kpi-warning">Chờ bạn xử lý</span>
                             </div>
                         </div>
                     </div>
@@ -110,17 +122,19 @@
 
                 <!-- =========================================================================
                      5. HỘP THƯ LỜI MỜI / YÊU CẦU XIN GIA NHẬP ĐANG CHỜ PHẢN HỒI (PENDING INVITES)
+                     VI: Xử lý lời mời tham gia dự án hoặc đơn xin gia nhập từ thành viên
+                     EN: Inbox for pending project invitations and membership join requests
                      ========================================================================= -->
                 <c:if test="${not empty pendingInvites}">
                     <div class="mb-4">
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div class="d-flex align-items-center gap-2">
-                                <span class="p-1 rounded-2 lh-1" style="background-color: #FFF8E1; color: #F57F17; border: 1px solid #FFE082;">
+                                <span class="p-1 rounded-2 lh-1 invite-alert-pill">
                                     <i class="bi bi-envelope-paper-heart-fill fs-7"></i>
                                 </span>
-                                <h6 class="fw-bold fs-7 mb-0" style="color: #1E2D42;">Hộp Thư Yêu Cầu & Lời Mời (${pendingInvites.size()})</h6>
+                                <h6 class="fw-bold fs-7 mb-0 invite-section-title">Hộp Thư Yêu Cầu & Lời Mời (${pendingInvites.size()})</h6>
                             </div>
-                            <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold" style="background-color: #FFF8E1; color: #F57F17; border: 1px solid #FFE082;">
+                            <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold invite-alert-pill">
                                 Đang chờ bạn phản hồi
                             </span>
                         </div>
@@ -135,18 +149,18 @@
                                                     onclick="copyProjectCode('${inv.projectCode}')"
                                                     title="Bấm để sao chép mã">
                                                     <i class="bi bi-hash"></i><span>${inv.projectCode}</span>
-                                                    <i class="bi bi-copy fs-9 ms-1" style="color: #395886;"></i>
+                                                    <i class="bi bi-copy fs-9 ms-1 copy-code-icon"></i>
                                                 </span>
                                                 <span
                                                     class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
                                                     ${inv.statusLabel}
                                                 </span>
                                             </div>
-                                            <h6 class="fw-bold mb-1 fs-7" style="color: #1E2D42;">${inv.projectName}</h6>
+                                            <h6 class="fw-bold mb-1 fs-7 invite-project-title">${inv.projectName}</h6>
                                             <p class="text-secondary fs-8 mb-2">
                                                 <c:choose>
                                                     <c:when test="${inv.type == 'INVITATION'}">
-                                                        <i class="bi bi-person-fill me-1" style="color: #395886;"></i> Trưởng nhóm
+                                                        <i class="bi bi-person-fill me-1 invite-sender-icon"></i> Trưởng nhóm
                                                         <strong>${inv.senderName}</strong> đã gửi lời mời bạn vào dự án này.
                                                     </c:when>
                                                     <c:otherwise>
@@ -162,14 +176,13 @@
                                         </div>
 
                                         <!-- Nút bấm Duyệt / Từ chối -->
-                                        <div class="d-flex align-items-center gap-2 pt-2 border-top" style="border-color: #EDF2F9 !important;">
+                                        <div class="d-flex align-items-center gap-2 pt-2 border-top invite-card-actions">
                                             <form method="post" action="${pageContext.request.contextPath}/invite"
                                                 class="m-0 flex-grow-1">
                                                 <input type="hidden" name="action" value="accept">
                                                 <input type="hidden" name="inviteId" value="${inv.id}">
                                                 <button type="submit"
-                                                    class="btn btn-sm w-100 rounded-pill fw-semibold fs-8 py-1-5 shadow-2xs text-white"
-                                                    style="background: linear-gradient(135deg, #2E7D32 0%, #43A047 100%); border: none;">
+                                                    class="btn btn-invite-accept btn-sm w-100 rounded-pill fw-semibold fs-8 py-1-5 shadow-2xs text-white">
                                                     <i class="bi bi-check-circle-fill me-1"></i> Đồng ý gia nhập
                                                 </button>
                                             </form>
@@ -179,8 +192,7 @@
                                                 <input type="hidden" name="action" value="reject">
                                                 <input type="hidden" name="inviteId" value="${inv.id}">
                                                 <button type="submit"
-                                                    class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-semibold fs-8 py-1-5"
-                                                    style="border-color: #D5DEEF; color: #627D98;">
+                                                    class="btn btn-invite-reject btn-outline-secondary btn-sm w-100 rounded-pill fw-semibold fs-8 py-1-5">
                                                     <i class="bi bi-x-circle me-1"></i> Từ chối
                                                 </button>
                                             </form>
@@ -194,8 +206,10 @@
 
                 <!-- =========================================================================
                      6. WORKSPACE TOOLBAR: TÌM KIẾM TỨC THÌ (LIVE SEARCH) & FILTER TABS
+                     VI: Bộ lọc theo vai trò (Trưởng nhóm / Thành viên) và ô tìm kiếm tức thì
+                     EN: Role-based filtering (Owner / Member) and real-time live search toolbar
                      ========================================================================= -->
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 p-3 rounded-4" style="background-color: #ffffff; border: 1px solid #D5DEEF; box-shadow: 0 2px 8px rgba(57,88,134,0.04);">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 p-3 rounded-4 workspace-toolbar-card">
                     <!-- Filter Pills -->
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         <button type="button" class="filter-pill-btn active" onclick="filterProjects('all', this)">
@@ -210,7 +224,7 @@
                     </div>
 
                     <!-- Ô Live Search Box -->
-                    <div class="search-input-group" style="min-width: 260px;">
+                    <div class="search-input-group workspace-search-group">
                         <i class="bi bi-search text-muted me-2"></i>
                         <input type="text" id="projectSearchInput" placeholder="Tìm tên hoặc mã dự án..." onkeyup="searchProjectsLive(this.value)">
                         <button type="button" class="btn btn-link p-0 text-muted d-none" id="clearSearchBtn" onclick="clearProjectSearch()">
@@ -220,17 +234,19 @@
                 </div>
 
                 <!-- =========================================================================
-         7. PROJECT GRID: LƯỚI HIỂN THỊ DANH SÁCH CARD DỰ ÁN
-         ========================================================================= -->
+                     7. PROJECT GRID: LƯỚI HIỂN THỊ DANH SÁCH CARD DỰ ÁN
+                     VI: Lưới danh sách các dự án người dùng đang tham gia
+                     EN: Project cards grid showcasing active workspaces user belongs to
+                     ========================================================================= -->
                 <!-- LƯỚI 1: DỰ ÁN CỦA TÔI -->
                 <div class="d-flex align-items-center justify-content-between mb-3 mt-2">
-                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2" style="color: #1E2D42;">
-                        <span class="d-inline-flex align-items-center justify-content-center rounded-2 p-1" style="background-color: #F0F3FA; color: #395886; border: 1px solid #D5DEEF;">
+                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2 workspace-section-heading">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-2 p-1 workspace-section-badge">
                             <i class="bi bi-folder-check"></i>
                         </span>
                         <span>Dự án của tôi (<span id="myProjectsCountBadge">${myProjects.size()}</span>)</span>
                     </h6>
-                    <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold" style="background-color: #E2EAF8; color: #395886;">
+                    <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold workspace-status-badge">
                         <i class="bi bi-activity me-1"></i>Không gian đang hoạt động
                     </span>
                 </div>
@@ -256,15 +272,13 @@
                                             <!-- UI-05: Badge vai trò PM / Thành viên -->
                                             <c:choose>
                                                 <c:when test="${p.ownerId == sessionScope.currentUser.id}">
-                                                    <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold text-white d-inline-flex align-items-center"
-                                                        style="background-color: #395886;"
+                                                    <span class="badge badge-role-owner rounded-pill px-2-5 py-1 fs-9 fw-semibold text-white d-inline-flex align-items-center"
                                                         title="Bạn là Trưởng Dự Án">
                                                         <i class="bi bi-star-fill text-warning me-1"></i> Trưởng nhóm
                                                     </span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold d-inline-flex align-items-center"
-                                                        style="background-color: #E2EAF8; color: #395886; border: 1px solid #B1C9EF;"
+                                                    <span class="badge badge-role-member rounded-pill px-2-5 py-1 fs-9 fw-semibold d-inline-flex align-items-center"
                                                         title="Bạn là thành viên">
                                                         <i class="bi bi-person-fill me-1"></i> Thành viên
                                                     </span>
@@ -277,15 +291,14 @@
                                     <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm text-truncate" title="${p.name}">${p.name}</h5>
 
                                     <!-- Mô tả dự án -->
-                                    <p class="text-secondary fs-8 mb-3"
-                                        style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4rem;">
+                                    <p class="text-secondary fs-8 mb-3 project-desc-line-clamp">
                                         ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
                                     </p>
 
                                     <!-- Thông tin phụ: Thành viên & Loại hình dự án (được chuyển xuống đây để thoáng header) -->
                                     <div class="d-flex align-items-center justify-content-between text-muted fs-8 pt-1">
                                         <span class="d-flex align-items-center gap-1">
-                                            <i class="bi bi-people-fill" style="color: #638ECB;"></i>
+                                            <i class="bi bi-people-fill text-accent-soft"></i>
                                             <strong>${memberCountMap[p.id]}/10</strong> thành viên
                                         </span>
                                         <span class="badge ${p.projectTypeBadgeClass} rounded-pill px-2-5 py-1 fs-9 fw-medium"
@@ -299,11 +312,10 @@
                                 <div class="project-card-footer">
                                     <div class="d-flex justify-content-between align-items-center fs-8 text-muted mb-1-5">
                                         <span>Tiến độ: <strong class="text-dark">${p.doneTasks}/${p.totalTasks} việc</strong></span>
-                                        <span class="fw-bold" style="color: #395886;">${p.progressPercentage}%</span>
+                                        <span class="fw-bold project-progress-pct">${p.progressPercentage}%</span>
                                     </div>
                                     <div class="project-progress-container mb-3">
-                                        <div class="project-progress-bar" data-progress="${p.progressPercentage}%"
-                                            style="width: 0%;"></div>
+                                        <div class="project-progress-bar progress-init-zero" data-progress="${p.progressPercentage}%"></div>
                                     </div>
                                     <div class="d-flex gap-2">
                                         <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}"
@@ -312,8 +324,7 @@
                                             <i class="bi bi-arrow-right"></i>
                                         </a>
                                         <a href="${pageContext.request.contextPath}/project?action=report&projectId=${p.id}"
-                                            class="btn btn-outline-secondary rounded-pill px-3 py-1-5 fs-8 fw-semibold d-flex align-items-center justify-content-center shadow-2xs"
-                                            style="border-color: #D5DEEF; color: #395886;"
+                                            class="btn btn-outline-secondary btn-project-report-icon rounded-pill px-3 py-1-5 fs-8 fw-semibold d-flex align-items-center justify-content-center shadow-2xs"
                                             title="Xem báo cáo tiến độ dự án">
                                             <i class="bi bi-file-earmark-bar-graph"></i>
                                         </a>
@@ -324,11 +335,11 @@
                     </c:forEach>
                     <!-- Thông báo không tìm thấy kết quả khi lọc hoặc tìm kiếm -->
                     <div class="col-12 d-none text-center py-5" id="noSearchResultsAlert">
-                        <div class="p-4 rounded-4 bg-white border d-inline-block" style="border-color: #D5DEEF !important; max-width: 420px;">
-                            <i class="bi bi-search fs-2 mb-2 d-block" style="color: #8AAEE0;"></i>
-                            <h6 class="fw-bold mb-1" style="color: #1E2D42;">Không tìm thấy dự án phù hợp</h6>
+                        <div class="p-4 rounded-4 bg-white border d-inline-block search-no-results-card">
+                            <i class="bi bi-search fs-2 mb-2 d-block search-empty-icon"></i>
+                            <h6 class="fw-bold mb-1 search-empty-title">Không tìm thấy dự án phù hợp</h6>
                             <p class="text-muted fs-8 mb-3">Không có dự án nào khớp với bộ lọc hoặc từ khóa tìm kiếm của bạn.</p>
-                            <button type="button" class="btn btn-sm rounded-pill px-3 fs-8 fw-semibold" style="background-color: #F0F3FA; color: #395886; border: 1px solid #D5DEEF;" onclick="clearProjectSearch(); filterProjects('all', document.querySelector('.filter-pill-btn'));">
+                            <button type="button" class="btn btn-reset-filters btn-sm rounded-pill px-3 fs-8 fw-semibold" onclick="clearProjectSearch(); filterProjects('all', document.querySelector('.filter-pill-btn'));">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i> Đặt lại bộ lọc
                             </button>
                         </div>
@@ -355,15 +366,20 @@
                     </c:if>
                 </div>
 
+                <!-- =========================================================================
+                     8. EXPLORATION GRID: CÁC DỰ ÁN KHÁC (CÓ THỂ XIN VÀO)
+                     VI: Khám phá các dự án đang mở trên hệ thống để gửi yêu cầu gia nhập
+                     EN: Discover other open workspace projects and request membership
+                     ========================================================================= -->
                 <!-- LƯỚI 2: CÁC DỰ ÁN KHÁC (CÓ THỂ XIN VÀO) -->
                 <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2" style="color: #1E2D42;">
-                        <span class="d-inline-flex align-items-center justify-content-center rounded-2 p-1" style="background-color: #F0F3FA; color: #627D98; border: 1px solid #D5DEEF;">
+                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2 workspace-section-heading">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-2 p-1 workspace-section-badge-secondary">
                             <i class="bi bi-compass"></i>
                         </span>
                         <span>Khám phá dự án khác (${otherProjects.size()})</span>
                     </h6>
-                    <span class="fs-9" style="color: #627D98;">
+                    <span class="fs-9 workspace-info-hint">
                         <i class="bi bi-info-circle me-1"></i>Có thể gửi yêu cầu xin gia nhập
                     </span>
                 </div>
@@ -375,31 +391,27 @@
                                 <div>
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="project-avatar-monogram" style="background: #F0F3FA; color: #627D98; border-color: #D5DEEF;">
+                                            <div class="project-avatar-monogram project-avatar-monogram-subtle">
                                                 ${p.name.substring(0, 1).toUpperCase()}
                                             </div>
                                             <span class="project-code-badge" onclick="copyProjectCode('${p.projectCode}')"
                                                 title="Bấm để sao chép mã dự án">
                                                 <i class="bi bi-hash"></i>${p.projectCode}
-                                                <i class="bi bi-copy fs-9 ms-1" style="color: #638ECB;"></i>
+                                                <i class="bi bi-copy fs-9 ms-1 text-accent-soft"></i>
                                             </span>
                                         </div>
-                                        <span class="badge rounded-pill px-2 py-1 fs-9 fw-semibold" style="background-color: #F0F3FA; color: #395886; border: 1px solid #D5DEEF;">
+                                        <span class="badge project-member-count-badge rounded-pill px-2 py-1 fs-9 fw-semibold">
                                             <i class="bi bi-people-fill me-1"></i> ${memberCountMap[p.id]}/10
                                         </span>
                                     </div>
                                     <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm">${p.name}</h5>
-                                    <p class="text-secondary fs-8 mb-3"
-                                        style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4rem;">
+                                    <p class="text-secondary fs-8 mb-3 project-desc-line-clamp">
                                         ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
                                     </p>
                                 </div>
-                                <div class="pt-3 border-top text-center" style="border-color: #EDF2F9 !important;">
+                                <div class="pt-3 border-top text-center border-divider-subtle">
                                     <button type="button"
-                                        class="btn w-100 rounded-pill py-1-5 fs-8 fw-semibold shadow-2xs"
-                                        style="background-color: #F0F3FA; color: #395886; border: 1px solid #D5DEEF; transition: all 0.2s;"
-                                        onmouseover="this.style.backgroundColor='#395886'; this.style.color='#ffffff';"
-                                        onmouseout="this.style.backgroundColor='#F0F3FA'; this.style.color='#395886';"
+                                        class="btn btn-explore-join-request w-100 rounded-pill py-1-5 fs-8 fw-semibold shadow-2xs"
                                         onclick="document.getElementById('inputProjectCode').value='${p.projectCode}'; new bootstrap.Modal(document.getElementById('joinByCodeModal')).show();">
                                         <i class="bi bi-box-arrow-in-right me-1"></i> Xin gia nhập nhóm
                                     </button>
@@ -416,8 +428,10 @@
             </div>
 
             <!-- =========================================================================
-     6. MODAL 1: CỬA SỔ POP-UP XIN GIA NHẬP BẰNG MÃ DỰ ÁN (PROJECT CODE)
-     ========================================================================= -->
+                 9. MODAL 1: CỬA SỔ POP-UP XIN GIA NHẬP BẰNG MÃ DỰ ÁN (PROJECT CODE)
+                 VI: Gửi yêu cầu gia nhập dự án thông qua mã code (ProjectInviteServlet)
+                 EN: Membership join request dialog via project code (ProjectInviteServlet)
+                 ========================================================================= -->
             <div class="modal fade" id="joinByCodeModal" tabindex="-1" aria-labelledby="joinByCodeModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -468,8 +482,10 @@
             </div>
 
             <!-- =========================================================================
-     7. MODAL 2: CỬA SỔ POP-UP TẠO DỰ ÁN MỚI (CÓ THÊM Ô MÃ DỰ ÁN TÙY CHỌN)
-     ========================================================================= -->
+                 10. MODAL 2: CỬA SỔ POP-UP TẠO DỰ ÁN MỚI
+                 VI: Khởi tạo dự án mới với mô hình TEAM hoặc SOLO (ProjectServlet)
+                 EN: Dialog for creating new workspace project with TEAM or SOLO workflow (ProjectServlet)
+                 ========================================================================= -->
             <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
@@ -521,7 +537,7 @@
                                     </label>
                                     <div class="row g-2">
                                         <div class="col-6">
-                                            <label class="p-2.5 rounded-3 border border-primary bg-primary-subtle bg-opacity-10 d-block position-relative h-100" id="card-type-team" style="cursor: pointer;">
+                                            <label class="p-2.5 rounded-3 border border-primary bg-primary-subtle bg-opacity-10 d-block position-relative h-100 project-type-option-card" id="card-type-team">
                                                 <input type="radio" name="projectType" value="TEAM" class="form-check-input position-absolute top-0 end-0 m-2" checked onchange="document.getElementById('card-type-team').classList.add('border-primary','bg-primary-subtle','bg-opacity-10'); document.getElementById('card-type-solo').classList.remove('border-primary','bg-primary-subtle','bg-opacity-10');">
                                                 <div class="d-flex align-items-center gap-1-5 mb-1 pe-3">
                                                     <span class="badge bg-primary text-white rounded-circle p-1 lh-1"><i class="bi bi-people-fill fs-9"></i></span>
@@ -533,7 +549,7 @@
                                             </label>
                                         </div>
                                         <div class="col-6">
-                                            <label class="p-2.5 rounded-3 border d-block position-relative h-100" id="card-type-solo" style="cursor: pointer;">
+                                            <label class="p-2.5 rounded-3 border d-block position-relative h-100 project-type-option-card" id="card-type-solo">
                                                 <input type="radio" name="projectType" value="SOLO" class="form-check-input position-absolute top-0 end-0 m-2" onchange="document.getElementById('card-type-solo').classList.add('border-primary','bg-primary-subtle','bg-opacity-10'); document.getElementById('card-type-team').classList.remove('border-primary','bg-primary-subtle','bg-opacity-10');">
                                                 <div class="d-flex align-items-center gap-1-5 mb-1 pe-3">
                                                     <span class="badge bg-info text-white rounded-circle p-1 lh-1"><i class="bi bi-person-fill fs-9"></i></span>
@@ -562,7 +578,7 @@
             </div>
 
             <!-- Toast thông báo Sao chép mã thành công -->
-            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+            <div class="position-fixed bottom-0 end-0 p-3 toast-container-bottom-end">
                 <div id="copyToast" class="toast align-items-center text-bg-dark border-0 rounded-3 shadow-lg"
                     role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="d-flex">

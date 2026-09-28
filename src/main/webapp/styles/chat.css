@@ -867,3 +867,92 @@
 [data-theme="dark"] .modal .btn-close {
     filter: invert(1) grayscale(100%) brightness(200%);
 }
+
+/* =====================================================
+   11. SEMANTIC UTILITIES FOR CHAT.JSP DECOUPLING
+   ===================================================== */
+.chat-border-glass-subtle {
+    border-color: var(--chat-glass-border-subtle) !important;
+}
+
+.chat-icon-accent {
+    color: var(--chat-accent);
+}
+
+.chat-icon-accent-light {
+    color: var(--chat-accent-light);
+}
+
+.chat-icon-warning {
+    color: #f59e0b;
+}
+
+.chat-badge-online {
+    background: var(--chat-glass-surface-hover);
+    color: var(--chat-text-secondary);
+    border: 1px solid var(--chat-glass-border-subtle);
+}
+
+.chat-member-list-scroll {
+    max-height: 27vh;
+    overflow-y: auto;
+}
+
+.chat-member-truncate {
+    max-width: 130px;
+}
+
+.chat-member-truncate-md {
+    max-width: 140px;
+}
+
+.chat-empty-title {
+    color: var(--chat-text-primary);
+}
+
+.chat-empty-subtitle {
+    max-width: 320px;
+}
+
+.chat-offcanvas-members-scroll {
+    max-height: 35vh;
+    overflow-y: auto;
+}
+
+.chat-offcanvas-shelf-scroll {
+    max-height: 40vh;
+    overflow-y: auto;
+}
+
+.chat-modal-glass {
+    background: var(--chat-island-bg) !important;
+    backdrop-filter: blur(28px) !important;
+    border: 1px solid var(--chat-glass-border) !important;
+}
+
+.chat-modal-header-glass {
+    border-color: var(--chat-glass-border-subtle) !important;
+}
+
+.chat-modal-title-glass {
+    color: var(--chat-text-primary) !important;
+}
+
+.chat-modal-label-glass {
+    color: var(--chat-text-secondary);
+}
+
+.chat-modal-textarea-glass {
+    background: var(--chat-glass-surface-subtle) !important;
+    border-color: var(--chat-glass-border) !important;
+    color: var(--chat-text-primary) !important;
+}
+
+.chat-modal-footer-glass {
+    border-color: var(--chat-glass-border-subtle) !important;
+}
+
+.chat-modal-text-glass {
+    color: var(--chat-text-primary);
+}
+

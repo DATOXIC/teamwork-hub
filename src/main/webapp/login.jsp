@@ -1,3 +1,20 @@
+<%-- =========================================================================
+     [MVC VIEW SKELETON: AUTHENTICATION & REGISTRATION DISPATCHER]
+     VI: Luồng xác thực đăng nhập và đăng ký tài khoản người dùng
+     EN: User authentication and registration dispatching view
+     - Controller: com.teamwork.controllers.AuthServlet (/auth)
+     - Model: com.teamwork.business.User, com.teamwork.data.UserDB
+     - Session Attributes: currentUser (User entity set upon successful login)
+     - Request Attributes: 
+         * successMessage (String): Thông báo đăng ký thành công / Registration success banner
+         * errorMessage (String): Thông báo lỗi đăng nhập / Login error banner
+         * regError (String): Thông báo lỗi đăng ký / Registration error banner
+         * activeTab (String): Tab đang kích hoạt ('login' hoặc 'register')
+         * username (String): Lưu lại giá trị tên đăng nhập / Preserved username input
+         * regFullName, regUsername, regEmail (String): Dữ liệu form đăng ký khi lỗi
+         * rememberChecked (Boolean): Trạng thái ghi nhớ đăng nhập / Remember checkbox state
+     - Cookie: teamwork_remember_user (Lưu username ghi nhớ trong 30 ngày)
+     ========================================================================= --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
@@ -26,27 +43,29 @@
     <%-- CSS riêng của trang Login — đặt trong <head>, tải trước body --%>
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/styles/login.css?v=<%= System.currentTimeMillis() %>">
+
+    <!-- Page Components Semantic CSS -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/styles/page-components.css?v=<%= System.currentTimeMillis() %>">
 </head>
 
-<body style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+<body class="login-body">
 
     <%-- ============================================================
          SECTION 1: NAVBAR
          Navbar nhỏ gọn: chỉ Brand + tên trường, không có menu đăng nhập
          ============================================================ --%>
-    <nav class="navbar navbar-dark py-2 shadow-sm"
-         style="background-color: #0f172a; border-bottom: 1px solid #1e293b;">
+    <nav class="navbar navbar-dark py-2 shadow-sm login-navbar">
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center fw-bold"
                href="${pageContext.request.contextPath}/">
-                <span class="me-2 d-flex align-items-center justify-content-center"
-                      style="width: 30px; height: 30px; background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); border-radius: 7px;">
-                    <i class="bi bi-grid-1x2-fill text-white" style="font-size: 14px;"></i>
+                <span class="me-2 login-brand-logo-icon">
+                    <i class="bi bi-grid-1x2-fill text-white"></i>
                 </span>
                 <span class="text-white fw-bold">TeamWork</span>
                 <span class="text-info fw-bold ms-1">Hub</span>
             </a>
-            <span class="small" style="color: #94a3b8; font-size: 13px;">
+            <span class="small login-campus-caption">
                 <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCM-UTE Campus
             </span>
             <div class="dropdown ms-3">
@@ -153,7 +172,14 @@
                     </button>
                 </div>
 
-                <%-- ═══════ TAB 1: FORM ĐĂNG NHẬP ═══════ --%>
+                <%-- ═══════ TAB 1: FORM ĐĂNG NHẬP ═══════
+                     [MVC BINDING: FORM 1 - USER AUTHENTICATION / ĐĂNG NHẬP]
+                     VI: Gửi thông tin định danh (username, password, remember) về AuthServlet
+                     EN: Submits user credentials to AuthServlet via POST
+                     - Action: ${pageContext.request.contextPath}/auth
+                     - Method: POST
+                     - Handled by: AuthServlet.doPost() -> handleLogin()
+                     ====================================================== --%>
                 <div class="login-tab-pane ${activeTab != 'register' ? 'active' : ''}" id="pane-login">
                     <form action="${pageContext.request.contextPath}/auth" method="post" autocomplete="off">
                         <input type="hidden" name="action" value="login">
@@ -196,7 +222,7 @@
                     </form>
 
                     <%-- Nút Thoát (Exit Button) --%>
-                    <a href="${pageContext.request.contextPath}/" style="text-decoration:none;">
+                    <a href="${pageContext.request.contextPath}/" class="login-exit-link">
                         <button type="button" class="btn-login-exit">Thoát</button>
                     </a>
 
@@ -237,7 +263,14 @@
                     </div>
                 </div>
 
-                <%-- ═══════ TAB 2: FORM ĐĂNG KÝ ═══════ --%>
+                <%-- ═══════ TAB 2: FORM ĐĂNG KÝ ═══════
+                     [MVC BINDING: FORM 2 - USER REGISTRATION / ĐĂNG KÝ TÀI KHOẢN MỚI]
+                     VI: Thu thập thông tin tài khoản mới, kiểm tra hợp lệ client trước khi POST
+                     EN: Collects registration fields, validates client-side, dispatches via POST
+                     - Action: ${pageContext.request.contextPath}/auth
+                     - Method: POST
+                     - Handled by: AuthServlet.doPost() -> handleRegister()
+                     ====================================================== --%>
                 <div class="login-tab-pane ${activeTab == 'register' ? 'active' : ''}" id="pane-register">
                     <form action="${pageContext.request.contextPath}/auth"
                           onsubmit="return validateRegisterForm()"

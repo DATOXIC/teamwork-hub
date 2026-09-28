@@ -1,3 +1,21 @@
+<%-- =========================================================================
+     [MVC VIEW SKELETON: USER PROFILE & PRODUCTIVITY SHOWCASE]
+     VI: Xem hồ sơ cá nhân, chỉ số cống hiến, dự án tham gia và quản lý tài khoản
+     EN: Professional profile view, productivity metrics, workspaces & invitations
+     - Controllers: 
+         * com.teamwork.controllers.ProfileServlet (/profile)
+         * com.teamwork.controllers.ProjectInviteServlet (/invite)
+     - Models: com.teamwork.business.User, com.teamwork.business.Project
+     - Session Attributes: currentUser (Thực thể người dùng đang đăng nhập)
+     - Request Attributes:
+         * profileUser (User): Hồ sơ người dùng đang được hiển thị
+         * isOwner (Boolean): true nếu currentUser.id == profileUser.id (chính chủ)
+         * userProjects (List<Project>): Danh sách các dự án thành viên tham gia
+         * availableProjectsToInvite (List<Project>): Danh sách dự án PM có thể mời
+         * leadTaskCount (int): Số nhiệm vụ lớn đang chủ trì (Task Lead)
+         * completedSubTasks (int) / totalSubTasks (int): Thống kê việc con hoàn thành
+         * completionRate (int): Tỷ lệ % hoàn thành tổng thể
+     ========================================================================= --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
@@ -23,15 +41,16 @@
 
 
     <!-- =========================================================================
-         3. KHỐI 1: IDENTITY & CV HEADER (THÔNG TIN CHUYÊN MÔN)
+         [SECTION 1: IDENTITY & CV HEADER / THÔNG TIN CHUYÊN MÔN]
+         VI: Hiển thị avatar, họ tên, chuyên môn, bio, dải kỹ năng và liên kết mạng xã hội
+         EN: Displays avatar, name, role, bio, tech stack badges, and social links
          ========================================================================= -->
-    <div class="card border-0 bg-white shadow-sm rounded-4 p-4 p-md-5 mb-4">
+    <div class="card profile-identity-card">
         <div class="row align-items-center g-4">
             
             <!-- Cột Trái: Avatar & Tên & Chuyên Môn -->
             <div class="col-12 col-md-8 d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4 text-center text-sm-start">
-                <div class="avatar-lg rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-extrabold shadow-sm flex-shrink-0" 
-                     style="width: 84px; height: 84px; font-size: 2.2rem; background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);">
+                <div class="profile-avatar-banner">
                     <i class="bi bi-person-fill"></i>
                 </div>
                 
@@ -55,7 +74,7 @@
                     </p>
                     
                     <!-- Bio giới thiệu bản thân -->
-                    <p class="text-secondary fs-7 mb-3" style="max-width: 600px;">
+                    <p class="profile-bio-text">
                         ${not empty profileUser.bio ? profileUser.bio : 'Chưa có lời giới thiệu bản thân.'}
                     </p>
 
@@ -64,7 +83,7 @@
                         <c:choose>
                             <c:when test="${not empty profileUser.skillList}">
                                 <c:forEach items="${profileUser.skillList}" var="sk">
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fs-8">
+                                    <span class="badge profile-skill-badge">
                                         <i class="bi bi-check-circle-fill me-1"></i> ${sk}
                                     </span>
                                 </c:forEach>
@@ -118,7 +137,9 @@
     </div>
 
     <!-- =========================================================================
-         4. KHỐI 2: BẢNG CHỈ SỐ NĂNG SUẤT REAL-TIME (DỮ LIỆU KHÁCH QUAN CSDL)
+         [SECTION 2: PRODUCTIVITY METRICS / BẢNG CHỈ SỐ NĂNG SUẤT REAL-TIME]
+         VI: Tổng hợp số lượng dự án, task lead, tiến độ việc con từ cơ sở dữ liệu
+         EN: Aggregated workspace count, task leads, and subtask completion rates from DB
          ========================================================================= -->
     <div class="mb-4">
         <h5 class="fw-bold text-dark mb-3">
@@ -179,7 +200,7 @@
                     </div>
                     <h3 class="fw-extrabold text-dark mb-0">${completionRate}%</h3>
                     <div class="project-progress-container mt-2">
-                        <div class="project-progress-bar" data-progress="${completionRate}%" style="width: 0%;"></div>
+                        <div class="project-progress-bar progress-init-zero" data-progress="${completionRate}%"></div>
                     </div>
                 </div>
             </div>
@@ -187,7 +208,9 @@
     </div>
 
     <!-- =========================================================================
-         5. KHỐI 3: DANH SÁCH DỰ ÁN ĐÃ & ĐANG THAM GIA
+         [SECTION 3: WORKSPACE LIST / DANH SÁCH DỰ ÁN THAM GIA]
+         VI: Liệt kê các dự án người dùng đang tham gia cùng tiến độ động
+         EN: Lists active projects the user belongs to along with dynamic progress
          ========================================================================= -->
     <div class="mb-5">
         <h5 class="fw-bold text-dark mb-3">
@@ -216,7 +239,7 @@
                                 <span class="fw-bold text-dark">${p.progressPercentage}%</span>
                             </div>
                             <div class="project-progress-container mb-3">
-                                <div class="project-progress-bar" data-progress="${p.progressPercentage}%" style="width: 0%;"></div>
+                                <div class="project-progress-bar progress-init-zero" data-progress="${p.progressPercentage}%"></div>
                             </div>
                             <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
                                class="btn btn-outline-primary btn-sm w-100 rounded-pill py-1 fs-8 fw-semibold">
@@ -238,7 +261,13 @@
 </div>
 
 <!-- =========================================================================
-     6. MODAL 1: CHỈNH SỬA HỒ SƠ CÁ NHÂN (DÀNH RIÊNG CHO CHÍNH CHỦ)
+     [MODAL 1: EDIT PROFILE FORM / CHỈNH SỬA HỒ SƠ CÁ NHÂN (CHÍNH CHỦ)]
+     VI: Form cập nhật thông tin cá nhân gửi về ProfileServlet
+     EN: Form to update user profile information sent to ProfileServlet
+     - Action: ${pageContext.request.contextPath}/profile
+     - Method: POST
+     - Handled by: ProfileServlet.doPost() -> handleUpdateProfile()
+     - Params: action=update, userId, fullName, role, bio, skills, githubUrl, linkedinUrl
      ========================================================================= -->
 <c:if test="${isOwner}">
     <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
@@ -283,11 +312,11 @@
                             <input type="text" class="form-control fs-7 rounded-3" id="inputSkills" name="skills" value="${profileUser.skills}" 
                                    placeholder="Cách nhau bằng dấu phẩy, ví dụ: Java, Jakarta EE, MySQL, Docker, RESTful API">
                             <div class="form-text fs-9 text-muted mt-1">
-                                Gợi ý kỹ năng: <span class="badge bg-light text-dark border me-1 cursor-pointer" onclick="addSkill('Java')">+ Java</span>
-                                <span class="badge bg-light text-dark border me-1 cursor-pointer" onclick="addSkill('MySQL')">+ MySQL</span>
-                                <span class="badge bg-light text-dark border me-1 cursor-pointer" onclick="addSkill('Docker')">+ Docker</span>
-                                <span class="badge bg-light text-dark border me-1 cursor-pointer" onclick="addSkill('UI/UX')">+ UI/UX</span>
-                                <span class="badge bg-light text-dark border me-1 cursor-pointer" onclick="addSkill('Spring Boot')">+ Spring Boot</span>
+                                Gợi ý kỹ năng: <span class="profile-skill-chip-interactive" onclick="addSkill('Java')">+ Java</span>
+                                <span class="profile-skill-chip-interactive" onclick="addSkill('MySQL')">+ MySQL</span>
+                                <span class="profile-skill-chip-interactive" onclick="addSkill('Docker')">+ Docker</span>
+                                <span class="profile-skill-chip-interactive" onclick="addSkill('UI/UX')">+ UI/UX</span>
+                                <span class="profile-skill-chip-interactive" onclick="addSkill('Spring Boot')">+ Spring Boot</span>
                             </div>
                         </div>
 
@@ -329,7 +358,13 @@
 </c:if>
 
 <!-- =========================================================================
-     7. MODAL 2: MỜI NHANH VÀO DỰ ÁN CỦA TÔI (DÀNH CHO PM KHI XEM HỒ SƠ NGƯỜI KHÁC)
+     [MODAL 2: QUICK PROJECT INVITE FORM / MỜI NHANH VÀO DỰ ÁN]
+     VI: Form gửi lời mời tham gia dự án do người xem quản lý gửi về ProjectInviteServlet
+     EN: Form for project managers to dispatch project invitations
+     - Action: ${pageContext.request.contextPath}/invite
+     - Method: POST
+     - Handled by: ProjectInviteServlet.doPost() -> handleSendInvite()
+     - Params: action=sendInvite, usernameOrEmail, projectId
      ========================================================================= -->
 <c:if test="${not isOwner && not empty availableProjectsToInvite}">
     <div class="modal fade" id="quickInviteModal" tabindex="-1" aria-labelledby="quickInviteModalLabel" aria-hidden="true">

@@ -1,6 +1,25 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- =========================================================================
+     MVC SKELETON & CONTRACT NOTE — docs.jsp
+     Controller: DocServlet (/doc)
+     
+     1. Luồng dữ liệu vào (Inbound Data / Model Attributes):
+        - ${project}       : Project entity (id, name, ownerId)
+        - ${docs}          : List<Doc> (id, title, snippet, authorName, updatedAt)
+        - ${selectedDoc}   : Doc entity (id, title, content, authorName, createdAt, updatedAt)
+        - ${relatedTasks}  : List<Task> liên kết với bài viết hiện tại
+        - ${toastSuccess} / ${toastError} : Flash notifications từ Session
+     
+     2. Luồng thao tác (Outbound Form Actions & Deep Links):
+        - GET  /doc?action=list&projectId=${project.id}   -> Danh mục tài liệu
+        - GET  /doc?action=view&projectId=...&docId=...   -> Xem chi tiết tài liệu
+        - POST /doc?action=create                         -> Tạo bài viết mới
+        - POST /doc?action=update                         -> Cập nhật bài viết
+        - GET  /doc?action=delete&docId=...               -> Xóa bài viết
+     ========================================================================= --%>
+
 <!-- 1. NẠP HEADER & NAVBAR CHUNG -->
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
@@ -90,7 +109,7 @@
                 </div>
 
                 <!-- Danh sách các bài viết cuộn dọc -->
-                <div class="doc-list d-flex flex-column gap-2 overflow-y-auto" id="docListContainer" style="max-height: 68vh;">
+                <div class="doc-list d-flex flex-column gap-2 overflow-y-auto wiki-doc-list-scroll" id="docListContainer">
                     
                     <c:forEach items="${docs}" var="d">
                         <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${d.id}" 
@@ -103,11 +122,11 @@
                             </div>
 
                             <!-- Đoạn trích dẫn tóm tắt -->
-                            <p class="text-muted fs-9 mb-2 ms-3 text-truncate" style="max-width: 90%;">${d.snippet}</p>
+                            <p class="text-muted fs-9 mb-2 ms-3 text-truncate wiki-doc-snippet">${d.snippet}</p>
 
                             <!-- Tác giả & Ngày cập nhật -->
                             <div class="d-flex align-items-center justify-content-between ms-3 fs-9 text-secondary border-top pt-1-5 mt-1">
-                                <span class="text-truncate" style="max-width: 55%;"><i class="bi bi-person me-1"></i>${d.authorName}</span>
+                                <span class="text-truncate wiki-doc-author"><i class="bi bi-person me-1"></i>${d.authorName}</span>
                                 <span><i class="bi bi-clock me-1"></i>${d.updatedAt}</span>
                             </div>
                         </a>

@@ -1,0 +1,745 @@
+/* ==========================================================================
+   TeamWork Hub — Semantic Page Components Stylesheet (page-components.css)
+   ==========================================================================
+   Mục đích / Purpose:
+   - VI: Tách biệt hoàn toàn các đoạn inline CSS (style="...") và chuỗi utility
+         class phức tạp từ các file JSP thành các component class ngữ nghĩa.
+   - EN: Central stylesheet extracting inline styles and utility chains into
+         reusable, maintainable semantic component classes across JSP views.
+   - Architecture: Jakarta EE 10 / Tomcat 10.1 / Servlet 6.0 / Bootstrap 5.3.3
+   ========================================================================== */
+
+/* ==========================================================================
+   1. GLOBAL & COMMON COMPONENT UTILITIES
+   ========================================================================== */
+
+/**
+ * Khởi tạo độ rộng 0% cho thanh tiến độ trước khi JavaScript kích hoạt animation
+ * Dynamic progress bar initial width before app.js animates to data-progress value.
+ * (KHÔNG dùng !important để tránh ghi đè inline style do app.js gán)
+ */
+.progress-init-zero {
+    width: 0%;
+}
+
+/**
+ * Hiệu ứng tương tác con trỏ dạng bàn tay cho các thẻ badge/chip có thể bấm
+ * Interactive clickable badge pointer
+ */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   2. AUTHENTICATION & LOGIN COMPONENTS (login.jsp)
+   ========================================================================== */
+
+/**
+ * Body trang đăng nhập: Triệt tiêu margin/padding mặc định, đặt typography chuẩn
+ * Login page body container reset & font stack
+ */
+.login-body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/**
+ * Thanh điều hướng tối giản trên trang đăng nhập
+ * Minimal top navbar for authentication screen
+ */
+.login-navbar {
+    background-color: #0f172a !important;
+    border-bottom: 1px solid #1e293b !important;
+}
+
+/**
+ * Hộp biểu tượng nhận diện thương hiệu trên navbar đăng nhập
+ * Gradient logo icon box in login navbar
+ */
+.login-brand-logo-icon {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.login-brand-logo-icon i {
+    font-size: 14px;
+    color: #ffffff;
+    line-height: 1;
+}
+
+/**
+ * Nhãn thông tin cơ sở HCMUTE Campus trên navbar đăng nhập
+ * Campus badge label text
+ */
+.login-campus-caption {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/**
+ * Liên kết thoát về trang chủ
+ * Home exit anchor link wrapper
+ */
+.login-exit-link {
+    text-decoration: none;
+    display: block;
+}
+
+/* ==========================================================================
+   3. USER PROFILE COMPONENTS (profile.jsp)
+   ========================================================================== */
+
+/**
+ * Thẻ thông tin định danh cá nhân & chức danh (Header Card)
+ * Main profile identity card surface
+ */
+.profile-identity-card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .profile-identity-card {
+        padding: 3rem;
+    }
+}
+
+/**
+ * Khối avatar gradient lớn của hồ sơ người dùng
+ * Large hero gradient avatar banner
+ */
+.profile-avatar-banner {
+    width: 84px;
+    height: 84px;
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+    border-radius: 50%;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    flex-shrink: 0;
+}
+
+/**
+ * Đoạn văn bản giới thiệu bản thân (Bio text) giới hạn bề rộng đọc tối ưu
+ * Profile biography paragraph with maximum readable width
+ */
+.profile-bio-text {
+    max-width: 600px;
+    color: #6c757d;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/**
+ * Huy hiệu kỹ năng công nghệ trong hồ sơ
+ * Tech stack skill badge pill
+ */
+.profile-skill-badge {
+    background-color: #E8EEF8;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+    border-radius: 50rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/**
+ * Chip kỹ năng gợi ý có thể bấm trong modal chỉnh sửa hồ sơ
+ * Interactive suggestion chip in edit profile modal
+ */
+.profile-skill-chip-interactive {
+    cursor: pointer;
+    background-color: #F0F3FA;
+    color: #1E2D42;
+    border: 1px solid #D5DEEF;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    user-select: none;
+    display: inline-block;
+    margin-right: 0.25rem;
+}
+
+.profile-skill-chip-interactive:hover {
+    background-color: #395886;
+    color: #ffffff;
+    border-color: #395886;
+}
+
+/* ==========================================================================
+   4. PROJECTS & WORKSPACE DASHBOARD COMPONENTS (projects.jsp)
+   ========================================================================== */
+
+/**
+ * Thanh tiêu đề không gian làm việc với đường phân cách hairline
+ * Workspace header bar dividing line
+ */
+.workspace-header-bar {
+    border-bottom: 1px solid #D5DEEF;
+}
+
+.workspace-title {
+    color: #1E2D42;
+}
+
+.workspace-title-icon {
+    color: #395886;
+}
+
+.workspace-subtitle {
+    color: #627D98;
+}
+
+.workspace-user-highlight {
+    color: #1E2D42;
+}
+
+.workspace-count-highlight {
+    color: #395886;
+}
+
+/**
+ * Nút kích hoạt modal xin gia nhập bằng mã dự án
+ * Action button triggering project code join modal
+ */
+.btn-join-code-trigger {
+    background-color: #ffffff;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+    transition: all 0.2s ease;
+}
+
+.btn-join-code-trigger:hover {
+    border-color: #8AAEE0;
+    background-color: #F0F3FA;
+    color: #1E2D42;
+}
+
+.text-accent-soft {
+    color: #638ECB;
+}
+
+.workspace-kpi-value {
+    color: #1E2D42;
+}
+
+.workspace-kpi-desc {
+    color: #627D98;
+}
+
+.workspace-kpi-warning {
+    color: #F57F17;
+}
+
+/**
+ * Huy hiệu cảnh báo nổi bật cho hộp thư lời mời chờ phản hồi
+ * Alert pill badge for pending project invitations
+ */
+.invite-alert-pill {
+    background-color: #FFF8E1;
+    color: #F57F17;
+    border: 1px solid #FFE082;
+}
+
+.invite-section-title {
+    color: #1E2D42;
+}
+
+.copy-code-icon {
+    color: #395886;
+}
+
+.invite-project-title {
+    color: #1E2D42;
+}
+
+.invite-sender-icon {
+    color: #395886;
+}
+
+.invite-card-actions {
+    border-color: #EDF2F9 !important;
+}
+
+.border-divider-subtle {
+    border-color: #EDF2F9 !important;
+}
+
+/**
+ * Nút chấp thuận gia nhập dự án với dải gradient thành công
+ * Gradient accept project invitation submit button
+ */
+.btn-invite-accept {
+    background: linear-gradient(135deg, #2E7D32 0%, #43A047 100%);
+    border: none;
+    color: #ffffff;
+}
+
+.btn-invite-accept:hover {
+    background: linear-gradient(135deg, #256729 0%, #388E3C 100%);
+    color: #ffffff;
+}
+
+/**
+ * Nút từ chối lời mời hoặc đơn xin gia nhập dự án
+ * Reject project invitation outline button
+ */
+.btn-invite-reject {
+    border-color: #D5DEEF;
+    color: #627D98;
+}
+
+.btn-invite-reject:hover {
+    background-color: #F0F3FA;
+    color: #1E2D42;
+}
+
+/**
+ * Thẻ công cụ tìm kiếm và lọc danh sách dự án
+ * Workspace search and filter pill toolbar container
+ */
+.workspace-toolbar-card {
+    background-color: #ffffff;
+    border: 1px solid #D5DEEF;
+    box-shadow: 0 2px 8px rgba(57, 88, 134, 0.04);
+}
+
+/**
+ * Nhóm input tìm kiếm dự án thời gian thực
+ * Real-time project search input wrapper
+ */
+.workspace-search-group {
+    min-width: 260px;
+}
+
+.workspace-section-heading {
+    color: #1E2D42;
+}
+
+.workspace-section-badge {
+    background-color: #F0F3FA;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+}
+
+.workspace-status-badge {
+    background-color: #E2EAF8;
+    color: #395886;
+}
+
+/**
+ * Huy hiệu vai trò Trưởng nhóm (PM)
+ * Project Owner role badge pill
+ */
+.badge-role-owner {
+    background-color: #395886;
+    color: #ffffff;
+}
+
+/**
+ * Huy hiệu vai trò Thành viên dự án
+ * Project Member role badge pill
+ */
+.badge-role-member {
+    background-color: #E2EAF8;
+    color: #395886;
+    border: 1px solid #B1C9EF;
+}
+
+/**
+ * Mô tả dự án giới hạn tối đa 2 dòng kèm dấu chấm lửng
+ * Project card description multi-line clamp (2 lines)
+ */
+.project-desc-line-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.4rem;
+    line-height: 1.45;
+}
+
+.project-progress-pct {
+    color: #395886;
+}
+
+.btn-project-report-icon {
+    border-color: #D5DEEF;
+    color: #395886;
+}
+
+.btn-project-report-icon:hover {
+    background-color: #E8EEF8;
+    color: #1E2D42;
+}
+
+.search-no-results-card {
+    border-color: #D5DEEF !important;
+    max-width: 420px;
+}
+
+.search-empty-icon {
+    color: #8AAEE0;
+}
+
+.search-empty-title {
+    color: #1E2D42;
+}
+
+.btn-reset-filters {
+    background-color: #F0F3FA;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+}
+
+.btn-reset-filters:hover {
+    background-color: #395886;
+    color: #ffffff;
+}
+
+.workspace-section-badge-secondary {
+    background-color: #F0F3FA;
+    color: #627D98;
+    border: 1px solid #D5DEEF;
+}
+
+.workspace-info-hint {
+    color: #627D98;
+}
+
+.project-avatar-monogram-subtle {
+    background-color: #F0F3FA;
+    color: #627D98;
+    border-color: #D5DEEF;
+}
+
+.project-member-count-badge {
+    background-color: #F0F3FA;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+}
+
+.btn-explore-join-request {
+    background-color: #F0F3FA;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+    transition: all 0.2s ease;
+}
+
+.btn-explore-join-request:hover {
+    background-color: #395886;
+    color: #ffffff;
+    border-color: #395886;
+}
+
+.project-type-option-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toast-container-bottom-end {
+    z-index: 1100;
+}
+
+/* ==========================================================================
+   5. PROJECT REPORT COMPONENTS (project_report.jsp)
+   ========================================================================== */
+
+/**
+ * Nút quay về danh sách dự án
+ * Back to project dashboard pill button
+ */
+.report-btn-back {
+    background-color: #ffffff;
+    color: #395886;
+    border: 1px solid #D5DEEF;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.report-btn-back:hover {
+    border-color: #8AAEE0;
+    background-color: #F0F3FA;
+    color: #1E2D42;
+}
+
+.report-btn-back-icon {
+    color: #628ECB;
+}
+
+.report-nav-divider {
+    border-color: #D5DEEF !important;
+}
+
+/**
+ * Huy hiệu mã định danh dự án trên thanh header/subnav
+ * Project code badge pill on report header
+ */
+.report-code-badge {
+    background-color: #E2EAF8;
+    color: #395886;
+    border: 1px solid #B1C9EF;
+}
+
+/**
+ * Tiêu đề dự án cắt ngắn trên subnav
+ * Truncated project title text in sticky subnav
+ */
+.report-title-truncate {
+    max-width: 240px;
+    color: #1E2D42;
+}
+
+/**
+ * Khung nội dung chính của banner báo cáo
+ * Main report banner foreground layer
+ */
+.report-banner-content {
+    position: relative;
+    z-index: 1;
+}
+
+.report-banner-meta-badge {
+    background-color: rgba(240, 243, 250, 0.15);
+    color: #D5DEEF;
+    border: 1px solid rgba(213, 222, 239, 0.3);
+}
+
+.report-banner-date-badge {
+    background-color: rgba(240, 243, 250, 0.12);
+    color: #D5DEEF;
+    border: 1px solid rgba(213, 222, 239, 0.25);
+}
+
+.report-health-info-icon {
+    color: #8AAEE0;
+}
+
+.report-health-desc-text {
+    color: #D5DEEF;
+}
+
+.report-kpi-icon-primary {
+    color: #395886;
+}
+
+.report-card-title-in-progress {
+    color: #395886;
+}
+
+.report-kpi-icon-accent {
+    color: #628ECB;
+}
+
+.report-stat-number-in-progress {
+    color: #395886;
+}
+
+/**
+ * Bề mặt thẻ báo cáo chuẩn phân tách viền hairline
+ * Report card surface with standard hairline border
+ */
+.report-card-surface {
+    background-color: #ffffff;
+    border: 1px solid #D5DEEF !important;
+}
+
+.report-section-header-title {
+    color: #1E2D42;
+}
+
+.report-section-icon {
+    color: #395886;
+}
+
+/**
+ * Huy hiệu hiển thị phần trăm tiến độ tổng thể
+ * Overall progress percentage pill badge
+ */
+.report-progress-pill {
+    background-color: #395886;
+    color: #ffffff;
+}
+
+.report-status-badge-container {
+    border-color: #D5DEEF !important;
+}
+
+.report-status-count-chip {
+    background-color: #F0F3FA;
+    border: 1px solid #D5DEEF !important;
+    color: #395886;
+}
+
+.report-dot-planning {
+    color: #628ECB;
+}
+
+.report-dot-in-progress {
+    color: #8AAEE0;
+}
+
+.report-dot-revise {
+    color: #395886;
+}
+
+.report-count-summary-badge {
+    background-color: #F0F3FA;
+    border: 1px solid #D5DEEF !important;
+    color: #395886;
+}
+
+.report-view-all-link {
+    color: #395886;
+}
+
+.report-chat-header-icon {
+    color: #628ECB;
+}
+
+.report-chat-metrics-box {
+    background-color: #F0F3FA;
+    border: 1px solid #D5DEEF;
+}
+
+.report-signoff-title {
+    color: #1E2D42;
+}
+
+.report-signoff-name {
+    color: #395886;
+}
+
+/* ==========================================================================
+   6. WORKSPACE & COLLABORATION COMPONENTS (Milestone M3: Tasks, Docs, Chat)
+   ========================================================================== */
+
+/**
+ * Danh sách bài viết Wiki cuộn dọc độc lập
+ * Wiki document list vertical scroll container
+ */
+.wiki-doc-list-scroll {
+    max-height: 68vh;
+    overflow-y: auto;
+}
+
+.wiki-doc-snippet {
+    max-width: 90%;
+}
+
+.wiki-doc-author {
+    max-width: 55%;
+}
+
+/**
+ * Hộp chứa tài liệu / công việc gợi ý trong sidebar chat
+ * Chat resource quick-shelf scroll container
+ */
+.chat-shelf-scroll {
+    max-height: 26vh;
+    overflow-y: auto;
+}
+
+.chat-member-list-scroll {
+    max-height: 27vh;
+    overflow-y: auto;
+}
+
+.chat-member-truncate {
+    max-width: 130px;
+}
+
+.chat-border-glass-subtle {
+    border-color: var(--chat-glass-border-subtle) !important;
+}
+
+/**
+ * Cột trên bảng Kanban ClickUp 3.0
+ * Kanban column standard container
+ */
+.kanban-column {
+    min-width: 320px;
+    transition: background-color 0.2s ease;
+}
+
+/**
+ * Vùng thả thẻ công việc khi kéo thả HTML5
+ * Kanban dropzone for drag-and-drop
+ */
+.kanban-dropzone {
+    min-height: 120px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/**
+ * Thẻ công việc chuẩn trên bảng Kanban
+ * Kanban card standard item
+ */
+.kanban-card {
+    cursor: grab;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kanban-card:active {
+    cursor: grabbing;
+}
+
+/**
+ * Khung xem chi tiết công việc trượt ngang (Side-peek Task Drawer)
+ * Side-peek task drawer panel
+ */
+.task-drawer-panel {
+    max-width: 100vw;
+}
+
+/**
+ * Menu popover nổi đổi trạng thái nhanh phong cách ClickUp
+ * Floating status popover menu
+ */
+.clickup-status-popover {
+    position: fixed;
+    display: none;
+    z-index: 999999;
+}
+
+.task-title-truncate-sm {
+    max-width: 130px;
+}
+
+.task-title-truncate-md {
+    max-width: 320px;
+}
+
+.task-title-truncate-lg {
+    max-width: 380px;
+}
+
+.task-indent-subtask {
+    padding-left: 28px;
+}
+
+.text-pre-line {
+    white-space: pre-line;
+}
+
+
