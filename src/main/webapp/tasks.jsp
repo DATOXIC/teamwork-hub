@@ -457,32 +457,32 @@
                         <div id="task-subview-list" class="${taskView == 'list' ? '' : 'd-none'}">
                             <div class="clickup-list-card shadow-xs mb-3">
                                 <div class="table-responsive mb-0">
-                                    <table class="clickup-list-table">
+                                    <table class="clickup-list-table ${project.soloProject ? 'is-solo' : 'is-team'}">
                                         <thead>
                                             <tr class="clickup-list-header-row">
-                                                <th class="ps-3" style="width: ${project.soloProject ? '54%' : '38%'};">
+                                                <th class="ps-3">
                                                     <span class="d-inline-flex align-items-center gap-1.5">
                                                         <i class="bi bi-card-checklist text-primary"></i> NAME
                                                     </span>
                                                 </th>
                                                 <c:if test="${project.teamProject}">
-                                                    <th style="width: 18%;">
+                                                    <th>
                                                         <span class="d-inline-flex align-items-center gap-1.5">
                                                             <i class="bi bi-person-fill text-info"></i> ASSIGNEE
                                                         </span>
                                                     </th>
                                                 </c:if>
-                                                <th style="width: 14%;">
+                                                <th>
                                                     <span class="d-inline-flex align-items-center gap-1.5">
                                                         <i class="bi bi-flag-fill text-warning"></i> PRIORITY
                                                     </span>
                                                 </th>
-                                                <th style="width: 16%;">
+                                                <th>
                                                     <span class="d-inline-flex align-items-center gap-1.5">
                                                         <i class="bi bi-tags-fill text-purple"></i> TEAM / NHÃN
                                                     </span>
                                                 </th>
-                                                <th class="pe-3" style="width: ${project.soloProject ? '16%' : '14%'}; text-align: right;">
+                                                <th class="pe-3" style="text-align: right;">
                                                     <span class="d-inline-flex align-items-center gap-1.5 justify-content-end w-100">
                                                         <i class="bi bi-calendar-event text-danger"></i> HẠN CHÓT
                                                     </span>

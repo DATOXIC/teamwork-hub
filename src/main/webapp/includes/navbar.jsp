@@ -16,7 +16,7 @@
 %>
 
 <!-- Top Navbar: Đậm nét, Sang trọng (Dark Navy Slate #0f172a) - Tương phản cao 100% -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark-navy sticky-top shadow py-2 no-print" data-bs-theme="dark">
+<nav class="navbar app-navbar navbar-expand-lg navbar-dark bg-dark-navy sticky-top py-2 no-print" data-bs-theme="dark">
     <div class="container-fluid px-3 px-lg-4">
         
         <!-- Logo & Brand Name -->
@@ -37,9 +37,9 @@
             <!-- Left Side Navigation (Khi đã đăng nhập) -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 ${not empty sessionScope.currentUser ? '' : 'd-none'}">
                 <li class="nav-item">
-                    <a class="nav-link text-light px-3 py-1 rounded-pill fw-medium d-flex align-items-center gap-1 ${activeNav == 'dashboard' ? 'active bg-white bg-opacity-10 text-white fw-bold' : ''}" 
-                       href="${pageContext.request.contextPath}/project?action=list" style="transition: all 0.2s;">
-                        <i class="bi bi-kanban text-info"></i> Không gian làm việc
+                    <a class="nav-link app-nav-link d-flex align-items-center gap-2 ${activeNav == 'dashboard' ? 'active' : ''}"
+                       href="${pageContext.request.contextPath}/project?action=list">
+                        <i class="bi bi-kanban"></i> Không gian làm việc
                     </a>
                 </li>
             </ul>
@@ -59,7 +59,7 @@
 
                 <!-- Language selector -->
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 d-flex align-items-center gap-1"
+                    <button class="btn btn-sm navbar-ctl d-flex align-items-center gap-2"
                             type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false"
                             title="Chọn ngôn ngữ" aria-label="Chọn ngôn ngữ">
                         <i class="bi bi-translate"></i>
@@ -73,7 +73,7 @@
 
                 <!-- Nút chuyển đổi Giao diện Sáng / Tối toàn hệ thống (Global Theme Switcher) -->
                 <button type="button" id="globalThemeToggleBtn" onclick="toggleGlobalTheme()"
-                        class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 d-flex align-items-center gap-1 shadow-none"
+                        class="btn btn-sm navbar-ctl d-flex align-items-center gap-2 shadow-none"
                         title="Chuyển đổi giao diện Sáng / Tối (Light / Dark Mode)"
                         aria-label="Chuyển đổi giao diện Sáng / Tối">
                     <i class="bi bi-moon-stars-fill" id="globalThemeIconMoon"></i>

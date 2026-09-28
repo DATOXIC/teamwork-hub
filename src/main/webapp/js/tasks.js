@@ -560,6 +560,107 @@ window.handleQuickCreateLabel = function() {
 };
 
 // =========================================================================
+// LIST VIEW: KÉO ĐỔI ĐỘ RỘNG CỘT (lưu vào localStorage, nhấp đúp vào thanh kéo để đặt lại mặc định)
+// =========================================================================
+(function initListColumnResize() {
+    var STORAGE_PREFIX = 'teamwork_list_cols_';
+    var MIN_COL = 90;
+    var MIN_NAME = 200;
+
+    function setup() {
+        var table = document.querySelector('#task-subview-list .clickup-list-table');
+        if (!table) return;
+        var headers = Array.prototype.slice.call(table.querySelectorAll('thead th'));
+        if (headers.length < 3) return;
+
+        var storageKey = STORAGE_PREFIX + (table.classList.contains('is-solo') ? 'solo' : 'team');
+
+        function applyWidths(widths) {
+            var cols = ['minmax(0, 1fr)'].concat(widths.map(function (w) { return Math.round(w) + 'px'; }));
+            table.style.setProperty('--list-cols', cols.join(' '));
+        }
+
+        function measureWidths() {
+            return headers.slice(1).map(function (th) { return th.getBoundingClientRect().width; });
+        }
+
+        try {
+            var saved = JSON.parse(localStorage.getItem(storageKey));
+            var valid = Array.isArray(saved) && saved.length === headers.length - 1 && saved.every(function (n) {
+                return typeof n === 'number' && n >= MIN_COL && n <= 800;
+            });
+            if (valid) applyWidths(saved);
+        } catch (e) { /* localStorage không khả dụng: dùng độ rộng mặc định */ }
+
+        headers.slice(0, -1).forEach(function (th, boundary) {
+            var handle = document.createElement('span');
+            handle.className = 'col-resizer';
+            handle.setAttribute('role', 'separator');
+            handle.setAttribute('aria-orientation', 'vertical');
+            handle.title = 'Kéo để đổi độ rộng cột (nhấp đúp để đặt lại)';
+            th.appendChild(handle);
+
+            handle.addEventListener('pointerdown', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var startX = e.clientX;
+                var startW = measureWidths();
+                var nameW = table.getBoundingClientRect().width - startW.reduce(function (a, b) { return a + b; }, 0);
+                var latest = startW;
+                table.classList.add('is-resizing');
+
+                function onMove(ev) {
+                    var dx = ev.clientX - startX;
+                    var w = startW.slice();
+                    if (boundary === 0) {
+                        // Ranh giới Name | cột 2: kéo sang phải thì cột 2 hẹp lại, Name rộng ra
+                        var lo = -(nameW - MIN_NAME);
+                        var hi = startW[0] - MIN_COL;
+                        dx = Math.max(lo, Math.min(hi, dx));
+                        w[0] = startW[0] - dx;
+                    } else {
+                        // Hai cột cố định kề nhau: cột trái nở ra thì cột phải co lại, Name giữ nguyên
+                        dx = Math.max(MIN_COL - startW[boundary - 1], Math.min(startW[boundary] - MIN_COL, dx));
+                        w[boundary - 1] = startW[boundary - 1] + dx;
+                        w[boundary] = startW[boundary] - dx;
+                    }
+                    latest = w;
+                    applyWidths(w);
+                }
+
+                function onUp() {
+                    window.removeEventListener('pointermove', onMove);
+                    window.removeEventListener('pointerup', onUp);
+                    window.removeEventListener('pointercancel', onUp);
+                    table.classList.remove('is-resizing');
+                    try {
+                        localStorage.setItem(storageKey, JSON.stringify(latest.map(Math.round)));
+                    } catch (err) { /* bỏ qua */ }
+                }
+
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+                window.addEventListener('pointercancel', onUp);
+            });
+
+            handle.addEventListener('dblclick', function (e) {
+                e.stopPropagation();
+                table.style.removeProperty('--list-cols');
+                try {
+                    localStorage.removeItem(storageKey);
+                } catch (err) { /* bỏ qua */ }
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+    } else {
+        setup();
+    }
+})();
+
+// =========================================================================
 // INSTANT CACHE-FIRST PERFORMANCE ENGINE (LOCALSTORAGE + OPTIMISTIC UI)
 // =========================================================================
 (function initInstantCacheEngine() {

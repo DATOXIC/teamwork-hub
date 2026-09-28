@@ -346,11 +346,11 @@
    6. NAVBAR TRIGGER CAPSULE BUTTON
    ========================================================================== */
 .navbar-cp-trigger {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
     border-radius: 9999px;
-    padding: 4px 12px;
+    padding: 5px 14px;
     font-size: 0.8125rem;
     font-weight: 500;
     cursor: pointer;
