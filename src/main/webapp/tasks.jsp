@@ -3466,22 +3466,36 @@
                                                 <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi tiết:</label>
                                                 <textarea name="description" class="form-control form-control-sm" rows="3"><c:out value="${task.description}" /></textarea>
                                             </div>
-                                            <div class="row g-2 mb-3">
-                                                <div class="${project.soloProject ? 'col-6' : 'col-4'}">
-                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Mức ưu tiên:</label>
-                                                    <select name="priority" class="form-select form-select-sm">
-                                                        <option value="LOW" ${task.priority=='LOW' ? 'selected' : ''}>Thấp (Low)</option>
-                                                        <option value="MEDIUM" ${task.priority=='MEDIUM' ? 'selected' : ''}>Trung bình (Medium)</option>
-                                                        <option value="HIGH" ${task.priority=='HIGH' ? 'selected' : ''}>Cao (High)</option>
-                                                    </select>
+                                            <div class="mb-2">
+                                                <span class="form-label fs-9 fw-bold text-dark mb-1 d-block" id="editPriorityLabel-${task.id}">Mức ưu tiên:</span>
+                                                <div class="priority-picker priority-picker-sm" role="radiogroup" aria-labelledby="editPriorityLabel-${task.id}">
+                                                    <input type="radio" class="btn-check" name="priority" id="editPriorityHigh-${task.id}"
+                                                        value="HIGH" autocomplete="off" ${task.priority == 'HIGH' ? 'checked' : ''}>
+                                                    <label class="priority-option priority-option-urgent" for="editPriorityHigh-${task.id}">
+                                                        <span class="clickup-priority-flag flag-urgent"><i class="bi bi-flag-fill"></i> Urgent</span>
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="priority" id="editPriorityMedium-${task.id}"
+                                                        value="MEDIUM" autocomplete="off" ${task.priority != 'HIGH' && task.priority != 'LOW' ? 'checked' : ''}>
+                                                    <label class="priority-option priority-option-normal" for="editPriorityMedium-${task.id}">
+                                                        <span class="clickup-priority-flag flag-normal"><i class="bi bi-flag-fill"></i> Normal</span>
+                                                    </label>
+
+                                                    <input type="radio" class="btn-check" name="priority" id="editPriorityLow-${task.id}"
+                                                        value="LOW" autocomplete="off" ${task.priority == 'LOW' ? 'checked' : ''}>
+                                                    <label class="priority-option priority-option-low" for="editPriorityLow-${task.id}">
+                                                        <span class="clickup-priority-flag flag-low"><i class="bi bi-flag-fill"></i> Low</span>
+                                                    </label>
                                                 </div>
-                                                <div class="${project.soloProject ? 'col-6' : 'col-4'}">
+                                            </div>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
                                                     <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
                                                 </div>
                                                 <c:choose>
                                                     <c:when test="${project.teamProject}">
-                                                        <div class="col-4">
+                                                        <div class="col-6">
                                                             <label class="form-label fs-9 fw-bold text-dark mb-1">Người phụ trách:</label>
                                                             <c:choose>
                                                                 <c:when test="${project.ownerId == sessionScope.currentUser.id}">
@@ -4784,14 +4798,27 @@
 
                             <div class="row g-3 mb-3">
                                 <div class="col-12 col-md-6">
-                                    <label for="taskPriority" class="form-label fw-semibold text-dark fs-7">Mức độ ưu
-                                        tiên</label>
-                                    <select class="form-select rounded-3 py-2 px-3 fs-7" id="taskPriority"
-                                        name="priority">
-                                        <option value="HIGH">🔴 Cao (High)</option>
-                                        <option value="MEDIUM" selected>🟡 Trung bình (Medium)</option>
-                                        <option value="LOW">🔵 Thấp (Low)</option>
-                                    </select>
+                                    <span class="form-label fw-semibold text-dark fs-7 d-block" id="taskPriorityLabel">Mức độ ưu
+                                        tiên</span>
+                                    <div class="priority-picker" role="radiogroup" aria-labelledby="taskPriorityLabel">
+                                        <input type="radio" class="btn-check" name="priority" id="taskPriorityHigh"
+                                            value="HIGH" autocomplete="off">
+                                        <label class="priority-option priority-option-urgent" for="taskPriorityHigh">
+                                            <span class="clickup-priority-flag flag-urgent"><i class="bi bi-flag-fill"></i> Urgent</span>
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="priority" id="taskPriorityMedium"
+                                            value="MEDIUM" autocomplete="off" checked>
+                                        <label class="priority-option priority-option-normal" for="taskPriorityMedium">
+                                            <span class="clickup-priority-flag flag-normal"><i class="bi bi-flag-fill"></i> Normal</span>
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="priority" id="taskPriorityLow"
+                                            value="LOW" autocomplete="off">
+                                        <label class="priority-option priority-option-low" for="taskPriorityLow">
+                                            <span class="clickup-priority-flag flag-low"><i class="bi bi-flag-fill"></i> Low</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div class="col-12 col-md-6">
