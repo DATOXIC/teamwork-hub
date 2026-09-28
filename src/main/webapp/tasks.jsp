@@ -1,10 +1,38 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-    <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-    <c:set var="subtaskMode" value="${cookie.preferred_subtask_mode != null && cookie.preferred_subtask_mode.value == 'expanded' ? 'expanded' : 'collapsed'}" />
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-        <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
-        <!-- 1. NẠP HEADER CHUNG -->
-        <jsp:include page="/includes/header.jsp" />
+<%-- =========================================================================
+     MVC SKELETON & CONTRACT NOTE — tasks.jsp
+     Controller: TaskServlet (/task)
+     
+     1. Luồng dữ liệu vào (Inbound Data / Model Attributes):
+        - ${project}          : Project entity (id, name, ownerId)
+        - ${projectMembers}   : List<ProjectMember> thành viên trong dự án
+        - ${todoTasks}        : List<Task> danh sách việc cần làm (Cột 1)
+        - ${inProgressTasks}  : List<Task> danh sách việc đang làm (Cột 2)
+        - ${doneTasks}        : List<Task> danh sách việc đã hoàn thành (Cột 3)
+        - ${taskProgressMap}  : Map<Integer, Integer> tỷ lệ % tiến độ theo Task ID
+        - ${subTasksMap}      : Map<Integer, List<SubTask>> cây việc con theo Task ID
+        - ${docs}             : List<Doc> tài liệu tham khảo đính kèm
+        - ${userNotifications}: List<Notification> thông báo người dùng
+        - ${isOwner}          : boolean quyền PM / Owner
+     
+     2. Luồng thao tác (Outbound Form Actions & Quality Gates):
+        - POST /task?action=add              : Thêm công việc lớn (Task cha)
+        - POST /task?action=updateStatus     : Cập nhật vị trí kéo thả HTML5 Drag-Drop
+        - POST /task?action=addSubTask       : Thêm việc con (Sub-task)
+        - POST /task?action=toggleSubTask    : Hoàn tất việc con [☑]
+        - POST /task?action=submitParentTask : Nộp bàn giao Task lớn lên PM (Gate 2)
+        - POST /task?action=pmApproveTask    : PM duyệt nghiệm thu Task lớn
+        - POST /task?action=pmReviseTask     : PM yêu cầu cân chỉnh Task lớn
+        - POST /task?action=pmRejectTask     : PM từ chối / trả về Task lớn
+        - POST /task?action=sendTaskComment  : Gửi bình luận trao đổi Task
+     ========================================================================= --%>
+
+<c:set var="subtaskMode" value="${cookie.preferred_subtask_mode != null && cookie.preferred_subtask_mode.value == 'expanded' ? 'expanded' : 'collapsed'}" />
+
+<!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
+<jsp:include page="/includes/header.jsp" />
 
         <style>
             /* Khóa cứng Viewport SaaS: Triệt tiêu hoàn toàn thanh cuộn cấp độ trang web */

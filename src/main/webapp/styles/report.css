@@ -725,6 +725,155 @@ body {
 }
 
 /* ==========================================================================
+   14B. SEMANTIC REPORT COMPONENT CLASSES (M2 REFACTORING)
+   ========================================================================== */
+.report-btn-back {
+    background-color: var(--rep-bg-surface);
+    color: var(--rep-text-secondary);
+    border: 1px solid var(--rep-border-hairline);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.report-btn-back:hover {
+    border-color: #8AAEE0;
+    background-color: var(--rep-bg-canvas);
+    color: var(--rep-text-primary);
+}
+
+.report-btn-back-icon {
+    color: var(--rep-accent-vibrant);
+}
+
+.report-nav-divider {
+    border-color: var(--rep-border-hairline) !important;
+}
+
+.report-code-badge {
+    background-color: #E2EAF8;
+    color: #395886;
+    border: 1px solid #B1C9EF;
+}
+
+[data-theme="dark"] .report-code-badge {
+    background-color: #1E2D42;
+    color: #8AAEE0;
+    border-color: rgba(138, 174, 224, 0.3);
+}
+
+.report-title-truncate {
+    max-width: 240px;
+    color: var(--rep-text-primary);
+}
+
+.report-banner-content {
+    position: relative;
+    z-index: 1;
+}
+
+.report-banner-meta-badge {
+    background-color: rgba(240, 243, 250, 0.15);
+    color: #D5DEEF;
+    border: 1px solid rgba(213, 222, 239, 0.3);
+}
+
+.report-banner-date-badge {
+    background-color: rgba(240, 243, 250, 0.12);
+    color: #D5DEEF;
+    border: 1px solid rgba(213, 222, 239, 0.25);
+}
+
+.report-health-info-icon {
+    color: #8AAEE0;
+}
+
+.report-health-desc-text {
+    color: #D5DEEF;
+}
+
+.report-kpi-icon-primary {
+    color: var(--rep-text-secondary);
+}
+
+.report-card-title-in-progress {
+    color: var(--rep-text-secondary);
+}
+
+.report-kpi-icon-accent {
+    color: var(--rep-accent-vibrant);
+}
+
+.report-stat-number-in-progress {
+    color: var(--rep-text-secondary);
+}
+
+.report-card-surface {
+    background-color: var(--rep-bg-surface);
+    border: 1px solid var(--rep-border-hairline) !important;
+}
+
+.report-section-header-title {
+    color: var(--rep-text-primary);
+}
+
+.report-section-icon {
+    color: var(--rep-accent);
+}
+
+.report-progress-pill {
+    background-color: var(--rep-accent);
+    color: #ffffff;
+}
+
+.report-status-badge-container {
+    border-color: var(--rep-border-hairline) !important;
+}
+
+.report-status-count-chip {
+    background-color: var(--rep-bg-canvas);
+    border: 1px solid var(--rep-border-hairline) !important;
+    color: var(--rep-text-secondary);
+}
+
+.report-dot-planning {
+    color: #628ECB;
+}
+
+.report-dot-in-progress {
+    color: #8AAEE0;
+}
+
+.report-dot-revise {
+    color: var(--rep-accent);
+}
+
+.report-count-summary-badge {
+    background-color: var(--rep-bg-canvas);
+    border: 1px solid var(--rep-border-hairline) !important;
+    color: var(--rep-text-secondary);
+}
+
+.report-view-all-link {
+    color: var(--rep-accent);
+}
+
+.report-chat-header-icon {
+    color: var(--rep-accent-vibrant);
+}
+
+.report-chat-metrics-box {
+    background-color: var(--rep-bg-canvas);
+    border: 1px solid var(--rep-border-hairline);
+}
+
+.report-signoff-title {
+    color: var(--rep-text-primary);
+}
+
+.report-signoff-name {
+    color: var(--rep-accent);
+}
+
+/* ==========================================================================
    15. CSS CHUYÊN BIỆT DÀNH CHO IN ẤN KHỔ GIẤY A4 (@media print)
    LUÔN ÉP BUỘC CHẾ ĐỘ LIGHT MODE SẮC NÉT TRÊN GIẤY TRẮNG
    ========================================================================== */

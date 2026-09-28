@@ -1,6 +1,24 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- =========================================================================
+     MVC SKELETON & CONTRACT NOTE — chat.jsp
+     Controller: ChatServlet (/chat)
+     
+     1. Luồng dữ liệu vào (Inbound Data / Model Attributes):
+        - ${project}       : Project entity (id, name, ownerId)
+        - ${userList}      : List<User> thành viên dự án
+        - ${docList}       : List<Doc> tài liệu tham khảo nhanh
+        - ${taskList}      : List<Task> công việc tham khảo nhanh
+        - ${messageList}   : List<Message> danh sách tin nhắn thảo luận
+        - ${currentUser}   : User đang đăng nhập (sessionScope)
+     
+     2. Luồng thao tác (Outbound Form Actions & Real-time Messages):
+        - POST /chat (action=sendProjectMessage)   : Gửi tin nhắn thảo luận nhóm
+        - POST /chat (action=editProjectMessage)   : Chỉnh sửa nội dung tin nhắn
+        - POST /chat (action=deleteProjectMessage) : Xóa tin nhắn bảo mật
+     ========================================================================= --%>
+
 <!-- Nạp Chat CSS chuyên biệt với phong cách Apple Glassmorphism / Arc Space -->
 <c:set var="extraCss" value="styles/chat.css" scope="request" />
 
@@ -23,7 +41,7 @@
                 <span>Dashboard</span>
             </a>
             
-            <div class="border-start ps-3 d-flex flex-wrap align-items-center gap-2 gap-md-3" style="border-color: var(--chat-glass-border-subtle) !important;">
+            <div class="border-start ps-3 d-flex flex-wrap align-items-center gap-2 gap-md-3 chat-border-glass-subtle">
                 <div>
                     <!-- Thẻ H1 ngữ nghĩa cho SEO & A11y, style hiển thị tinh tế -->
                     <h1 class="h5 fw-bold mb-0 chat-subnav-title">${project.name}</h1>
@@ -91,17 +109,17 @@
                 
                 <!-- Card 1: Team Radar (Thành viên trong dự án) -->
                 <div class="chat-sidebar-card p-3">
-                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: var(--chat-glass-border-subtle) !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom chat-border-glass-subtle">
                         <h2 class="chat-sidebar-title mb-0 d-flex align-items-center gap-2">
-                            <i class="bi bi-people-fill" style="color: var(--chat-accent);" aria-hidden="true"></i>
+                            <i class="bi bi-people-fill chat-icon-accent" aria-hidden="true"></i>
                             <span>Team Radar</span>
                         </h2>
-                        <span class="badge rounded-pill px-2 py-1 fs-9" style="background: var(--chat-glass-surface-hover); color: var(--chat-text-secondary); border: 1px solid var(--chat-glass-border-subtle);">
+                        <span class="badge rounded-pill px-2 py-1 fs-9 chat-badge-online">
                             ${userList.size()} online
                         </span>
                     </div>
 
-                    <div class="d-flex flex-column gap-2 overflow-y-auto" style="max-height: 27vh;" role="list">
+                    <div class="d-flex flex-column gap-2 overflow-y-auto chat-member-list-scroll" role="list">
                         <c:choose>
                             <c:when test="${not empty userList}">
                                 <c:forEach items="${userList}" var="u">
@@ -112,7 +130,7 @@
                                                 <span class="chat-avatar-status" title="Đang hoạt động"></span>
                                             </div>
                                             <div>
-                                                <span class="chat-member-name d-block text-truncate" style="max-width: 130px;">${u.fullName}</span>
+                                                <span class="chat-member-name d-block text-truncate chat-member-truncate">${u.fullName}</span>
                                                 <span class="chat-member-role">${u.role}</span>
                                             </div>
                                         </div>
@@ -140,7 +158,7 @@
                 <div class="chat-sidebar-card p-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <h2 class="chat-sidebar-title mb-0 d-flex align-items-center gap-2">
-                            <i class="bi bi-layers-half" style="color: var(--chat-accent-light);" aria-hidden="true"></i>
+                            <i class="bi bi-layers-half chat-icon-accent-light" aria-hidden="true"></i>
                             <span>Resource Shelf</span>
                         </h2>
                         <span class="fs-9 text-muted">1-Click Insert</span>
@@ -165,7 +183,7 @@
                     </div>
 
                     <!-- Tab Content 1: Docs -->
-                    <div id="shelfDocs" class="d-flex flex-column gap-2 overflow-y-auto" style="max-height: 26vh;">
+                    <div id="shelfDocs" class="d-flex flex-column gap-2 overflow-y-auto chat-shelf-scroll">
                         <c:choose>
                             <c:when test="${not empty docList}">
                                 <c:forEach items="${docList}" var="d">
@@ -186,7 +204,7 @@
                     </div>
 
                     <!-- Tab Content 2: Tasks (Ẩn mặc định) -->
-                    <div id="shelfTasks" class="d-flex flex-column gap-2 overflow-y-auto d-none" style="max-height: 26vh;">
+                    <div id="shelfTasks" class="d-flex flex-column gap-2 overflow-y-auto d-none chat-shelf-scroll">
                         <c:choose>
                             <c:when test="${not empty taskList}">
                                 <c:forEach items="${taskList}" var="t">
@@ -358,8 +376,8 @@
                             <div class="chat-empty-icon" aria-hidden="true">
                                 <i class="bi bi-chat-square-quote"></i>
                             </div>
-                            <h3 class="fw-bold mb-1 fs-6" style="color: var(--chat-text-primary);">Chưa có cuộc thảo luận nào</h3>
-                            <p class="fs-8 text-muted mb-0" style="max-width: 320px;">Hãy bắt đầu trao đổi đầu tiên cùng các thành viên trong nhóm dự án!</p>
+                            <h3 class="fw-bold mb-1 fs-6 chat-empty-title">Chưa có cuộc thảo luận nào</h3>
+                            <p class="fs-8 text-muted mb-0 chat-empty-subtitle">Hãy bắt đầu trao đổi đầu tiên cùng các thành viên trong nhóm dự án!</p>
                         </div>
                     </c:if>
 
@@ -376,7 +394,7 @@
                                         class="chat-quick-chip" 
                                         onclick="insertShortcut('#doc-')" 
                                         title="Chèn tiền tố bài viết Wiki">
-                                    <i class="bi bi-journal-text" style="color: var(--chat-accent);" aria-hidden="true"></i>
+                                    <i class="bi bi-journal-text chat-icon-accent" aria-hidden="true"></i>
                                     <span>#doc-</span>
                                 </button>
                                 <button type="button" 
@@ -390,7 +408,7 @@
                                         class="chat-quick-chip" 
                                         onclick="insertShortcut('@')" 
                                         title="Nhắc tên thành viên">
-                                    <i class="bi bi-at" style="color: #f59e0b;" aria-hidden="true"></i>
+                                    <i class="bi bi-at chat-icon-warning" aria-hidden="true"></i>
                                     <span>@nhắc tên</span>
                                 </button>
                             </div>
@@ -453,7 +471,7 @@
 <div class="offcanvas offcanvas-start chat-offcanvas rounded-end-4" tabindex="-1" id="chatSidebarOffcanvas" aria-labelledby="chatSidebarOffcanvasLabel">
     <div class="offcanvas-header py-3">
         <h5 class="offcanvas-title fw-bold fs-6 d-flex align-items-center gap-2" id="chatSidebarOffcanvasLabel">
-            <i class="bi bi-layers-half" style="color: var(--chat-accent);" aria-hidden="true"></i>
+            <i class="bi bi-layers-half chat-icon-accent" aria-hidden="true"></i>
             Thông tin nhóm & Tài nguyên
         </h5>
         <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Đóng bảng thông tin"></button>
@@ -462,13 +480,13 @@
         
         <!-- Mobile Card 1: Thành viên nhóm -->
         <div class="chat-sidebar-card p-3">
-            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom" style="border-color: var(--chat-glass-border-subtle) !important;">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom chat-border-glass-subtle">
                 <span class="chat-sidebar-title mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-people-fill" style="color: var(--chat-accent);" aria-hidden="true"></i>
+                    <i class="bi bi-people-fill chat-icon-accent" aria-hidden="true"></i>
                     Team Radar (${userList.size()})
                 </span>
             </div>
-            <div class="d-flex flex-column gap-2 overflow-y-auto" style="max-height: 35vh;">
+            <div class="d-flex flex-column gap-2 overflow-y-auto chat-offcanvas-members-scroll">
                 <c:choose>
                     <c:when test="${not empty userList}">
                         <c:forEach items="${userList}" var="u">
@@ -479,7 +497,7 @@
                                         <span class="chat-avatar-status"></span>
                                     </div>
                                     <div>
-                                        <span class="chat-member-name d-block text-truncate" style="max-width: 140px;">${u.fullName}</span>
+                                        <span class="chat-member-name d-block text-truncate chat-member-truncate-md">${u.fullName}</span>
                                         <span class="chat-member-role">${u.role}</span>
                                     </div>
                                 </div>
@@ -488,7 +506,7 @@
                                         data-bs-dismiss="offcanvas"
                                         onclick="insertShortcut('@${u.fullName}')" 
                                         title="Nhắc tên @${u.fullName}">
-                                    <i class="bi bi-at fs-7"></i>
+                                     <i class="bi bi-at fs-7"></i>
                                 </button>
                             </div>
                         </c:forEach>
@@ -505,7 +523,7 @@
             <span class="chat-sidebar-title mb-2 d-block">
                 <i class="bi bi-bookmark-star text-warning me-1" aria-hidden="true"></i> ID tra cứu nhanh
             </span>
-            <div class="d-flex flex-column gap-2 overflow-y-auto" style="max-height: 40vh;">
+            <div class="d-flex flex-column gap-2 overflow-y-auto chat-offcanvas-shelf-scroll">
                 <span class="fs-9 fw-bold text-muted text-uppercase tracking-wider">📄 Tài liệu Wiki:</span>
                 <c:forEach items="${docList}" var="d">
                     <button type="button" 
@@ -540,10 +558,10 @@
      ======================================================== -->
 <div class="modal fade" id="editMessageModal" tabindex="-1" aria-labelledby="editMessageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content chat-sidebar-card border-0 shadow-lg" style="background: var(--chat-island-bg) !important; backdrop-filter: blur(28px) !important; border: 1px solid var(--chat-glass-border) !important;">
-            <div class="modal-header border-bottom py-3" style="border-color: var(--chat-glass-border-subtle) !important;">
-                <h5 class="modal-title fs-6 fw-bold d-flex align-items-center gap-2" id="editMessageModalLabel" style="color: var(--chat-text-primary) !important;">
-                    <i class="bi bi-pencil-square" style="color: var(--chat-accent);" aria-hidden="true"></i>
+        <div class="modal-content chat-sidebar-card chat-modal-glass border-0 shadow-lg">
+            <div class="modal-header border-bottom py-3 chat-modal-header-glass">
+                <h5 class="modal-title fs-6 fw-bold d-flex align-items-center gap-2 chat-modal-title-glass" id="editMessageModalLabel">
+                    <i class="bi bi-pencil-square chat-icon-accent" aria-hidden="true"></i>
                     <span>Chỉnh sửa tin nhắn</span>
                 </h5>
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Đóng"></button>
@@ -554,15 +572,14 @@
                 <input type="hidden" name="messageId" id="editMessageId">
                 
                 <div class="modal-body p-3">
-                    <label for="editMessageContent" class="form-label fs-8 fw-semibold" style="color: var(--chat-text-secondary);">Nội dung tin nhắn:</label>
-                    <textarea class="form-control chat-input-field border rounded-3 p-2 fs-8" 
+                    <label for="editMessageContent" class="form-label fs-8 fw-semibold chat-modal-label-glass">Nội dung tin nhắn:</label>
+                    <textarea class="form-control chat-input-field border rounded-3 p-2 fs-8 chat-modal-textarea-glass" 
                               id="editMessageContent" 
                               name="content" 
                               rows="3" 
-                              style="background: var(--chat-glass-surface-subtle) !important; border-color: var(--chat-glass-border) !important; color: var(--chat-text-primary) !important;"
                               required></textarea>
                 </div>
-                <div class="modal-footer border-top py-2 px-3 d-flex justify-content-end gap-2" style="border-color: var(--chat-glass-border-subtle) !important;">
+                <div class="modal-footer border-top py-2 px-3 d-flex justify-content-end gap-2 chat-modal-footer-glass">
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="chat-btn-send shadow-none px-3 py-1 fs-8">
                         <i class="bi bi-check2" aria-hidden="true"></i>
@@ -579,8 +596,8 @@
      ======================================================== -->
 <div class="modal fade" id="deleteMessageModal" tabindex="-1" aria-labelledby="deleteMessageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content chat-sidebar-card border-0 shadow-lg" style="background: var(--chat-island-bg) !important; backdrop-filter: blur(28px) !important; border: 1px solid var(--chat-glass-border) !important;">
-            <div class="modal-header border-bottom py-3" style="border-color: var(--chat-glass-border-subtle) !important;">
+        <div class="modal-content chat-sidebar-card chat-modal-glass border-0 shadow-lg">
+            <div class="modal-header border-bottom py-3 chat-modal-header-glass">
                 <h5 class="modal-title fs-6 fw-bold d-flex align-items-center gap-2 text-danger" id="deleteMessageModalLabel">
                     <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
                     <span>Xác nhận xóa</span>
@@ -588,9 +605,9 @@
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
             <div class="modal-body p-3 text-center">
-                <p class="fs-8 mb-0" style="color: var(--chat-text-primary);">Bạn có chắc chắn muốn xóa vĩnh viễn tin nhắn này không?</p>
+                <p class="fs-8 mb-0 chat-modal-text-glass">Bạn có chắc chắn muốn xóa vĩnh viễn tin nhắn này không?</p>
             </div>
-            <div class="modal-footer border-top py-2 px-3 d-flex justify-content-end gap-2" style="border-color: var(--chat-glass-border-subtle) !important;">
+            <div class="modal-footer border-top py-2 px-3 d-flex justify-content-end gap-2 chat-modal-footer-glass">
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none" data-bs-dismiss="modal">Hủy</button>
                 <a id="btnConfirmDeleteMessage" href="#" class="btn btn-sm btn-danger rounded-pill px-3 shadow-none fs-8 d-inline-flex align-items-center gap-1">
                     <i class="bi bi-trash3" aria-hidden="true"></i>

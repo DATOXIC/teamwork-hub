@@ -36,6 +36,10 @@
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/styles/command-palette.css?v=<%= System.currentTimeMillis() %>">
 
+    <!-- Page Components Semantic CSS -->
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/styles/page-components.css?v=<%= System.currentTimeMillis() %>">
+
     <%-- CSS Bổ sung riêng cho từng trang (đặt biến extraCss trước khi include header) --%>
     <c:set var="resolvedCss" value="${not empty extraCss ? extraCss : (not empty requestScope.extraCss ? requestScope.extraCss : param.extraCss)}" />
     <c:if test="${not empty resolvedCss}">
