@@ -892,6 +892,12 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <!-- Trạng thái khi tìm kiếm không khớp công việc/nhiệm vụ nào -->
+                            <div id="listSearchEmptyState" class="empty-state d-none">
+                                <i class="bi bi-search empty-state-icon"></i>
+                                <div class="empty-state-title">Không tìm thấy công việc phù hợp</div>
+                                <p class="empty-state-hint">Thử một từ khóa khác hoặc xóa ô tìm kiếm</p>
+                            </div>
                         </div>
                         </div>
 
@@ -906,8 +912,14 @@
                         <!-- B. KANBAN BOARD VIEW -->
                         <div id="task-subview-board" class="${taskView == 'board' ? '' : 'd-none'}">
                             <div class="d-flex align-items-center justify-content-between mb-3 px-2 fs-9 text-muted">
-                                <span>Hiển thị tất cả <strong>${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong> công việc</span>
+                                <span>Hiển thị tất cả <strong id="boardVisibleTotalCount">${todoTasks.size() + inProgressTasks.size() + doneTasks.size()}</strong> công việc</span>
                                 <span><i class="bi bi-cursor me-1"></i> Bấm thẻ để xem chi tiết &bull; Kéo thả để đổi trạng thái</span>
+                            </div>
+                            <!-- Trạng thái khi tìm kiếm không khớp thẻ nào trên cả 3 cột -->
+                            <div id="boardSearchEmptyState" class="empty-state d-none">
+                                <i class="bi bi-search empty-state-icon"></i>
+                                <div class="empty-state-title">Không tìm thấy công việc phù hợp</div>
+                                <p class="empty-state-hint">Thử một từ khóa khác hoặc xóa ô tìm kiếm</p>
                             </div>
                             <div class="kanban-wrapper">
                             <div class="row g-4 kanban-board">
@@ -2747,35 +2759,108 @@
     });
 
     // 6. Search tasks across all views
-    window.searchClickUpTasks = function(query) {
-        var q = (query || '').toLowerCase().trim();
+    // Bỏ dấu tiếng Việt khi so khớp (giống Bảng lệnh Ctrl+K), đồng bộ lại số đếm của từng nhóm/cột
+    // theo đúng số dòng đang hiển thị, và báo rõ khi không tìm thấy công việc nào phù hợp.
+    function normalizeSearchText(str) {
+        if (!str) return '';
+        return str.toString().toLowerCase()
+            .normalize('NFD')
+            .replace(/[̀-ͯ]/g, '')
+            .replace(/đ/g, 'd')
+            .trim();
+    }
 
-        // A. In List View
+    window.searchClickUpTasks = function(query) {
+        var q = normalizeSearchText(query);
+
+        // A. Chế độ Danh sách: lọc từng dòng, đồng thời đếm số dòng khớp trong mỗi nhóm trạng thái
+        var groupMatchCount = { todo: 0, inprog: 0, done: 0 };
         var parentRows = document.querySelectorAll('.clickup-task-row');
         parentRows.forEach(function(pRow) {
-            var title = (pRow.getAttribute('data-task-title') || pRow.innerText || '').toLowerCase();
+            var title = normalizeSearchText(pRow.getAttribute('data-task-title') || pRow.innerText || '');
             var taskId = pRow.getAttribute('data-task-id');
             var subRows = taskId ? document.querySelectorAll('.clickup-subtask-row[data-parent-id="' + taskId + '"]') : [];
             var matchParent = !q || title.indexOf(q) > -1;
             var matchAnySub = false;
 
             subRows.forEach(function(sRow) {
-                var sTitle = (sRow.getAttribute('data-subtask-title') || sRow.innerText || '').toLowerCase();
+                var sTitle = normalizeSearchText(sRow.getAttribute('data-subtask-title') || sRow.innerText || '');
                 var sMatch = !q || sTitle.indexOf(q) > -1;
                 if (sMatch) matchAnySub = true;
                 sRow.style.display = (matchParent || sMatch) ? '' : 'none';
             });
 
-            pRow.style.display = (matchParent || matchAnySub) ? '' : 'none';
+            var rowMatches = matchParent || matchAnySub;
+            pRow.style.display = rowMatches ? '' : 'none';
+
+            if (rowMatches) {
+                if (pRow.classList.contains('group-todo-row')) groupMatchCount.todo++;
+                else if (pRow.classList.contains('group-inprog-row')) groupMatchCount.inprog++;
+                else if (pRow.classList.contains('group-done-row')) groupMatchCount.done++;
+            }
         });
 
-        // B. In Board View
+        // Cập nhật số đếm & ẩn hẳn dải tiêu đề của nhóm không còn dòng nào khớp
+        var listVisibleTotal = 0;
+        ['todo', 'inprog', 'done'].forEach(function (groupId) {
+            var countEl = document.getElementById('group-count-' + groupId);
+            var headerRow = document.querySelector('.group-header-' + groupId);
+            if (countEl) {
+                if (!countEl.dataset.originalCount) {
+                    countEl.dataset.originalCount = countEl.textContent.trim();
+                }
+                countEl.textContent = q ? String(groupMatchCount[groupId]) : countEl.dataset.originalCount;
+            }
+            if (headerRow) {
+                headerRow.classList.toggle('d-none', !!q && groupMatchCount[groupId] === 0);
+            }
+            listVisibleTotal += groupMatchCount[groupId];
+        });
+
+        var listEmptyState = document.getElementById('listSearchEmptyState');
+        if (listEmptyState) {
+            listEmptyState.classList.toggle('d-none', !(q && listVisibleTotal === 0));
+        }
+
+        // B. Chế độ Bảng: lọc từng thẻ, đồng thời đếm số thẻ khớp trong mỗi cột
+        var colMatchCount = { TODO: 0, IN_PROGRESS: 0, DONE: 0 };
         var kanbanCards = document.querySelectorAll('.kanban-card');
         kanbanCards.forEach(function(card) {
-            var title = (card.getAttribute('data-task-title') || card.innerText || '').toLowerCase();
-            card.style.display = (!q || title.indexOf(q) > -1) ? '' : 'none';
+            var title = normalizeSearchText(card.getAttribute('data-task-title') || card.innerText || '');
+            var cardMatches = !q || title.indexOf(q) > -1;
+            card.style.display = cardMatches ? '' : 'none';
+            if (cardMatches) {
+                var status = card.getAttribute('data-task-status');
+                if (colMatchCount.hasOwnProperty(status)) colMatchCount[status]++;
+            }
         });
 
+        var boardVisibleTotal = 0;
+        [['TODO', 'column-TODO'], ['IN_PROGRESS', 'column-IN_PROGRESS'], ['DONE', 'column-DONE']].forEach(function (pair) {
+            var status = pair[0], colArea = document.getElementById(pair[1]);
+            var kanbanColumn = colArea ? colArea.closest('.kanban-column') : null;
+            var pillCount = kanbanColumn ? kanbanColumn.querySelector('.pill-count') : null;
+            if (pillCount) {
+                if (!pillCount.dataset.originalCount) {
+                    pillCount.dataset.originalCount = pillCount.textContent.trim();
+                }
+                pillCount.textContent = q ? String(colMatchCount[status]) : pillCount.dataset.originalCount;
+            }
+            boardVisibleTotal += colMatchCount[status];
+        });
+
+        var boardHeaderCount = document.getElementById('boardVisibleTotalCount');
+        if (boardHeaderCount) {
+            if (!boardHeaderCount.dataset.originalCount) {
+                boardHeaderCount.dataset.originalCount = boardHeaderCount.textContent.trim();
+            }
+            boardHeaderCount.textContent = q ? String(boardVisibleTotal) : boardHeaderCount.dataset.originalCount;
+        }
+
+        var boardEmptyState = document.getElementById('boardSearchEmptyState');
+        if (boardEmptyState) {
+            boardEmptyState.classList.toggle('d-none', !(q && boardVisibleTotal === 0));
+        }
     };
 
     // 7. Filter tasks by Member, Status, or Scope (With Active Feedback Banner & Metric Sync)
