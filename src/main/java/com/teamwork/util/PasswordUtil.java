@@ -47,6 +47,11 @@ public class PasswordUtil {
         }
     }
 
+    /** @return true nếu chuỗi có dạng bản băm của {@link #hashPassword} (64 ký tự hex thường). */
+    public static boolean isHashed(String value) {
+        return value != null && value.matches("[0-9a-f]{64}");
+    }
+
     /**
      * Xác thực mật khẩu người dùng nhập vào so với mật khẩu đã băm trong cơ sở dữ liệu.
      * Sử dụng MessageDigest.isEqual để chống Timing Attack.

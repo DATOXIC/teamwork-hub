@@ -2,6 +2,7 @@ package com.teamwork.controllers;
 
 import com.teamwork.business.User;
 import com.teamwork.data.UserDB;
+import com.teamwork.util.LoginAttemptLimiter;
 import com.teamwork.util.MailUtil;
 import com.teamwork.util.OtpChallenge;
 import com.teamwork.util.PasswordUtil;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * AuthServlet — Controller xử lý toàn bộ luồng Xác thực (Authentication).
@@ -33,9 +35,7 @@ import java.io.IOException;
  *
  * <p><b>TODO — Điểm mở rộng phổ biến (Extension Points):</b></p>
  * <ul>
- *   <li>Thêm giới hạn số lần đăng nhập sai (Login Attempt Limiter)</li>
  *   <li>Tích hợp OAuth2 / Google Sign-In</li>
- *   <li>Ghi ActivityLog mỗi lần đăng nhập/đăng xuất</li>
  *   <li>Gửi email xác nhận sau khi đăng ký (Email Verification)</li>
  * </ul>
  */
@@ -51,6 +51,11 @@ public class AuthServlet extends HttpServlet {
 
     /** Pattern hợp lệ cho địa chỉ Email */
     private static final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+
+    private static final Logger LOGGER = Logger.getLogger(AuthServlet.class.getName());
+
+    /** Bộ giới hạn đăng nhập sai dùng chung cho toàn ứng dụng */
+    private static final LoginAttemptLimiter LOGIN_LIMITER = new LoginAttemptLimiter();
 
     /** Khóa Session lưu trạng thái OTP quên mật khẩu */
     private static final String SESSION_OTP = "pwResetChallenge";
@@ -227,10 +232,28 @@ public class AuthServlet extends HttpServlet {
             return;
         }
 
-        // 2. Gọi Data Layer để xác thực (kiểm tra username + mật khẩu đã hash)
+        // 2. Giới hạn đăng nhập sai: đang bị khóa thì từ chối, kể cả khi mật khẩu đúng
+        String limiterKey = LoginAttemptLimiter.key(username, request.getRemoteAddr());
+        long now = System.currentTimeMillis();
+        long lockedSeconds = LOGIN_LIMITER.lockedSeconds(limiterKey, now);
+        if (lockedSeconds > 0) {
+            LOGGER.warning("Đăng nhập bị chặn do bị khóa tạm: user=" + logSafe(username)
+                    + " ip=" + request.getRemoteAddr());
+            request.setAttribute("errorMessage", "Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau "
+                    + ((lockedSeconds + 59) / 60) + " phút!");
+            request.setAttribute("username", username);
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
+            return;
+        }
+
+        // 3. Gọi Data Layer để xác thực (kiểm tra username + mật khẩu đã hash)
         User user = UserDB.selectByCredentials(username.trim(), password.trim());
 
         if (user != null) {
+            LOGIN_LIMITER.reset(limiterKey);
+            LOGGER.info("Đăng nhập thành công: user=" + logSafe(user.getUsername())
+                    + " ip=" + request.getRemoteAddr());
+
             // Đăng nhập THÀNH CÔNG → Tạo Session, lưu đối tượng User
             HttpSession session = request.getSession();
             session.setAttribute("currentUser", user);
@@ -248,8 +271,14 @@ public class AuthServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
 
         } else {
-            // Đăng nhập THẤT BẠI → Thông báo lỗi, giữ lại username
-            request.setAttribute("errorMessage", "Tên đăng nhập hoặc mật khẩu không chính xác!");
+            // Đăng nhập THẤT BẠI → Ghi nhận lần sai, thông báo lỗi, giữ lại username
+            boolean nowLocked = LOGIN_LIMITER.recordFailure(limiterKey, now);
+            LOGGER.warning("Đăng nhập thất bại: user=" + logSafe(username)
+                    + " ip=" + request.getRemoteAddr() + (nowLocked ? " (đã bị khóa tạm)" : ""));
+            request.setAttribute("errorMessage", nowLocked
+                    ? "Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau "
+                            + (LoginAttemptLimiter.LOCK_MS / 60000) + " phút!"
+                    : "Tên đăng nhập hoặc mật khẩu không chính xác!");
             request.setAttribute("username", username);
             request.getRequestDispatcher("/login.jsp").forward(request, response);
         }
@@ -561,6 +590,11 @@ public class AuthServlet extends HttpServlet {
     {
         request.setAttribute("forgotStep", step);
         request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+    }
+
+    /** Loại bỏ ký tự xuống dòng khỏi dữ liệu người dùng trước khi ghi log (chống giả mạo dòng log). */
+    private static String logSafe(String s) {
+        return s == null ? "" : s.replaceAll("[\\r\\n\\t]", "_");
     }
 
     /** Xóa toàn bộ trạng thái OTP trong Session. */

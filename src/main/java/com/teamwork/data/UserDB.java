@@ -4,6 +4,8 @@ import com.teamwork.business.User;
 import com.teamwork.util.PasswordUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -29,12 +31,25 @@ public class UserDB {
         }
 
         User user = selectByUsername(username.trim());
-        if (user != null) {
-            String storedPassword = user.getPassword();
-            if (PasswordUtil.verifyPassword(plainPassword.trim(), storedPassword) 
-                    || plainPassword.trim().equals(storedPassword)) {
-                return user;
+        if (user == null) {
+            return null;
+        }
+
+        String plain = plainPassword.trim();
+        String storedPassword = user.getPassword();
+
+        // Mật khẩu đã băm: chỉ so khớp qua băm, tuyệt đối không so thẳng với chuỗi băm trong DB
+        if (PasswordUtil.isHashed(storedPassword)) {
+            return PasswordUtil.verifyPassword(plain, storedPassword) ? user : null;
+        }
+
+        // Dữ liệu cũ lưu mật khẩu thô (ví dụ dữ liệu seed): khớp thì băm lại ngay vào DB
+        if (storedPassword != null && MessageDigest.isEqual(
+                plain.getBytes(StandardCharsets.UTF_8), storedPassword.getBytes(StandardCharsets.UTF_8))) {
+            if (updatePassword(user.getId(), plain)) {
+                user.setPassword(PasswordUtil.hashPassword(plain));
             }
+            return user;
         }
         return null;
     }

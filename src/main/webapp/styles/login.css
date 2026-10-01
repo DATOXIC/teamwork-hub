@@ -497,51 +497,6 @@
     box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
 }
 
-/* ── Quick Login / Demo Accounts ── */
-.quick-login-section {
-    margin-top: 20px;
-    padding-top: 18px;
-    border-top: 1px solid #e2e8f0;
-}
-
-.quick-login-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.quick-login-pills {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.quick-login-btn {
-    padding: 7px 10px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #334155;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.quick-login-btn:hover {
-    background: #eff6ff;
-    border-color: #93c5fd;
-    color: #1e40af;
-}
-
 /* ── Responsive ── */
 @media (max-width: 992px) {
     .login-wrapper {

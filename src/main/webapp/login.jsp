@@ -231,36 +231,6 @@
                         <span>Chưa có tài khoản?</span>
                         <a href="javascript:void(0)" onclick="switchTab('register')">Đăng ký ngay</a>
                     </div>
-
-                    <%-- Khu vực Đăng nhập Nhanh cho Demo (Quick Login for Demo) --%>
-                    <div class="quick-login-section">
-                        <div class="quick-login-title">
-                            <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
-                            Tài khoản mẫu thử nghiệm:
-                        </div>
-                        <div class="quick-login-pills">
-                            <button type="button" class="quick-login-btn"
-                                    onclick="fillLogin('admin', 'admin123')">
-                                <i class="bi bi-shield-lock-fill text-primary"></i>
-                                <strong>admin</strong> (Trưởng dự án)
-                            </button>
-                            <button type="button" class="quick-login-btn"
-                                    onclick="fillLogin('member1', 'pass123')">
-                                <i class="bi bi-code-slash text-success"></i>
-                                <strong>member1</strong> (Lập trình)
-                            </button>
-                            <button type="button" class="quick-login-btn"
-                                    onclick="fillLogin('carol', 'carol123')">
-                                <i class="bi bi-palette-fill text-info"></i>
-                                <strong>carol</strong> (Thiết kế)
-                            </button>
-                            <button type="button" class="quick-login-btn"
-                                    onclick="fillLogin('david', 'david123')">
-                                <i class="bi bi-bug-fill text-danger"></i>
-                                <strong>david</strong> (QA)
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 <%-- ═══════ TAB 2: FORM ĐĂNG KÝ ═══════
@@ -354,7 +324,6 @@
     <%-- ============================================================
          SECTION 3: SCRIPTS
          - switchTab()         : Chuyển qua lại giữa form Đăng nhập và Đăng ký
-         - fillLogin()         : Điền sẵn tài khoản demo cho người thử nghiệm
          - togglePassword()    : Hiện/ẩn mật khẩu khi bấm icon con mắt
          - validateRegisterForm(): Client-side validation trước khi POST
          ============================================================ --%>
@@ -375,13 +344,6 @@
                 header.textContent = 'Đăng Nhập';
                 subtitle.textContent = 'Nhập tài khoản để truy cập hệ thống';
             }
-        }
-
-        /* ── Hàm 2: Điền sẵn tài khoản demo khi bấm Quick Login ── */
-        function fillLogin(u, p) {
-            document.getElementById('login-username').value = u;
-            document.getElementById('login-password').value = p;
-            switchTab('login');
         }
 
         /* ── Hàm 3: Toggle hiện/ẩn mật khẩu (Password Visibility Toggle) ── */

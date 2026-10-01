@@ -216,7 +216,7 @@ module.exports = {
     // JavaScript Hooks & DOM Selectors
     JS_HOOKS: {
         'login.jsp': {
-            functions: ['switchTab', 'fillLogin', 'togglePassword', 'validateRegisterForm'],
+            functions: ['switchTab', 'togglePassword', 'validateRegisterForm'],
             ids: ['login-username', 'login-password', 'reg-pass', 'reg-confirmpass', 'languageCurrent']
         },
         'profile.jsp': {

@@ -7,7 +7,7 @@
  *    - Verify CSS cascade priority (inline style vs author class rule)
  *    - Verify presence of .project-progress-bar, .progress-init-zero, data-progress in profile.jsp
  * 2. Client Scripts & DOM Lookups in login.jsp:
- *    - Verify all DOM IDs and selectors used by switchTab, fillLogin, togglePassword, validateRegisterForm
+ *    - Verify all DOM IDs and selectors used by switchTab, togglePassword, validateRegisterForm
  *    - Execute behavioral simulations for all 4 functions with boundary value tests
  */
 
@@ -337,27 +337,6 @@ test('Script Simulation: switchTab("login") switches back to login view', () => 
     assert(!dom.getElementById('pane-register').classList.contains('active'), 'register pane should not be active');
     assert.strictEqual(dom.cardHeaderH3.textContent, 'Đăng Nhập');
     assert.strictEqual(dom.cardHeaderP.textContent, 'Nhập tài khoản để truy cập hệ thống');
-});
-
-test('Script Simulation: fillLogin("admin", "admin123") sets fields and switches tab', () => {
-    const dom = setupMockEnvironment();
-    function switchTab(tab) {
-        dom.getElementById('tab-btn-login').classList.toggle('active', tab === 'login');
-        dom.getElementById('tab-btn-register').classList.toggle('active', tab === 'register');
-        dom.getElementById('pane-login').classList.toggle('active', tab === 'login');
-        dom.getElementById('pane-register').classList.toggle('active', tab === 'register');
-    }
-    function fillLogin(u, p) {
-        dom.getElementById('login-username').value = u;
-        dom.getElementById('login-password').value = p;
-        switchTab('login');
-    }
-
-    fillLogin('admin', 'admin123');
-
-    assert.strictEqual(dom.getElementById('login-username').value, 'admin');
-    assert.strictEqual(dom.getElementById('login-password').value, 'admin123');
-    assert(dom.getElementById('tab-btn-login').classList.contains('active'));
 });
 
 test('Script Simulation: togglePassword() switches between password and text with icon update', () => {
