@@ -186,4 +186,61 @@ public class Message implements Serializable {
     public void setSentAt(String sentAt) {
         this.sentAt = sentAt;
     }
+
+    /**
+     * Rút gọn chuỗi thời gian hiển thị tinh tế trên giao diện chat:
+     * - Nếu trong ngày hôm nay: "HH:mm" (ví dụ: "01:20")
+     * - Nếu là hôm qua: "Hôm qua HH:mm"
+     * - Nếu khác ngày: "dd/MM HH:mm" (ví dụ: "14/09 01:20", loại bỏ năm và giây dài dòng)
+     */
+    public String getShortSentAt() {
+        if (this.sentAt == null || this.sentAt.trim().isEmpty()) {
+            return "";
+        }
+        String s = this.sentAt.trim();
+        try {
+            int year = 0, month = 0, day = 0, hour = 0, minute = 0;
+            boolean parsed = false;
+
+            // Pattern 1: yyyy-MM-dd[ T]HH:mm... (VD: 2026-08-21 04:05:49.482369+00)
+            java.util.regex.Matcher mIso = java.util.regex.Pattern.compile("^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})").matcher(s);
+            if (mIso.find()) {
+                year = Integer.parseInt(mIso.group(1));
+                month = Integer.parseInt(mIso.group(2));
+                day = Integer.parseInt(mIso.group(3));
+                hour = Integer.parseInt(mIso.group(4));
+                minute = Integer.parseInt(mIso.group(5));
+                parsed = true;
+            }
+
+            // Pattern 2: dd/MM/yyyy HH:mm (VD: 14/09/2026 01:20)
+            if (!parsed) {
+                java.util.regex.Matcher mDmy = java.util.regex.Pattern.compile("^(\\d{2})/(\\d{2})/(\\d{4})\\s+(\\d{2}):(\\d{2})").matcher(s);
+                if (mDmy.find()) {
+                    day = Integer.parseInt(mDmy.group(1));
+                    month = Integer.parseInt(mDmy.group(2));
+                    year = Integer.parseInt(mDmy.group(3));
+                    hour = Integer.parseInt(mDmy.group(4));
+                    minute = Integer.parseInt(mDmy.group(5));
+                    parsed = true;
+                }
+            }
+
+            if (parsed) {
+                java.time.LocalDate msgDate = java.time.LocalDate.of(year, month, day);
+                java.time.LocalDate today = java.time.LocalDate.now();
+                String timeStr = String.format("%02d:%02d", hour, minute);
+
+                if (msgDate.isEqual(today)) {
+                    return timeStr;
+                } else if (msgDate.isEqual(today.minusDays(1))) {
+                    return "Hôm qua " + timeStr;
+                } else {
+                    return String.format("%02d/%02d %s", day, month, timeStr);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return s;
+    }
 }
