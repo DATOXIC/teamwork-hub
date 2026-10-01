@@ -23,7 +23,6 @@
         <class>com.teamwork.business.ProjectMember</class>
         <class>com.teamwork.business.ProjectInvite</class>
         <class>com.teamwork.business.TaskDoc</class>
-        <class>com.teamwork.business.Whiteboard</class>
 
         <properties>
             
@@ -65,7 +64,6 @@
         <class>com.teamwork.business.ProjectMember</class>
         <class>com.teamwork.business.ProjectInvite</class>
         <class>com.teamwork.business.TaskDoc</class>
-        <class>com.teamwork.business.Whiteboard</class>
 
         <properties>
             <!-- Cấu hình JDBC Driver & URL cho Local MySQL -->
@@ -106,7 +104,6 @@
         <class>com.teamwork.business.ProjectMember</class>
         <class>com.teamwork.business.ProjectInvite</class>
         <class>com.teamwork.business.TaskDoc</class>
-        <class>com.teamwork.business.Whiteboard</class>
 
         <properties>
             <!-- Cấu hình JDBC Driver & URL cho Microsoft SQL Server (SSMS) -->

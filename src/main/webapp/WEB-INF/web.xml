@@ -26,6 +26,14 @@
         LƯU Ý: Toàn bộ Servlets (/auth, /project, /task, /doc, /chat, /invite, /profile, /notification) 
         được tự động ánh xạ bằng annotation @WebServlet trên từng Controller class (chuẩn Jakarta Servlet 6.0).
     -->
+    <servlet>
+        <servlet-name>TimelineServlet</servlet-name>
+        <servlet-class>com.teamwork.controllers.TimelineServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TimelineServlet</servlet-name>
+        <url-pattern>/timeline</url-pattern>
+    </servlet-mapping>
 
     <!-- CẤU HÌNH TRANG BÁO LỖI TÙY CHỈNH (CUSTOM ERROR PAGES) -->
     <error-page>

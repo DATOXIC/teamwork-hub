@@ -1,0 +1,604 @@
+/* ==========================================================================
+   TeamWork Hub — Interactive Gantt Timeline & Roadmap Stylesheet (timeline.css)
+   Phong cách thiết kế chuẩn ClickUp 3.0 / Linear / Jira Roadmap
+   Tương thích hoàn toàn với Light / Dark Mode & Bootstrap 5.3.3
+   ========================================================================== */
+
+:root {
+    --timeline-row-height: 48px;
+    --timeline-day-width: 44px;
+    --timeline-week-width: 120px;
+    --timeline-month-width: 200px;
+    --timeline-left-pane-width: 380px;
+
+    /* Palette màu sắc trạng thái Gantt */
+    --gantt-todo-bg: #e2e8f0;
+    --gantt-todo-border: #cbd5e1;
+    --gantt-todo-text: #334155;
+    --gantt-todo-fill: #94a3b8;
+
+    --gantt-prog-bg: #e0f2fe;
+    --gantt-prog-border: #7dd3fc;
+    --gantt-prog-text: #0369a1;
+    --gantt-prog-fill: #0284c7;
+
+    --gantt-subm-bg: #fef3c7;
+    --gantt-subm-border: #fcd34d;
+    --gantt-subm-text: #b45309;
+    --gantt-subm-fill: #f59e0b;
+
+    --gantt-done-bg: #d1fae5;
+    --gantt-done-border: #6ee7b7;
+    --gantt-done-text: #065f46;
+    --gantt-done-fill: #10b981;
+
+    --gantt-overdue-bg: #fee2e2;
+    --gantt-overdue-border: #fca5a5;
+    --gantt-overdue-text: #991b1b;
+    --gantt-overdue-fill: #ef4444;
+
+    --gantt-grid-border: #e2e8f0;
+    --gantt-header-bg: #f8fafc;
+    --gantt-weekend-bg: #f1f5f9;
+    --gantt-today-line: #ef4444;
+}
+
+[data-bs-theme="dark"], [data-theme="dark"] {
+    --gantt-todo-bg: #334155;
+    --gantt-todo-border: #475569;
+    --gantt-todo-text: #e2e8f0;
+    --gantt-todo-fill: #64748b;
+
+    --gantt-prog-bg: #0c4a6e;
+    --gantt-prog-border: #0284c7;
+    --gantt-prog-text: #e0f2fe;
+    --gantt-prog-fill: #38bdf8;
+
+    --gantt-subm-bg: #78350f;
+    --gantt-subm-border: #d97706;
+    --gantt-subm-text: #fef3c7;
+    --gantt-subm-fill: #fbbf24;
+
+    --gantt-done-bg: #064e3b;
+    --gantt-done-border: #059669;
+    --gantt-done-text: #d1fae5;
+    --gantt-done-fill: #34d399;
+
+    --gantt-overdue-bg: #7f1d1d;
+    --gantt-overdue-border: #dc2626;
+    --gantt-overdue-text: #fee2e2;
+    --gantt-overdue-fill: #f87171;
+
+    --gantt-grid-border: #1e293b;
+    --gantt-header-bg: #0f172a;
+    --gantt-weekend-bg: #1e293b;
+    --gantt-today-line: #f87171;
+}
+
+/* ==========================================================================
+   1. KHUNG CHÍNH & THANH ĐIỀU HƯỚNG SUB-NAV
+   ========================================================================== */
+
+.timeline-shell {
+    background-color: var(--bs-body-bg);
+    min-height: calc(100vh - 65px);
+}
+
+.timeline-subnav {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--gantt-grid-border);
+    backdrop-filter: blur(12px);
+    transition: all 0.2s ease;
+}
+
+.timeline-subnav-tabs .timeline-tab-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+    text-decoration: none;
+    border-radius: 9999px;
+    transition: all 0.15s ease-in-out;
+}
+
+.timeline-subnav-tabs .timeline-tab-link:hover {
+    color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.08);
+}
+
+.timeline-subnav-tabs .timeline-tab-link.active {
+    background-color: var(--bs-primary);
+    color: #ffffff !important;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb), 0.35);
+}
+
+/* ==========================================================================
+   2. BENTO SUMMARY KPI CARDS
+   ========================================================================== */
+
+.timeline-kpi-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--gantt-grid-border);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.timeline-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+.timeline-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   3. THANH ĐIỀU KHIỂN & BỘ LỌC TỨC THÌ (TOOLBAR)
+   ========================================================================== */
+
+.timeline-toolbar {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--gantt-grid-border);
+    border-radius: 1rem;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.timeline-zoom-pill {
+    background: var(--gantt-header-bg);
+    border: 1px solid var(--gantt-grid-border);
+    border-radius: 9999px;
+    padding: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.timeline-zoom-btn {
+    border: none;
+    background: transparent;
+    padding: 0.3rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.timeline-zoom-btn:hover {
+    color: var(--bs-primary);
+}
+
+.timeline-zoom-btn.active {
+    background: var(--bs-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(var(--bs-primary-rgb), 0.25);
+}
+
+/* ==========================================================================
+   4. BỐ CỤC CHÍNH SƠ ĐỒ GANTT (SPLIT-PANE CONTAINER)
+   ========================================================================== */
+
+.gantt-master-container {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--gantt-grid-border);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.gantt-split-wrapper {
+    display: flex;
+    position: relative;
+    overflow: hidden;
+    height: 640px;
+    max-height: 75vh;
+}
+
+/* 4.1. Khung Trái: Danh Sách Cây Công Việc (Left Tree Pane) */
+.gantt-left-pane {
+    width: var(--timeline-left-pane-width);
+    min-width: 300px;
+    max-width: 440px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--gantt-grid-border);
+    display: flex;
+    flex-direction: column;
+    background: var(--bs-body-bg);
+    z-index: 10;
+}
+
+.gantt-left-header {
+    height: 68px;
+    background: var(--gantt-header-bg);
+    border-bottom: 2px solid var(--gantt-grid-border);
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--bs-secondary-color);
+}
+
+.gantt-left-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Từng hàng task ở khung trái */
+.gantt-task-row-left {
+    height: var(--timeline-row-height);
+    display: flex;
+    align-items: center;
+    padding: 0 0.85rem;
+    border-bottom: 1px solid var(--gantt-grid-border);
+    gap: 0.65rem;
+    font-size: 0.825rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.gantt-task-row-left:hover, .gantt-task-row-left.is-hovered {
+    background-color: rgba(var(--bs-primary-rgb), 0.06);
+}
+
+.gantt-priority-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.gantt-priority-dot.high {
+    background-color: #ef4444;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.gantt-priority-dot.medium {
+    background-color: #f59e0b;
+}
+
+.gantt-priority-dot.low {
+    background-color: #10b981;
+}
+
+.gantt-task-title-cell {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+/* 4.2. Khung Phải: Trục Thời Gian & Lưới Kéo Thả Gantt (Right Timeline Canvas) */
+.gantt-right-pane {
+    flex-grow: 1;
+    overflow: auto;
+    position: relative;
+    background: var(--bs-body-bg);
+}
+
+/* Header thời gian đa tầng (Sticky Header) */
+.gantt-timeline-header {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    background: var(--gantt-header-bg);
+    border-bottom: 2px solid var(--gantt-grid-border);
+    user-select: none;
+}
+
+.gantt-header-tier-months {
+    display: flex;
+    height: 32px;
+    border-bottom: 1px solid var(--gantt-grid-border);
+}
+
+.gantt-month-block {
+    display: flex;
+    align-items: center;
+    padding-left: 0.75rem;
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: var(--bs-secondary-color);
+    border-right: 1px solid var(--gantt-grid-border);
+    white-space: nowrap;
+}
+
+.gantt-header-tier-days {
+    display: flex;
+    height: 36px;
+}
+
+.gantt-day-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: var(--timeline-day-width);
+    flex-shrink: 0;
+    border-right: 1px solid var(--gantt-grid-border);
+    font-size: 0.7rem;
+    color: var(--bs-secondary-color);
+}
+
+.gantt-day-cell.is-weekend {
+    background-color: var(--gantt-weekend-bg);
+}
+
+.gantt-day-cell.is-today {
+    background-color: rgba(239, 68, 68, 0.12);
+    font-weight: 700;
+    color: var(--gantt-today-line);
+}
+
+.gantt-day-number {
+    font-weight: 600;
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+/* Lưới nền các cột ngày */
+.gantt-grid-canvas {
+    position: relative;
+    min-height: 100%;
+}
+
+.gantt-column-strip {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid var(--gantt-grid-border);
+    pointer-events: none;
+}
+
+.gantt-column-strip.is-weekend {
+    background-color: var(--gantt-weekend-bg);
+    opacity: 0.6;
+}
+
+/* Đường kẻ đỏ mốc Hôm Nay (Today Line) */
+.gantt-today-marker-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--gantt-today-line);
+    z-index: 6;
+    pointer-events: none;
+}
+
+.gantt-today-badge-pin {
+    position: sticky;
+    top: 68px;
+    left: -22px;
+    transform: translateX(-50%);
+    background: var(--gantt-today-line);
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    z-index: 7;
+}
+
+/* Hàng trên Canvas tương ứng với bên trái */
+.gantt-task-row-canvas {
+    height: var(--timeline-row-height);
+    position: relative;
+    border-bottom: 1px solid var(--gantt-grid-border);
+    display: flex;
+    align-items: center;
+    transition: background-color 0.15s ease;
+}
+
+.gantt-task-row-canvas:hover, .gantt-task-row-canvas.is-hovered {
+    background-color: rgba(var(--bs-primary-rgb), 0.06);
+}
+
+/* ==========================================================================
+   5. THANH TIẾN ĐỘ GANTT (GANTT BARS)
+   ========================================================================== */
+
+.gantt-bar {
+    position: absolute;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    cursor: pointer;
+    overflow: hidden;
+    user-select: none;
+    font-size: 0.775rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    z-index: 4;
+}
+
+.gantt-bar:hover {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    z-index: 9;
+}
+
+/* Tỷ lệ tiến độ việc con tô đậm bên trong thanh bar */
+.gantt-bar-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    opacity: 0.35;
+    z-index: 1;
+    pointer-events: none;
+    border-radius: 8px 0 0 8px;
+    transition: width 0.3s ease;
+}
+
+.gantt-bar-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Các biến thể màu sắc theo trạng thái */
+.gantt-bar.status-todo {
+    background-color: var(--gantt-todo-bg);
+    border: 1px solid var(--gantt-todo-border);
+    color: var(--gantt-todo-text);
+}
+.gantt-bar.status-todo .gantt-bar-progress-fill {
+    background-color: var(--gantt-todo-fill);
+}
+
+.gantt-bar.status-in_progress, .gantt-bar.status-planning, .gantt-bar.status-revise {
+    background-color: var(--gantt-prog-bg);
+    border: 1px solid var(--gantt-prog-border);
+    color: var(--gantt-prog-text);
+}
+.gantt-bar.status-in_progress .gantt-bar-progress-fill,
+.gantt-bar.status-planning .gantt-bar-progress-fill,
+.gantt-bar.status-revise .gantt-bar-progress-fill {
+    background-color: var(--gantt-prog-fill);
+}
+
+.gantt-bar.status-submitted {
+    background-color: var(--gantt-subm-bg);
+    border: 1px solid var(--gantt-subm-border);
+    color: var(--gantt-subm-text);
+}
+.gantt-bar.status-submitted .gantt-bar-progress-fill {
+    background-color: var(--gantt-subm-fill);
+}
+
+.gantt-bar.status-done, .gantt-bar.status-approved {
+    background-color: var(--gantt-done-bg);
+    border: 1px solid var(--gantt-done-border);
+    color: var(--gantt-done-text);
+}
+.gantt-bar.status-done .gantt-bar-progress-fill,
+.gantt-bar.status-approved .gantt-bar-progress-fill {
+    background-color: var(--gantt-done-fill);
+}
+
+.gantt-bar.is-overdue {
+    background-color: var(--gantt-overdue-bg) !important;
+    border: 1.5px solid var(--gantt-overdue-border) !important;
+    color: var(--gantt-overdue-text) !important;
+}
+.gantt-bar.is-overdue .gantt-bar-progress-fill {
+    background-color: var(--gantt-overdue-fill) !important;
+}
+
+/* Dấu hiệu cảnh báo trễ hạn nhấp nháy nhẹ */
+.gantt-overdue-pulse {
+    animation: overduePulse 2s infinite ease-in-out;
+}
+
+@keyframes overduePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* ==========================================================================
+   6. THANH CÔNG VIỆC CHƯA XẾP LỊCH (UNSCHEDULED TASKS TRAY)
+   ========================================================================== */
+
+.gantt-unscheduled-tray {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--gantt-grid-border);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.unscheduled-task-badge {
+    background: var(--gantt-header-bg);
+    border: 1px dashed var(--gantt-grid-border);
+    border-radius: 0.75rem;
+    padding: 0.6rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.unscheduled-task-badge:hover {
+    border-color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.05);
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   7. MODAL VÀ TOOLTIP CHI TIẾT
+   ========================================================================== */
+
+.gantt-tooltip-popover {
+    position: fixed;
+    z-index: 1050;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--gantt-grid-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    font-size: 0.785rem;
+    pointer-events: none;
+    max-width: 280px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.gantt-tooltip-popover.visible {
+    opacity: 1;
+}
+
+/* In ấn (A4 Landscape Print) */
+@media print {
+    .timeline-subnav, .timeline-toolbar, .no-print, .btn, .navbar, .gantt-unscheduled-tray {
+        display: none !important;
+    }
+    .gantt-split-wrapper {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .gantt-master-container {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
