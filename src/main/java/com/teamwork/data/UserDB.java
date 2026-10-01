@@ -186,6 +186,35 @@ public class UserDB {
     }
 
     /**
+     * Đặt lại mật khẩu (quên mật khẩu). Mật khẩu truyền vào là bản gốc, hàm tự băm trước khi lưu.
+     */
+    public static boolean updatePassword(int userId, String newPlainPassword) {
+        if (userId <= 0 || newPlainPassword == null || newPlainPassword.isEmpty()) {
+            return false;
+        }
+
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            User managed = em.find(User.class, userId);
+            if (managed == null) {
+                tx.commit();
+                return false;
+            }
+            managed.setPassword(PasswordUtil.hashPassword(newPlainPassword));
+            tx.commit();
+            return true;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi đặt lại mật khẩu User ID: " + userId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
      * Lấy danh sách toàn bộ người dùng bằng JPQL
      */
     public static List<User> selectAll() {

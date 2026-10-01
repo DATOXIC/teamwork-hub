@@ -214,7 +214,7 @@
                                        ${rememberChecked || not empty cookie.teamwork_remember_user.value ? 'checked' : ''}>
                                 <span>Ghi nhớ đăng nhập</span>
                             </label>
-                            <a href="#" class="login-forgot-link">Quên mật khẩu?</a>
+                            <a href="${pageContext.request.contextPath}/auth?action=forgot" class="login-forgot-link">Quên mật khẩu?</a>
                         </div>
 
                         <%-- Nút Đăng nhập --%>

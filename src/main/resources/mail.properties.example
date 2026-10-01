@@ -1,0 +1,6 @@
+# Sao chép file này thành mail.properties (file thật nằm trong .gitignore) rồi điền thông tin.
+# mail.pass là "Mật khẩu ứng dụng" 16 ký tự của Gmail (cần bật xác minh 2 bước), KHÔNG phải mật khẩu đăng nhập Gmail.
+mail.host=smtp.gmail.com
+mail.port=587
+mail.user=your_gmail_address@gmail.com
+mail.pass=xxxxxxxxxxxxxxxx

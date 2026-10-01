@@ -2,6 +2,8 @@ package com.teamwork.controllers;
 
 import com.teamwork.business.User;
 import com.teamwork.data.UserDB;
+import com.teamwork.util.MailUtil;
+import com.teamwork.util.OtpChallenge;
 import com.teamwork.util.PasswordUtil;
 
 import jakarta.servlet.ServletException;
@@ -50,6 +52,10 @@ public class AuthServlet extends HttpServlet {
     /** Pattern hợp lệ cho địa chỉ Email */
     private static final String EMAIL_PATTERN = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
 
+    /** Khóa Session lưu trạng thái OTP quên mật khẩu */
+    private static final String SESSION_OTP = "pwResetChallenge";
+    private static final String SESSION_OTP_USER = "pwResetUsername";
+
     // =========================================================================
     // doGet — XỬ LÝ CÁC YÊU CẦU HTTP GET
     // =========================================================================
@@ -79,6 +85,11 @@ public class AuthServlet extends HttpServlet {
         switch (action) {
             case "logout":
                 processLogout(request, response);
+                break;
+
+            case "forgot":
+                clearResetState(request.getSession());
+                forwardForgot(request, response, 1);
                 break;
 
             case "viewLogin":
@@ -155,6 +166,15 @@ public class AuthServlet extends HttpServlet {
                 break;
             case "register":
                 processRegister(request, response);
+                break;
+            case "forgotRequest":
+                processForgotRequest(request, response);
+                break;
+            case "forgotVerify":
+                processForgotVerify(request, response);
+                break;
+            case "forgotReset":
+                processForgotReset(request, response);
                 break;
             default:
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
@@ -382,8 +402,174 @@ public class AuthServlet extends HttpServlet {
     }
 
     // =========================================================================
+    // NGHIỆP VỤ 4: QUÊN MẬT KHẨU (Forgot Password Flow — OTP qua email)
+    // =========================================================================
+
+    /**
+     * Bước 1: nhận username, sinh OTP 6 số (hiệu lực 3 phút) và gửi tới email của tài khoản.
+     * Dùng chung cho "Gửi lại mã" (giãn cách tối thiểu 60 giây).
+     * Luôn trả cùng một thông báo dù username có tồn tại hay không để không lộ danh sách tài khoản.
+     */
+    private void processForgotRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        String username = request.getParameter("username");
+        if (username == null || username.trim().isEmpty()) {
+            request.setAttribute("forgotError", "Vui lòng nhập tên đăng nhập!");
+            forwardForgot(request, response, 1);
+            return;
+        }
+        username = username.trim();
+
+        HttpSession session = request.getSession();
+        long now = System.currentTimeMillis();
+
+        // Chống spam gửi lại: cùng username phải chờ đủ RESEND_MS
+        OtpChallenge existing = (OtpChallenge) session.getAttribute(SESSION_OTP);
+        String existingUser = (String) session.getAttribute(SESSION_OTP_USER);
+        if (existing != null && username.equalsIgnoreCase(existingUser) && !existing.canResend(now)) {
+            request.setAttribute("forgotUsername", username);
+            request.setAttribute("forgotError",
+                    "Vui lòng đợi " + existing.resendWaitSeconds(now) + " giây trước khi gửi lại mã.");
+            forwardForgot(request, response, 2);
+            return;
+        }
+
+        User user = UserDB.selectByUsername(username);
+        boolean deliverable = user != null && user.getEmail() != null && !user.getEmail().trim().isEmpty();
+        String otp = OtpChallenge.generateOtp();
+
+        OtpChallenge challenge;
+        if (deliverable) {
+            if (!MailUtil.sendOtp(user.getEmail().trim(), user.getFullName(), otp)) {
+                request.setAttribute("forgotUsername", username);
+                request.setAttribute("forgotError", "Không gửi được email lúc này. Vui lòng thử lại sau!");
+                forwardForgot(request, response, 1);
+                return;
+            }
+            challenge = new OtpChallenge(user.getId(), otp, now);
+        } else {
+            challenge = new OtpChallenge(0, otp, now); // OTP giả: không gửi, không bao giờ hợp lệ
+        }
+
+        session.setAttribute(SESSION_OTP, challenge);
+        session.setAttribute(SESSION_OTP_USER, username);
+
+        request.setAttribute("forgotUsername", username);
+        request.setAttribute("forgotInfo",
+                "Nếu tài khoản tồn tại, mã OTP gồm 6 số đã được gửi tới email đăng ký. Mã có hiệu lực 3 phút.");
+        forwardForgot(request, response, 2);
+    }
+
+    /**
+     * Bước 2: kiểm tra OTP. Đúng → cho phép đặt mật khẩu mới.
+     * Sai quá 3 lần hoặc hết hạn → hủy OTP, quay lại bước 1.
+     */
+    private void processForgotVerify(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        HttpSession session = request.getSession();
+        OtpChallenge challenge = (OtpChallenge) session.getAttribute(SESSION_OTP);
+        if (challenge == null) {
+            request.setAttribute("forgotError", "Phiên đặt lại mật khẩu đã hết hạn. Vui lòng bắt đầu lại!");
+            forwardForgot(request, response, 1);
+            return;
+        }
+
+        String username = (String) session.getAttribute(SESSION_OTP_USER);
+        request.setAttribute("forgotUsername", username);
+
+        OtpChallenge.Result result = challenge.verify(request.getParameter("otp"), System.currentTimeMillis());
+        switch (result) {
+            case OK:
+                if (challenge.getUserId() <= 0) { // OTP giả (tài khoản không tồn tại)
+                    clearResetState(session);
+                    request.setAttribute("forgotError", "Mã OTP không đúng. Vui lòng bắt đầu lại!");
+                    forwardForgot(request, response, 1);
+                    return;
+                }
+                forwardForgot(request, response, 3);
+                return;
+            case WRONG:
+                request.setAttribute("forgotError",
+                        "Mã OTP không đúng. Bạn còn " + challenge.remainingAttempts() + " lần thử.");
+                forwardForgot(request, response, 2);
+                return;
+            case EXPIRED:
+                clearResetState(session);
+                request.setAttribute("forgotError", "Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới!");
+                forwardForgot(request, response, 1);
+                return;
+            case LOCKED:
+            default:
+                clearResetState(session);
+                request.setAttribute("forgotError", "Bạn đã nhập sai quá 3 lần. Vui lòng yêu cầu mã mới!");
+                forwardForgot(request, response, 1);
+                return;
+        }
+    }
+
+    /**
+     * Bước 3: đặt mật khẩu mới. Chỉ được phép khi OTP đã xác nhận đúng trong cùng Session.
+     */
+    private void processForgotReset(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
+    {
+        HttpSession session = request.getSession();
+        OtpChallenge challenge = (OtpChallenge) session.getAttribute(SESSION_OTP);
+        if (challenge == null || !challenge.isVerified() || challenge.getUserId() <= 0) {
+            clearResetState(session);
+            request.setAttribute("forgotError", "Bạn chưa xác nhận OTP. Vui lòng bắt đầu lại!");
+            forwardForgot(request, response, 1);
+            return;
+        }
+
+        String password = request.getParameter("password");
+        String confirm  = request.getParameter("confirmPassword");
+
+        if (password == null || password.trim().length() < 6) {
+            request.setAttribute("forgotError", "Mật khẩu phải có ít nhất 6 ký tự!");
+            forwardForgot(request, response, 3);
+            return;
+        }
+        if (!password.equals(confirm)) {
+            request.setAttribute("forgotError", "Mật khẩu xác nhận không khớp!");
+            forwardForgot(request, response, 3);
+            return;
+        }
+
+        if (!UserDB.updatePassword(challenge.getUserId(), password.trim())) {
+            request.setAttribute("forgotError", "Không thể cập nhật mật khẩu lúc này. Vui lòng thử lại!");
+            forwardForgot(request, response, 3);
+            return;
+        }
+
+        String username = (String) session.getAttribute(SESSION_OTP_USER);
+        clearResetState(session);
+        session.setAttribute("successMessage", "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới.");
+        session.setAttribute("registeredUsername", username);
+        response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
+    }
+
+    // =========================================================================
     // HELPER — Phương thức tiện ích dùng nội bộ
     // =========================================================================
+
+    /** Hiển thị forgot-password.jsp ở bước 1 (username), 2 (OTP) hoặc 3 (mật khẩu mới). */
+    private void forwardForgot(HttpServletRequest request, HttpServletResponse response, int step)
+            throws ServletException, IOException
+    {
+        request.setAttribute("forgotStep", step);
+        request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+    }
+
+    /** Xóa toàn bộ trạng thái OTP trong Session. */
+    private void clearResetState(HttpSession session) {
+        if (session != null) {
+            session.removeAttribute(SESSION_OTP);
+            session.removeAttribute(SESSION_OTP_USER);
+        }
+    }
 
     /**
      * Chuyển tiếp lại form Đăng ký, giữ nguyên giá trị người dùng đã nhập
