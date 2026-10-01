@@ -51,6 +51,16 @@
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
+                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/timeline?projectId=${project.id}" data-search="timeline lo trinh gantt tien do lich ${project.name}">
+                            <div class="cp-item-icon"><i class="bi bi-calendar-range"></i></div>
+                            <div class="cp-item-content">
+                                <div class="cp-item-title">Mở Sơ Đồ Gantt &amp; Lộ Trình (Timeline)</div>
+                                <div class="cp-item-desc">Xem trục thời gian, đường mốc hôm nay và hạn chót công việc</div>
+                            </div>
+                            <span class="cp-item-badge">Lộ trình</span>
+                            <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
+                        </li>
+
                         <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" data-search="tai lieu wiki docs van ban huong dan ${project.name}">
                             <div class="cp-item-icon"><i class="bi bi-journal-text"></i></div>
                             <div class="cp-item-content">

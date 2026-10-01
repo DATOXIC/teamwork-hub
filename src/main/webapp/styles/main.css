@@ -4793,3 +4793,25 @@ body:has(.clickup-shell) .clickup-list-table.is-team .clickup-list-header-row th
     text-align: left;
     padding-left: 24px;
 }
+
+/* ===== Task Health Score ===== */
+.health-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:.72rem; font-weight:700; }
+.health-ok   { background:#dcfce7; color:#15803d; }
+.health-warn { background:#fef3c7; color:#b45309; }
+.health-risk { background:#fee2e2; color:#b91c1c; animation: healthPulse 1.6s ease-in-out infinite; }
+@keyframes healthPulse { 50% { box-shadow:0 0 0 4px rgba(220,38,38,.18); } }
+.kanban-card.health-card-risk { border-left:4px solid #dc2626 !important; }
+.kanban-card.health-card-warn { border-left:4px solid #f59e0b !important; }
+.kanban-card.health-card-ok   { border-left:4px solid #22c55e !important; }
+
+/* ===== Khối "Đang có nguy cơ trễ" ===== */
+.risk-panel { background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:12px 14px; margin-bottom:16px; }
+.risk-panel-head { display:flex; align-items:center; gap:8px; color:#b91c1c; margin-bottom:8px; }
+.risk-panel-count { background:#dc2626; color:#fff; border-radius:999px; padding:0 8px; font-size:.75rem; font-weight:700; }
+.risk-panel-hint { margin-left:auto; font-size:.75rem; color:#9ca3af; }
+.risk-panel-list { display:flex; flex-wrap:wrap; gap:8px; }
+.risk-item { display:flex; flex-direction:column; gap:2px; position:relative; min-width:200px; max-width:280px; padding:8px 52px 8px 12px; background:#fff; border:1px solid #fecaca; border-left:4px solid #dc2626; border-radius:8px; text-decoration:none; color:inherit; }
+.risk-item:hover { box-shadow:0 2px 8px rgba(220,38,38,.2); }
+.risk-item-title { font-weight:600; font-size:.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.risk-item-meta { font-size:.72rem; color:#6b7280; }
+.risk-item .health-badge { position:absolute; right:10px; top:50%; transform:translateY(-50%); }

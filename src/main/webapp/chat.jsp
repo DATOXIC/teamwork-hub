@@ -55,6 +55,21 @@
                        title="Mở bảng Kanban">
                         <i class="bi bi-kanban me-1" aria-hidden="true"></i> Kanban
                     </a>
+                    <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
+                       class="chat-tab-link"
+                       title="Mở sơ đồ Gantt & Lộ trình thời gian">
+                        <i class="bi bi-calendar-range me-1" aria-hidden="true"></i> Lộ trình
+                    </a>
+                    <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"
+                       class="chat-tab-link"
+                       title="Mở bảng vẽ ý tưởng">
+                        <i class="bi bi-easel me-1" aria-hidden="true"></i> Bảng vẽ
+                    </a>
+                    <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"
+                       class="chat-tab-link"
+                       title="Họp video nhóm">
+                        <i class="bi bi-camera-video me-1" aria-hidden="true"></i> Họp video
+                    </a>
                     <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
                        class="chat-tab-link"
                        title="Mở tài liệu wiki">

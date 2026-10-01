@@ -184,6 +184,10 @@ public class TaskServlet extends HttpServlet {
                 handleExportCsv(request, response, projectId);
                 break;
 
+            case "timeline":
+                response.sendRedirect(request.getContextPath() + "/timeline?projectId=" + projectId);
+                return;
+
             default:
                 handleShowKanban(request, response, projectId);
                 break;
@@ -436,6 +440,13 @@ public class TaskServlet extends HttpServlet {
                 taskProgressMap.put(t.getId(), pct);
             }
         }
+
+        // 8.4. Điểm sức khỏe Task (hạn chót vs tiến độ)
+        Map<Integer, com.teamwork.util.TaskHealth> taskHealthMap = new HashMap<>();
+        for (Task t : allProjectTasks) {
+            taskHealthMap.put(t.getId(), com.teamwork.util.TaskHealth.of(t, taskProgressMap.get(t.getId())));
+        }
+        request.setAttribute("taskHealthMap", taskHealthMap);
 
         // 8.5. Tính toán khối lượng công việc của từng thành viên (UserWorkload DTO) cho Dải Avatar B.3
         List<Task> allTasks = new ArrayList<>(allProjectTasks);

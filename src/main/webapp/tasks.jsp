@@ -178,6 +178,15 @@
                                                         <span class="tree-item-label">Công việc</span>
                                                     </a>
 
+                                                    <!-- 1.5. Lộ trình & Sơ đồ Gantt -->
+                                                    <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-timeline" 
+                                                       title="Lộ trình & Sơ đồ Gantt">
+                                                        <span class="tree-item-icon text-warning"><i class="bi bi-calendar-range-fill"></i></span>
+                                                        <span class="tree-item-label">Lộ trình (Timeline)</span>
+                                                    </a>
+
                                                     <!-- 2. Thảo luận (Chuyển trực tiếp sang trang Chat riêng) -->
                                                     <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
                                                        class="clickup-tree-item ${currentView == 'chat' ? 'active' : ''}" 
@@ -349,7 +358,7 @@
 
                 <div class="clickup-control-toolbar ${currentView == 'tasks' ? '' : 'd-none'} d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 bg-white border-bottom shadow-2xs">
                     <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
-                        <!-- View Switcher (List vs Board) -->
+                        <!-- View Switcher (List vs Board vs Timeline) -->
                         <div class="clickup-view-switcher" id="taskViewSwitcher">
                             <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
                                 <i class="bi bi-list-ul"></i> Danh sách
@@ -357,6 +366,15 @@
                             <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
                                 <i class="bi bi-kanban"></i> Bảng
                             </button>
+                            <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-timeline" title="Mở sơ đồ Gantt & Lộ trình thời gian">
+                                <i class="bi bi-calendar-range text-warning"></i> Lộ trình
+                            </a>
+                            <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-whiteboard" title="Mở bảng vẽ ý tưởng">
+                                <i class="bi bi-easel text-primary"></i> Bảng vẽ
+                            </a>
+                            <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-meeting" title="Họp video nhóm">
+                                <i class="bi bi-camera-video text-success"></i> Họp video
+                            </a>
                         </div>
 
                         <!-- Nút Chuyển Đổi Subtasks -->
@@ -921,6 +939,7 @@
                                 <div class="empty-state-title">Không tìm thấy công việc phù hợp</div>
                                 <p class="empty-state-hint">Thử một từ khóa khác hoặc xóa ô tìm kiếm</p>
                             </div>
+                            <%@ include file="includes/risk_panel.jsp" %>
                             <div class="kanban-wrapper">
                             <div class="row g-4 kanban-board">
 
@@ -949,7 +968,7 @@
                             id="column-TODO" data-status="TODO">
 
                             <c:forEach items="${todoTasks}" var="task">
-                                <div class="card kanban-card p-3 ${task.isOverdue() ? 'border-danger border-2' : ''}"
+                                <div class="card kanban-card p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -1041,6 +1060,7 @@
                                                 </span>
                                             </c:if>
 
+                                            <%@ include file="includes/health_badge.jsp" %>
                                             <!-- Hạn chót -->
                                             <c:if test="${not empty task.dueDate}">
                                                 <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${task.dueDate}">
@@ -1095,7 +1115,7 @@
                             id="column-IN_PROGRESS" data-status="IN_PROGRESS">
 
                             <c:forEach items="${inProgressTasks}" var="task">
-                                <div class="card kanban-card kanban-card-inprogress p-3 ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
+                                <div class="card kanban-card kanban-card-inprogress p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -1205,6 +1225,7 @@
                                                 </span>
                                             </c:if>
 
+                                            <%@ include file="includes/health_badge.jsp" %>
                                             <!-- Hạn chót -->
                                             <c:if test="${not empty task.dueDate}">
                                                 <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${task.dueDate}">

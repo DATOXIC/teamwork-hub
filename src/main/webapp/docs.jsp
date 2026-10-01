@@ -49,6 +49,19 @@
                        class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
                         <i class="bi bi-kanban me-1"></i> Kanban
                     </a>
+                    <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
+                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"
+                       title="Mở sơ đồ Gantt & Lộ trình thời gian">
+                        <i class="bi bi-calendar-range me-1"></i> Lộ trình
+                    </a>
+                    <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"
+                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
+                        <i class="bi bi-easel me-1"></i> Bảng vẽ
+                    </a>
+                    <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"
+                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
+                        <i class="bi bi-camera-video me-1"></i> Họp video
+                    </a>
                     <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
                        class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8">
                         <i class="bi bi-journal-text me-1"></i> Tài liệu
