@@ -328,11 +328,108 @@ function initChatForm() {
 }
 
 // =========================================================================
+// HÀM 10: RÚT GỌN HIỂN THỊ THỜI GIAN TIN NHẮN (SMART TIMESTAMP)
+// =========================================================================
+function formatSmartTimestamp(rawTime) {
+    if (!rawTime) return "";
+    rawTime = rawTime.trim();
+
+    try {
+        var dateObj = null;
+
+        // Định dạng 1: yyyy-MM-dd[ T]HH:mm (VD: 2026-08-21 04:05:49.482369+00)
+        var isoMatch = rawTime.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+        if (isoMatch) {
+            var year = parseInt(isoMatch[1], 10);
+            var month = parseInt(isoMatch[2], 10) - 1;
+            var day = parseInt(isoMatch[3], 10);
+            var hour = parseInt(isoMatch[4], 10);
+            var min = parseInt(isoMatch[5], 10);
+            dateObj = new Date(year, month, day, hour, min);
+        }
+
+        // Định dạng 2: dd/MM/yyyy HH:mm[:ss]
+        if (!dateObj) {
+            var dmyMatch = rawTime.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+            if (dmyMatch) {
+                var day = parseInt(dmyMatch[1], 10);
+                var month = parseInt(dmyMatch[2], 10) - 1;
+                var year = parseInt(dmyMatch[3], 10);
+                var hour = parseInt(dmyMatch[4], 10);
+                var min = parseInt(dmyMatch[5], 10);
+                dateObj = new Date(year, month, day, hour, min);
+            }
+        }
+
+        if (dateObj && !isNaN(dateObj.getTime())) {
+            var now = new Date();
+            var isToday = (dateObj.getDate() === now.getDate() &&
+                           dateObj.getMonth() === now.getMonth() &&
+                           dateObj.getFullYear() === now.getFullYear());
+
+            var yesterday = new Date(now);
+            yesterday.setDate(now.getDate() - 1);
+            var isYesterday = (dateObj.getDate() === yesterday.getDate() &&
+                               dateObj.getMonth() === yesterday.getMonth() &&
+                               dateObj.getFullYear() === yesterday.getFullYear());
+
+            var pad = function(n) { return n < 10 ? '0' + n : n; };
+            var timeStr = pad(dateObj.getHours()) + ":" + pad(dateObj.getMinutes());
+
+            if (isToday) {
+                return timeStr;
+            } else if (isYesterday) {
+                return "Hôm qua " + timeStr;
+            } else {
+                return pad(dateObj.getDate()) + "/" + pad(dateObj.getMonth() + 1) + " " + timeStr;
+            }
+        }
+    } catch (e) {
+        console.warn("Lỗi format thời gian:", e);
+    }
+
+    if (rawTime.length >= 16 && rawTime.indexOf("/") !== -1) {
+        return rawTime.substring(11, 16);
+    }
+    return rawTime;
+}
+
+function renderAllTimestamps() {
+    var metaEls = document.querySelectorAll(".chat-time-meta");
+    for (var el of metaEls) {
+        var raw = el.getAttribute("data-raw-time") || el.getAttribute("title");
+        if (!raw) {
+            raw = el.textContent.trim();
+            el.setAttribute("data-raw-time", raw);
+        }
+        var shortTime = formatSmartTimestamp(raw);
+        var timeSpan = el.querySelector(".time-text");
+        if (timeSpan) {
+            timeSpan.textContent = shortTime;
+        } else {
+            var icon = el.querySelector("i");
+            el.innerHTML = "";
+            if (icon) {
+                el.appendChild(icon);
+            }
+            var span = document.createElement("span");
+            span.className = "time-text ms-1";
+            span.textContent = shortTime;
+            el.appendChild(span);
+        }
+        el.setAttribute("title", raw);
+    }
+}
+
+// =========================================================================
 // KHỞI CHẠY KHI TOÀN BỘ DOM HTML ĐÃ TẢI XONG
 // =========================================================================
 document.addEventListener("DOMContentLoaded", function() {
     // 1. Quét và chuyển đổi các cú pháp Mention thành Link
     renderAllMessages();
+
+    // 1b. Tự động rút gọn thời gian tin nhắn thông minh
+    renderAllTimestamps();
 
     // 2. Khôi phục bản nháp nếu có
     restoreDraft();

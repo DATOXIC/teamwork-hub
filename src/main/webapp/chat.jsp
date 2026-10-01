@@ -323,7 +323,7 @@
                                              id="msg-content-${msg.id}"
                                              data-raw-content="<c:out value='${msg.content}' />"><c:out value="${msg.content}" /></div>
                                         <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
-                                            <span class="chat-time-meta text-white-50"><i class="bi bi-clock me-1" aria-hidden="true"></i>${msg.sentAt}</span>
+                                            <span class="chat-time-meta text-white-50" data-raw-time="<c:out value='${msg.sentAt}' />" title="<c:out value='${msg.sentAt}' />"><i class="bi bi-clock me-1" aria-hidden="true"></i><span class="time-text">${msg.shortSentAt}</span></span>
                                         </div>
                                     </div>
                                 </div>
@@ -377,7 +377,7 @@
                                              id="msg-content-${msg.id}"
                                              data-raw-content="<c:out value='${msg.content}' />"><c:out value="${msg.content}" /></div>
                                         <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
-                                            <span class="chat-time-meta text-muted"><i class="bi bi-clock me-1" aria-hidden="true"></i>${msg.sentAt}</span>
+                                            <span class="chat-time-meta text-muted" data-raw-time="<c:out value='${msg.sentAt}' />" title="<c:out value='${msg.sentAt}' />"><i class="bi bi-clock me-1" aria-hidden="true"></i><span class="time-text">${msg.shortSentAt}</span></span>
                                         </div>
                                     </div>
                                 </div>
