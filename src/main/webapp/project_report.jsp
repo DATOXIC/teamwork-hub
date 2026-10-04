@@ -40,63 +40,23 @@
 <jsp:include page="/includes/navbar.jsp" />
 <link rel="stylesheet" href="${pageContext.request.contextPath}/styles/report.css?v=<%= System.currentTimeMillis() %>">
 
-<!-- =========================================================================
-1. STICKY GLASSMORPHIC SUB-NAV (THANH ĐIỀU HƯỚNG NỔI HÍT TRẦN)
-========================================================================= -->
-<div class="report-sticky-nav no-print">
-    <div class="container-fluid px-lg-5 py-2-5 d-flex flex-wrap align-items-center justify-content-between gap-3">
-        <!-- Điều hướng phân hệ (Navigation Context) -->
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <a href="${pageContext.request.contextPath}/project?action=list"
-                class="btn btn-sm rounded-pill px-3 py-1-5 shadow-none d-flex align-items-center gap-1 report-btn-back"
-                title="Quay về danh sách dự án">
-                <i class="bi bi-arrow-left report-btn-back-icon"></i> <span class="d-none d-sm-inline">Dự án</span>
-            </a>
-            <div class="border-start ps-2 d-flex align-items-center gap-2 report-nav-divider">
-                <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold report-code-badge">
-                    #${project.projectCode}
-                </span>
-                <span class="fw-bold fs-7 text-truncate report-title-truncate" title="${project.name}">${project.name}</span>
-            </div>
+<div class="container-fluid px-lg-5 py-4 report-app-container">
+    <!-- 1. THANH ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN PHÂN HỆ (7 Phân hệ chuẩn hóa) -->
+    <c:set var="activeSubNav" value="report" scope="request" />
+    <jsp:include page="/includes/project_subnav.jsp" />
 
-            <!-- Tab Chuyển Phân Hệ Nhanh (Segmented Capsule) -->
-            <div class="d-none d-md-flex align-items-center gap-1 report-nav-pill-group ms-2">
-                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
-                    class="report-nav-pill">
-                    <i class="bi bi-kanban me-1"></i> Kanban
-                </a>
-                <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}"
-                    class="report-nav-pill"
-                    title="Mở sơ đồ Gantt & Lộ trình thời gian">
-                    <i class="bi bi-calendar-range me-1"></i> Lộ trình
-                </a>
-                <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"
-                    class="report-nav-pill">
-                    <i class="bi bi-easel me-1"></i> Bảng vẽ
-                </a>
-                <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"
-                    class="report-nav-pill">
-                    <i class="bi bi-camera-video me-1"></i> Họp video
-                </a>
-                <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}"
-                    class="report-nav-pill">
-                    <i class="bi bi-journal-text me-1"></i> Tài liệu
-                </a>
-                <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}"
-                    class="report-nav-pill">
-                    <i class="bi bi-chat-dots me-1"></i> Thảo luận
-                </a>
-                <span class="report-nav-pill active">
-                    <i class="bi bi-file-earmark-bar-graph me-1"></i> Báo cáo
-                </span>
-            </div>
+    <!-- Action Bar: Theme Toggle & Print/Export -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 no-print">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-1-5 fs-8 fw-semibold">
+                <i class="bi bi-file-earmark-bar-graph me-1"></i> Báo cáo tổng thể
+            </span>
+            <span class="text-muted fs-8 d-none d-md-inline">Phân tích nhịp độ tiến độ, chất lượng bàn giao & năng suất nhóm</span>
         </div>
-
-        <!-- Cụm Nút Thao Tác Xuất / In + Nút Đổi Theme (Actions) -->
         <div class="d-flex align-items-center gap-2">
             <!-- Nút Bật / Tắt Giao Diện Sáng - Tối (Light / Dark Mode) -->
             <button type="button" id="themeToggleBtn" onclick="toggleReportTheme()"
-                class="btn btn-sm rounded-pill px-3 py-1-5 fw-semibold d-flex align-items-center gap-2 theme-toggle-btn"
+                class="btn btn-sm rounded-pill px-3 py-1-5 fw-semibold d-flex align-items-center gap-2 theme-toggle-btn shadow-none"
                 title="Chuyển đổi giao diện Sáng / Tối (Light / Dark Mode)"
                 aria-label="Chuyển đổi giao diện Sáng / Tối">
                 <i class="bi bi-moon-stars-fill theme-icon-moon"></i>
@@ -117,9 +77,6 @@
             </a>
         </div>
     </div>
-</div>
-
-<div class="container-fluid px-lg-5 py-4 report-app-container">
 
     <!-- Thông báo Flash Toast (nếu có) -->
     <jsp:include page="/includes/toast.jsp" />

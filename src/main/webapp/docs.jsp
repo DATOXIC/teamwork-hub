@@ -26,66 +26,16 @@
 
 <div class="container-fluid px-lg-5 py-4">
 
-    <!-- 2. THANH ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN TAB (Kanban / Docs / Chat) -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 pb-3 border-bottom bg-white p-3 rounded-4 shadow-sm">
-        
-        <!-- Cụm bên trái: Quay lại + Tên dự án + Chuyển Tab -->
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <a href="${pageContext.request.contextPath}/project?action=list" 
-               class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none" 
-               title="Quay về danh sách dự án">
-                <i class="bi bi-arrow-left me-1"></i> Danh sách dự án
-            </a>
-            
-            <div class="border-start ps-3 d-flex align-items-center gap-3">
-                <div>
-                    <h4 class="fw-extrabold text-dark mb-0 tracking-tight">${project.name}</h4>
-                    <span class="fs-8 text-muted">Không gian Tài liệu & Ghi chú Wiki</span>
-                </div>
+    <!-- 2. THANH ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN PHÂN HỆ (7 Phân hệ chuẩn hóa) -->
+    <c:set var="activeSubNav" value="docs" scope="request" />
+    <jsp:include page="/includes/project_subnav.jsp" />
 
-                <!-- 4 Nút chuyển phân hệ nhanh: Kanban / Docs / Chat / Báo cáo -->
-                <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
-                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
-                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
-                        <i class="bi bi-kanban me-1"></i> Kanban
-                    </a>
-                    <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
-                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"
-                       title="Mở sơ đồ Gantt & Lộ trình thời gian">
-                        <i class="bi bi-calendar-range me-1"></i> Lộ trình
-                    </a>
-                    <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"
-                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
-                        <i class="bi bi-easel me-1"></i> Bảng vẽ
-                    </a>
-                    <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"
-                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
-                        <i class="bi bi-camera-video me-1"></i> Họp video
-                    </a>
-                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
-                       class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8">
-                        <i class="bi bi-journal-text me-1"></i> Tài liệu
-                    </a>
-                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
-                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8">
-                        <i class="bi bi-chat-dots me-1"></i> Thảo luận
-                    </a>
-                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
-                       class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"
-                       title="Xem báo cáo tổng hợp tiến độ và đánh giá">
-                        <i class="bi bi-file-earmark-bar-graph me-1"></i> Báo cáo
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cụm bên phải: Nút viết bài mới -->
-        <div>
-            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm"
-                    data-bs-toggle="modal" data-bs-target="#createDocModal">
-                <i class="bi bi-pencil-square me-1"></i> Viết bài mới
-            </button>
-        </div>
+    <!-- Action Bar: Nút Viết bài mới -->
+    <div class="d-flex justify-content-end mb-4">
+        <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm text-white"
+                data-bs-toggle="modal" data-bs-target="#createDocModal">
+            <i class="bi bi-pencil-square me-1"></i> Viết bài mới
+        </button>
     </div>
 
     <!-- UI-04: Floating Toast -->

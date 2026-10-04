@@ -8,30 +8,18 @@
 <jsp:include page="/includes/navbar.jsp" />
 
 <div class="container-fluid px-lg-5 py-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 bg-white p-3 rounded-4 shadow-sm">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <a href="${pageContext.request.contextPath}/project?action=list"
-               class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none">
-                <i class="bi bi-arrow-left me-1"></i> Danh sách dự án
-            </a>
-            <div class="border-start ps-3">
-                <h4 class="fw-extrabold text-dark mb-0 tracking-tight"><c:out value="${project.name}" /></h4>
-                <span class="fs-8 text-muted">Phòng họp video của nhóm</span>
-            </div>
-            <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
-                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-kanban me-1"></i> Kanban</a>
-                <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-easel me-1"></i> Bảng vẽ</a>
-                <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"
-                   class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8"><i class="bi bi-camera-video me-1"></i> Họp video</a>
-                <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-journal-text me-1"></i> Tài liệu</a>
-                <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-chat-dots me-1"></i> Thảo luận</a>
-            </div>
+    <!-- 2. THANH ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN PHÂN HỆ (7 Phân hệ chuẩn hóa) -->
+    <c:set var="activeSubNav" value="meeting" scope="request" />
+    <jsp:include page="/includes/project_subnav.jsp" />
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge rounded-pill bg-success-subtle text-success px-3 py-1-5 fs-8 fw-semibold border border-success-subtle">
+                <i class="bi bi-broadcast me-1"></i> Trực tuyến
+            </span>
+            <span class="text-muted fs-8">Phòng họp video bảo mật của nhóm</span>
         </div>
-        <button type="button" id="meetCopyBtn" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+        <button type="button" id="meetCopyBtn" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-none">
             <i class="bi bi-link-45deg me-1"></i> Sao chép link mời
         </button>
     </div>

@@ -8,32 +8,11 @@
 <jsp:include page="/includes/navbar.jsp" />
 
 <div class="container-fluid px-lg-5 py-4">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 bg-white p-3 rounded-4 shadow-sm">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <a href="${pageContext.request.contextPath}/project?action=list"
-               class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none">
-                <i class="bi bi-arrow-left me-1"></i> Danh sách dự án
-            </a>
-            <div class="border-start ps-3">
-                <h4 class="fw-extrabold text-dark mb-0 tracking-tight"><c:out value="${project.name}" /></h4>
-                <span class="fs-8 text-muted">Bảng vẽ ý tưởng &amp; sơ đồ nhóm</span>
-            </div>
-            <div class="d-none d-md-flex align-items-center gap-2 bg-light p-1 rounded-pill border ms-2">
-                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-kanban me-1"></i> Kanban</a>
-                <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-calendar-range me-1"></i> Lộ trình</a>
-                <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"
-                   class="btn btn-sm btn-white bg-white text-primary shadow-2xs rounded-pill px-3 py-1 fw-bold fs-8"><i class="bi bi-easel me-1"></i> Bảng vẽ</a>
-                <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-camera-video me-1"></i> Họp video</a>
-                <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-journal-text me-1"></i> Tài liệu</a>
-                <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}"
-                   class="btn btn-sm text-secondary rounded-pill px-3 py-1 fw-medium fs-8"><i class="bi bi-chat-dots me-1"></i> Thảo luận</a>
-            </div>
-        </div>
-        <span id="wbStatus" class="fs-8 text-muted"><i class="bi bi-cloud-check me-1"></i> Tự động lưu</span>
+    <c:set var="activeSubNav" value="whiteboard" scope="request" />
+    <jsp:include page="/includes/project_subnav.jsp" />
+
+    <div class="d-flex justify-content-end mb-2">
+        <span id="wbStatus" class="badge rounded-pill bg-light text-muted border px-3 py-1 fs-8"><i class="bi bi-cloud-check me-1 text-success"></i> Tự động lưu</span>
     </div>
 
     <div id="wbRoot" class="wb-frame"></div>

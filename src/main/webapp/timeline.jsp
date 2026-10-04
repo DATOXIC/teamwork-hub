@@ -25,56 +25,10 @@
 <div class="container-fluid px-3 px-lg-4 py-3 timeline-shell">
 
     <!-- =========================================================================
-         1. SUB-NAV: ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN PHÂN HỆ
+         1. SUB-NAV: ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN PHÂN HỆ (7 Phân hệ chuẩn hóa)
          ========================================================================= -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 p-3 rounded-4 timeline-subnav shadow-2xs">
-        
-        <!-- Cụm bên trái: Nút Quay lại + Mã dự án + Tên dự án -->
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <a href="${pageContext.request.contextPath}/project?action=list" 
-               class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none d-inline-flex align-items-center gap-1"
-               title="Quay về danh sách dự án">
-                <i class="bi bi-arrow-left"></i>
-                <span class="d-none d-sm-inline">Dự án</span>
-            </a>
-
-            <div class="border-start ps-3 d-flex flex-wrap align-items-center gap-2">
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-semibold">
-                    #${project.projectCode}
-                </span>
-                <h1 class="h5 fw-bold mb-0 text-dark text-truncate" style="max-width: 280px;" title="${project.name}">
-                    ${project.name}
-                </h1>
-                <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0-5 fs-10 fw-semibold d-none d-md-inline-block">
-                    ${project.projectType == 'SOLO' ? 'Cá nhân' : 'Đội ngũ'}
-                </span>
-            </div>
-        </div>
-
-        <!-- Cụm bên phải: 5 Nút chuyển phân hệ nhanh (Kanban / Lộ trình / Docs / Chat / Báo cáo) -->
-        <nav aria-label="Phân hệ dự án" class="d-flex align-items-center gap-1 p-1 bg-light rounded-pill border timeline-subnav-tabs">
-            <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
-               class="timeline-tab-link" title="Mở bảng công việc Kanban">
-                <i class="bi bi-kanban me-1"></i> Kanban
-            </a>
-            <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
-               class="timeline-tab-link active" title="Mở sơ đồ Gantt & Lộ trình thời gian">
-                <i class="bi bi-calendar-range me-1"></i> Lộ trình (Timeline)
-            </a>
-            <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
-               class="timeline-tab-link" title="Mở tài liệu wiki">
-                <i class="bi bi-journal-text me-1"></i> Tài liệu
-            </a>
-            <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
-               class="timeline-tab-link" title="Mở kênh thảo luận">
-                <i class="bi bi-chat-dots me-1"></i> Thảo luận
-            </a>
-            <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
-               class="timeline-tab-link" title="Xem báo cáo tiến độ toàn diện">
-                <i class="bi bi-file-earmark-bar-graph me-1"></i> Báo cáo
-            </a>
-        </nav>
-    </div>
+    <c:set var="activeSubNav" value="timeline" scope="request" />
+    <jsp:include page="/includes/project_subnav.jsp" />
 
     <!-- Thông báo nổi Toast -->
     <jsp:include page="/includes/toast.jsp" />

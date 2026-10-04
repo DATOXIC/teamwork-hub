@@ -187,6 +187,24 @@
                                                         <span class="tree-item-label">Lộ trình (Timeline)</span>
                                                     </a>
 
+                                                    <!-- 1.6. Bảng vẽ ý tưởng (Whiteboard) -->
+                                                    <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-whiteboard" 
+                                                       title="Bảng vẽ ý tưởng & Sơ đồ nhóm">
+                                                        <span class="tree-item-icon text-primary"><i class="bi bi-easel-fill"></i></span>
+                                                        <span class="tree-item-label">Bảng vẽ</span>
+                                                    </a>
+
+                                                    <!-- 1.7. Họp video (Meeting) -->
+                                                    <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-meeting" 
+                                                       title="Phòng họp video trực tuyến">
+                                                        <span class="tree-item-icon text-success"><i class="bi bi-camera-video-fill"></i></span>
+                                                        <span class="tree-item-label">Họp video</span>
+                                                    </a>
+
                                                     <!-- 2. Thảo luận (Chuyển trực tiếp sang trang Chat riêng) -->
                                                     <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
                                                        class="clickup-tree-item ${currentView == 'chat' ? 'active' : ''}" 
@@ -203,6 +221,15 @@
                                                        title="Kho tài liệu Wiki dự án">
                                                         <span class="tree-item-icon tree-icon-docs"><i class="bi bi-file-earmark-text-fill"></i></span>
                                                         <span class="tree-item-label">Tài liệu</span>
+                                                    </a>
+
+                                                    <!-- 4. Báo cáo tiến độ & Đo lường sức khỏe -->
+                                                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-report" 
+                                                       title="Báo cáo tiến độ toàn diện">
+                                                        <span class="tree-item-icon text-info"><i class="bi bi-file-earmark-bar-graph-fill"></i></span>
+                                                        <span class="tree-item-label">Báo cáo</span>
                                                     </a>
 
 
@@ -374,6 +401,9 @@
                             </a>
                             <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-meeting" title="Họp video nhóm">
                                 <i class="bi bi-camera-video text-success"></i> Họp video
+                            </a>
+                            <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-report" title="Xem báo cáo tiến độ toàn diện">
+                                <i class="bi bi-file-earmark-bar-graph text-info"></i> Báo cáo
                             </a>
                         </div>
 

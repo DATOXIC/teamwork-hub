@@ -28,85 +28,26 @@
 
 <div class="container-fluid px-3 px-lg-5 py-4 chat-shell">
 
-    <!-- 2. THANH ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN TAB (Kanban / Docs / Chat / Báo cáo) -->
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 p-3 chat-subnav">
-        
-        <!-- Cụm bên trái: Nút quay lại + Tên dự án + Chuyển Tab -->
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <a href="${pageContext.request.contextPath}/project?action=list" 
-               class="btn btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1 chat-subnav-btn-back shadow-none" 
-               title="Quay về danh sách dự án"
-               aria-label="Quay về danh sách dự án">
-                <i class="bi bi-arrow-left" aria-hidden="true"></i>
-                <span>Danh sách dự án</span>
-            </a>
-            
-            <div class="border-start ps-3 d-flex flex-wrap align-items-center gap-2 gap-md-3 chat-border-glass-subtle">
-                <div>
-                    <!-- Thẻ H1 ngữ nghĩa cho SEO & A11y, style hiển thị tinh tế -->
-                    <h1 class="h5 fw-bold mb-0 chat-subnav-title">${project.name}</h1>
-                    <span class="fs-8 text-muted">Kênh Thảo luận & Trao đổi nhóm</span>
-                </div>
+    <!-- 2. THANH ĐIỀU HƯỚNG DỰ ÁN & CHUYỂN PHÂN HỆ (7 Phân hệ chuẩn hóa) -->
+    <c:set var="activeSubNav" value="chat" scope="request" />
+    <jsp:include page="/includes/project_subnav.jsp" />
 
-                <!-- 4 Nút chuyển phân hệ nhanh: Cuộn ngang mượt mà trên mobile -->
-                <nav aria-label="Phân hệ dự án" class="d-flex align-items-center gap-1 p-1 rounded-pill chat-subnav-tabs subnav-tabs-scroll">
-                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
-                       class="chat-tab-link"
-                       title="Mở bảng Kanban">
-                        <i class="bi bi-kanban me-1" aria-hidden="true"></i> Kanban
-                    </a>
-                    <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
-                       class="chat-tab-link"
-                       title="Mở sơ đồ Gantt & Lộ trình thời gian">
-                        <i class="bi bi-calendar-range me-1" aria-hidden="true"></i> Lộ trình
-                    </a>
-                    <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"
-                       class="chat-tab-link"
-                       title="Mở bảng vẽ ý tưởng">
-                        <i class="bi bi-easel me-1" aria-hidden="true"></i> Bảng vẽ
-                    </a>
-                    <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"
-                       class="chat-tab-link"
-                       title="Họp video nhóm">
-                        <i class="bi bi-camera-video me-1" aria-hidden="true"></i> Họp video
-                    </a>
-                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
-                       class="chat-tab-link"
-                       title="Mở tài liệu wiki">
-                        <i class="bi bi-journal-text me-1" aria-hidden="true"></i> Tài liệu
-                    </a>
-                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
-                       class="chat-tab-link active"
-                       aria-current="page"
-                       title="Kênh thảo luận trực tiếp">
-                        <i class="bi bi-chat-dots me-1" aria-hidden="true"></i> Thảo luận
-                    </a>
-                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
-                       class="chat-tab-link"
-                       title="Xem báo cáo tổng hợp tiến độ và đánh giá">
-                        <i class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i> Báo cáo
-                    </a>
-                </nav>
-            </div>
-        </div>
+    <!-- Action Bar: Nút bật Sidebar Mobile & Live Pulse -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <!-- Nút bật Drawer thành viên trên di động -->
+        <button class="btn btn-sm rounded-pill px-3 py-1-5 d-lg-none d-inline-flex align-items-center gap-1 chat-subnav-btn-back shadow-none" 
+                type="button" 
+                data-bs-toggle="offcanvas" 
+                data-bs-target="#chatSidebarOffcanvas" 
+                aria-controls="chatSidebarOffcanvas"
+                aria-label="Xem thành viên và ID tra cứu">
+            <i class="bi bi-people-fill" aria-hidden="true"></i>
+            <span class="fs-8 fw-semibold">Thành viên (${userList.size()})</span>
+        </button>
 
-        <!-- Cụm bên phải: Nút bật Sidebar Mobile + Thống kê số tin nhắn Live Pulse -->
-        <div class="d-flex align-items-center gap-2">
-            <!-- Nút bật Drawer thành viên trên di động -->
-            <button class="btn btn-sm rounded-pill px-3 py-1 d-lg-none d-inline-flex align-items-center gap-1 chat-subnav-btn-back shadow-none" 
-                    type="button" 
-                    data-bs-toggle="offcanvas" 
-                    data-bs-target="#chatSidebarOffcanvas" 
-                    aria-controls="chatSidebarOffcanvas"
-                    aria-label="Xem thành viên và ID tra cứu">
-                <i class="bi bi-people-fill" aria-hidden="true"></i>
-                <span class="fs-8 fw-semibold">Thành viên (${userList.size()})</span>
-            </button>
-
-            <div class="chat-pulse-badge rounded-pill px-3 py-1 fs-8 fw-semibold d-inline-flex align-items-center gap-2">
-                <span class="pulse-indicator" aria-hidden="true"></span>
-                <span>${messageList.size()} tin nhắn</span>
-            </div>
+        <div class="ms-auto chat-pulse-badge rounded-pill px-3 py-1-5 fs-8 fw-semibold d-inline-flex align-items-center gap-2">
+            <span class="pulse-indicator" aria-hidden="true"></span>
+            <span>${messageList.size()} tin nhắn</span>
         </div>
     </div>
 
