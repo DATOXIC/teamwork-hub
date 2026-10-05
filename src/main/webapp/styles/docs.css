@@ -1,0 +1,58 @@
+/* docs.css — Wiki / Knowledge Base (docs.jsp).
+ * Tách từ main.css (giữ nguyên thứ tự nạp; xem danh sách trong includes/header.jsp). */
+/* ==========================================================================
+   Wiki & Knowledge Base Styles (docs.jsp)
+   ========================================================================== */
+.wiki-doc-item {
+    display: block;
+    text-decoration: none;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: all 0.15s ease;
+    color: inherit;
+}
+
+.wiki-doc-item:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: inherit;
+    transform: translateX(2px);
+}
+
+.wiki-doc-item.active {
+    background-color: #F0F3FA;
+    border-color: #395886;
+    border-left-width: 3.5px;
+    box-shadow: 0 1px 4px rgba(57, 88, 134, 0.1);
+}
+
+.wiki-doc-item.active .wiki-doc-title {
+    color: #395886 !important;
+}
+
+.wiki-body {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: #1e293b;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.wiki-task-item {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.15s ease;
+}
+
+.wiki-task-item:hover {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+}

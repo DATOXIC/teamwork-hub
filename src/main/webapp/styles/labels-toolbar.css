@@ -1,0 +1,167 @@
+/* labels-toolbar.css — Nhãn/tag + avatar bộ lọc người phụ trách.
+ * Tách từ main.css (giữ nguyên thứ tự nạp; xem danh sách trong includes/header.jsp). */
+/* ==========================================================================
+   Task Labels & Tags (Trello / Linear style)
+   ========================================================================== */
+.bg-purple-subtle {
+    background-color: #f3e8ff !important;
+}
+
+.text-purple {
+    color: #7e22ce !important;
+}
+
+.border-purple-subtle {
+    border-color: #e9d5ff !important;
+}
+
+.btn-outline-purple {
+    color: #7e22ce;
+    border-color: #d8b4fe;
+}
+
+.btn-outline-purple:hover,
+.btn-outline-purple.active {
+    background-color: #7e22ce;
+    border-color: #7e22ce;
+    color: #ffffff;
+}
+
+.label-toggle-btn {
+    transition: all 0.15s ease;
+}
+
+.label-toggle-btn.active {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================================================
+   ClickUp 3.0 Toolbar Avatars & Assignee Filter
+   ========================================================================== */
+.clickup-assignee-toolbar {
+    background-color: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+.assignee-avatar-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+.assignee-avatar-btn:hover {
+    transform: translateY(-2px) scale(1.1);
+    z-index: 5;
+}
+.assignee-avatar-btn .avatar-circle-sm {
+    width: 26px;
+    height: 26px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: box-shadow 0.15s ease;
+}
+.assignee-avatar-btn.active .avatar-circle-sm {
+    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #2563eb !important;
+}
+.assignee-avatar-btn-more {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    border: 1px dashed #cbd5e1;
+    color: #64748b;
+    font-size: 0.68rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.assignee-avatar-btn-more:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+.assignee-filter-btn {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.assignee-filter-btn:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+.assignee-filter-btn.active {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+}
+.status-filter-btn {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.status-filter-btn:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+}
+.status-filter-btn.active, .status-btn-submitted.active {
+    background-color: #8b5cf6 !important;
+    color: #ffffff !important;
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 1px 3px rgba(139, 92, 246, 0.35);
+}
+.status-btn-submitted {
+    border-color: #ddd6fe;
+    background: #fdf4ff;
+    color: #7c3aed;
+}
+.status-btn-submitted:hover {
+    background: #fae8ff;
+    border-color: #c084fc;
+    color: #6b21a8;
+}
+.status-btn-submitted.active .status-count-pill {
+    background-color: #ffffff !important;
+    color: #7c3aed !important;
+}
+.status-count-pill {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    background-color: #f3e8ff;
+    color: #7c3aed;
+    font-weight: 700;
+}
+.kanban-card-submitted {
+    border-left: 4px solid #8b5cf6 !important;
+    background: linear-gradient(to right, rgba(139, 92, 246, 0.03), #ffffff 25%) !important;
+}

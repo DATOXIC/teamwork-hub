@@ -44,8 +44,11 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
     <!-- Custom CSS (Phong cách Basecamp / Notion) -->
-    <link rel="stylesheet"
-          href="${pageContext.request.contextPath}/styles/main.css?v=<%= System.currentTimeMillis() %>">
+    <%-- main.css cũ đã được tách thành các file nhỏ. THỨ TỰ NẠP QUAN TRỌNG (CSS ghi đè theo thứ tự) — đừng đổi. --%>
+    <jsp:useBean id="cssStamp" class="java.util.Date" />
+    <c:forTokens items="login,base,kanban,task-detail,projects,docs,chat-stream,components,profile,landing,labels-toolbar,app-layout,workspace-shell,task-drawer,metrics,workload,workspace-typography" delims="," var="cssPart">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/styles/${cssPart}.css?v=${cssStamp.time}">
+    </c:forTokens>
 
     <!-- Command Palette CSS (Ctrl + K) -->
     <link rel="stylesheet"

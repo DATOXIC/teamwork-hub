@@ -1,0 +1,537 @@
+/* app-layout.css — Bố cục sidebar + nội dung, tiện ích in (@media print).
+ * Tách từ main.css (giữ nguyên thứ tự nạp; xem danh sách trong includes/header.jsp). */
+/* ==========================================================================
+   APP LAYOUT — Left Sidebar + Main Content (Linear / Notion style)
+   ========================================================================== */
+
+/* Wrapper bao ngoài sidebar + content */
+.app-layout {
+    display: flex;
+    width: 100%;
+    min-height: calc(100vh - 56px); /* 56px = navbar height */
+    position: relative;
+}
+
+/* ── LEFT SIDEBAR ── */
+.left-sidebar {
+    width: 224px;
+    min-width: 224px;
+    background-color: #0f172a;
+    border-right: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 56px; /* dưới navbar */
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                min-width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+    flex-shrink: 0;
+
+    /* Cuộn mượt, ẩn scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #334155 transparent;
+}
+
+.left-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+.left-sidebar::-webkit-scrollbar-track { background: transparent; }
+.left-sidebar::-webkit-scrollbar-thumb {
+    background-color: #334155;
+    border-radius: 4px;
+}
+
+/* Trạng thái thu gọn — chỉ hiện icon */
+.left-sidebar.collapsed {
+    width: 56px;
+    min-width: 56px;
+}
+
+/* ── SIDEBAR HEADER: Project info ── */
+.sidebar-project-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #1e293b;
+    flex-shrink: 0;
+}
+
+.sidebar-project-name {
+    font-size: 0.825rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    max-width: 150px;
+}
+
+.sidebar-project-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background-color: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    padding: 1px 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: monospace;
+    margin-top: 3px;
+    white-space: nowrap;
+}
+
+/* Label ẩn khi sidebar thu gọn */
+.left-sidebar.collapsed .sidebar-label,
+.left-sidebar.collapsed .sidebar-project-name,
+.left-sidebar.collapsed .sidebar-project-code,
+.left-sidebar.collapsed .sidebar-section-title,
+.left-sidebar.collapsed .sidebar-filter-group,
+.left-sidebar.collapsed .sidebar-member-section,
+.left-sidebar.collapsed .sidebar-bottom-actions .btn-label,
+.left-sidebar.collapsed .sidebar-stats {
+    display: none !important;
+}
+
+/* Toggle button */
+.sidebar-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid #334155;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+.sidebar-toggle-btn:hover {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    border-color: #475569;
+}
+
+/* ── SIDEBAR NAV LINKS (Tab dọc: Kanban/Docs/Chat/Report) ── */
+.sidebar-nav {
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-bottom: 1px solid #1e293b;
+    flex-shrink: 0;
+}
+
+.sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar-nav-link i {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+}
+
+.sidebar-nav-link:hover {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+.sidebar-nav-link.active {
+    background-color: #312e81;
+    color: #a5b4fc;
+    font-weight: 700;
+}
+
+/* ── SIDEBAR SECTION TITLE ── */
+.sidebar-section-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: #475569;
+    padding: 10px 18px 4px;
+    flex-shrink: 0;
+}
+
+/* ── SIDEBAR FILTER CONTROLS ── */
+.sidebar-filter-group {
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sidebar-filter-group .form-control,
+.sidebar-filter-group .form-select {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    font-size: 0.775rem;
+    border-radius: 8px;
+    padding: 6px 10px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-filter-group .form-control::placeholder {
+    color: #475569;
+}
+
+.sidebar-filter-group .form-control:focus,
+.sidebar-filter-group .form-select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    background-color: #1e293b;
+    color: #f1f5f9;
+    outline: none;
+}
+
+.sidebar-filter-group .form-select option {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+.sidebar-filter-group .input-group-text {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-right: none;
+    color: #64748b;
+}
+
+/* ── SIDEBAR MEMBER SECTION ── */
+.sidebar-member-section {
+    padding: 4px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.sidebar-member-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 5px 8px;
+    border-radius: 7px;
+    font-size: 0.775rem;
+    font-weight: 500;
+    color: #94a3b8;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar-member-btn:hover {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+}
+
+.sidebar-member-btn.active {
+    background-color: #312e81;
+    color: #a5b4fc;
+    border-color: #4338ca;
+    font-weight: 700;
+}
+
+.sidebar-member-btn .member-avatar-xs {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    color: #ffffff;
+}
+
+.sidebar-member-btn .member-count-badge {
+    margin-left: auto;
+    background-color: #1e293b;
+    color: #64748b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 1px 6px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.sidebar-member-btn.active .member-count-badge {
+    background-color: #4338ca;
+    color: #c7d2fe;
+    border-color: #4f46e5;
+}
+
+/* ── SIDEBAR BOTTOM ACTIONS ── */
+.sidebar-bottom-actions {
+    padding: 10px 10px 14px;
+    border-top: 1px solid #1e293b;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.sidebar-cta-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 9px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.sidebar-cta-btn:hover {
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+    color: #ffffff;
+}
+
+.sidebar-secondary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.sidebar-secondary-btn:hover {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-color: #475569;
+}
+
+/* Sidebar collapsed — chỉ icon giữa, ẩn text */
+.left-sidebar.collapsed .sidebar-nav-link {
+    justify-content: center;
+    padding: 9px;
+}
+
+.left-sidebar.collapsed .sidebar-nav-link .sidebar-label {
+    display: none;
+}
+
+.left-sidebar.collapsed .sidebar-cta-btn,
+.left-sidebar.collapsed .sidebar-secondary-btn {
+    padding: 9px;
+    gap: 0;
+}
+
+.left-sidebar.collapsed .sidebar-nav {
+    padding: 10px 6px;
+}
+
+.left-sidebar.collapsed .sidebar-project-header {
+    padding: 10px 8px;
+    justify-content: center;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content {
+    flex: 1 1 0%;
+    width: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* ── COMPACT PROJECT HEADER (1 dòng, thay thế 2 dòng cũ) ── */
+.project-topbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.project-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.project-topbar-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+}
+
+.project-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Stats badges trong topbar */
+.topbar-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+/* ── KANBAN WRAPPER trong main content ── */
+.kanban-wrapper {
+    flex: 1;
+    width: 100%;
+    padding: 16px 20px;
+    overflow-x: auto;
+}
+
+/* ── SIDEBAR DIVIDER ── */
+.sidebar-divider {
+    height: 1px;
+    background-color: #1e293b;
+    margin: 4px 0;
+    flex-shrink: 0;
+}
+
+/* ── MOBILE OVERLAY ── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+    .left-sidebar {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        height: calc(100vh - 56px);
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                    width 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .left-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    .left-sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    .main-content {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .project-topbar-title {
+        max-width: 160px;
+    }
+    .topbar-stat {
+        display: none;
+    }
+    .kanban-wrapper {
+        padding: 10px 12px;
+    }
+}
+
+/* ==========================================================================
+   GLOBAL PRINT UTILITIES (@media print)
+   ========================================================================== */
+@media print {
+
+    nav,
+    .navbar,
+    footer,
+    .footer,
+    .no-print,
+    .btn,
+    .breadcrumb,
+    .toast,
+    .modal,
+    #copyToast,
+    .navbar-toggler {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}

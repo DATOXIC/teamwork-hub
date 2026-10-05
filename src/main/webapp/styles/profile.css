@@ -1,0 +1,19 @@
+/* profile.css — Thẻ thống kê hồ sơ (profile.jsp).
+ * Tách từ main.css (giữ nguyên thứ tự nạp; xem danh sách trong includes/header.jsp). */
+/* ==========================================================================
+   Profile Productivity Stat Cards (profile.jsp)
+   ========================================================================== */
+.stat-card-modern {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px 16px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.stat-card-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+}

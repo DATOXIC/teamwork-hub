@@ -1,0 +1,467 @@
+/* landing.css — Trang chủ: hero, feature card, scrolltelling (index.jsp).
+ * Tách từ main.css (giữ nguyên thứ tự nạp; xem danh sách trong includes/header.jsp). */
+/* ==========================================================================
+   Hero & Feature Cards (index.jsp)
+   ========================================================================== */
+.text-gradient {
+    background: linear-gradient(135deg, #8AAEE0 0%, #B1C9EF 45%, #ffffff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.feature-card-modern {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px 24px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.feature-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+}
+
+/* ==========================================================================
+   Scrolltelling Homepage — Hero, Feature Blocks, CTA (Seamless Dark Tech SaaS)
+   ========================================================================== */
+
+/* Nền tối toàn trang liền mạch dành riêng cho Homepage (Không ảnh hưởng trang nội bộ) */
+body:has(.hero-scrolltelling) {
+    background-color: #0F1726 !important;
+}
+
+body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
+    background-color: rgba(15, 23, 38, 0.90) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border-bottom: 1px solid rgba(138, 174, 224, 0.12) !important;
+}
+
+/* ---------- Hero Badge Pill ---------- */
+.hero-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.2rem;
+    background: rgba(57, 88, 134, 0.25);
+    border: 1px solid rgba(138, 174, 224, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 9999px;
+    font-size: 0.845rem;
+    font-weight: 600;
+    color: #D5DEEF;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    margin-bottom: 1.5rem;
+    transition: all 0.25s ease;
+}
+
+.hero-badge-pill:hover {
+    background: rgba(57, 88, 134, 0.4);
+    border-color: rgba(177, 201, 239, 0.6);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.badge-pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #8AAEE0;
+    box-shadow: 0 0 10px #8AAEE0;
+    display: inline-block;
+}
+
+/* ---------- Hero Block (Deep Ocean Midnight & Ambient Sky Blue Glow, Full Viewport) ---------- */
+.hero-scrolltelling {
+    min-height: 92vh;
+    background-color: #0F1726;
+    background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 142, 203, 0.35), transparent 70%),
+        radial-gradient(circle 600px at 15% 30%, rgba(57, 88, 134, 0.30), transparent 60%),
+        radial-gradient(circle 500px at 85% 35%, rgba(138, 174, 224, 0.22), transparent 60%);
+    color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    padding: 5.5rem 1.5rem 0;
+    border: none !important;
+}
+
+.hero-scrolltelling h1 {
+    font-size: clamp(2.3rem, 5.5vw, 3.85rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.16;
+    margin-bottom: 1.25rem;
+    color: #ffffff;
+    text-shadow: 0 4px 25px rgba(0, 0, 0, 0.35);
+}
+
+.hero-scrolltelling .hero-subtitle {
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    color: #B1C9EF;
+    max-width: 660px;
+    margin: 0 auto 2.25rem;
+    line-height: 1.75;
+}
+
+/* CTA button (Hero & CTA Section) */
+.btn-hero-cta {
+    background: linear-gradient(135deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    padding: 0.92rem 2.4rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    letter-spacing: 0.01em;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 24px rgba(57, 88, 134, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.btn-hero-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(57, 88, 134, 0.75), 0 0 20px rgba(138, 174, 224, 0.45);
+    color: #ffffff;
+}
+
+/* Dashboard peek image — nhô lên từ dưới hero với hào quang phát sáng 3D */
+.hero-dashboard-peek {
+    position: relative;
+    width: 100%;
+    max-width: 1080px;
+    margin: 3.5rem auto 0;
+    display: flex;
+    justify-content: center;
+    padding: 0 1rem;
+}
+
+.hero-dashboard-peek::before {
+    content: "";
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    height: 150px;
+    background: radial-gradient(ellipse at center, rgba(99, 142, 203, 0.4), rgba(57, 88, 134, 0.25), transparent 70%);
+    filter: blur(40px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Ảnh screenshot tự nhiên ở Hero (Nổi bật trên nền tối) */
+.hero-dashboard-peek img,
+.hero-screenshot-natural {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 16px 16px 0 0;
+    border: 1px solid rgba(177, 201, 239, 0.2) !important;
+    border-bottom: none !important;
+    background-color: #151F30;
+    box-shadow: 
+        0 -15px 45px -10px rgba(0, 0, 0, 0.5),
+        0 20px 60px -15px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(99, 142, 203, 0.2);
+}
+
+/* Scroll-down hint */
+.hero-scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #94a3b8;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    animation: hero-bounce 2s infinite;
+}
+
+@keyframes hero-bounce {
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(6px);
+    }
+}
+
+/* ---------- Feature Blocks (Liền mạch, hoàn toàn KHÔNG có đường kẻ cắt khúc) ---------- */
+.feature-block {
+    padding: 7rem 1.5rem;
+    background-color: #0F1726;
+    position: relative;
+    border: none !important;
+}
+
+/* Khối xen kẽ dùng tông nền tối dịu với vệt sáng Ambient Glow nhẹ, không đường viền */
+.feature-block--alt {
+    background-color: #0C121E;
+    background-image: 
+        radial-gradient(ellipse 70% 45% at 50% 30%, rgba(99, 142, 203, 0.12), transparent 70%);
+    border: none !important;
+}
+
+/* Icon Container chuẩn SaaS hiện đại trong không gian tối — Dark Frosted Glass + Soft Glow */
+.feature-block .feature-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.feature-block .feature-icon-wrapper:hover {
+    transform: translateY(-3px) scale(1.08);
+}
+
+/* 1. Kanban Module: Deep Sky Blue */
+.feature-icon-wrapper--kanban {
+    border: 1px solid rgba(138, 174, 224, 0.4);
+    color: #8AAEE0;
+    box-shadow: 0 0 25px rgba(99, 142, 203, 0.28);
+}
+
+/* 2. Wiki Module: Vibrant Ocean Blue */
+.feature-icon-wrapper--wiki {
+    border: 1px solid rgba(99, 142, 203, 0.45);
+    color: #638ECB;
+    box-shadow: 0 0 25px rgba(57, 88, 134, 0.3);
+}
+
+/* 3. Chat Module: Soft Periwinkle Blue */
+.feature-icon-wrapper--chat {
+    border: 1px solid rgba(177, 201, 239, 0.45);
+    color: #B1C9EF;
+    box-shadow: 0 0 25px rgba(138, 174, 224, 0.25);
+}
+
+/* 4. Productivity Module: Crisp Amber / Ocean Light */
+.feature-icon-wrapper--stats {
+    border: 1px solid rgba(213, 222, 239, 0.45);
+    color: #D5DEEF;
+    box-shadow: 0 0 25px rgba(99, 142, 203, 0.25);
+}
+
+.feature-block .feature-title {
+    font-size: clamp(1.8rem, 4vw, 2.35rem);
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.95rem;
+    text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+}
+
+.feature-block .feature-desc {
+    font-size: 1.08rem;
+    color: #B1C9EF;
+    line-height: 1.8;
+    max-width: 680px;
+    margin-bottom: 3.25rem;
+}
+
+/* ---------- Screenshot Nổi 3D Tự Nhiên (Dark Tech Showcase) ---------- */
+.feature-screenshot img,
+.feature-screenshot-natural {
+    width: 100%;
+    max-width: 980px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border-radius: 18px;
+    border: 1px solid rgba(177, 201, 239, 0.16) !important;
+    background-color: #151F30;
+    box-shadow: 
+        0 20px 50px -10px rgba(0, 0, 0, 0.65),
+        0 0 35px rgba(99, 142, 203, 0.12);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+}
+
+.feature-screenshot-natural:hover {
+    transform: translateY(-5px);
+    border-color: rgba(138, 174, 224, 0.4) !important;
+    box-shadow: 
+        0 28px 65px -12px rgba(0, 0, 0, 0.75),
+        0 0 45px rgba(99, 142, 203, 0.25);
+}
+
+/* Khung placeholder khi chưa có ảnh */
+.feature-screenshot {
+    width: 100%;
+    max-width: 940px;
+    aspect-ratio: 16 / 9;
+    border-radius: 18px;
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    background-color: #0f172a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.feature-block--alt .feature-screenshot {
+    background-color: #0d121f;
+}
+
+.feature-screenshot:has(img) {
+    aspect-ratio: auto;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.feature-screenshot i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.6;
+}
+
+.feature-screenshot span {
+    opacity: 0.85;
+}
+
+/* ---------- Scroll Reveal Animation ---------- */
+.scroll-reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.scroll-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger delays */
+.scroll-reveal[data-delay="1"] {
+    transition-delay: 0.15s;
+}
+
+.scroll-reveal[data-delay="2"] {
+    transition-delay: 0.30s;
+}
+
+.scroll-reveal[data-delay="3"] {
+    transition-delay: 0.45s;
+}
+
+/* ---------- Smart Auto-Hide Navbar on Scroll (Homepage) ---------- */
+.navbar.sticky-top {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    will-change: transform;
+}
+
+.navbar.sticky-top.navbar-hidden {
+    transform: translateY(-100%);
+    box-shadow: none !important;
+}
+
+/* ---------- CTA Block (Deep Ocean Midnight Liền Mạch — Không Viền Cắt Ngang) ---------- */
+.cta-block {
+    background-color: #0C121E;
+    background-image: 
+        radial-gradient(ellipse 75% 65% at 50% 30%, rgba(99, 142, 203, 0.25), transparent 70%),
+        radial-gradient(circle 500px at 80% 50%, rgba(57, 88, 134, 0.20), transparent 60%);
+    border: none !important;
+    color: #ffffff;
+    padding: 7rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-block h2 {
+    font-size: clamp(1.85rem, 4vw, 2.7rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.15rem;
+    color: #ffffff;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.cta-block p {
+    color: #B1C9EF;
+    font-size: 1.12rem;
+    max-width: 580px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.75;
+}
+
+/* Footer đồng bộ tông tối riêng cho Homepage (Không đường viền thô) */
+.cta-block ~ footer.footer {
+    background-color: #0C121E !important;
+    border-top: 1px solid rgba(138, 174, 224, 0.1) !important;
+    color: #8AAEE0 !important;
+}
+
+.cta-block ~ footer.footer p,
+.cta-block ~ footer.footer a {
+    color: #8AAEE0 !important;
+}
+
+.cta-block ~ footer.footer a:hover {
+    color: #ffffff !important;
+}
+
+.cta-block ~ footer.footer .badge {
+    background-color: rgba(57, 88, 134, 0.25) !important;
+    color: #B1C9EF !important;
+    border-color: rgba(138, 174, 224, 0.2) !important;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+    .hero-scrolltelling {
+        min-height: 85vh;
+        padding: 4.5rem 1rem 1.5rem;
+    }
+
+    .hero-dashboard-peek {
+        margin: 2.25rem auto 0;
+    }
+
+    .feature-block {
+        padding: 3.5rem 1rem;
+    }
+
+    .feature-block .feature-title {
+        font-size: 1.45rem;
+    }
+
+    .feature-block .feature-desc {
+        font-size: 0.98rem;
+    }
+
+    .cta-block {
+        padding: 4.5rem 1rem;
+    }
+}

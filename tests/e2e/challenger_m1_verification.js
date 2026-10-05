@@ -43,12 +43,12 @@ console.log('===================================================================
 console.log('--- PART 1: Progress Bar Animation & CSS Cascade Stress-Testing ---');
 
 const pageComponentsCssPath = path.join(WEBAPP_DIR, 'styles/page-components.css');
-const mainCssPath = path.join(WEBAPP_DIR, 'styles/main.css');
+// (main.css đã được tách — xem includes/header.jsp)
 const appJsPath = path.join(WEBAPP_DIR, 'js/app.js');
 const profileJspPath = path.join(WEBAPP_DIR, 'profile.jsp');
 
 const pageComponentsCss = fs.readFileSync(pageComponentsCssPath, 'utf8');
-const mainCss = fs.readFileSync(mainCssPath, 'utf8');
+const mainCss = fs.readdirSync(path.join(WEBAPP_DIR, 'styles')).filter(f => f.endsWith('.css')).map(f => fs.readFileSync(path.join(WEBAPP_DIR, 'styles', f), 'utf8')).join(String.fromCharCode(10)); // main.css đã tách thành nhiều file
 const appJs = fs.readFileSync(appJsPath, 'utf8');
 const profileJsp = fs.readFileSync(profileJspPath, 'utf8');
 
