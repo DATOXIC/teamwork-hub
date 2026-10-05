@@ -13,7 +13,7 @@
          * username (String): Lưu lại giá trị tên đăng nhập / Preserved username input
          * regFullName, regUsername, regEmail (String): Dữ liệu form đăng ký khi lỗi
          * rememberChecked (Boolean): Trạng thái ghi nhớ đăng nhập / Remember checkbox state
-     - Cookie: teamwork_remember_user (Lưu username ghi nhớ trong 30 ngày)
+     - Cookie: teamwork_remember_user (token ký HMAC chứa username + hạn dùng 14 ngày, xem util/RememberMeToken)
      ========================================================================= --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
@@ -219,7 +219,7 @@
                         <div class="login-input-group">
                             <i class="bi bi-person input-icon"></i>
                             <input type="text" id="login-username" name="username"
-                                   value="${not empty username ? username : cookie.teamwork_remember_user.value}"
+                                   value="<c:out value='${username}'/>"
                                    placeholder="Nhập tên đăng nhập..."
                                    required autofocus>
                         </div>
@@ -241,7 +241,7 @@
                         <div class="login-options-row">
                             <label class="login-remember">
                                 <input type="checkbox" name="remember"
-                                       ${rememberChecked || not empty cookie.teamwork_remember_user.value ? 'checked' : ''}>
+                                       ${rememberChecked ? 'checked' : ''}>
                                 <span>Ghi nhớ đăng nhập</span>
                             </label>
                             <a href="${pageContext.request.contextPath}/auth?action=forgot" class="login-forgot-link">Quên mật khẩu?</a>

@@ -2,6 +2,7 @@ package com.teamwork.filters;
 
 import com.teamwork.business.User;
 import com.teamwork.data.UserDB;
+import com.teamwork.util.RememberMeToken;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -82,13 +83,18 @@ public class AuthFilter implements Filter {
         // Nếu Session chưa có hoặc vừa bị hết hạn (timeout), kiểm tra Cookie 'teamwork_remember_user'
         if (currentUser == null && httpRequest.getCookies() != null) {
             for (jakarta.servlet.http.Cookie c : httpRequest.getCookies()) {
-                if ("teamwork_remember_user".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
-                    String rememberedUsername = c.getValue().trim();
+                if (RememberMeToken.COOKIE_NAME.equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                    // Cookie là token có chữ ký (không còn là username thô): chỉ tin khi chữ ký + hạn dùng hợp lệ
+                    String rememberedUsername = RememberMeToken.peekUsername(c.getValue());
+                    if (rememberedUsername == null) {
+                        continue; // Cookie dạng cũ / bị giả mạo -> bỏ qua
+                    }
                     try {
                         User userFromDb = UserDB.selectByUsername(rememberedUsername);
-                        if (userFromDb != null) {
-                            // Tự động khôi phục session đăng nhập
+                        if (userFromDb != null && RememberMeToken.verify(c.getValue(), userFromDb)) {
+                            // Tự động khôi phục session đăng nhập (đổi mã session để tránh session fixation)
                             session = httpRequest.getSession(true);
+                            httpRequest.changeSessionId();
                             session.setAttribute("currentUser", userFromDb);
                             currentUser = userFromDb;
                             break;

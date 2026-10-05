@@ -2442,22 +2442,28 @@
                                                 </c:choose>
                                             </div>
                                             <c:choose>
-                                                <c:when test="${canStartTask}">
-                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
+                                                <c:when test="${canStartTask && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitPlanningRequest" → TaskWorkflowHandler.handleSubmitPlanningRequest() --%>
                                                     <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
-                                                        <input type="hidden" name="action" value="updateStatus">
+                                                        <input type="hidden" name="action" value="submitPlanningRequest">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
-                                                        <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                                        <textarea name="planningNote" class="form-control form-control-sm fs-9 mb-2" rows="2"
+                                                            placeholder="Thuyết minh kế hoạch phân rã cho trưởng dự án (tùy chọn)..."></textarea>
                                                         <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
                                                             style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
-                                                            <i class="bi bi-play-circle-fill fs-7"></i> Bắt đầu làm việc (→ Đang làm) ✨
+                                                            <i class="bi bi-send-check-fill fs-7"></i> Gửi duyệt kế hoạch (→ chờ trưởng dự án)
                                                         </button>
                                                     </form>
                                                 </c:when>
+                                                <c:when test="${canStartTask}">
+                                                    <div class="p-2.5 bg-light rounded-3 border fs-9 text-secondary">
+                                                        <i class="bi bi-info-circle text-primary me-1"></i> Chỉ trưởng nhóm công việc hoặc trưởng dự án mới gửi được kế hoạch để duyệt.
+                                                    </div>
+                                                </c:when>
                                                 <c:otherwise>
                                                     <button type="button" class="btn btn-light text-muted border border-secondary-subtle btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1 opacity-75" disabled>
-                                                        <i class="bi bi-lock-fill text-secondary"></i> Bắt đầu làm việc (→ Đang làm)
+                                                        <i class="bi bi-lock-fill text-secondary"></i> Gửi duyệt kế hoạch (→ chờ trưởng dự án)
                                                     </button>
                                                     <div class="p-2.5 bg-light rounded-3 border fs-9 text-secondary mt-1">
                                                         <div class="fw-bold text-dark mb-1 pb-1 border-bottom fs-9"><i class="bi bi-shield-lock text-primary me-1"></i> Ràng buộc:</div>
@@ -3516,10 +3522,10 @@
                                     <c:when test="${project.teamProject}">
                                         <div class="col-12 col-md-6">
                                             <label for="taskAssignee" class="form-label fw-semibold text-dark fs-7">Chỉ định
-                                                Trưởng nhóm công việc</label>
+                                                Trưởng nhóm công việc <span class="text-danger">*</span></label>
                                             <select class="form-select rounded-3 py-2 px-3 fs-7" id="taskAssignee"
-                                                name="assigneeId">
-                                                <option value="0">-- Chưa chỉ định --</option>
+                                                name="assigneeId" required>
+                                                <option value="" selected disabled>-- Chọn người phụ trách --</option>
                                                 <c:forEach items="${userList}" var="u">
                                                     <option value="${u.id}">${u.fullName} (${u.role})</option>
                                                 </c:forEach>
@@ -3679,12 +3685,12 @@
                                             <!-- Thanh tiến độ phân đoạn (Segmented Progress Bar) -->
                                             <div class="d-flex align-items-center gap-2 mb-2">
                                                 <div class="progress flex-grow-1" style="height: 7px; background-color: #f1f5f9; border-radius: 9999px; overflow: hidden;">
-                                                    <c:set var="pctDone" value="${uw.totalTasks > 0 ? (uw.doneCount * 100 / uw.totalTasks) : 0}" />
+                                                    <c:set var="pctDone" value="${uw.totalTasks > 0 ? (uw.doneTasks * 100 / uw.totalTasks) : 0}" />
                                                     <c:set var="pctSubmitted" value="${uw.totalTasks > 0 ? (uw.submittedCount * 100 / uw.totalTasks) : 0}" />
-                                                    <c:set var="pctInProg" value="${uw.totalTasks > 0 ? ((uw.inProgressCount - uw.submittedCount) * 100 / uw.totalTasks) : 0}" />
-                                                    <div class="progress-bar bg-success" style="width: ${pctDone}%;" title="Đã xong: ${uw.doneCount}"></div>
+                                                    <c:set var="pctInProg" value="${uw.totalTasks > 0 ? ((uw.inProgressTasks - uw.submittedCount) * 100 / uw.totalTasks) : 0}" />
+                                                    <div class="progress-bar bg-success" style="width: ${pctDone}%;" title="Đã xong: ${uw.doneTasks}"></div>
                                                     <div class="progress-bar" style="width: ${pctSubmitted}%; background-color: #8b5cf6;" title="Chờ trưởng dự án duyệt: ${uw.submittedCount}"></div>
-                                                    <div class="progress-bar bg-primary" style="width: ${pctInProg}%;" title="Đang làm: ${uw.inProgressCount - uw.submittedCount}"></div>
+                                                    <div class="progress-bar bg-primary" style="width: ${pctInProg}%;" title="Đang làm: ${uw.inProgressTasks - uw.submittedCount}"></div>
                                                 </div>
                                                 <span class="fs-9 fw-bold text-dark tabular-nums">${uw.memberProgressPercentage}%</span>
                                             </div>

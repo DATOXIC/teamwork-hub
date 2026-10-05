@@ -61,6 +61,11 @@ public final class SubTaskHandler {
 
     private SubTaskHandler() {}
 
+    /** Công việc còn ở giai đoạn lập kế hoạch (TODO hoặc đang chờ PM duyệt kế hoạch), chưa được khóa phạm vi. */
+    static boolean isBeforePlanLock(Task task) {
+        return task != null
+                && ("TODO".equalsIgnoreCase(task.getStatus()) || "PLANNING".equalsIgnoreCase(task.getStatus()));
+    }
 
     /**
      * Nghiệp vụ 5: Thêm Việc Con (Sub-task) mới và phân công cho thành viên (BẢO VỆ PHÂN QUYỀN TASK LEAD / PM)
@@ -211,6 +216,21 @@ public final class SubTaskHandler {
                 // Xác định chế độ TRƯỚC khi ghi — cờ này quyết định ô tick mang ý nghĩa gì.
                 boolean isGateEnforced = (project.isTeamProject() && parentTask.isRequiresGate());
 
+                // Cổng 1: công việc có duyệt chỉ được thực thi (tick / nộp nhiệm vụ) SAU khi PM đã khóa kế hoạch.
+                // Trước đó (TODO / PLANNING) việc tick sẽ lén chuyển công việc sang Đang làm, bỏ qua bước duyệt kế hoạch.
+                if (isGateEnforced && isCompleted && isBeforePlanLock(parentTask)) {
+                    String errMsg = "🛡️ Kế hoạch của công việc [" + parentTask.getTitle()
+                            + "] chưa được trưởng dự án duyệt. Hãy bấm 'Gửi duyệt kế hoạch' trong chi tiết công việc trước khi thực hiện nhiệm vụ.";
+                    if (isAjax) {
+                        sendJsonResponse(response, false, errMsg, null);
+                        return;
+                    }
+                    HttpSession gateSession = request.getSession(false);
+                    if (gateSession != null) gateSession.setAttribute("toastError", errMsg);
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+
                 // 1. Ghi trạng thái theo đúng chế độ của dự án:
                 //    - Quality Gate (nhóm) : tick = NỘP BÀI  -> "SUBMITTED", chờ Task Lead nghiệm thu.
                 //    - Fast-track / Solo   : tick = XONG HẲN -> "DONE", không ai phải duyệt.
@@ -246,10 +266,7 @@ public final class SubTaskHandler {
                 } else {
                     // Chế độ Quality Gate (Nhóm): việc con vừa chuyển sang SUBMITTED nên CHƯA tính vào tiến độ.
                     // Tiến độ chỉ tăng khi Task Lead duyệt (APPROVED) — xem handleApproveSubTask.
-                    // Vì vậy ở đây không dựa vào newProgress, chỉ ghi nhận "đã bắt đầu thực hiện".
-                    if (isCompleted && "TODO".equals(parentTask.getStatus())) {
-                        TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
-                    }
+                    // Trạng thái công việc cha KHÔNG đổi ở đây: chuyển sang Đang làm là việc của PM khi duyệt kế hoạch.
                 }
 
                 // 3. Ghi nhận lên Luồng Thảo Luận (nội dung khác nhau theo chế độ)
@@ -445,6 +462,14 @@ public final class SubTaskHandler {
             Project project = ProjectDB.selectById(projectId);
 
             if (parentTask != null && project != null && parentTask.getProjectId() == projectId) {
+                if (project.isTeamProject() && parentTask.isRequiresGate() && isBeforePlanLock(parentTask)) {
+                    if (session != null) {
+                        session.setAttribute("toastError", "🛡️ Kế hoạch của công việc [" + parentTask.getTitle()
+                                + "] chưa được trưởng dự án duyệt nên chưa thể nộp kết quả nhiệm vụ.");
+                    }
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
                 // KIỂM SOÁT THẨM QUYỀN NGHIỆM THU TẦNG 1:
                 // 1. Nếu việc con đã gán cho ai (assigneeId > 0): CHỈ chính thành viên đó mới được nộp kết quả.
                 // 2. Nếu việc con chưa gán cho ai (assigneeId == 0): Task Lead hoặc PM có thể nộp.
@@ -522,7 +547,17 @@ public final class SubTaskHandler {
                     // CƠ CHẾ DOMINO TỰ ĐỘNG CHUYỂN CỘT KANBAN:
                     // Chỉ auto-complete khi TẤT CẢ subtask đều APPROVED (không chỉ DONE)
                     boolean allApproved = SubTaskDB.areAllSubtasksApproved(st.getTaskId());
-                    if (allApproved && !"DONE".equals(parentTask.getStatus())) {
+                    boolean gateEnforced = project.isTeamProject() && parentTask.isRequiresGate();
+                    if (gateEnforced) {
+                        // Công việc có duyệt: Task Lead duyệt xong nhiệm vụ cuối KHÔNG được tự đóng công việc cha.
+                        // Task Lead phải "Bàn giao" và Trưởng Dự Án nghiệm thu (chấm sao) mới sang DONE.
+                        if (allApproved && "IN_PROGRESS".equals(parentTask.getStatus())) {
+                            String readyText = "✅ Tất cả nhiệm vụ của công việc [" + parentTask.getTitle()
+                                    + "] đã được duyệt (100%). Trưởng nhóm công việc có thể bấm 'Bàn Giao Cho Trưởng Dự Án' để nghiệm thu.";
+                            MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", readyText, now));
+                        }
+                    }
+                    else if (allApproved && !"DONE".equals(parentTask.getStatus())) {
                         TaskDB.updateStatus(parentTask.getId(), "DONE");
                         String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả nhiệm vụ đã được duyệt nghiệm thu ĐẠT (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));

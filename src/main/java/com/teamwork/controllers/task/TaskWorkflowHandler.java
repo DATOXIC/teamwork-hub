@@ -95,7 +95,13 @@ public final class TaskWorkflowHandler {
             // KIỂM SOÁT THẨM QUYỀN NGHIỆM THU TẦNG 2:
             // 1. Nếu Task lớn đã gán cho Task Lead cụ thể: CHỈ chính Task Lead đó mới được nộp bàn giao.
             // 2. Nếu Task lớn chưa gán cho ai: PM mới được nộp.
-            if (canReviewSubTask(currentUser, task, project)) {
+            boolean gateTask = project.isTeamProject() && task.isRequiresGate();
+            if (gateTask && ("TODO".equalsIgnoreCase(task.getStatus()) || "PLANNING".equalsIgnoreCase(task.getStatus())
+                    || "DONE".equalsIgnoreCase(task.getStatus()))) {
+                // Không được nộp bàn giao khi chưa qua Cổng 1 (duyệt kế hoạch) hoặc khi công việc đã đóng.
+                if (session != null) session.setAttribute("toastError",
+                        "Công việc [" + task.getTitle() + "] chưa ở giai đoạn thực hiện (cần được duyệt kế hoạch trước) nên chưa thể nộp bàn giao.");
+            } else if (canReviewSubTask(currentUser, task, project)) {
                 // RÀNG BUỘC CHẤT LƯỢNG: Task Lead chỉ được nộp bàn giao khi toàn bộ việc con đã hoàn tất 100%
                 List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                 int progress = SubTaskDB.calculateProgress(taskId);
@@ -192,7 +198,10 @@ public final class TaskWorkflowHandler {
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
             // KIỂM SOÁT THẨM QUYỀN: Task Lead của task hoặc PM
-            if (canReviewSubTask(currentUser, task, project)) {
+            if (!"TODO".equalsIgnoreCase(task.getStatus())) {
+                if (session != null) session.setAttribute("toastError",
+                        "Chỉ gửi duyệt kế hoạch được khi công việc đang ở trạng thái Cần làm (hiện tại: " + task.getStatus() + ").");
+            } else if (canReviewSubTask(currentUser, task, project)) {
                 // RÀNG BUỘC CHẤT LƯỢNG: Phải phân rã ít nhất 1 việc con mới được trình PM
                 List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                 if (subTasks == null || subTasks.isEmpty()) {
@@ -255,7 +264,9 @@ public final class TaskWorkflowHandler {
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
             // KIỂM SOÁT BẢO MẬT: Chỉ DUY NHẤT Trưởng Dự Án (PM) mới được duyệt kế hoạch Cổng 1
-            if (isProjectOwner(currentUser, project)) {
+            if (!"PLANNING".equalsIgnoreCase(task.getStatus())) {
+                if (session != null) session.setAttribute("toastError", "Công việc này không ở trạng thái chờ duyệt kế hoạch!");
+            } else if (isProjectOwner(currentUser, project)) {
                 List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
@@ -307,7 +318,9 @@ public final class TaskWorkflowHandler {
         HttpSession session = request.getSession(false);
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
-            if (isProjectOwner(currentUser, project)) {
+            if (!"PLANNING".equalsIgnoreCase(task.getStatus())) {
+                if (session != null) session.setAttribute("toastError", "Công việc này không ở trạng thái chờ duyệt kế hoạch!");
+            } else if (isProjectOwner(currentUser, project)) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 

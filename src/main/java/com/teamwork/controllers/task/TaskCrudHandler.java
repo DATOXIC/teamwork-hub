@@ -282,13 +282,17 @@ public final class TaskCrudHandler {
                 // =========================================================================
                 // RÀNG BUỘC GIAI ĐOẠN 1: CHUYỂN TỪ TODO SANG IN_PROGRESS (ĐANG LÀM)
                 // =========================================================================
-                if ("IN_PROGRESS".equalsIgnoreCase(status) && "TODO".equalsIgnoreCase(task.getStatus())) {
+                if ("IN_PROGRESS".equalsIgnoreCase(status)
+                        && ("TODO".equalsIgnoreCase(task.getStatus()) || "PLANNING".equalsIgnoreCase(task.getStatus()))) {
                     String taskTitle = task.getTitle();
 
-                    // Ràng buộc Quality Gate: Chặn kéo thả trực tiếp từ TODO sang IN_PROGRESS.
-                    // Bắt buộc phải nộp Kế hoạch WBS và được PM phê duyệt (Gate 1)
+                    // Ràng buộc Quality Gate: Chặn kéo thả trực tiếp từ TODO / PLANNING sang IN_PROGRESS.
+                    // Bắt buộc phải nộp Kế hoạch WBS và được PM phê duyệt (Gate 1): chỉ PM mới chuyển sang Đang làm
+                    // thông qua nút 'Phê Duyệt & Khóa' (handlePmApprovePlanning).
                     if (isGateEnforced) {
-                        String errMsg = "🛡️ [Cần duyệt kế hoạch] Công việc này bắt buộc kiểm duyệt! Vui lòng mở chi tiết công việc, phân rã nhiệm vụ và bấm 'Gửi duyệt kế hoạch' để trưởng dự án phê duyệt trước khi bắt đầu.";
+                        String errMsg = "PLANNING".equalsIgnoreCase(task.getStatus())
+                                ? "🛡️ [Đang chờ duyệt kế hoạch] Kế hoạch của công việc này đã gửi và đang chờ trưởng dự án phê duyệt. Công việc sẽ tự chuyển sang Đang làm khi được duyệt."
+                                : "🛡️ [Cần duyệt kế hoạch] Công việc này bắt buộc kiểm duyệt! Vui lòng mở chi tiết công việc, phân rã nhiệm vụ và bấm 'Gửi duyệt kế hoạch' để trưởng dự án phê duyệt trước khi bắt đầu.";
                         if (isAjax) {
                             sendJsonResponse(response, false, errMsg, null);
                             return;

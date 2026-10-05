@@ -6,6 +6,7 @@ import com.teamwork.util.LoginAttemptLimiter;
 import com.teamwork.util.MailUtil;
 import com.teamwork.util.OtpChallenge;
 import com.teamwork.util.PasswordUtil;
+import com.teamwork.util.RememberMeToken;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -126,10 +127,10 @@ public class AuthServlet extends HttpServlet {
                 // Đọc Cookie "Ghi nhớ đăng nhập" để điền sẵn username vào form
                 if (request.getAttribute("username") == null && request.getCookies() != null) {
                     for (jakarta.servlet.http.Cookie c : request.getCookies()) {
-                        if ("teamwork_remember_user".equals(c.getName())
-                                && c.getValue() != null
-                                && !c.getValue().trim().isEmpty()) {
-                            request.setAttribute("username", c.getValue().trim());
+                        String rememberedName = "teamwork_remember_user".equals(c.getName())
+                                ? RememberMeToken.peekUsername(c.getValue()) : null;
+                        if (rememberedName != null && !rememberedName.trim().isEmpty()) {
+                            request.setAttribute("username", rememberedName.trim());
                             // ▶ JSP: login.jsp đọc bằng ${rememberChecked}
                             request.setAttribute("rememberChecked", true);
                             break;
@@ -227,6 +228,8 @@ public class AuthServlet extends HttpServlet {
         boolean isRemember = "on".equalsIgnoreCase(remember)
                 || "true".equalsIgnoreCase(remember)
                 || "1".equals(remember);
+        // Giữ trạng thái ô "Ghi nhớ" khi phải hiển thị lại form đăng nhập do lỗi
+        request.setAttribute("rememberChecked", isRemember);
 
         // 1. Kiểm tra rỗng — Empty Validation
         if (username == null || username.trim().isEmpty()
@@ -264,16 +267,19 @@ public class AuthServlet extends HttpServlet {
 
             // Đăng nhập THÀNH CÔNG → Tạo Session, lưu đối tượng User
             HttpSession session = request.getSession();
+            request.changeSessionId(); // Đổi mã session sau khi đăng nhập (chống session fixation)
             // ▶ JSP: chat.jsp đọc bằng ${currentUser}
             session.setAttribute("currentUser", user);
 
             // 3. Xử lý Cookie "Ghi nhớ đăng nhập" (Remember Me — hạn 14 ngày)
+            // Cookie chứa token có chữ ký HMAC (không còn là username thô nên không thể tự đặt cookie để mạo danh)
             String cookiePath = request.getContextPath().isEmpty() ? "/" : request.getContextPath();
             jakarta.servlet.http.Cookie rememberCookie =
-                    new jakarta.servlet.http.Cookie("teamwork_remember_user", user.getUsername());
+                    new jakarta.servlet.http.Cookie(RememberMeToken.COOKIE_NAME,
+                            isRemember ? RememberMeToken.issue(user) : "");
             rememberCookie.setPath(cookiePath);
             rememberCookie.setHttpOnly(true);  // Bảo mật: chống XSS đọc Cookie
-            rememberCookie.setMaxAge(isRemember ? 14 * 24 * 60 * 60 : 0); // 14 ngày hoặc xóa ngay
+            rememberCookie.setMaxAge(isRemember ? RememberMeToken.MAX_AGE_SECONDS : 0); // 14 ngày hoặc xóa ngay
             response.addCookie(rememberCookie);
 
             // Điều hướng sang Dashboard danh sách dự án

@@ -70,12 +70,18 @@ public class UserWorkload implements Serializable {
         return this.leadTaskCount + this.subTaskCount;
     }
 
+    /**
+     * Số việc đang xử lý = task lớn đang làm / chờ duyệt + việc con chưa xong.
+     * Task đã DONE và task còn ở TODO không được tính.
+     */
     public int getInProgressTasks() {
-        return Math.max(0, (this.leadTaskCount + this.subTaskCount) - this.completedSubTaskCount);
+        int pendingSubTasks = Math.max(0, this.subTaskCount - this.completedSubTaskCount);
+        return this.inProgressCount + this.submittedCount + pendingSubTasks;
     }
 
+    /** Số việc đã xong = task lớn DONE + việc con đã hoàn thành. */
     public int getDoneTasks() {
-        return this.completedSubTaskCount;
+        return this.doneCount + this.completedSubTaskCount;
     }
 
     public int getOverdueTasks() {
@@ -93,7 +99,7 @@ public class UserWorkload implements Serializable {
     public int getCompletionRate() {
         int total = getTotalTasks();
         if (total <= 0) return 0;
-        int rate = (this.completedSubTaskCount * 100) / total;
+        int rate = (getDoneTasks() * 100) / total;
         return Math.min(100, Math.max(0, rate));
     }
 

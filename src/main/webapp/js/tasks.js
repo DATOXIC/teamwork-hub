@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function()
                 // hướng dẫn rồi vẫn bị chặn, chỉ khác thông báo.
                 if (oldStatus === 'TODO' && newStatus === 'IN_PROGRESS' && isGateEnforced) {
                     blockWithReason('Công việc này cần được duyệt kế hoạch nên không kéo thẳng sang Đang làm được. '
-                        + 'Mở chi tiết công việc để phân rã nhiệm vụ — công việc tự chuyển sang Đang làm khi nhiệm vụ đầu tiên được nộp.');
+                        + 'Mở chi tiết công việc, phân rã nhiệm vụ rồi bấm "Gửi duyệt kế hoạch"; công việc tự chuyển sang Đang làm khi trưởng dự án phê duyệt.');
                 }
                 else if (newStatus === 'DONE' && isGateEnforced) {
                     blockWithReason('Công việc này cần nghiệm thu. '
@@ -727,7 +727,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     e.preventDefault();
                     var titleInput = document.getElementById('taskTitle');
                     if (titleInput && titleInput.value.trim() !== '') {
-                        addTaskForm.submit();
+                        // requestSubmit() chạy kiểm tra "required" (vd. người phụ trách), submit() thì không
+                        if (addTaskForm.requestSubmit) addTaskForm.requestSubmit();
+                        else addTaskForm.submit();
                     } else if (titleInput) {
                         titleInput.focus();
                     }
