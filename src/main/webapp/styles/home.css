@@ -24,8 +24,11 @@
 }
 
 /* DARK MODE (DEEP OBSIDIAN / TỐI) */
-[data-theme="dark"],
-[data-bs-theme="dark"] {
+/* Chỉ khớp với thẻ <html> (nơi script FOUC/app.js đặt data-theme) — nếu để selector trần thì
+   nó sẽ khớp luôn với <nav data-bs-theme="dark"> (navbar.jsp hard-code riêng cho mọi trang khác),
+   khiến biến --home-* bị đổi sang tông tối ngay bên trong navbar dù trang đang ở light mode. */
+html[data-theme="dark"],
+html[data-bs-theme="dark"] {
     --home-bg: #070a13;
     --home-bg-card: rgba(15, 23, 42, 0.65);
     --home-bg-card-hover: rgba(22, 34, 60, 0.85);
@@ -977,6 +980,59 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) body:has(.homepage-she
 [data-bs-theme="light"] body:has(.homepage-shell) .navbar {
     background: rgba(255, 255, 255, 0.9) !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Navbar trên trang chủ đổi nền theo rule phía trên (trắng ở sáng, tối ở tối), nhưng chữ/icon
+   trong navbar.jsp vốn viết cứng tông trắng cho nền navy mặc định ở các trang khác — ở đây
+   dùng lại đúng bộ biến --home-* đã khai báo ở đầu file (mục 1) nên tự đổi màu theo theme,
+   không cần tách riêng selector sáng/tối như rule nền ở trên. */
+body:has(.homepage-shell) .navbar .text-white {
+    color: var(--home-text-title) !important;
+}
+
+body:has(.homepage-shell) .navbar .app-nav-link {
+    color: var(--home-text-body) !important;
+}
+
+body:has(.homepage-shell) .navbar .app-nav-link:hover {
+    background-color: var(--home-border) !important;
+    color: var(--home-text-title) !important;
+}
+
+body:has(.homepage-shell) .navbar .navbar-ctl,
+body:has(.homepage-shell) .navbar .navbar-cp-trigger,
+body:has(.homepage-shell) .navbar .navbar-bell-btn,
+body:has(.homepage-shell) .navbar .navbar-user-pill {
+    background-color: var(--home-border) !important;
+    border-color: var(--home-border) !important;
+    color: var(--home-text-title) !important;
+}
+
+body:has(.homepage-shell) .navbar .navbar-ctl:hover,
+body:has(.homepage-shell) .navbar .navbar-cp-trigger:hover,
+body:has(.homepage-shell) .navbar .navbar-bell-btn:hover,
+body:has(.homepage-shell) .navbar .navbar-user-pill:hover {
+    background-color: var(--home-bg-card-hover) !important;
+    border-color: var(--home-border-hover) !important;
+    color: var(--home-text-title) !important;
+}
+
+body:has(.homepage-shell) .navbar .navbar-cp-trigger .cp-kbd {
+    background: var(--home-border) !important;
+    border-color: var(--home-border-hover) !important;
+    color: var(--home-text-title) !important;
+}
+
+body:has(.homepage-shell) .navbar .navbar-toggler {
+    border-color: var(--home-border-hover) !important;
+}
+
+/* Icon hamburger menu (mobile) là SVG vẽ cứng trong CSS nên không gán được biến màu trực tiếp;
+   chỉ riêng rule này buộc phải tách sáng/tối bằng filter thay vì đổi màu SVG. */
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) body:has(.homepage-shell) .navbar .navbar-toggler-icon,
+[data-theme="light"] body:has(.homepage-shell) .navbar .navbar-toggler-icon,
+[data-bs-theme="light"] body:has(.homepage-shell) .navbar .navbar-toggler-icon {
+    filter: invert(1) brightness(0.75);
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .homepage-shell,
