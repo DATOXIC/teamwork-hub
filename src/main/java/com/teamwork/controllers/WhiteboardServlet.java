@@ -59,6 +59,16 @@ public class WhiteboardServlet extends HttpServlet {
             return;
         }
 
+        // GET /whiteboard?projectId=X&format=json → trả thẳng JSON bảng vẽ mới nhất để whiteboard.js
+        // gộp thay đổi của đồng đội (tránh việc người lưu sau ghi đè nét vẽ của người lưu trước)
+        if ("json".equalsIgnoreCase(request.getParameter("format"))) {
+            String latest = WhiteboardDB.selectContentByProjectId(projectId);
+            response.setContentType("application/json;charset=UTF-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.getWriter().write(latest.isEmpty() ? "{}" : latest);
+            return;
+        }
+
         // Escape '<' để JSON nhúng an toàn trong thẻ <script> (chống thoát khỏi script)
         String json = WhiteboardDB.selectContentByProjectId(projectId).replace("<", "\\u003c");
         // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}

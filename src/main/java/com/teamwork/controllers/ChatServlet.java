@@ -116,10 +116,38 @@ public class ChatServlet extends HttpServlet {
                 handleDeleteMessage(request, response, currentUser, projectId);
                 break;
 
+            case "poll":
+                handlePoll(response, projectId);
+                break;
+
             default:
                 handleShowChat(request, response, projectId);
                 break;
         }
+    }
+
+    /**
+     * Chữ ký (dấu vân tay) của danh sách tin nhắn đang hiển thị: đổi khi có tin mới, tin bị sửa hoặc bị xóa.
+     * Trình duyệt so sánh chữ ký này để biết có cần tải lại khung chat hay không.
+     */
+    private static String chatSignature(List<Message> messages) {
+        long h = 17;
+        for (Message m : messages) {
+            h = h * 31 + m.getId();
+            h = h * 31 + (m.getContent() == null ? 0 : m.getContent().hashCode());
+        }
+        return messages.size() + "-" + Long.toHexString(h);
+    }
+
+    /**
+     * Nghiệp vụ: Trình duyệt hỏi định kỳ "có thay đổi gì không?" (GET /chat?action=poll&projectId=X).
+     * Chỉ trả về chữ ký rất nhỏ dạng JSON, không dựng lại cả trang.
+     */
+    private void handlePoll(HttpServletResponse response, int projectId) throws IOException {
+        String sig = chatSignature(MessageDB.selectRecentByProjectId(projectId, 50));
+        response.setContentType("application/json;charset=UTF-8");
+        response.setHeader("Cache-Control", "no-store");
+        response.getWriter().write("{\"sig\":\"" + sig + "\"}");
     }
 
     // =========================================================================
@@ -223,6 +251,8 @@ public class ChatServlet extends HttpServlet {
         request.setAttribute("project", project);
         // ▶ JSP: chat.jsp đọc bằng ${messageList}
         request.setAttribute("messageList", messageList);
+        // ▶ JSP: chat.jsp đọc bằng ${chatSig} (chat.js so sánh với action=poll để tự làm mới khung chat)
+        request.setAttribute("chatSig", chatSignature(messageList));
         // ▶ JSP: chat.jsp, tasks.jsp đọc bằng ${docList}
         request.setAttribute("docList", docList);
         // ▶ JSP: chat.jsp đọc bằng ${taskList}

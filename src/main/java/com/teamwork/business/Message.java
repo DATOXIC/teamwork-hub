@@ -65,8 +65,8 @@ public class Message implements Serializable {
     public Message() {
         this.id = 0;
         this.projectId = 0;
-        this.taskId = 0;
-        this.authorId = 0;
+        this.taskId = null;   // null = chat chung (cột task_id có khóa ngoại, không được lưu số 0)
+        this.authorId = null; // null = tin hệ thống (cột author_id có khóa ngoại, không được lưu số 0)
         this.authorName = "Ẩn danh";
         this.content = "";
         this.sentAt = "";
@@ -82,8 +82,8 @@ public class Message implements Serializable {
                    String authorName, String content, String sentAt) {
         this.id = id;
         this.projectId = projectId;
-        this.taskId = taskId;
-        this.authorId = authorId;
+        this.taskId = taskId > 0 ? taskId : null;       // 0 -> NULL để không vi phạm khóa ngoại fk_messages_task
+        this.authorId = authorId > 0 ? authorId : null; // 0 (tin hệ thống) -> NULL để không vi phạm fk_messages_author
         this.authorName = authorName;
         this.content = content;
         this.sentAt = sentAt;
@@ -95,7 +95,7 @@ public class Message implements Serializable {
      * Kiểm tra xem tin nhắn này có phải là bình luận của một Task cụ thể hay không.
      */
     public boolean isTaskComment() {
-        return this.taskId > 0;
+        return getTaskId() > 0;
     }
 
     /**

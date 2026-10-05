@@ -588,6 +588,8 @@
 <script>
     var contextPath = "${pageContext.request.contextPath}";
     var currentProjectId = "${project.id}";
+    <%-- ◀ SERVLET: ChatServlet → setAttribute("chatSig") --%>
+    var chatSig = "${chatSig}";
 </script>
 
 <!-- 5. NẠP BỘ MÁY XỬ LÝ CHAT & RENDER MENTION (chat.js) VỚI CACHE-BUSTING -->

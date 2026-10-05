@@ -422,6 +422,64 @@ function renderAllTimestamps() {
 }
 
 // =========================================================================
+// HÀM 11: TỰ ĐỘNG LÀM MỚI KHUNG CHAT (POLLING NHẸ, KHÔNG CẦN F5)
+// Mỗi vài giây hỏi server chữ ký danh sách tin nhắn (action=poll). Chỉ khi chữ ký đổi
+// (có tin mới / tin bị sửa / bị xóa) mới tải lại khung tin nhắn, giữ nguyên ô đang soạn.
+// =========================================================================
+var CHAT_POLL_INTERVAL_MS = 4000;
+var chatPollBusy = false;
+
+function refreshChatFeed() {
+    var url = contextPath + "/chat?action=view&projectId=" + encodeURIComponent(currentProjectId);
+    return fetch(url, { credentials: "same-origin", headers: { "X-Requested-With": "XMLHttpRequest" } })
+        .then(function(res) { return res.text(); })
+        .then(function(html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            var freshFeed = doc.getElementById("chatMessageContainer");
+            var feed = document.getElementById("chatMessageContainer");
+            if (!freshFeed || !feed) return;
+
+            // Chỉ tự cuộn xuống đáy nếu người dùng đang đọc ở gần cuối (không giật khi đang xem tin cũ)
+            var nearBottom = (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 120;
+            feed.innerHTML = freshFeed.innerHTML;
+            renderAllMessages();
+            renderAllTimestamps();
+            if (nearBottom) scrollToBottom();
+
+            // Cập nhật chữ ký mới nhất và số tin nhắn trên đầu trang
+            var sigMatch = html.match(/var chatSig = "([^"]*)"/);
+            if (sigMatch) chatSig = sigMatch[1];
+            var freshBadge = doc.querySelector(".chat-pulse-badge span:last-child");
+            var badge = document.querySelector(".chat-pulse-badge span:last-child");
+            if (freshBadge && badge) badge.textContent = freshBadge.textContent;
+        });
+}
+
+function pollChat() {
+    if (chatPollBusy || document.hidden) return;
+    chatPollBusy = true;
+    fetch(contextPath + "/chat?action=poll&projectId=" + encodeURIComponent(currentProjectId),
+          { credentials: "same-origin", headers: { "Accept": "application/json" } })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data && data.sig && data.sig !== chatSig) {
+                return refreshChatFeed();
+            }
+        })
+        .catch(function() { /* mất mạng / hết phiên: bỏ qua, lần sau thử lại */ })
+        .then(function() { chatPollBusy = false; });
+}
+
+function initChatPolling() {
+    if (typeof chatSig === "undefined" || !document.getElementById("chatMessageContainer")) return;
+    setInterval(pollChat, CHAT_POLL_INTERVAL_MS);
+    // Quay lại tab sau một lúc thì kiểm tra ngay
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden) pollChat();
+    });
+}
+
+// =========================================================================
 // KHỞI CHẠY KHI TOÀN BỘ DOM HTML ĐÃ TẢI XONG
 // =========================================================================
 document.addEventListener("DOMContentLoaded", function() {
@@ -439,6 +497,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // 4. Tự động cuộn xuống dòng tin nhắn mới nhất
     scrollToBottom();
+
+    // 4b. Tự động nhận tin nhắn mới của đồng đội mà không cần F5
+    initChatPolling();
 
     // 5. Tự động đưa con trỏ chuột vào ô nhập tin nhắn
     var chatInput = document.getElementById("chatInput");
