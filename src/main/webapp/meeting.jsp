@@ -33,35 +33,11 @@
 
 <script src="https://meet.jit.si/external_api.js"></script>
 <script>
-(function () {
-    var room = '<c:out value="${roomName}" />';
-    var displayName = '<c:out value="${sessionScope.currentUser.fullName}" />';
-
-    if (typeof JitsiMeetExternalAPI === 'undefined') {
-        document.getElementById('meetRoot').innerHTML =
-            '<div class="text-white p-4">Không tải được Jitsi Meet. Kiểm tra kết nối internet rồi tải lại trang.</div>';
-        return;
-    }
-
-    new JitsiMeetExternalAPI('meet.jit.si', {
-        roomName: room,
-        parentNode: document.getElementById('meetRoot'),
-        width: '100%',
-        height: '100%',
-        lang: 'vi',
-        userInfo: { displayName: displayName },
-        configOverwrite: { prejoinPageEnabled: true, disableDeepLinking: true },
-        interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false }
-    });
-
-    document.getElementById('meetCopyBtn').addEventListener('click', function () {
-        var link = 'https://meet.jit.si/' + room;
-        var btn = this;
-        function done() { btn.innerHTML = '<i class="bi bi-check2 me-1"></i> Đã sao chép'; }
-        if (navigator.clipboard) navigator.clipboard.writeText(link).then(done);
-        else { window.prompt('Link mời:', link); }
-    });
-})();
+    window.MEET_CONFIG = {
+        room: '<c:out value="${roomName}" />',
+        displayName: '<c:out value="${sessionScope.currentUser.fullName}" />'
+    };
 </script>
+<script src="${pageContext.request.contextPath}/js/meeting.js"></script>
 
 <jsp:include page="/includes/footer.jsp" />

@@ -275,10 +275,17 @@ function testSemanticCssClasses(reporter, isStrict) {
  */
 function testJavaScriptHooks(reporter, pageName) {
     const filePath = path.join(config.WEBAPP_DIR, pageName);
-    const content = parser.readJspFile(filePath);
+    let content = parser.readJspFile(filePath);
     const hooks = config.JS_HOOKS[pageName];
 
     if (!hooks) return;
+
+    // JS có thể nằm trong file .js ngoài (js/*.js) được JSP nạp bằng <script src>: gộp vào để tìm hook.
+    const fs = require('fs');
+    for (const m of content.matchAll(/<script[^>]*\ssrc="[^"]*\/js\/([\w.-]+\.js)[^"]*"/g)) {
+        const jsPath = path.join(config.WEBAPP_DIR, 'js', m[1]);
+        if (fs.existsSync(jsPath)) content += '\n' + fs.readFileSync(jsPath, 'utf8');
+    }
 
     // Functions
     if (hooks.functions) {

@@ -86,7 +86,7 @@
             document.body.appendChild(container);
         }
 
-        // Mỗi biến thể có màu nền, màu chữ và biểu tượng riêng (xem .toast-* trong main.css).
+        // Mỗi biến thể có màu nền, màu chữ và biểu tượng riêng (xem .toast-* trong styles/components.css).
         // 'gate' dùng biểu tượng khiên trùng với badge "Gate" trên thẻ công việc.
         var variants = {
             success: { cls: 'toast-success', icon: 'bi-check-circle-fill' },
