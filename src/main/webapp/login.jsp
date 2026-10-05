@@ -23,6 +23,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Khởi tạo Theme tức thời để loại bỏ triệt để hiện tượng nhấp nháy giao diện (FOUC) -->
+    <script>
+        (function() {
+            var t = null;
+            try {
+                t = localStorage.getItem('teamwork_theme') || localStorage.getItem('teamwork_report_theme');
+            } catch (e) {}
+            if (!t) {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
     <title>Đăng nhập &bull; TeamWork Hub</title>
 
     <%-- Favicon --%>
@@ -68,15 +83,25 @@
             <span class="small login-campus-caption">
                 <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCM-UTE Campus
             </span>
-            <div class="dropdown ms-3">
-                <button class="btn btn-sm btn-outline-light rounded-pill px-2 py-1" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false" aria-label="Chọn ngôn ngữ">
-                    <i class="bi bi-translate"></i> <span id="languageCurrent">VI</span>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-light rounded-pill px-2 py-1" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false" aria-label="Chọn ngôn ngữ">
+                        <i class="bi bi-translate"></i> <span id="languageCurrent">VI</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><button type="button" class="dropdown-item language-option" data-language="vi">Tiếng Việt</button></li>
+                        <li><button type="button" class="dropdown-item language-option" data-language="en">English</button></li>
+                    </ul>
+                </div>
+                <!-- Global Theme Switcher -->
+                <button type="button" id="globalThemeToggleBtn" onclick="toggleGlobalTheme()"
+                        class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-none"
+                        title="Chuyển đổi giao diện Sáng / Tối" aria-label="Chuyển đổi giao diện Sáng / Tối">
+                    <i class="bi bi-moon-stars-fill" id="globalThemeIconMoon"></i>
+                    <i class="bi bi-sun-fill text-warning d-none" id="globalThemeIconSun"></i>
+                    <span id="globalThemeBtnText" class="fs-9">Tối</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><button type="button" class="dropdown-item language-option" data-language="vi">Tiếng Việt</button></li>
-                    <li><button type="button" class="dropdown-item language-option" data-language="en">English</button></li>
-                </ul>
             </div>
         </div>
     </nav>
@@ -395,8 +420,8 @@
         }
     </script>
 
-    <script src="${pageContext.request.contextPath}/js/app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/app.js"></script>
 
 </body>
 </html>

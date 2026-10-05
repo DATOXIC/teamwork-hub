@@ -517,3 +517,147 @@
         padding: 30px 16px;
     }
 }
+
+/* ==========================================================================
+   Dark Mode Engine for Authentication (login.jsp & forgot-password.jsp)
+   ========================================================================== */
+[data-theme="dark"] .login-body,
+[data-bs-theme="dark"] .login-body {
+    background-color: #070A13;
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .login-wrapper,
+[data-bs-theme="dark"] .login-wrapper {
+    background-color: #070A13;
+}
+
+[data-theme="dark"] .login-branding,
+[data-bs-theme="dark"] .login-branding {
+    background: linear-gradient(165deg, #0A0E1A 0%, #111827 50%, #1E2D42 100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .login-form-panel,
+[data-bs-theme="dark"] .login-form-panel,
+[data-theme="dark"] .login-card,
+[data-bs-theme="dark"] .login-card,
+[data-theme="dark"] .login-form-card,
+[data-bs-theme="dark"] .login-form-card {
+    background-color: #0E1322 !important;
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    color: #F1F5F9 !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .login-card-header h3,
+[data-bs-theme="dark"] .login-card-header h3,
+[data-theme="dark"] .login-form-header h2,
+[data-bs-theme="dark"] .login-form-header h2 {
+    color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .login-card-header p,
+[data-bs-theme="dark"] .login-card-header p,
+[data-theme="dark"] .login-form-header p,
+[data-bs-theme="dark"] .login-form-header p {
+    color: #94A3B8 !important;
+}
+
+[data-theme="dark"] .btn-login-exit,
+[data-bs-theme="dark"] .btn-login-exit {
+    color: #CBD5E1 !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .btn-login-exit:hover,
+[data-bs-theme="dark"] .btn-login-exit:hover {
+    background-color: #151D30 !important;
+    color: #FFFFFF !important;
+    border-color: rgba(99, 142, 203, 0.35) !important;
+}
+
+[data-theme="dark"] .login-tabs,
+[data-bs-theme="dark"] .login-tabs {
+    background: #151D30;
+    border-color: rgba(255, 255, 255, 0.09);
+}
+
+[data-theme="dark"] .login-tab-btn,
+[data-bs-theme="dark"] .login-tab-btn {
+    color: #94A3B8;
+}
+
+[data-theme="dark"] .login-tab-btn:hover,
+[data-bs-theme="dark"] .login-tab-btn:hover {
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .login-tab-btn.active,
+[data-bs-theme="dark"] .login-tab-btn.active {
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+}
+
+[data-theme="dark"] .login-label,
+[data-bs-theme="dark"] .login-label {
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .login-input-group input,
+[data-bs-theme="dark"] .login-input-group input {
+    background: #151D30;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .login-input-group input::placeholder,
+[data-bs-theme="dark"] .login-input-group input::placeholder {
+    color: #64748B;
+}
+
+[data-theme="dark"] .login-input-group input:focus,
+[data-bs-theme="dark"] .login-input-group input:focus {
+    border-color: #638ECB;
+    box-shadow: 0 0 0 3px rgba(99, 142, 203, 0.25);
+}
+
+[data-theme="dark"] .login-remember,
+[data-bs-theme="dark"] .login-remember {
+    color: #94A3B8;
+}
+
+[data-theme="dark"] .login-forgot-link,
+[data-bs-theme="dark"] .login-forgot-link {
+    color: #60A5FA;
+}
+
+[data-theme="dark"] .login-forgot-link:hover,
+[data-bs-theme="dark"] .login-forgot-link:hover {
+    color: #93C5FD;
+}
+
+[data-theme="dark"] .login-signup-link,
+[data-bs-theme="dark"] .login-signup-link {
+    color: #94A3B8;
+}
+
+[data-theme="dark"] .login-signup-link a,
+[data-bs-theme="dark"] .login-signup-link a {
+    color: #60A5FA;
+}
+
+[data-theme="dark"] .login-demo-badge,
+[data-bs-theme="dark"] .login-demo-badge {
+    background-color: #151D30;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #CBD5E1;
+}
+
+[data-theme="dark"] .login-footer-panel,
+[data-bs-theme="dark"] .login-footer-panel {
+    background-color: #0A0E1A;
+    border-top-color: rgba(255, 255, 255, 0.08);
+}

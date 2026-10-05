@@ -15,6 +15,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Khởi tạo Theme tức thời để loại bỏ triệt để hiện tượng nhấp nháy giao diện (FOUC) -->
+    <script>
+        (function() {
+            var t = null;
+            try {
+                t = localStorage.getItem('teamwork_theme') || localStorage.getItem('teamwork_report_theme');
+            } catch (e) {}
+            if (!t) {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
     <title>Quên mật khẩu &bull; TeamWork Hub</title>
     <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/images/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,6 +57,16 @@
             <span class="small login-campus-caption">
                 <i class="bi bi-mortarboard-fill text-warning me-1"></i> HCM-UTE Campus
             </span>
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <!-- Global Theme Switcher -->
+                <button type="button" id="globalThemeToggleBtn" onclick="toggleGlobalTheme()"
+                        class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-none"
+                        title="Chuyển đổi giao diện Sáng / Tối" aria-label="Chuyển đổi giao diện Sáng / Tối">
+                    <i class="bi bi-moon-stars-fill" id="globalThemeIconMoon"></i>
+                    <i class="bi bi-sun-fill text-warning d-none" id="globalThemeIconSun"></i>
+                    <span id="globalThemeBtnText" class="fs-9">Tối</span>
+                </button>
+            </div>
         </div>
     </nav>
 
@@ -195,7 +220,7 @@
         }
     </script>
 
-    <script src="${pageContext.request.contextPath}/js/app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="${pageContext.request.contextPath}/js/app.js"></script>
 </body>
 </html>

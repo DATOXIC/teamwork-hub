@@ -96,9 +96,8 @@
                         </c:if>
                     </button>
                     
-                    <div class="dropdown-menu dropdown-menu-end shadow-lg border border-secondary mt-2 rounded-4 p-0 overflow-hidden" 
-                         style="width: 360px; max-width: 90vw; background-color: #ffffff; color: #0f172a;" 
-                         data-bs-theme="light"
+                    <div class="dropdown-menu dropdown-menu-end shadow-lg border mt-2 rounded-4 p-0 overflow-hidden" 
+                         style="width: 360px; max-width: 90vw;" 
                          aria-labelledby="notificationDropdown">
                         
                         <!-- Header của Dropdown Thông Báo -->

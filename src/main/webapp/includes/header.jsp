@@ -6,6 +6,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Khởi tạo Theme tức thời để loại bỏ triệt để hiện tượng nhấp nháy giao diện (FOUC) -->
+    <script>
+        (function() {
+            var t = null;
+            try {
+                t = localStorage.getItem('teamwork_theme') || localStorage.getItem('teamwork_report_theme');
+            } catch (e) {}
+            if (!t) {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
     <%-- Tiêu đề động: mỗi trang JSP tự đặt biến pageTitle trước khi include header --%>
     <title>${not empty pageTitle ? pageTitle : 'TeamWork Hub — Nền Tảng Làm Việc Nhóm'}</title>
 

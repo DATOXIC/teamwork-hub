@@ -200,10 +200,38 @@
             }
         }
 
+        // Cập nhật nút Theme tại thanh công cụ của trang Tasks Kanban (nếu có)
+        var tasksText = document.getElementById('tasksThemeBtnText');
+        var tasksMoon = document.getElementById('tasksThemeIconMoon');
+        var tasksSun  = document.getElementById('tasksThemeIconSun');
+        if (tasksText) {
+            tasksText.textContent = (theme === 'dark') ? 'Sáng' : 'Tối';
+        }
+        if (tasksMoon && tasksSun) {
+            if (theme === 'dark') {
+                tasksMoon.classList.add('d-none');
+                tasksSun.classList.remove('d-none');
+            } else {
+                tasksSun.classList.add('d-none');
+                tasksMoon.classList.remove('d-none');
+            }
+        }
+
         // Cập nhật nút Theme tại thanh Subnav của trang Báo cáo (nếu có)
         var repText = document.getElementById('themeBtnText');
+        var repMoon = document.querySelector('.theme-icon-moon');
+        var repSun  = document.querySelector('.theme-icon-sun');
         if (repText) {
             repText.textContent = (theme === 'dark') ? 'Chế độ sáng' : 'Chế độ tối';
+        }
+        if (repMoon && repSun) {
+            if (theme === 'dark') {
+                repMoon.classList.add('d-none');
+                repSun.classList.remove('d-none');
+            } else {
+                repSun.classList.add('d-none');
+                repMoon.classList.remove('d-none');
+            }
         }
     }
 
@@ -212,6 +240,9 @@
         var next = (current === 'dark') ? 'light' : 'dark';
         applyGlobalTheme(next);
     }
+
+    window.toggleGlobalTheme = toggleGlobalTheme;
+    window.applyGlobalTheme = applyGlobalTheme;
 
     function initGlobalTheme() {
         var savedTheme = null;

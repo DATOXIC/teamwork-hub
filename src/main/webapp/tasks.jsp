@@ -370,6 +370,16 @@
                                     <i class="bi bi-file-earmark-excel-fill text-success fs-8"></i>
                                     <span class="fs-8">Xuất Excel</span>
                                 </a>
+
+                                <!-- Nút chuyển đổi Giao diện Sáng / Tối toàn hệ thống -->
+                                <button type="button" onclick="toggleGlobalTheme()"
+                                        class="btn btn-sm btn-light border text-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs"
+                                        title="Chuyển đổi giao diện Sáng / Tối (Light / Dark Mode)"
+                                        aria-label="Chuyển đổi giao diện Sáng / Tối">
+                                    <i class="bi bi-moon-stars-fill" id="tasksThemeIconMoon"></i>
+                                    <i class="bi bi-sun-fill text-warning d-none" id="tasksThemeIconSun"></i>
+                                    <span id="tasksThemeBtnText" class="fs-8 fw-medium">Tối</span>
+                                </button>
                             </div>
                         </div>
                     </div>

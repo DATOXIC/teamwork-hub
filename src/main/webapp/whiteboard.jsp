@@ -19,7 +19,8 @@
 </div>
 
 <style>
-    .wb-frame { height: calc(100vh - 230px); min-height: 480px; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; background: #fff; }
+    .wb-frame { height: calc(100vh - 230px); min-height: 480px; border: 1px solid var(--bs-border-color, #e5e7eb); border-radius: 16px; overflow: hidden; background: var(--bs-card-bg, #fff); }
+    [data-theme="dark"] .wb-frame, [data-bs-theme="dark"] .wb-frame { background: #0E1322 !important; border-color: rgba(255, 255, 255, 0.12) !important; }
 </style>
 
 <script type="application/json" id="wbData">${whiteboardJson}</script>
@@ -38,11 +39,14 @@
         if (raw) initial = JSON.parse(raw);
     } catch (err) { initial = null; }
 
-    var initialData = { elements: [], appState: { viewBackgroundColor: '#ffffff' }, scrollToContent: true };
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    var defaultBg = (currentTheme === 'dark') ? '#0E1322' : '#ffffff';
+
+    var initialData = { elements: [], appState: { viewBackgroundColor: defaultBg, theme: currentTheme }, scrollToContent: true };
     if (initial) {
         initialData.elements = initial.elements || [];
         initialData.files = initial.files || {};
-        initialData.appState = Object.assign({ viewBackgroundColor: '#ffffff' }, initial.appState || {});
+        initialData.appState = Object.assign({ viewBackgroundColor: defaultBg, theme: currentTheme }, initial.appState || {});
     }
 
     function setStatus(html) { statusEl.innerHTML = html; }
@@ -84,6 +88,7 @@
         React.createElement(ExcalidrawLib.Excalidraw, {
             initialData: initialData,
             langCode: 'vi-VN',
+            theme: currentTheme,
             onChange: scheduleSave
         })
     );

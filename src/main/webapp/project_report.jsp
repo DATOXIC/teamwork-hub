@@ -970,31 +970,25 @@ JAVASCRIPT TIỆN ÍCH: BỘ LỌC TƯƠNG TÁC + TÌM KIẾM + ĐỒNG BỘ KPI
     }
 
     // 2. Theme Management (Light / Dark Mode Switcher)
-    function initReportTheme() {
-        var savedTheme = localStorage.getItem('teamwork_report_theme');
-        if (!savedTheme) {
-            savedTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-        }
-        applyReportTheme(savedTheme);
-    }
-
     function toggleReportTheme() {
-        var current = document.documentElement.getAttribute('data-theme') || 'light';
-        var next = current === 'dark' ? 'light' : 'dark';
-        applyReportTheme(next);
-        try {
-            localStorage.setItem('teamwork_report_theme', next);
-        } catch (e) {
-            console.warn('localStorage error:', e);
+        if (typeof toggleGlobalTheme === 'function') {
+            toggleGlobalTheme();
+        } else {
+            var current = document.documentElement.getAttribute('data-theme') || 'light';
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            document.documentElement.setAttribute('data-bs-theme', next);
+            try {
+                localStorage.setItem('teamwork_theme', next);
+                localStorage.setItem('teamwork_report_theme', next);
+            } catch (e) {}
         }
     }
 
-    function applyReportTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        document.documentElement.setAttribute('data-bs-theme', theme);
-        var btnText = document.getElementById('themeBtnText');
-        if (btnText) {
-            btnText.innerText = theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối';
+    function initReportTheme() {
+        if (typeof applyGlobalTheme === 'function') {
+            var current = document.documentElement.getAttribute('data-theme') || 'light';
+            applyGlobalTheme(current);
         }
     }
 
