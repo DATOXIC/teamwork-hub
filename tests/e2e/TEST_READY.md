@@ -59,7 +59,7 @@ powershell -ExecutionPolicy Bypass -File tests/e2e/run_tests.ps1
 
 1. **Deterministic Opaque-Box Assertions**: Verifies every `<form action>` endpoint, HTTP method (`POST`/`GET`), and form control (`name`, `type`, `id`, `required`) without mocking or guessing.
 2. **Quote-Aware Parser**: Custom regex parser in `tests/e2e/utils/jsp_parser.js` safely handles EL expressions with embedded operators (`${progTotal > 0}`) and quote variations.
-3. **GEMINI.md Guardrail Compliance**:
+3. **docs/ai-notes/TEAM_GUARDRAILS.md Guardrail Compliance**:
    - Zero hardcoded developer drive paths.
    - Synchronous UTF-8 encoding across Windows console (`chcp 65001`) and files.
    - Self-contained execution without third-party npm packages.

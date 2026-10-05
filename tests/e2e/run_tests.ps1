@@ -29,7 +29,7 @@ param (
     [switch]$Json
 )
 
-# Synchronize UTF-8 console output per GEMINI.md guardrail
+# Synchronize UTF-8 console output per docs/ai-notes/TEAM_GUARDRAILS.md guardrail
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF-8
 $OutputEncoding = [System.Text.Encoding]::UTF-8
 

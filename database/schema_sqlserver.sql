@@ -611,3 +611,18 @@ UNION ALL SELECT 'task_docs',       COUNT(*) FROM task_docs
 UNION ALL SELECT 'messages',        COUNT(*) FROM messages
 UNION ALL SELECT 'notifications',   COUNT(*) FROM notifications;
 GO
+
+-- =============================================================================
+-- BẢNG VẼ (Whiteboard) — mỗi dự án một bảng vẽ (entity: Whiteboard.java)
+-- =============================================================================
+IF OBJECT_ID('whiteboards', 'U') IS NULL
+CREATE TABLE whiteboards (
+    id          INT IDENTITY(1,1) PRIMARY KEY,
+    project_id  INT           NOT NULL UNIQUE,
+    content     NVARCHAR(MAX) NOT NULL DEFAULT '',
+    updated_by  INT,
+    updated_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT fk_whiteboards_project
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+);
+GO

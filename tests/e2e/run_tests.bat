@@ -1,7 +1,7 @@
 @echo off
 rem ==============================================================================
 rem TeamWork Hub - E2E Test Suite Runner (Windows Batch Wrapper)
-rem Adheres strictly to GEMINI.md: UTF-8 encoding (chcp 65001) & zero hardcoded paths.
+rem Adheres strictly to docs/ai-notes/TEAM_GUARDRAILS.md: UTF-8 encoding (chcp 65001) & zero hardcoded paths.
 rem ==============================================================================
 chcp 65001 >nul
 

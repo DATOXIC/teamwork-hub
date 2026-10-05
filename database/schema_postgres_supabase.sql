@@ -775,3 +775,16 @@ WHERE recipient_id = 2 AND is_read = FALSE ORDER BY created_at DESC;
 SELECT id, author_name, content, sent_at FROM messages
 WHERE project_id = 1 AND task_id IS NULL ORDER BY sent_at DESC LIMIT 5;
 */
+
+-- =============================================================================
+-- BẢNG VẼ (Whiteboard) — mỗi dự án một bảng vẽ (entity: Whiteboard.java)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS whiteboards (
+    id          SERIAL      PRIMARY KEY,
+    project_id  INT         NOT NULL UNIQUE,
+    content     TEXT        NOT NULL DEFAULT '',
+    updated_by  INT,
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_whiteboards_project
+        FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
+);

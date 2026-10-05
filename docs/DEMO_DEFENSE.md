@@ -225,7 +225,7 @@ Nếu chạy được, trang sẽ in ra đúng chữ `com.teamwork.business.Proj
 
 `${p.progressPercentage}` **không phải cột trong database**:
 - [Project.java:51-55](../src/main/java/com/teamwork/business/Project.java): `totalTasks`, `doneTasks` đánh dấu `@Transient` → JPA **không** map xuống DB
-- [ProjectDB.java:63-81](../src/main/java/com/teamwork/data/ProjectDB.java): `populateTaskStats()` đếm bằng JPQL rồi set vào object
+- [ProjectDB.java:25-43](../src/main/java/com/teamwork/data/ProjectDB.java): `populateTaskStats()` đếm bằng JPQL rồi set vào object
 - [Project.java:97](../src/main/java/com/teamwork/business/Project.java): getter tự chia ra phần trăm
 
 > "Nên `${p.progressPercentage}` là một phép tính chạy trong tầng Business, JSP chỉ hiển thị kết quả."
@@ -429,7 +429,7 @@ if (currentUserCheck == null) {
 <summary><b>Q9. Em chống SQL Injection thế nào?</b></summary>
 
 Dự án dùng **JPA/Hibernate với JPQL + tham số có tên**, không nối chuỗi:
-[ProjectDB.java:132-135](../src/main/java/com/teamwork/data/ProjectDB.java)
+[ProjectDB.java:94-97](../src/main/java/com/teamwork/data/ProjectDB.java)
 ```java
 String jpql = "SELECT p FROM Project p WHERE UPPER(p.projectCode) = UPPER(:code)";
 em.createQuery(jpql, Project.class).setParameter("code", code.trim())
@@ -447,16 +447,14 @@ Thêm: validate bằng regex `PROJECT_CODE_PATTERN`
 <summary><b>Q10. Dự án dùng JDBC hay JPA? (dễ trả lời sai!)</b></summary>
 
 **JPA / Hibernate** — không phải JDBC thuần. Chỉ vào
-[ProjectDB.java:86-101](../src/main/java/com/teamwork/data/ProjectDB.java): `EntityManager`,
+[ProjectDB.java:48-63](../src/main/java/com/teamwork/data/ProjectDB.java): `EntityManager`,
 `em.createQuery`, `em.persist`, `em.merge`.
 
 Và `Project` là **Entity**:
 [Project.java:20-21](../src/main/java/com/teamwork/business/Project.java) `@Entity @Table(name = "projects")`.
 
-Nếu cô hỏi *"sao còn hàm `mapResultSetToProject` nhận `ResultSet`?"* →
-[ProjectDB.java:25](../src/main/java/com/teamwork/data/ProjectDB.java):
-> "Đó là hàm giữ tương thích ngược từ giai đoạn đầu dự án em còn dùng JDBC. Luồng chính hiện tại
-> đã chuyển hết sang JPA, hàm đó còn lại để không phá vỡ code cũ ạ."
+Nếu cô hỏi *"em có dùng JDBC thuần không?"* →
+> "Dạ không ạ. Toàn bộ truy vấn đi qua JPA/Hibernate (`EntityManager` + JPQL). Lúc đầu em có hàm ánh xạ `ResultSet` kiểu JDBC cũ, nhưng em đã xóa vì không còn nơi nào gọi tới."
 
 (Trung thực — và đúng như comment ở dòng 23 trong code.)
 </details>
@@ -600,7 +598,7 @@ Mở trang Workspace và so 4 con số này với trước khi sửa — phải 
 | Servlet nhận form tạo dự án | `ProjectServlet.java` | **73** → **92** → **194** |
 | Thuộc tính tính toán, không có trong DB | `Project.java` | **97** |
 | Chống truy cập trái phép | `ProjectServlet.java` | **44-49** |
-| Chống SQL Injection | `ProjectDB.java` | **132-135** |
+| Chống SQL Injection | `ProjectDB.java` | **94-97** |
 | POST-Redirect-GET | `ProjectServlet.java` | **262** |
 | KPI tính ở Controller (không còn scriptlet) | `ProjectServlet.java` | **142-157** |
 | Map tra theo khoá trong EL | `projects.jsp` **289** + `ProjectServlet.java` **159-164** | |

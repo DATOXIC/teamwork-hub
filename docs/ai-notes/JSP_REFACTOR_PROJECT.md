@@ -4,7 +4,7 @@
 - **Web Application Stack**: Jakarta Servlet 6.0, Jakarta EE 10, JSTL 3.0, Java 21, Maven WAR packaging (`teamwork-hub.war`).
 - **Webapp Root**: `src/main/webapp/`
 - **Layout Inclusions**:
-  - `src/main/webapp/includes/header.jsp` (includes Bootstrap 5.3.3, Google Fonts, `main.css`, `command-palette.css`, and dynamic `extraCss`).
+  - `src/main/webapp/includes/header.jsp` (includes Bootstrap 5.3.3, Google Fonts, `styles/*.css (tách từ main.css cũ)`, `command-palette.css`, and dynamic `extraCss`).
   - `src/main/webapp/includes/footer.jsp` (Bootstrap JS bundle, `app.js`, `command-palette.js`).
   - Standalone `<head>` in `src/main/webapp/login.jsp`.
 - **CSS Architecture**:
@@ -50,7 +50,7 @@
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M-TEST | E2E Testing Track | Test harness, Tiers 1-4 test cases, publish `TEST_READY.md` | none | DONE |
+| M-TEST | E2E Testing Track | Test harness, Tiers 1-4 test cases, publish `tests/e2e/TEST_READY.md` | none | DONE |
 | M1 | Authentication & Profile | FI-01, FI-02, FI-03 (`page-components.css`, `header.jsp`, `login.jsp`, `profile.jsp`) | none | DONE |
 | M2 | Project Management & Reporting | FI-04, FI-05 (`projects.jsp`, `project_report.jsp`) | M1 | IN_PROGRESS |
 | M3 | Task Board & Collaboration | FI-06, FI-07, FI-08 (`tasks.jsp`, `chat.jsp`, `docs.jsp`) | M1 | PLANNED |

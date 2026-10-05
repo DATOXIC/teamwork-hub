@@ -115,7 +115,7 @@ node tests/e2e/runner.js --json
 
 ---
 
-## 5. Compliance with Project Guardrails (GEMINI.md)
+## 5. Compliance with Project Guardrails (docs/ai-notes/TEAM_GUARDRAILS.md)
 
 1. **Zero Hardcoded Paths**: All file paths are dynamically resolved relative to `__dirname` and the repository root. No personal drive paths (`C:\Users\...`) appear anywhere in code or test scripts.
 2. **UTF-8 Synchronization**: All runners (`run_tests.bat`, `run_tests.ps1`) configure console code page to UTF-8 (`chcp 65001`) and pass `-Dfile.encoding=UTF-8` compatibility standards.
