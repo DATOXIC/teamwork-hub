@@ -61,14 +61,18 @@ public class WhiteboardServlet extends HttpServlet {
 
         // Escape '<' để JSON nhúng an toàn trong thẻ <script> (chống thoát khỏi script)
         String json = WhiteboardDB.selectContentByProjectId(projectId).replace("<", "\\u003c");
+        // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}
         request.setAttribute("project", project);
+        // ▶ JSP: whiteboard.jsp đọc bằng ${whiteboardJson}
         request.setAttribute("whiteboardJson", json);
+        // ▶ forward → whiteboard.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/whiteboard.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // ▶ JS: trả JSON cho fetch(saveUrl) trong js/whiteboard.js (lưu bảng vẽ; không forward JSP)
         response.setContentType("application/json;charset=UTF-8");
 
         HttpSession session = request.getSession(false);

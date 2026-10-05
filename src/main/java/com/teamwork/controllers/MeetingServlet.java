@@ -66,8 +66,11 @@ public class MeetingServlet extends HttpServlet {
             return;
         }
 
+        // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}
         request.setAttribute("project", project);
+        // ▶ JSP: meeting.jsp đọc bằng ${roomName}
         request.setAttribute("roomName", roomName(project));
+        // ▶ forward → meeting.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/meeting.jsp").forward(request, response);
     }
 }

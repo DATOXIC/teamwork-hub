@@ -42,11 +42,13 @@
                 aria-controls="chatSidebarOffcanvas"
                 aria-label="Xem thành viên và ID tra cứu">
             <i class="bi bi-people-fill" aria-hidden="true"></i>
+            <%-- ◀ SERVLET: ChatServlet → setAttribute("userList") --%>
             <span class="fs-8 fw-semibold">Thành viên (${userList.size()})</span>
         </button>
 
         <div class="ms-auto chat-pulse-badge rounded-pill px-3 py-1-5 fs-8 fw-semibold d-inline-flex align-items-center gap-2">
             <span class="pulse-indicator" aria-hidden="true"></span>
+            <%-- ◀ SERVLET: ChatServlet → setAttribute("messageList") --%>
             <span>${messageList.size()} tin nhắn</span>
         </div>
     </div>
@@ -127,6 +129,7 @@
                                 id="tabBtnDocs" 
                                 onclick="switchResourceTab('docs')"
                                 aria-label="Xem danh sách tài liệu">
+                            <%-- ◀ SERVLET: ChatServlet → setAttribute("docList") --%>
                             <i class="bi bi-journal-text" aria-hidden="true"></i> Tài liệu (${docList.size()})
                         </button>
                         <button type="button" 
@@ -134,6 +137,7 @@
                                 id="tabBtnTasks" 
                                 onclick="switchResourceTab('tasks')"
                                 aria-label="Xem danh sách công việc">
+                            <%-- ◀ SERVLET: ChatServlet → setAttribute("taskList") --%>
                             <i class="bi bi-check2-circle" aria-hidden="true"></i> Công việc (${taskList.size()})
                         </button>
                     </div>
@@ -248,6 +252,7 @@
                                                 aria-label="Chỉnh sửa tin nhắn">
                                             <i class="bi bi-pencil" aria-hidden="true"></i>
                                         </button>
+                                        <%-- ◀ SERVLET: ChatServlet → setAttribute("project") --%>
                                         <c:if test="${msg.authorId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
                                             <button type="button" 
                                                     class="chat-hover-btn chat-hover-btn-danger" 
@@ -393,6 +398,7 @@
                         </div>
 
                         <!-- Form nhập tin nhắn -->
+                        <%-- ▶ SERVLET: /chat → ChatServlet.doPost() → case "sendProjectMessage" → handleSendProjectMessage() --%>
                         <form method="post" action="${pageContext.request.contextPath}/chat" id="chatForm" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="action" value="sendProjectMessage">
                             <input type="hidden" name="projectId" value="${project.id}">
@@ -522,6 +528,7 @@
                 </h5>
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
+            <%-- ▶ SERVLET: /chat → ChatServlet.doPost() → case "editProjectMessage" → handleEditProjectMessage() --%>
             <form method="post" action="${pageContext.request.contextPath}/chat" id="editMessageForm">
                 <input type="hidden" name="action" value="editProjectMessage">
                 <input type="hidden" name="projectId" value="${project.id}">

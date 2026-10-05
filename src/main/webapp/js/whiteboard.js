@@ -37,6 +37,8 @@ function scheduleSave(elements, appState, files) {
         live.forEach(function (el) { if (el.fileId) usedIds[el.fileId] = true; });
         var keptFiles = {};
         Object.keys(files || {}).forEach(function (k) { if (usedIds[k]) keptFiles[k] = files[k]; });
+        // ▶ SERVLET: POST WB_CONFIG.saveUrl (= /whiteboard?projectId=…, khai báo trong whiteboard.jsp) → WhiteboardServlet.doPost()
+        //   body là JSON vẽ; Servlet lưu DB rồi trả JSON. Lần mở trang đầu thì dữ liệu đi theo ${whiteboardJson} (doGet → forward).
         fetch(saveUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

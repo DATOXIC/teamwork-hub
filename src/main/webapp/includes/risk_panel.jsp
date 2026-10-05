@@ -1,7 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
 <c:set var="riskCount" value="0" />
+<%-- ◀ SERVLET: TaskBoardHandler → setAttribute("todoTasks") --%>
+<%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskHealthMap") --%>
 <c:forEach items="${todoTasks}" var="t"><c:if test="${taskHealthMap[t.id].level == 'risk'}"><c:set var="riskCount" value="${riskCount + 1}" /></c:if></c:forEach>
+<%-- ◀ SERVLET: TaskBoardHandler → setAttribute("inProgressTasks") --%>
 <c:forEach items="${inProgressTasks}" var="t"><c:if test="${taskHealthMap[t.id].level == 'risk'}"><c:set var="riskCount" value="${riskCount + 1}" /></c:if></c:forEach>
 <c:if test="${riskCount > 0}">
     <div class="risk-panel" id="riskPanel">

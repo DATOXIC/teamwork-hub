@@ -112,10 +112,12 @@ public class AuthServlet extends HttpServlet {
                     String registeredUser = (String) session.getAttribute("registeredUsername");
 
                     if (successMsg != null) {
+                        // ▶ JSP: login.jsp đọc bằng ${successMessage}
                         request.setAttribute("successMessage", successMsg);
                         session.removeAttribute("successMessage"); // Xóa ngay sau khi dùng (Flash Pattern)
                     }
                     if (registeredUser != null) {
+                        // ▶ JSP: login.jsp đọc bằng ${username}
                         request.setAttribute("username", registeredUser);
                         session.removeAttribute("registeredUsername");
                     }
@@ -128,6 +130,7 @@ public class AuthServlet extends HttpServlet {
                                 && c.getValue() != null
                                 && !c.getValue().trim().isEmpty()) {
                             request.setAttribute("username", c.getValue().trim());
+                            // ▶ JSP: login.jsp đọc bằng ${rememberChecked}
                             request.setAttribute("rememberChecked", true);
                             break;
                         }
@@ -135,6 +138,7 @@ public class AuthServlet extends HttpServlet {
                 }
 
                 // Chuyển tiếp sang trang Đăng nhập (login.jsp)
+                // ▶ forward → login.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
                 break;
         }
@@ -182,6 +186,7 @@ public class AuthServlet extends HttpServlet {
                 processForgotReset(request, response);
                 break;
             default:
+                // ▶ forward → login.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
                 request.getRequestDispatcher("/login.jsp").forward(request, response);
                 break;
         }
@@ -226,8 +231,10 @@ public class AuthServlet extends HttpServlet {
         // 1. Kiểm tra rỗng — Empty Validation
         if (username == null || username.trim().isEmpty()
                 || password == null || password.trim().isEmpty()) {
+            // ▶ JSP: login.jsp đọc bằng ${errorMessage}
             request.setAttribute("errorMessage", "Vui lòng nhập đầy đủ Tên đăng nhập và Mật khẩu!");
             request.setAttribute("username", username); // Giữ lại username để không phải gõ lại
+            // ▶ forward → login.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
             request.getRequestDispatcher("/login.jsp").forward(request, response);
             return;
         }
@@ -242,6 +249,7 @@ public class AuthServlet extends HttpServlet {
             request.setAttribute("errorMessage", "Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau "
                     + ((lockedSeconds + 59) / 60) + " phút!");
             request.setAttribute("username", username);
+            // ▶ forward → login.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
             request.getRequestDispatcher("/login.jsp").forward(request, response);
             return;
         }
@@ -256,6 +264,7 @@ public class AuthServlet extends HttpServlet {
 
             // Đăng nhập THÀNH CÔNG → Tạo Session, lưu đối tượng User
             HttpSession session = request.getSession();
+            // ▶ JSP: chat.jsp đọc bằng ${currentUser}
             session.setAttribute("currentUser", user);
 
             // 3. Xử lý Cookie "Ghi nhớ đăng nhập" (Remember Me — hạn 14 ngày)
@@ -280,6 +289,7 @@ public class AuthServlet extends HttpServlet {
                             + (LoginAttemptLimiter.LOCK_MS / 60000) + " phút!"
                     : "Tên đăng nhập hoặc mật khẩu không chính xác!");
             request.setAttribute("username", username);
+            // ▶ forward → login.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
             request.getRequestDispatcher("/login.jsp").forward(request, response);
         }
     }
@@ -319,6 +329,7 @@ public class AuthServlet extends HttpServlet {
 
         // 1. Server-side Validation — kiểm tra từng trường theo thứ tự
         if (username == null || username.trim().length() < 4 || !username.trim().matches(USERNAME_PATTERN)) {
+            // ▶ JSP: login.jsp đọc bằng ${regError}
             request.setAttribute("regError", "Tên đăng nhập từ 4-20 ký tự (chỉ gồm chữ, số và dấu _, không có khoảng trắng)!");
             forwardRegisterForm(request, response, username, fullName, email);
             return;
@@ -375,6 +386,7 @@ public class AuthServlet extends HttpServlet {
 
         // 4. Đăng ký thành công → Flash Message → Redirect về Login, mở sẵn tab Đăng nhập
         HttpSession session = request.getSession();
+        // ▶ JSP: login.jsp đọc bằng ${successMessage}
         session.setAttribute("successMessage", "Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay.");
         session.setAttribute("registeredUsername", username.trim());
         response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
@@ -444,6 +456,7 @@ public class AuthServlet extends HttpServlet {
     {
         String username = request.getParameter("username");
         if (username == null || username.trim().isEmpty()) {
+            // ▶ JSP: forgot-password.jsp đọc bằng ${forgotError}
             request.setAttribute("forgotError", "Vui lòng nhập tên đăng nhập!");
             forwardForgot(request, response, 1);
             return;
@@ -457,6 +470,7 @@ public class AuthServlet extends HttpServlet {
         OtpChallenge existing = (OtpChallenge) session.getAttribute(SESSION_OTP);
         String existingUser = (String) session.getAttribute(SESSION_OTP_USER);
         if (existing != null && username.equalsIgnoreCase(existingUser) && !existing.canResend(now)) {
+            // ▶ JSP: forgot-password.jsp đọc bằng ${forgotUsername}
             request.setAttribute("forgotUsername", username);
             request.setAttribute("forgotError",
                     "Vui lòng đợi " + existing.resendWaitSeconds(now) + " giây trước khi gửi lại mã.");
@@ -485,6 +499,7 @@ public class AuthServlet extends HttpServlet {
         session.setAttribute(SESSION_OTP_USER, username);
 
         request.setAttribute("forgotUsername", username);
+        // ▶ JSP: forgot-password.jsp đọc bằng ${forgotInfo}
         request.setAttribute("forgotInfo",
                 "Nếu tài khoản tồn tại, mã OTP gồm 6 số đã được gửi tới email đăng ký. Mã có hiệu lực 3 phút.");
         forwardForgot(request, response, 2);
@@ -588,7 +603,9 @@ public class AuthServlet extends HttpServlet {
     private void forwardForgot(HttpServletRequest request, HttpServletResponse response, int step)
             throws ServletException, IOException
     {
+        // ▶ JSP: forgot-password.jsp đọc bằng ${forgotStep}
         request.setAttribute("forgotStep", step);
+        // ▶ forward → forgot-password.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
     }
 
@@ -617,10 +634,15 @@ public class AuthServlet extends HttpServlet {
                                      String username, String fullName, String email)
             throws ServletException, IOException
     {
+        // ▶ JSP: login.jsp đọc bằng ${regUsername}
         request.setAttribute("regUsername", username);
+        // ▶ JSP: login.jsp đọc bằng ${regFullName}
         request.setAttribute("regFullName", fullName);
+        // ▶ JSP: login.jsp đọc bằng ${regEmail}
         request.setAttribute("regEmail", email);
+        // ▶ JSP: login.jsp đọc bằng ${activeTab}
         request.setAttribute("activeTab", "register"); // Mở sẵn tab Đăng ký trong login.jsp
+        // ▶ forward → login.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/login.jsp").forward(request, response);
     }
 }

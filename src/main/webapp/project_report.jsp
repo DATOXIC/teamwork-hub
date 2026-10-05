@@ -21,6 +21,7 @@
      - Export / Print Targets: window.print() (A4 Portrait), /task?action=exportCsv
      ========================================================================= --%>
 
+<%-- ◀ SERVLET: ProjectServlet → setAttribute("project") --%>
 <c:set var="pageTitle" value="Báo Cáo Tiến Độ Dự Án — ${project.name}" scope="request" />
 <c:set var="extraCss" value="styles/report.css" scope="request" />
 
@@ -90,8 +91,10 @@
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 position-relative report-banner-content">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("healthBadgeClass") --%>
                     <span class="badge ${healthBadgeClass} rounded-pill px-3 py-1-5 fs-9 shadow-xs d-flex align-items-center gap-2">
                         <c:choose>
+                            <%-- ◀ SERVLET: ProjectServlet → setAttribute("projectHealth") --%>
                             <c:when test="${projectHealth == 'HEALTHY'}">
                                 <span class="pulse-dot pulse-dot-healthy"></span>
                             </c:when>
@@ -102,6 +105,7 @@
                                 <span class="pulse-dot pulse-dot-critical"></span>
                             </c:otherwise>
                         </c:choose>
+                        <%-- ◀ SERVLET: ProjectServlet → setAttribute("healthLabel") --%>
                         <span class="fw-semibold">${healthLabel}</span>
                     </span>
                     <span class="badge rounded-pill px-2-5 py-1 fs-9 report-banner-meta-badge">
@@ -117,12 +121,14 @@
                 </p>
                 <div class="d-flex align-items-center gap-2 text-white-50 fs-9">
                     <i class="bi bi-info-circle report-health-info-icon"></i>
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("healthDescription") --%>
                     <span class="report-health-desc-text">${healthDescription}</span>
                 </div>
             </div>
 
             <!-- Metadata Khung Phải -->
             <div class="text-md-end text-white-50 fs-8">
+                <%-- ◀ SERVLET: ProjectServlet → setAttribute("generatedAt") --%>
                 <div><strong>Thời điểm xuất báo cáo:</strong> <span class="text-white">${generatedAt}</span></div>
                 <div class="mt-1"><strong>Người xuất báo cáo:</strong> <span class="text-white">${sessionScope.currentUser.fullName} (${sessionScope.currentUser.role})</span></div>
             </div>
@@ -134,6 +140,7 @@
     ========================================================================= -->
     <div class="mb-4 avoid-break">
         <c:choose>
+            <%-- ◀ SERVLET: ProjectServlet → setAttribute("blockerCount") --%>
             <c:when test="${blockerCount > 0}">
                 <div class="blocker-spotlight-card shadow-sm">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -152,6 +159,7 @@
                         </div>
                     </div>
                     <div class="row g-2">
+                        <%-- ◀ SERVLET: ProjectServlet → setAttribute("criticalBlockers") --%>
                         <c:forEach items="${criticalBlockers}" var="b" end="3">
                             <div class="col-12 col-md-6 col-lg-3">
                                 <div class="blocker-item h-100 d-flex flex-column justify-content-between">
@@ -220,8 +228,10 @@
                     <span class="report-card-title">Tổng Công Việc</span>
                     <i class="bi bi-list-task fs-5 report-kpi-icon-primary"></i>
                 </div>
+                <%-- ◀ SERVLET: ProjectServlet → setAttribute("totalTasks") --%>
                 <div class="report-stat-number">${totalTasks}</div>
                 <div class="fs-9 text-muted mt-1">
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("memberCount") --%>
                     <i class="bi bi-people-fill me-1"></i> ${memberCount} thành viên
                 </div>
             </div>
@@ -236,8 +246,10 @@
                     <span class="report-card-title text-success">Đã Hoàn Thành</span>
                     <i class="bi bi-check-circle-fill text-success fs-5"></i>
                 </div>
+                <%-- ◀ SERVLET: ProjectServlet → setAttribute("doneCount") --%>
                 <div class="report-stat-number text-success">${doneCount}</div>
                 <div class="fs-9 text-success fw-bold mt-1">
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("progressPercentage") --%>
                     Tỷ lệ hoàn thành: ${progressPercentage}%
                 </div>
             </div>
@@ -252,6 +264,7 @@
                     <span class="report-card-title report-card-title-in-progress">Đang Làm</span>
                     <i class="bi bi-arrow-repeat fs-5 report-kpi-icon-accent"></i>
                 </div>
+                <%-- ◀ SERVLET: ProjectServlet → setAttribute("inProgressCount") --%>
                 <div class="report-stat-number report-stat-number-in-progress">${inProgressCount}</div>
                 <div class="fs-9 text-muted mt-1">
                     Kế hoạch đã khóa
@@ -268,6 +281,8 @@
                     <span class="report-card-title text-warning-emphasis">Chờ Trưởng Dự Án Duyệt</span>
                     <i class="bi bi-hourglass-split text-warning fs-5"></i>
                 </div>
+                <%-- ◀ SERVLET: ProjectServlet → setAttribute("submittedCount") --%>
+                <%-- ◀ SERVLET: ProjectServlet → setAttribute("planningCount") --%>
                 <div class="report-stat-number text-warning-emphasis">${submittedCount + planningCount}</div>
                 <div class="fs-9 text-muted mt-1">
                     ${planningCount} duyệt kế hoạch &bull; ${submittedCount} nghiệm thu
@@ -277,6 +292,7 @@
 
         <!-- Card 5: Quá hạn -->
         <div class="col-12 col-md-6 col-xl">
+            <%-- ◀ SERVLET: ProjectServlet → setAttribute("overdueCount") --%>
             <div class="report-stat-card h-100 ${overdueCount > 0 ? 'border-danger' : ''}"
                 id="kpiCardOverdue" role="button" tabindex="0"
                 onclick="handleKpiCardClick('OVERDUE')" onkeydown="if(event.key==='Enter'||event.key===' ')handleKpiCardClick('OVERDUE')"
@@ -325,11 +341,14 @@
 
                 <!-- Chi tiết trạng thái -->
                 <div class="d-flex flex-wrap gap-2 pt-2 border-top report-status-badge-container">
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("todoCount") --%>
                     <span class="badge border fs-9 report-status-count-chip"><i class="bi bi-circle-fill text-secondary me-1"></i> Cần làm: ${todoCount}</span>
                     <span class="badge border fs-9 report-status-count-chip"><i class="bi bi-circle-fill me-1 report-dot-planning"></i> Chờ duyệt KH: ${planningCount}</span>
                     <span class="badge border fs-9 report-status-count-chip"><i class="bi bi-circle-fill me-1 report-dot-in-progress"></i> Đang làm: ${inProgressCount}</span>
                     <span class="badge border fs-9 report-status-count-chip"><i class="bi bi-circle-fill text-warning me-1"></i> Chờ nghiệm thu: ${submittedCount}</span>
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("reviseCount") --%>
                     <span class="badge border fs-9 report-status-count-chip"><i class="bi bi-circle-fill me-1 report-dot-revise"></i> Cần cân chỉnh: ${reviseCount}</span>
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("rejectedCount") --%>
                     <span class="badge border fs-9 report-status-count-chip"><i class="bi bi-circle-fill text-danger me-1"></i> Chưa đạt: ${rejectedCount}</span>
                     <span class="badge border fs-9 report-status-count-chip"><i class="bi bi-circle-fill text-success me-1"></i> Đã nghiệm thu: ${doneCount}</span>
                 </div>
@@ -349,6 +368,7 @@
                     <div>
                         <div class="d-flex justify-content-between align-items-center fs-8 mb-1">
                             <span class="fw-semibold text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i> Ưu tiên Cao</span>
+                            <%-- ◀ SERVLET: ProjectServlet → setAttribute("highPriorityCount") --%>
                             <span class="fw-bold">${highPriorityCount} việc</span>
                         </div>
                         <div class="progress progress-mini" role="progressbar"
@@ -365,6 +385,7 @@
                     <div>
                         <div class="d-flex justify-content-between align-items-center fs-8 mb-1">
                             <span class="fw-semibold text-warning-emphasis"><i class="bi bi-dash-circle-fill me-1"></i> Ưu tiên Trung bình</span>
+                            <%-- ◀ SERVLET: ProjectServlet → setAttribute("mediumPriorityCount") --%>
                             <span class="fw-bold">${mediumPriorityCount} việc</span>
                         </div>
                         <div class="progress progress-mini" role="progressbar"
@@ -381,6 +402,7 @@
                     <div>
                         <div class="d-flex justify-content-between align-items-center fs-8 mb-1">
                             <span class="fw-semibold text-info-emphasis"><i class="bi bi-arrow-down-circle-fill me-1"></i> Ưu tiên Thấp</span>
+                            <%-- ◀ SERVLET: ProjectServlet → setAttribute("lowPriorityCount") --%>
                             <span class="fw-bold">${lowPriorityCount} việc</span>
                         </div>
                         <div class="progress progress-mini" role="progressbar"
@@ -429,6 +451,7 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("memberStats") --%>
                     <c:forEach items="${memberStats}" var="stat" varStatus="loop">
                         <tr>
                             <td class="text-muted text-center">${loop.index + 1}</td>
@@ -529,6 +552,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge border rounded-pill px-3 py-2 fs-8 report-count-summary-badge" id="tasksVisibleCount">
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("tasks") --%>
                     Hiển thị: ${tasks.size()} / ${tasks.size()} công việc
                 </span>
             </div>
@@ -740,11 +764,13 @@
             <div class="bg-white p-4 rounded-3 shadow-sm border h-100 report-card-surface">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2 report-section-header-title">
+                        <%-- ◀ SERVLET: ProjectServlet → setAttribute("docCount") --%>
                         <i class="bi bi-journal-text report-section-icon"></i> Tài Liệu Kỹ Thuật & Wiki (${docCount})
                     </h6>
                     <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" class="no-print fs-9 text-decoration-none fw-semibold report-view-all-link">Xem tất cả &rarr;</a>
                 </div>
                 <c:choose>
+                    <%-- ◀ SERVLET: ProjectServlet → setAttribute("docs") --%>
                     <c:when test="${not empty docs}">
                         <ul class="list-group list-group-flush fs-8">
                             <c:forEach items="${docs}" var="d" end="4">
@@ -783,6 +809,7 @@
                 <div class="p-3 rounded-3 mb-3 report-chat-metrics-box">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="fs-8 text-muted">Tổng số tin nhắn trao đổi:</span>
+                        <%-- ◀ SERVLET: ProjectServlet → setAttribute("messageCount") --%>
                         <span class="fw-bold fs-7 text-dark">${messageCount} lượt</span>
                     </div>
                     <div class="d-flex align-items-center justify-content-between">
@@ -821,6 +848,7 @@
                 <div class="text-muted fs-9 mb-1">(Ký và ghi rõ họ tên)</div>
                 <div class="signature-line"></div>
                 <c:set var="projectOwnerName" value="" />
+                <%-- ◀ SERVLET: ProjectServlet → setAttribute("members") --%>
                 <c:forEach items="${members}" var="m">
                     <c:if test="${m.projectRole == 'OWNER'}">
                         <c:set var="projectOwnerName" value="${m.userName}" />

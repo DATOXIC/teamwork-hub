@@ -23,6 +23,7 @@
     [data-theme="dark"] .wb-frame, [data-bs-theme="dark"] .wb-frame { background: #0E1322 !important; border-color: rgba(255, 255, 255, 0.12) !important; }
 </style>
 
+<%-- ◀ SERVLET: WhiteboardServlet → setAttribute("whiteboardJson") --%>
 <script type="application/json" id="wbData">${whiteboardJson}</script>
 
 <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
@@ -30,6 +31,7 @@
 <script>window.EXCALIDRAW_ASSET_PATH = "https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/";</script>
 <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js"></script>
 <script>
+    <%-- ◀ SERVLET: WhiteboardServlet → setAttribute("project") --%>
     window.WB_CONFIG = { saveUrl: '${pageContext.request.contextPath}/whiteboard?projectId=${project.id}' };
 </script>
 <script src="${pageContext.request.contextPath}/js/whiteboard.js"></script>

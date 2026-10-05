@@ -98,6 +98,7 @@ public class ProfileServlet extends HttpServlet {
         // 2. Tìm thông tin User theo ID
         User profileUser = UserDB.selectById(targetUserId);
         if (profileUser == null) {
+            // ▶ JSP: docs.jsp đọc bằng ${toastError}
             session.setAttribute("toastError", "Không tìm thấy hồ sơ người dùng này!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -147,25 +148,36 @@ public class ProfileServlet extends HttpServlet {
         // 6. Xử lý Flash Message (Toast)
         String toastSuccess = (String) session.getAttribute("toastSuccess");
         if (toastSuccess != null) {
+            // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
             request.setAttribute("toastSuccess", toastSuccess);
             session.removeAttribute("toastSuccess");
         }
         String toastError = (String) session.getAttribute("toastError");
         if (toastError != null) {
+            // ▶ JSP: docs.jsp đọc bằng ${toastError}
             request.setAttribute("toastError", toastError);
             session.removeAttribute("toastError");
         }
 
         // 7. Đóng gói dữ liệu gửi sang profile.jsp
+        // ▶ JSP: profile.jsp đọc bằng ${profileUser}
         request.setAttribute("profileUser", profileUser);
+        // ▶ JSP: profile.jsp, tasks.jsp đọc bằng ${userProjects}
         request.setAttribute("userProjects", userProjects);
+        // ▶ JSP: profile.jsp đọc bằng ${leadTaskCount}
         request.setAttribute("leadTaskCount", leadTaskCount);
+        // ▶ JSP: profile.jsp đọc bằng ${totalSubTasks}
         request.setAttribute("totalSubTasks", totalSubTasks);
+        // ▶ JSP: profile.jsp đọc bằng ${completedSubTasks}
         request.setAttribute("completedSubTasks", completedSubTasks);
+        // ▶ JSP: profile.jsp đọc bằng ${completionRate}
         request.setAttribute("completionRate", completionRate);
+        // ▶ JSP: profile.jsp đọc bằng ${availableProjectsToInvite}
         request.setAttribute("availableProjectsToInvite", availableProjectsToInvite);
+        // ▶ JSP: profile.jsp, tasks.jsp đọc bằng ${isOwner}
         request.setAttribute("isOwner", (currentUser.getId() == profileUser.getId()));
 
+        // ▶ forward → profile.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/profile.jsp").forward(request, response);
     }
 
@@ -243,7 +255,9 @@ public class ProfileServlet extends HttpServlet {
         SubTaskDB.syncAssigneeName(currentUser.getId(), currentUser.getFullName());
 
         // 3. Cập nhật lại session
+        // ▶ JSP: chat.jsp đọc bằng ${currentUser}
         session.setAttribute("currentUser", currentUser);
+        // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
         session.setAttribute("toastSuccess", "Đã cập nhật thông tin hồ sơ cá nhân thành công!");
 
         response.sendRedirect(request.getContextPath() + "/profile?userId=" + targetUserId);

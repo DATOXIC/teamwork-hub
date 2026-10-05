@@ -37,6 +37,7 @@
             <!-- Left Side Navigation (Khi đã đăng nhập) -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 ${not empty sessionScope.currentUser ? '' : 'd-none'}">
                 <li class="nav-item">
+                    <%-- ◀ SERVLET: ChatServlet, DocServlet, ProjectServlet … → setAttribute("activeNav") --%>
                     <a class="nav-link app-nav-link d-flex align-items-center gap-2 ${activeNav == 'dashboard' ? 'active' : ''}"
                        href="${pageContext.request.contextPath}/project?action=list">
                         <i class="bi bi-kanban"></i> Không gian làm việc
@@ -89,6 +90,7 @@
                             type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" 
                             title="Trung tâm thông báo">
                         <i class="bi bi-bell-fill fs-6 text-warning"></i>
+                        <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("unreadNotifCount") --%>
                         <c:if test="${unreadNotifCount > 0}">
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light fs-9 px-1 py-0 shadow" style="font-size: 0.65rem;">
                                 ${unreadNotifCount > 9 ? '9+' : unreadNotifCount}

@@ -172,6 +172,7 @@ public class TaskServlet extends HttpServlet {
         }
 
         if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+            // ▶ JSP: docs.jsp đọc bằng ${toastError}
             session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;

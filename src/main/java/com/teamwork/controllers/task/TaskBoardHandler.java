@@ -186,6 +186,7 @@ public final class TaskBoardHandler {
         for (Task t : allProjectTasks) {
             taskHealthMap.put(t.getId(), com.teamwork.util.TaskHealth.of(t, taskProgressMap.get(t.getId())));
         }
+        // ▶ JSP: risk_panel.jsp, tasks.jsp, health_badge.jsp đọc bằng ${taskHealthMap}
         request.setAttribute("taskHealthMap", taskHealthMap);
 
         // 8.5. Tính toán khối lượng công việc của từng thành viên (UserWorkload DTO) cho Dải Avatar B.3
@@ -215,12 +216,14 @@ public final class TaskBoardHandler {
             String toastSuccess = (String) session.getAttribute("toastSuccess");
             if (toastSuccess != null) 
             {
+                // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                 request.setAttribute("toastSuccess", toastSuccess);
                 session.removeAttribute("toastSuccess");
             }
             String toastError = (String) session.getAttribute("toastError");
             if (toastError != null) 
             {
+                // ▶ JSP: docs.jsp đọc bằng ${toastError}
                 request.setAttribute("toastError", toastError);
                 session.removeAttribute("toastError");
             }
@@ -283,36 +286,63 @@ public final class TaskBoardHandler {
         }
 
         // 9. Đóng gói dữ liệu gửi sang tasks.jsp
+        // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}
         request.setAttribute("project", project);
+        // ▶ JSP: tasks.jsp, risk_panel.jsp đọc bằng ${todoTasks}
         request.setAttribute("todoTasks", todoTasks);
+        // ▶ JSP: tasks.jsp, risk_panel.jsp đọc bằng ${inProgressTasks}
         request.setAttribute("inProgressTasks", inProgressTasks);
+        // ▶ JSP: tasks.jsp đọc bằng ${doneTasks}
         request.setAttribute("doneTasks", doneTasks);
+        // ▶ JSP: tasks.jsp đọc bằng ${allProjectTasks}
         request.setAttribute("allProjectTasks", allProjectTasks);
+        // ▶ JSP: tasks.jsp đọc bằng ${projectLabels}
         request.setAttribute("projectLabels", projectLabels);
+        // ▶ JSP: chat.jsp, tasks.jsp đọc bằng ${userList}
         request.setAttribute("userList", userList);
+        // ▶ JSP: chat.jsp, tasks.jsp đọc bằng ${docList}
         request.setAttribute("docList", docList);
+        // ▶ JSP: tasks.jsp đọc bằng ${taskDocsMap}
         request.setAttribute("taskDocsMap", taskDocsMap);
+        // ▶ JSP: tasks.jsp đọc bằng ${taskCommentsMap}
         request.setAttribute("taskCommentsMap", taskCommentsMap);
+        // ▶ JSP: tasks.jsp đọc bằng ${taskSubTasksMap}
         request.setAttribute("taskSubTasksMap", taskSubTasksMap);
+        // ▶ JSP: tasks.jsp đọc bằng ${taskProgressMap}
         request.setAttribute("taskProgressMap", taskProgressMap);
+        // ▶ JSP: tasks.jsp đọc bằng ${userWorkloadList}
         request.setAttribute("userWorkloadList", userWorkloadList);
+        // ▶ JSP: project_report.jsp, tasks.jsp đọc bằng ${submittedCount}
         request.setAttribute("submittedCount", submittedCount);
+        // ▶ JSP: tasks.jsp đọc bằng ${projectMemberList}
         request.setAttribute("projectMemberList", projectMemberList);
+        // ▶ JSP: tasks.jsp đọc bằng ${projectInviteList}
         request.setAttribute("projectInviteList", projectInviteList);
+        // ▶ JSP: tasks.jsp, project_report.jsp đọc bằng ${memberCount}
         request.setAttribute("memberCount", memberCount);
+        // ▶ JSP: tasks.jsp đọc bằng ${inviteCandidates}
         request.setAttribute("inviteCandidates", inviteCandidates);
+        // ▶ JSP: profile.jsp, tasks.jsp đọc bằng ${userProjects}
         request.setAttribute("userProjects", userProjects);
+        // ▶ JSP: navbar.jsp, tasks.jsp đọc bằng ${unreadNotifCount}
         request.setAttribute("unreadNotifCount", unreadNotifCount);
+        // ▶ JSP: tasks.jsp đọc bằng ${userNotifications}
         request.setAttribute("userNotifications", userNotifications);
         request.setAttribute("projectChatMessages", projectChatMessages);
         List<ActivityLog> activityLogs = ActivityLogDB.selectByProjectId(projectId, 60);
+        // ▶ JSP: tasks.jsp đọc bằng ${activityLogs}
         request.setAttribute("activityLogs", activityLogs);
+        // ▶ JSP: tasks.jsp đọc bằng ${currentView}
         request.setAttribute("currentView", currentView);
+        // ▶ JSP: tasks.jsp đọc bằng ${taskView}
         request.setAttribute("taskView", taskView);
+        // ▶ JSP: tasks.jsp đọc bằng ${subtaskMode}
         request.setAttribute("subtaskMode", subtaskMode);
+        // ▶ JSP: navbar.jsp đọc bằng ${activeNav}
         request.setAttribute("activeNav", "projects");
 
         // 10. Forward sang giao diện tasks.jsp
+        // ▶ forward → tasks.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/tasks.jsp").forward(request, response);
     }
 
@@ -334,6 +364,7 @@ public final class TaskBoardHandler {
                 if ("DONE".equalsIgnoreCase(task.getStatus())) {
                     HttpSession session = request.getSession(false);
                     if (session != null) {
+                        // ▶ JSP: docs.jsp đọc bằng ${toastError}
                         session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành và được khóa vĩnh viễn, không thể xóa!");
                     }
                     response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);

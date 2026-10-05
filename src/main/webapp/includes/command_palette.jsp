@@ -37,6 +37,7 @@
         <div class="cp-body" id="commandPaletteBody">
 
             <!-- Phân nhóm 1: NGỮ CẢNH DỰ ÁN HIỆN TẠI (Nếu đang ở trong 1 dự án) -->
+            <%-- ◀ SERVLET: ChatServlet, DocServlet, MeetingServlet … → setAttribute("project") --%>
             <c:if test="${not empty project}">
                 <div class="cp-group" data-group="project-context">
                     <div class="cp-group-title">Phân Hệ: ${project.name} (#${project.projectCode})</div>

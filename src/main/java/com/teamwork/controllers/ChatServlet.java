@@ -93,6 +93,7 @@ public class ChatServlet extends HttpServlet {
         // 3. Kiểm tra quyền thành viên trong dự án
         if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
             if (session != null) {
+                // ▶ JSP: docs.jsp đọc bằng ${toastError}
                 session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
             }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -218,14 +219,21 @@ public class ChatServlet extends HttpServlet {
         }
 
         // 6. Đóng gói toàn bộ vào Request Scope
+        // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}
         request.setAttribute("project", project);
+        // ▶ JSP: chat.jsp đọc bằng ${messageList}
         request.setAttribute("messageList", messageList);
+        // ▶ JSP: chat.jsp, tasks.jsp đọc bằng ${docList}
         request.setAttribute("docList", docList);
+        // ▶ JSP: chat.jsp đọc bằng ${taskList}
         request.setAttribute("taskList", taskList);
+        // ▶ JSP: chat.jsp, tasks.jsp đọc bằng ${userList}
         request.setAttribute("userList", userList);
+        // ▶ JSP: navbar.jsp đọc bằng ${activeNav}
         request.setAttribute("activeNav", "chat"); // Bật sáng menu Thảo luận
 
         // 7. Chuyển giao sang giao diện chat.jsp để hiển thị
+        // ▶ forward → chat.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/chat.jsp").forward(request, response);
     }
 
@@ -373,6 +381,7 @@ public class ChatServlet extends HttpServlet {
             if (isAuthor || isProjectOwner) {
                 MessageDB.delete(messageId);
                 if (session != null) {
+                    // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                     session.setAttribute("toastSuccess", "Đã xóa tin nhắn thành công.");
                 }
             } else {

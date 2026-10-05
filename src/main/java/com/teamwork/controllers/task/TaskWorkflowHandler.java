@@ -101,6 +101,7 @@ public final class TaskWorkflowHandler {
                 int progress = SubTaskDB.calculateProgress(taskId);
                 if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
                     if (session != null) {
+                        // ▶ JSP: docs.jsp đọc bằng ${toastError}
                         session.setAttribute("toastError", 
                             "⚠️ Không thể nộp bàn giao công việc [" + task.getTitle() + "] cho trưởng dự án khi danh sách nhiệm vụ chưa đạt 100% (Tiến độ hiện tại: " + progress + "%). Hãy hoàn thành các nhiệm vụ trước!");
                     }

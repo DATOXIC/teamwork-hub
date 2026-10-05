@@ -71,7 +71,9 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Dự án của bạn</div>
+                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("myProjects") --%>
                                 <h4 class="fw-bold mb-0 workspace-kpi-value">${myProjects.size()}</h4>
+                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("kpiPmCount") --%>
                                 <span class="fs-9 workspace-kpi-desc">(${kpiPmCount} làm Trưởng nhóm)</span>
                             </div>
                         </div>
@@ -85,6 +87,7 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Khám phá</div>
+                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("otherProjects") --%>
                                 <h4 class="fw-bold mb-0 workspace-kpi-value">${otherProjects.size()}</h4>
                                 <span class="fs-9 workspace-kpi-desc">Dự án đang mở</span>
                             </div>
@@ -99,6 +102,8 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Tiến độ chung</div>
+                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("kpiDoneTasks") --%>
+                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("kpiTotalTasks") --%>
                                 <h4 class="fw-bold mb-0 workspace-kpi-value">${kpiDoneTasks}/${kpiTotalTasks}</h4>
                                 <span class="fs-9 text-success fw-medium">Đã giải quyết</span>
                             </div>
@@ -113,6 +118,7 @@
                             </div>
                             <div>
                                 <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Hộp thư lời mời</div>
+                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("pendingInvites") --%>
                                 <h4 class="fw-bold mb-0 workspace-kpi-value">${not empty pendingInvites ? pendingInvites.size() : 0}</h4>
                                 <span class="fs-9 workspace-kpi-warning">Chờ bạn xử lý</span>
                             </div>
@@ -177,6 +183,7 @@
 
                                         <!-- Nút bấm Duyệt / Từ chối -->
                                         <div class="d-flex align-items-center gap-2 pt-2 border-top invite-card-actions">
+                                            <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "accept" → handleAccept() --%>
                                             <form method="post" action="${pageContext.request.contextPath}/invite"
                                                 class="m-0 flex-grow-1">
                                                 <input type="hidden" name="action" value="accept">
@@ -186,6 +193,7 @@
                                                     <i class="bi bi-check-circle-fill me-1"></i> Đồng ý gia nhập
                                                 </button>
                                             </form>
+                                            <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "reject" → handleReject() --%>
                                             <form method="post" action="${pageContext.request.contextPath}/invite"
                                                 class="m-0 flex-grow-1"
                                                 onsubmit="return confirm('Bạn có chắc chắn muốn từ chối yêu cầu này?');">
@@ -299,6 +307,7 @@
                                     <div class="d-flex align-items-center justify-content-between text-muted fs-8 pt-1">
                                         <span class="d-flex align-items-center gap-1">
                                             <i class="bi bi-people-fill text-accent-soft"></i>
+                                            <%-- ◀ SERVLET: ProjectServlet → setAttribute("memberCountMap") --%>
                                             <strong>${memberCountMap[p.id]}/10</strong> thành viên
                                         </span>
                                         <span class="badge ${p.projectTypeBadgeClass} rounded-pill px-2-5 py-1 fs-9 fw-medium"
@@ -443,6 +452,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                         </div>
 
+                        <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "requestJoin" → handleRequestJoin() --%>
                         <form action="${pageContext.request.contextPath}/invite" method="post">
                             <input type="hidden" name="action" value="requestJoin">
 
@@ -498,6 +508,7 @@
                         </div>
 
                         <!-- FORM SUBMIT POST VỀ PROJECTSERVLET -->
+                        <%-- ▶ SERVLET: /project → ProjectServlet.doPost() → case "create" → createProject() --%>
                         <form action="${pageContext.request.contextPath}/project" method="post">
                             <input type="hidden" name="action" value="create">
 

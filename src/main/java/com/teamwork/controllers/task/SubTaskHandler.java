@@ -114,6 +114,7 @@ public final class SubTaskHandler {
             // Khóa lại khi Task đã nộp nghiệm thu (SUBMITTED, REVISE, REJECTED, DONE)
             if (!"TODO".equalsIgnoreCase(parentTask.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(parentTask.getStatus())) {
                 if (session != null) {
+                    // ▶ JSP: docs.jsp đọc bằng ${toastError}
                     session.setAttribute("toastError", 
                         "⚠️ Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm nhiệm vụ mới!");
                 }
@@ -413,6 +414,7 @@ public final class SubTaskHandler {
         SubTaskDB.update(subTask);
 
         if (session != null) {
+            // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
             session.setAttribute("toastSuccess", "Đã cập nhật thông tin nhiệm vụ [" + subTask.getTitle() + "] thành công!");
         }
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);

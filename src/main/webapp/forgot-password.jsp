@@ -8,6 +8,7 @@
      ========================================================================= --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%-- ◀ SERVLET: AuthServlet → setAttribute("forgotStep") --%>
 <c:set var="step" value="${empty forgotStep ? 1 : forgotStep}" />
 <!DOCTYPE html>
 <html lang="vi">
@@ -85,11 +86,13 @@
                     </p>
                 </div>
 
+                <%-- ◀ SERVLET: AuthServlet → setAttribute("forgotInfo") --%>
                 <c:if test="${not empty forgotInfo}">
                     <div class="login-success-banner">
                         <p><i class="bi bi-check-circle-fill"></i> <c:out value="${forgotInfo}" /></p>
                     </div>
                 </c:if>
+                <%-- ◀ SERVLET: AuthServlet → setAttribute("forgotError") --%>
                 <c:if test="${not empty forgotError}">
                     <div class="login-error-banner">
                         <p><i class="bi bi-exclamation-triangle-fill"></i> <c:out value="${forgotError}" /></p>
@@ -98,6 +101,7 @@
 
                 <%-- ═══════ BƯỚC 1: NHẬP USERNAME ═══════ --%>
                 <c:if test="${step == 1}">
+                    <%-- ▶ SERVLET: /auth → AuthServlet.doPost() → case "forgotRequest" → processForgotRequest() --%>
                     <form action="${pageContext.request.contextPath}/auth" method="post" autocomplete="off">
                         <input type="hidden" name="action" value="forgotRequest">
 
@@ -115,6 +119,7 @@
 
                 <%-- ═══════ BƯỚC 2: NHẬP OTP ═══════ --%>
                 <c:if test="${step == 2}">
+                    <%-- ▶ SERVLET: /auth → AuthServlet.doPost() → case "forgotVerify" → processForgotVerify() --%>
                     <form action="${pageContext.request.contextPath}/auth" method="post" autocomplete="off">
                         <input type="hidden" name="action" value="forgotVerify">
 
@@ -130,8 +135,10 @@
                     </form>
 
                     <%-- Gửi lại mã (giãn cách tối thiểu 60 giây, kiểm tra ở server) --%>
+                    <%-- ▶ SERVLET: /auth → AuthServlet.doPost() → case "forgotRequest" → processForgotRequest() --%>
                     <form action="${pageContext.request.contextPath}/auth" method="post" class="mt-3">
                         <input type="hidden" name="action" value="forgotRequest">
+                        <%-- ◀ SERVLET: AuthServlet → setAttribute("forgotUsername") --%>
                         <input type="hidden" name="username" value="<c:out value='${forgotUsername}'/>">
                         <button type="submit" class="btn-login-exit">Gửi lại mã OTP</button>
                     </form>
@@ -139,6 +146,7 @@
 
                 <%-- ═══════ BƯỚC 3: MẬT KHẨU MỚI ═══════ --%>
                 <c:if test="${step == 3}">
+                    <%-- ▶ SERVLET: /auth → AuthServlet.doPost() → case "forgotReset" → processForgotReset() --%>
                     <form action="${pageContext.request.contextPath}/auth" method="post"
                           onsubmit="return validateResetForm()" autocomplete="off">
                         <input type="hidden" name="action" value="forgotReset">

@@ -64,6 +64,7 @@ public final class TaskJson {
 
     public static void writeLabelJson(HttpServletResponse response, int status, Label label, String error) throws IOException {
         response.setStatus(status);
+        // ▶ JS: trả JSON cho fetch() trong js/tasks-board.js, js/tasks.js (không forward JSP, trang không reload)
         response.setContentType("application/json;charset=UTF-8");
         String json;
         if (label != null) {
@@ -97,6 +98,7 @@ public final class TaskJson {
      * Gửi phản hồi chuẩn JSON cho các tương tác Single-Page không reload
      */
     public static void sendJsonResponse(HttpServletResponse response, boolean success, String message, String dataJson) throws IOException {
+        // ▶ JS: trả JSON cho fetch() trong js/tasks-board.js, js/tasks.js (không forward JSP, trang không reload)
         response.setContentType("application/json;charset=UTF-8");
         StringBuilder sb = new StringBuilder();
         sb.append("{");

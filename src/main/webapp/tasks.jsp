@@ -106,6 +106,7 @@
                                         </span>
                                         <span class="clickup-nav-label">Hộp thư thông báo</span>
                                     </div>
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("unreadNotifCount") --%>
                                     <c:if test="${unreadNotifCount > 0}">
                                         <span class="badge bg-danger rounded-pill fs-9 px-2 py-0-5">${unreadNotifCount}</span>
                                     </c:if>
@@ -137,11 +138,13 @@
                         <div class="clickup-sidebar-section">
                             <div class="clickup-section-title d-flex align-items-center justify-content-between">
                                 <span>Không Gian Dự Án</span>
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userProjects") --%>
                                 <span class="badge bg-light text-muted border rounded-pill fs-10 px-1.5 py-0">${not empty userProjects ? userProjects.size() : 0} dự án</span>
                             </div>
                             <div class="d-flex flex-column gap-1 mb-2">
                                 <c:forEach items="${userProjects}" var="p">
                                     <c:choose>
+                                        <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("project") --%>
                                         <c:when test="${p.id == project.id}">
                                             <!-- Không gian dự án hiện tại: Cây thư mục phân hệ (Tree View) -->
                                             <div class="clickup-tree-node is-active-project" id="project-tree-${p.id}">
@@ -385,18 +388,24 @@
                     </div>
 
                 <!-- ClickUp Control Toolbar (Views, Subtasks, Progress, and + Add Task) -->
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("allProjectTasks") --%>
                 <c:set var="progTotal" value="${not empty allProjectTasks ? allProjectTasks.size() : 0}" />
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("doneTasks") --%>
                 <c:set var="progDone" value="${not empty doneTasks ? doneTasks.size() : 0}" />
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("inProgressTasks") --%>
                 <c:set var="progInProg" value="${not empty inProgressTasks ? inProgressTasks.size() : 0}" />
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("todoTasks") --%>
                 <c:set var="progTodo" value="${not empty todoTasks ? todoTasks.size() : 0}" />
                 <c:set var="pctDone" value="${progTotal > 0 ? ((progDone * 100 - (progDone * 100 % progTotal)) / progTotal) : 0}" />
                 <c:set var="pctInProg" value="${progTotal > 0 ? ((progInProg * 100 - (progInProg * 100 % progTotal)) / progTotal) : 0}" />
                 <c:set var="pctTodo" value="${progTotal > 0 ? (100 - pctDone - pctInProg) : 0}" />
 
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("currentView") --%>
                 <div class="clickup-control-toolbar ${currentView == 'tasks' ? '' : 'd-none'} d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 bg-white border-bottom shadow-2xs">
                     <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
                         <!-- View Switcher (List vs Board vs Timeline) -->
                         <div class="clickup-view-switcher" id="taskViewSwitcher">
+                            <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskView") --%>
                             <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
                                 <i class="bi bi-list-ul"></i> Danh sách
                             </button>
@@ -455,6 +464,7 @@
 
                                 <!-- Dải Avatar Thành viên dự án -->
                                 <div class="d-flex align-items-center gap-1 flex-wrap ms-1">
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userWorkloadList") --%>
                                     <c:forEach items="${userWorkloadList}" var="uw" varStatus="loop">
                                         <c:if test="${loop.index < 7}">
                                             <button type="button" class="assignee-avatar-btn position-relative" 
@@ -477,6 +487,7 @@
                                     </c:if>
                                 </div>
 
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("submittedCount") --%>
                                 <c:if test="${submittedCount > 0}">
                                     <button type="button" id="assignee-btn-submitted" class="status-filter-btn status-btn-submitted ms-1" onclick="filterClickUpTasks('STATUS_SUBMITTED')" title="Lọc các công việc đã nộp báo cáo chờ trưởng dự án duyệt">
                                         <i class="bi bi-send-check"></i>
@@ -597,6 +608,7 @@
                                                     <td>
                                                         <select id="inline-task-assignee-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
                                                             <option value="0">Chưa gán</option>
+                                                            <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userList") --%>
                                                             <c:forEach items="${userList}" var="u">
                                                                 <option value="${u.id}"><c:out value="${u.fullName}" /></option>
                                                             </c:forEach>
@@ -630,6 +642,7 @@
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
+                                                            <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskSubTasksMap") --%>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
                                                                 <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng nhiệm vụ">
                                                                     <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
@@ -761,6 +774,7 @@
                                                             </span>
                                                         </c:if>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                                            <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskProgressMap") --%>
                                                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} nhiệm vụ (${taskProgressMap[task.id]}%)">
                                                                 <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
                                                             </span>
@@ -1008,6 +1022,7 @@
                             id="column-TODO" data-status="TODO">
 
                             <c:forEach items="${todoTasks}" var="task">
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskHealthMap") --%>
                                 <div class="card kanban-card p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
@@ -1093,6 +1108,7 @@
                                             </c:if>
 
                                             <!-- Tài liệu đính kèm -->
+                                            <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskDocsMap") --%>
                                             <c:if test="${not empty taskDocsMap[task.id]}">
                                                 <span class="kanban-meta-item" title="${taskDocsMap[task.id].size()} tài liệu">
                                                     <i class="bi bi-paperclip text-secondary"></i>
@@ -1894,6 +1910,7 @@
                     <div class="card-header bg-white border-bottom py-2.5 px-3 d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fs-9 fw-semibold">
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("activityLogs") --%>
                                 <i class="bi bi-activity me-1"></i> ${activityLogs.size()} hoạt động gần nhất
                             </span>
                             <span class="fs-9 text-muted">• Ghi vết tự động bảo toàn lịch sử</span>
@@ -1965,6 +1982,7 @@
             </span>
             <div>
                 <h6 class="offcanvas-title fw-bold text-dark fs-7 mb-0" id="inboxDrawerLabel">Hộp thư &bull; Thông báo</h6>
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userNotifications") --%>
                 <span class="fs-9 text-muted">${userNotifications.size()} thông báo gần đây</span>
             </div>
         </div>
@@ -2032,6 +2050,7 @@
         teamProject: ${project.teamProject},
         currentUserId: "${sessionScope.currentUser.id}",
         subtaskMode: "${subtaskMode}",
+        <%-- ◀ SERVLET: SubTaskHandler, TaskBoardHandler, TaskCrudHandler … → setAttribute("toastSuccess") --%>
         toastSuccess: "<c:out value='${toastSuccess}' />",
         members: [
             <c:forEach items="${userList}" var="u" varStatus="loop">
@@ -2092,6 +2111,7 @@
                                 <!-- FORM CHỈNH SỬA TASK CHA (COLLAPSIBLE) -->
                                 <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                     <div class="collapse mb-4" id="editTaskFormCollapse-${task.id}">
+                                        <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "editTask" → TaskCrudHandler.handleEditTask() --%>
                                         <form method="post" action="${pageContext.request.contextPath}/task"
                                             class="p-3 bg-white rounded-3 border border-primary-subtle shadow-sm">
                                             <input type="hidden" name="action" value="editTask">
@@ -2272,6 +2292,7 @@
 
                                     <!-- INLINE QUICK ADD SUBTASK BOX (CLICKUP STYLE) -->
                                     <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
+                                        <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "addSubTask" → SubTaskHandler.handleAddSubTask() --%>
                                         <form method="post" action="${pageContext.request.contextPath}/task"
                                             class="quick-add-subtask-box d-flex align-items-center gap-2 mt-1"
                                             onsubmit="if (!this.title.value.trim()) return false;">
@@ -2422,6 +2443,7 @@
                                             </div>
                                             <c:choose>
                                                 <c:when test="${canStartTask}">
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
                                                     <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
                                                         <input type="hidden" name="action" value="updateStatus">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -2500,6 +2522,7 @@
                                             <div class="collapse mt-2" id="approvePlanningPanel-${task.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
                                                     <h6 class="fw-bold text-primary fs-8 mb-2"><i class="bi bi-lock-fill me-1"></i> Trưởng Dự Án Phê Duyệt & Khóa Kế Hoạch</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmApprovePlanning" → TaskWorkflowHandler.handlePmApprovePlanning() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="pmApprovePlanning">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -2520,6 +2543,7 @@
                                             <div class="collapse mt-2" id="rejectPlanningPanel-${task.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
                                                     <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-arrow-counterclockwise text-warning me-1"></i> Yêu Cầu Bổ Sung</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmRejectPlanning" → TaskWorkflowHandler.handlePmRejectPlanning() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="pmRejectPlanning">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -2618,6 +2642,7 @@
                                             <div class="collapse mt-2" id="submitParentTaskPanel-${task.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
                                                     <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-box-seam-fill text-warning me-1"></i> Báo Cáo Bàn Giao Cho Trưởng Dự Án</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitParentTask" → TaskWorkflowHandler.handleSubmitParentTask() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="submitParentTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -2652,6 +2677,7 @@
                                             <div class="collapse mt-2" id="pmApprovePanel-${task.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-success shadow-sm">
                                                     <h6 class="fw-bold text-success fs-8 mb-2"><i class="bi bi-patch-check-fill me-1"></i> Nghiệm Thu & Chấm Điểm Sao</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmApproveTask" → TaskWorkflowHandler.handlePmApproveTask() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="pmApproveTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -2681,6 +2707,7 @@
                                             <div class="collapse mt-2" id="pmRevisePanel-${task.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
                                                     <h6 class="fw-bold text-primary fs-8 mb-2"><i class="bi bi-pencil-square me-1"></i> Trưởng Dự Án Dặn Dò Cân Chỉnh</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmReviseTask" → TaskWorkflowHandler.handlePmReviseTask() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="pmReviseTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -2700,6 +2727,7 @@
                                             <div class="collapse mt-2" id="pmRejectPanel-${task.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-danger shadow-sm">
                                                     <h6 class="fw-bold text-danger fs-8 mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Đánh Giá Chưa Đạt</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmRejectTask" → TaskWorkflowHandler.handlePmRejectTask() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="pmRejectTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -2728,6 +2756,7 @@
                                                 
                                                 <c:choose>
                                                     <c:when test="${task.status == 'TODO'}">
+                                                        <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
                                                         <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
                                                             <input type="hidden" name="action" value="updateStatus">
                                                             <input type="hidden" name="projectId" value="${project.id}">
@@ -2741,6 +2770,7 @@
                                                     </c:when>
                                                     <c:when test="${task.status == 'IN_PROGRESS'}">
                                                         <div class="d-flex flex-column gap-2">
+                                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
                                                             <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
                                                                 <input type="hidden" name="action" value="updateStatus">
                                                                 <input type="hidden" name="projectId" value="${project.id}">
@@ -2751,6 +2781,7 @@
                                                                     <i class="bi bi-check-circle-fill fs-7"></i> Hoàn thành công việc (→ Hoàn thành) ✓
                                                                 </button>
                                                             </form>
+                                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
                                                             <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
                                                                 <input type="hidden" name="action" value="updateStatus">
                                                                 <input type="hidden" name="projectId" value="${project.id}">
@@ -2763,6 +2794,7 @@
                                                         </div>
                                                     </c:when>
                                                     <c:when test="${task.status == 'DONE'}">
+                                                        <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
                                                         <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
                                                             <input type="hidden" name="action" value="updateStatus">
                                                             <input type="hidden" name="projectId" value="${project.id}">
@@ -2782,6 +2814,7 @@
                                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                         <div class="d-flex align-items-center gap-1">
                                             <i class="bi bi-chat-square-dots-fill text-primary fs-8"></i>
+                                            <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskCommentsMap") --%>
                                             <span class="fw-bold text-dark fs-8">Hội thoại (${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0})</span>
                                         </div>
                                     </div>
@@ -2810,6 +2843,7 @@
                                         </c:if>
                                     </div>
                                     <div class="pt-2 border-top">
+                                        <%-- ▶ SERVLET: /chat → ChatServlet.doPost() → case "sendTaskComment" → handleSendTaskComment() --%>
                                         <form method="post" action="${pageContext.request.contextPath}/chat" class="d-flex flex-column gap-2">
                                             <input type="hidden" name="action" value="sendTaskComment">
                                             <input type="hidden" name="projectId" value="${project.id}">
@@ -2871,6 +2905,7 @@
                                     <!-- FORM SỬA SUBTASK (COLLAPSIBLE) -->
                                     <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
                                         <div class="collapse mb-3" id="editSubTaskCollapse-${st.id}">
+                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "editSubTask" → SubTaskHandler.handleEditSubTask() --%>
                                             <form method="post" action="${pageContext.request.contextPath}/task"
                                                 class="p-3 bg-white rounded-3 border border-primary-subtle shadow-2xs">
                                                 <input type="hidden" name="action" value="editSubTask">
@@ -3001,6 +3036,7 @@
                                         <div class="collapse mb-3" id="submitSubTaskPanel-${st.id}">
                                             <div class="p-3 bg-white rounded-3 border border-primary shadow-sm">
                                                 <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-upload text-primary me-1"></i> Nộp Báo Cáo Kết Quả: [${st.title}]</h6>
+                                                <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitSubTask" → SubTaskHandler.handleSubmitSubTask() --%>
                                                 <form action="${pageContext.request.contextPath}/task" method="post">
                                                     <input type="hidden" name="action" value="submitSubTask">
                                                     <input type="hidden" name="projectId" value="${project.id}">
@@ -3030,6 +3066,7 @@
                                             <span class="fs-9 fw-bold text-dark d-block mb-2"><i class="bi bi-shield-check text-primary me-1"></i> Quyền Thẩm Định Của Trưởng Nhóm Công Việc:</span>
                                             <div class="d-flex flex-wrap align-items-center gap-2">
                                                 <!-- Duyệt Đạt -->
+                                                <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "approveSubTask" → SubTaskHandler.handleApproveSubTask() --%>
                                                 <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
                                                     <input type="hidden" name="action" value="approveSubTask">
                                                     <input type="hidden" name="projectId" value="${project.id}">
@@ -3054,6 +3091,7 @@
                                             <div class="collapse mt-2" id="reviseSubTaskPanel-${st.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
                                                     <h6 class="fw-bold text-primary fs-9 mb-1"><i class="bi bi-pencil-square me-1"></i> Lời dặn dò cân chỉnh nhỏ:</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "reviseSubTask" → SubTaskHandler.handleReviseSubTask() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="reviseSubTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -3071,6 +3109,7 @@
                                             <div class="collapse mt-2" id="rejectSubTaskPanel-${st.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-danger shadow-sm">
                                                     <h6 class="fw-bold text-danger fs-9 mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lý do chưa đạt yêu cầu:</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "rejectSubTask" → SubTaskHandler.handleRejectSubTask() --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post">
                                                         <input type="hidden" name="action" value="rejectSubTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
@@ -3143,6 +3182,7 @@
                                     <!-- Footer: Xóa việc con nếu có quyền -->
                                     <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                         <div class="pt-2 mt-2 border-top text-end">
+                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "deleteSubTask" → SubTaskHandler.handleDeleteSubTask() --%>
                                             <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-inline"
                                                 onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này?');">
                                                 <input type="hidden" name="action" value="deleteSubTask">
@@ -3337,6 +3377,7 @@
                         </div>
                     </div>
 
+                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "add" → TaskCrudHandler.handleAddTask() --%>
                     <form method="post" action="${pageContext.request.contextPath}/task">
 
                         <input type="hidden" name="action" value="add">
@@ -3375,6 +3416,7 @@
 
                                 <!-- Danh sách các nút nhãn hiện có -->
                                 <div class="d-flex flex-wrap gap-2 mb-2" id="labelButtonGroup">
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("projectLabels") --%>
                                     <c:forEach items="${projectLabels}" var="lb">
                                         <button type="button"
                                             class="btn btn-sm ${lb.buttonClass} rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn"
@@ -3494,6 +3536,7 @@
                                         <i class="bi bi-paperclip me-1 text-primary"></i> Đính kèm tài liệu Wiki
                                     </label>
                                     <c:choose>
+                                        <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("docList") --%>
                                         <c:when test="${not empty docList}">
                                             <select class="form-select rounded-3 py-1 px-3 fs-8" id="taskDocSelect"
                                                 name="docIds" multiple size="3"
@@ -3563,6 +3606,7 @@
                             <div>
                                 <h5 class="modal-title fw-bold mb-0" id="projectTeamModalLabel">Đội Ngũ Dự Án & Lời Mời
                                 </h5>
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("memberCount") --%>
                                 <span class="fs-9 text-white-50">Hạn ngạch: <strong>${memberCount}/10</strong> thành
                                     viên</span>
                             </div>
@@ -3581,6 +3625,7 @@
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link rounded-pill fs-8 fw-semibold py-1-5" id="tab-members-btn" data-bs-toggle="pill" data-bs-target="#tab-members-pane" type="button" role="tab" aria-controls="tab-members-pane" aria-selected="false">
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("projectMemberList") --%>
                                     <i class="bi bi-people-fill me-1 text-success"></i> Quản lý Thành viên & Lời mời (${projectMemberList.size()})
                                 </button>
                             </li>
@@ -3720,6 +3765,7 @@
                                                     </div>
                                                     <c:if
                                                         test="${project.ownerId == sessionScope.currentUser.id && pm.userId != project.ownerId}">
+                                                        <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "kick" → handleKickMember() --%>
                                                         <form method="post" action="${pageContext.request.contextPath}/invite"
                                                             class="m-0"
                                                             onsubmit="return confirm('Bạn có chắc chắn muốn mời thành viên [${pm.userName}] rời khỏi dự án?');">
@@ -3740,6 +3786,7 @@
 
                                     <c:if test="${project.ownerId != sessionScope.currentUser.id}">
                                         <div class="mt-3 pt-2 text-end">
+                                            <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "leave" → handleLeaveProject() --%>
                                             <form method="post" action="${pageContext.request.contextPath}/invite"
                                                 class="m-0 d-inline"
                                                 onsubmit="return confirm('Bạn có chắc chắn muốn rời khỏi dự án [${project.name}]? Bạn sẽ không thể truy cập lại trừ khi được mời lại.');">
@@ -3754,6 +3801,7 @@
                                 </div>
 
                                 <!-- PHẦN 2: LỜI MỜI / YÊU CẦU ĐANG CHỜ PHẢN HỒI (PENDING) -->
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("projectInviteList") --%>
                                 <c:if test="${not empty projectInviteList}">
                                     <div class="mt-4 pt-3 border-top">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -3784,6 +3832,7 @@
                                                     <!-- Nút PM Thu hồi lời mời nếu còn PENDING -->
                                                     <c:if
                                                         test="${project.ownerId == sessionScope.currentUser.id && inv.status == 'PENDING'}">
+                                                        <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "revoke" → handleRevoke() --%>
                                                         <form method="post" action="${pageContext.request.contextPath}/invite"
                                                             class="m-0"
                                                             onsubmit="return confirm('Bạn có chắc chắn muốn thu hồi lời mời này?');">
@@ -3829,6 +3878,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                         </div>
 
+                        <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "sendInvite" → handleSendInvite() --%>
                         <form action="${pageContext.request.contextPath}/invite" method="post">
                             <input type="hidden" name="action" value="sendInvite">
                             <input type="hidden" name="projectId" value="${project.id}">
@@ -3844,6 +3894,7 @@
                                     <label for="inputUsernameOrEmail" class="form-label fw-semibold fs-7 text-dark">
                                         Chọn tài khoản hoặc nhập Username / Email <span class="text-danger">*</span>
                                     </label>
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("inviteCandidates") --%>
                                     <c:if test="${not empty inviteCandidates}">
                                         <div class="mb-2">
                                             <select class="form-select fs-7 rounded-3"
@@ -3907,6 +3958,7 @@
                             </div>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
                         </div>
+                        <%-- ▶ SERVLET: /project → ProjectServlet.doPost() → case "update" → updateProject() --%>
                         <form method="post" action="${pageContext.request.contextPath}/project">
                             <input type="hidden" name="action" value="update">
                             <input type="hidden" name="projectId" value="${project.id}">
@@ -3988,6 +4040,7 @@
                     </div>
 
                     <!-- FORM SUBMIT POST VỀ PROJECTSERVLET -->
+                    <%-- ▶ SERVLET: /project → ProjectServlet.doPost() → case "create" → createProject() --%>
                     <form action="${pageContext.request.contextPath}/project" method="post">
                         <input type="hidden" name="action" value="create">
 
@@ -4083,6 +4136,7 @@
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                     </div>
+                    <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "requestJoin" → handleRequestJoin() --%>
                     <form action="${pageContext.request.contextPath}/invite" method="POST">
                         <input type="hidden" name="action" value="requestJoin">
                         <div class="modal-body px-4 py-3">

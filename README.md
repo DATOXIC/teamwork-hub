@@ -40,6 +40,7 @@ teamwork-hub/
 | Mục đích | Tài liệu |
 |---|---|
 | **Tìm nhanh chức năng nằm ở đâu (URL → Servlet → JSP)** | [docs/CODE_MAP.md](docs/CODE_MAP.md) |
+| **Servlet ↔ JSP nối nhau ở đâu** (tự sinh, có số dòng; trong code tìm ký hiệu `▶`/`◀`) | [docs/LINK_MAP.md](docs/LINK_MAP.md) — làm mới: `node docs/tools/gen_link_map.js` |
 | Chuẩn bị trả lời giảng viên, có lệnh demo | [docs/DEMO_DEFENSE.md](docs/DEMO_DEFENSE.md) |
 | Thiết kế hệ thống, DB, luồng nghiệp vụ | [docs/TECH_SPEC.md](docs/TECH_SPEC.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Dựng CSDL mới | `database/schema_postgres_supabase.sql` (hoặc `schema_sqlserver.sql` cho SSMS) |

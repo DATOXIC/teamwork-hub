@@ -525,6 +525,8 @@ window.handleQuickCreateLabel = function() {
     body.append('name', labelName);
     body.append('color', colorKey);
 
+    // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "createLabel" → TaskCrudHandler.handleCreateLabel()
+    //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
     fetch(form.getAttribute('action'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },

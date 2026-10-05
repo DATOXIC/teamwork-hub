@@ -155,7 +155,9 @@ public class ProjectServlet extends HttpServlet {
             otherProjects.addAll(allProjects);
         }
 
+        // ▶ JSP: projects.jsp đọc bằng ${myProjects}
         request.setAttribute("myProjects", myProjects);
+        // ▶ JSP: projects.jsp đọc bằng ${otherProjects}
         request.setAttribute("otherProjects", otherProjects);
         request.setAttribute("projects", allProjects);
 
@@ -172,8 +174,11 @@ public class ProjectServlet extends HttpServlet {
                 kpiDoneTasks += p.getDoneTasks();
             }
         }
+        // ▶ JSP: projects.jsp đọc bằng ${kpiPmCount}
         request.setAttribute("kpiPmCount", kpiPmCount);
+        // ▶ JSP: projects.jsp đọc bằng ${kpiTotalTasks}
         request.setAttribute("kpiTotalTasks", kpiTotalTasks);
+        // ▶ JSP: projects.jsp đọc bằng ${kpiDoneTasks}
         request.setAttribute("kpiDoneTasks", kpiDoneTasks);
 
         // 3. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
@@ -181,12 +186,14 @@ public class ProjectServlet extends HttpServlet {
         for (Project p : allProjects) {
             memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
         }
+        // ▶ JSP: projects.jsp đọc bằng ${memberCountMap}
         request.setAttribute("memberCountMap", memberCountMap);
 
         // 4. LẤY DANH SÁCH LỜI MỜI / YÊU CẦU ĐANG CHỜ NGƯỜI DÙNG DUYỆT (Hộp thư
         // Dashboard)
         if (currentUser != null) {
             List<ProjectInvite> pendingInvites = ProjectInviteDB.selectPendingByReceiverId(currentUser.getId());
+            // ▶ JSP: projects.jsp đọc bằng ${pendingInvites}
             request.setAttribute("pendingInvites", pendingInvites);
         }
 
@@ -194,17 +201,21 @@ public class ProjectServlet extends HttpServlet {
         if (session != null) {
             String toastSuccess = (String) session.getAttribute("toastSuccess");
             if (toastSuccess != null) {
+                // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                 request.setAttribute("toastSuccess", toastSuccess);
                 session.removeAttribute("toastSuccess");
             }
             String toastError = (String) session.getAttribute("toastError");
             if (toastError != null) {
+                // ▶ JSP: docs.jsp đọc bằng ${toastError}
                 request.setAttribute("toastError", toastError);
                 session.removeAttribute("toastError");
             }
         }
 
+        // ▶ JSP: navbar.jsp đọc bằng ${activeNav}
         request.setAttribute("activeNav", "dashboard");
+        // ▶ forward → projects.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/projects.jsp").forward(request, response);
     }
 
@@ -221,6 +232,7 @@ public class ProjectServlet extends HttpServlet {
                 : "";
 
         if (name == null || name.trim().isEmpty()) {
+            // ▶ JSP: login.jsp đọc bằng ${errorMessage}
             request.setAttribute("errorMessage", "Tên dự án không được để trống!");
             showProjectList(request, response);
             return;
@@ -277,6 +289,7 @@ public class ProjectServlet extends HttpServlet {
         ProjectMemberDB.insert(ownerMember);
 
         HttpSession session = request.getSession();
+        // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
         session.setAttribute("toastSuccess",
                 "Đã khởi tạo dự án [" + newProject.getName() + " (" + newProject.getProjectCode() + ")] thành công!");
         response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -311,6 +324,7 @@ public class ProjectServlet extends HttpServlet {
                 int memberCount = ProjectMemberDB.countMembers(projectId);
                 if (memberCount > 1) {
                     if (session != null) {
+                        // ▶ JSP: docs.jsp đọc bằng ${toastError}
                         session.setAttribute("toastError", "Dự án hiện đang có " + memberCount + " thành viên. Bạn không thể chuyển sang chế độ Cá nhân khi vẫn còn thành viên khác trong nhóm! Vui lòng mời các thành viên rời dự án trước.");
                     }
                     String redirectUrl = request.getParameter("redirectUrl");
@@ -574,41 +588,70 @@ public class ProjectServlet extends HttpServlet {
         }
 
         // 8. Đưa toàn bộ dữ liệu sang View
+        // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}
         request.setAttribute("project", project);
+        // ▶ JSP: timeline.jsp, project_report.jsp đọc bằng ${members}
         request.setAttribute("members", members);
+        // ▶ JSP: tasks.jsp, project_report.jsp đọc bằng ${memberCount}
         request.setAttribute("memberCount", members.size());
+        // ▶ JSP: project_report.jsp đọc bằng ${tasks}
         request.setAttribute("tasks", tasks);
+        // ▶ JSP: docs.jsp, project_report.jsp, tasks.jsp đọc bằng ${docs}
         request.setAttribute("docs", docs);
+        // ▶ JSP: project_report.jsp đọc bằng ${docCount}
         request.setAttribute("docCount", docs.size());
+        // ▶ JSP: project_report.jsp đọc bằng ${messageCount}
         request.setAttribute("messageCount", messageCount);
 
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${totalTasks}
         request.setAttribute("totalTasks", totalTasks);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${doneCount}
         request.setAttribute("doneCount", doneCount);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${inProgressCount}
         request.setAttribute("inProgressCount", inProgressCount);
+        // ▶ JSP: project_report.jsp, tasks.jsp đọc bằng ${submittedCount}
         request.setAttribute("submittedCount", submittedCount);
+        // ▶ JSP: project_report.jsp đọc bằng ${planningCount}
         request.setAttribute("planningCount", planningCount);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${todoCount}
         request.setAttribute("todoCount", todoCount);
+        // ▶ JSP: project_report.jsp đọc bằng ${reviseCount}
         request.setAttribute("reviseCount", reviseCount);
+        // ▶ JSP: project_report.jsp đọc bằng ${rejectedCount}
         request.setAttribute("rejectedCount", rejectedCount);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${overdueCount}
         request.setAttribute("overdueCount", overdueCount);
+        // ▶ JSP: project_report.jsp đọc bằng ${progressPercentage}
         request.setAttribute("progressPercentage", progressPercentage);
 
+        // ▶ JSP: project_report.jsp đọc bằng ${highPriorityCount}
         request.setAttribute("highPriorityCount", highPriorityCount);
+        // ▶ JSP: project_report.jsp đọc bằng ${mediumPriorityCount}
         request.setAttribute("mediumPriorityCount", mediumPriorityCount);
+        // ▶ JSP: project_report.jsp đọc bằng ${lowPriorityCount}
         request.setAttribute("lowPriorityCount", lowPriorityCount);
 
+        // ▶ JSP: project_report.jsp đọc bằng ${memberStats}
         request.setAttribute("memberStats", memberStats);
+        // ▶ JSP: project_report.jsp đọc bằng ${criticalBlockers}
         request.setAttribute("criticalBlockers", criticalBlockers);
+        // ▶ JSP: project_report.jsp đọc bằng ${blockerCount}
         request.setAttribute("blockerCount", blockerCount);
+        // ▶ JSP: project_report.jsp đọc bằng ${projectHealth}
         request.setAttribute("projectHealth", projectHealth);
+        // ▶ JSP: project_report.jsp đọc bằng ${healthLabel}
         request.setAttribute("healthLabel", healthLabel);
+        // ▶ JSP: project_report.jsp đọc bằng ${healthBadgeClass}
         request.setAttribute("healthBadgeClass", healthBadgeClass);
         request.setAttribute("healthIcon", healthIcon);
+        // ▶ JSP: project_report.jsp đọc bằng ${healthDescription}
         request.setAttribute("healthDescription", healthDescription);
 
+        // ▶ JSP: project_report.jsp đọc bằng ${generatedAt}
         request.setAttribute("generatedAt",
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
 
+        // ▶ forward → project_report.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/project_report.jsp").forward(request, response);
     }
 }

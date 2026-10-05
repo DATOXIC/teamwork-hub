@@ -93,6 +93,7 @@ public class DocServlet extends HttpServlet {
         // 3. Kiểm tra quyền thành viên trong dự án
         if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
             if (session != null) {
+                // ▶ JSP: docs.jsp đọc bằng ${toastError}
                 session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
             }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -230,13 +231,19 @@ public class DocServlet extends HttpServlet {
         }
 
         // 5. Đóng gói dữ liệu vào Request Attribute
+        // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}
         request.setAttribute("project", project);
+        // ▶ JSP: docs.jsp, project_report.jsp, tasks.jsp đọc bằng ${docs}
         request.setAttribute("docs", docs);
+        // ▶ JSP: docs.jsp đọc bằng ${selectedDoc}
         request.setAttribute("selectedDoc", selectedDoc);
+        // ▶ JSP: docs.jsp đọc bằng ${relatedTasks}
         request.setAttribute("relatedTasks", relatedTasks); // Danh sách task liên quan
+        // ▶ JSP: navbar.jsp đọc bằng ${activeNav}
         request.setAttribute("activeNav", "docs"); // Bật sáng menu Tài liệu
 
         // 6. Chuyển giao cho giao diện docs.jsp hiển thị
+        // ▶ forward → docs.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/docs.jsp").forward(request, response);
     }
 
@@ -273,6 +280,7 @@ public class DocServlet extends HttpServlet {
                 TaskDocDB.deleteByDocId(docId);
                 DocDB.delete(docId);
                 if (session != null) {
+                    // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                     session.setAttribute("toastSuccess", "Đã xóa tài liệu thành công!");
                 }
             } else {

@@ -70,6 +70,7 @@ public class TimelineServlet extends HttpServlet {
         // 3. Kiểm tra quyền truy cập dự án
         if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
             if (session != null) {
+                // ▶ JSP: docs.jsp đọc bằng ${toastError}
                 session.setAttribute("toastError", "Bạn không có quyền truy cập vào lộ trình của dự án này!");
             }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -171,33 +172,50 @@ public class TimelineServlet extends HttpServlet {
         String tasksJson = buildTasksJson(allTasks, taskProgressMap, subtaskCountMap, completedSubtaskMap);
 
         // 9. Đặt Model Attributes cho JSP View
+        // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}
         request.setAttribute("project", project);
+        // ▶ JSP: timeline.jsp, project_report.jsp đọc bằng ${members}
         request.setAttribute("members", members);
+        // ▶ JSP: timeline.jsp đọc bằng ${allTasks}
         request.setAttribute("allTasks", allTasks);
         request.setAttribute("subtasksByTask", subtasksByTask);
+        // ▶ JSP: tasks.jsp đọc bằng ${taskProgressMap}
         request.setAttribute("taskProgressMap", taskProgressMap);
         request.setAttribute("subtaskCountMap", subtaskCountMap);
         request.setAttribute("completedSubtaskMap", completedSubtaskMap);
 
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${totalTasks}
         request.setAttribute("totalTasks", totalTasks);
+        // ▶ JSP: timeline.jsp đọc bằng ${scheduledCount}
         request.setAttribute("scheduledCount", scheduledCount);
+        // ▶ JSP: timeline.jsp đọc bằng ${unscheduledCount}
         request.setAttribute("unscheduledCount", unscheduledCount);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${doneCount}
         request.setAttribute("doneCount", doneCount);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${inProgressCount}
         request.setAttribute("inProgressCount", inProgressCount);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${todoCount}
         request.setAttribute("todoCount", todoCount);
+        // ▶ JSP: project_report.jsp, timeline.jsp đọc bằng ${overdueCount}
         request.setAttribute("overdueCount", overdueCount);
+        // ▶ JSP: timeline.jsp đọc bằng ${overallProgress}
         request.setAttribute("overallProgress", overallProgress);
 
+        // ▶ JSP: timeline.jsp đọc bằng ${todayDate}
         request.setAttribute("todayDate", today.format(ISO_DATE));
         request.setAttribute("horizonStartDate", minHorizon.format(ISO_DATE));
         request.setAttribute("horizonEndDate", maxHorizon.format(ISO_DATE));
+        // ▶ JSP: timeline.jsp đọc bằng ${tasksJson}
         request.setAttribute("tasksJson", tasksJson);
 
         boolean isOwner = (project.getOwnerId() == currentUser.getId()) || "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        // ▶ JSP: profile.jsp, tasks.jsp đọc bằng ${isOwner}
         request.setAttribute("isOwner", isOwner);
+        // ▶ JSP: navbar.jsp đọc bằng ${activeNav}
         request.setAttribute("activeNav", "timeline");
 
         // Forward sang View timeline.jsp
+        // ▶ forward → timeline.jsp (các setAttribute ở trên chính là dữ liệu JSP hiển thị)
         request.getRequestDispatcher("/timeline.jsp").forward(request, response);
     }
 
@@ -324,6 +342,7 @@ public class TimelineServlet extends HttpServlet {
             } else {
                 HttpSession session = request.getSession(false);
                 if (session != null) {
+                    // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                     session.setAttribute("toastSuccess", "Đã tạo công việc \"" + title.trim() + "\" thành công!");
                 }
                 response.sendRedirect(request.getContextPath() + "/timeline?projectId=" + projectId);
@@ -345,6 +364,7 @@ public class TimelineServlet extends HttpServlet {
                                        boolean success, String message, Integer projectId,
                                        Map<String, Object> extraData) throws IOException {
         if (isAjaxRequest(request)) {
+            // ▶ JS: trả JSON cho fetch() trong js/timeline.js (updateDueDate; không forward JSP)
             response.setContentType("application/json;charset=UTF-8");
             PrintWriter out = response.getWriter();
             StringBuilder sb = new StringBuilder();

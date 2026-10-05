@@ -27,6 +27,7 @@
             </a>
             
             <div class="border-start ps-2 ps-md-3 d-flex align-items-center gap-2 subnav-divider">
+                <%-- ◀ SERVLET: ChatServlet, DocServlet, MeetingServlet … → setAttribute("project") --%>
                 <c:if test="${not empty project.projectCode}">
                     <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold subnav-code-badge">
                         #${project.projectCode}

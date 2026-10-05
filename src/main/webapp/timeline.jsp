@@ -15,6 +15,7 @@
                            overallProgress, todayDate, tasksJson, isOwner
      ========================================================================= --%>
 
+<%-- ◀ SERVLET: TimelineServlet → setAttribute("project") --%>
 <c:set var="pageTitle" value="Lộ Trình & Sơ Đồ Gantt &bull; ${project.name}" scope="request" />
 <c:set var="extraCss" value="styles/timeline.css" scope="request" />
 
@@ -45,7 +46,10 @@
                 </div>
                 <div>
                     <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Tổng công việc</div>
+                    <%-- ◀ SERVLET: TimelineServlet → setAttribute("totalTasks") --%>
                     <h4 class="fw-bold mb-0 text-dark">${totalTasks}</h4>
+                    <%-- ◀ SERVLET: TimelineServlet → setAttribute("scheduledCount") --%>
+                    <%-- ◀ SERVLET: TimelineServlet → setAttribute("unscheduledCount") --%>
                     <span class="fs-9 text-secondary">${scheduledCount} có hạn chót &bull; ${unscheduledCount} chưa xếp</span>
                 </div>
             </div>
@@ -59,7 +63,9 @@
                 </div>
                 <div>
                     <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Đang triển khai</div>
+                    <%-- ◀ SERVLET: TimelineServlet → setAttribute("inProgressCount") --%>
                     <h4 class="fw-bold mb-0 text-dark">${inProgressCount}</h4>
+                    <%-- ◀ SERVLET: TimelineServlet → setAttribute("todoCount") --%>
                     <span class="fs-9 text-secondary">${todoCount} việc đang chờ</span>
                 </div>
             </div>
@@ -68,6 +74,7 @@
         <!-- KPI 3: Cảnh báo trễ hạn -->
         <div class="col-6 col-md-3">
             <div class="timeline-kpi-card">
+                <%-- ◀ SERVLET: TimelineServlet → setAttribute("overdueCount") --%>
                 <div class="timeline-kpi-icon ${overdueCount > 0 ? 'bg-danger-subtle text-danger' : 'bg-success-subtle text-success'}">
                     <i class="bi ${overdueCount > 0 ? 'bi-exclamation-triangle-fill' : 'bi-shield-check'}"></i>
                 </div>
@@ -88,8 +95,10 @@
                 <div class="flex-grow-1">
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Hoàn thành</span>
+                        <%-- ◀ SERVLET: TimelineServlet → setAttribute("overallProgress") --%>
                         <span class="fw-bold fs-8 text-success">${overallProgress}%</span>
                     </div>
+                    <%-- ◀ SERVLET: TimelineServlet → setAttribute("doneCount") --%>
                     <h4 class="fw-bold mb-1 text-dark">${doneCount} <span class="fs-9 fw-normal text-muted">/ ${totalTasks} việc</span></h4>
                     <div class="progress" style="height: 5px;">
                         <div class="progress-bar bg-success" style="width: ${overallProgress}%;"></div>
@@ -137,6 +146,7 @@
             <!-- Lọc theo Thành viên -->
             <select id="timelineMemberFilter" class="form-select form-select-sm rounded-pill shadow-none fs-8" style="width: auto;">
                 <option value="ALL">Tất cả thành viên</option>
+                <%-- ◀ SERVLET: TimelineServlet → setAttribute("members") --%>
                 <c:forEach items="${members}" var="m">
                     <option value="${m.userId}">${m.userName}</option>
                 </c:forEach>
@@ -218,8 +228,10 @@
             </div>
             
             <div class="d-flex flex-wrap gap-2">
+                <%-- ◀ SERVLET: TimelineServlet → setAttribute("allTasks") --%>
                 <c:forEach items="${allTasks}" var="ut">
                     <c:if test="${empty ut.dueDate}">
+                        <%-- ◀ SERVLET: TimelineServlet → setAttribute("todayDate") --%>
                         <div class="unscheduled-task-badge" onclick="document.getElementById('modalTaskId').value='${ut.id}'; document.getElementById('modalTaskTitle').textContent='${ut.title}'; document.getElementById('modalTaskAssignee').textContent='${ut.assigneeName}'; document.getElementById('modalTaskStatus').textContent='${ut.status}'; document.getElementById('modalTaskDueDate').value='${todayDate}'; new bootstrap.Modal(document.getElementById('quickEditTimelineModal')).show();">
                             <span class="gantt-priority-dot ${ut.priority.toLowerCase()}"></span>
                             <span class="fw-medium text-dark text-truncate" style="max-width: 220px;" title="${ut.title}">${ut.title}</span>
@@ -305,6 +317,7 @@
 <div class="modal fade" id="quickAddTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
+            <%-- ▶ SERVLET: /timeline → TimelineServlet.doPost() → case "quickAddTask" → handleQuickAddTask() --%>
             <form action="${pageContext.request.contextPath}/timeline" method="POST">
                 <input type="hidden" name="action" value="quickAddTask">
                 <input type="hidden" name="projectId" value="${project.id}">
@@ -382,6 +395,7 @@
     };
 
     // Nạp dữ liệu Tasks JSON an toàn từ Controller
+    <%-- ◀ SERVLET: TimelineServlet → setAttribute("tasksJson") --%>
     window.timelineTasksData = ${tasksJson};
 </script>
 

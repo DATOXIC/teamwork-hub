@@ -19,6 +19,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
+<%-- ◀ SERVLET: ProfileServlet → setAttribute("profileUser") --%>
 <c:set var="pageTitle" value="Hồ Sơ: ${profileUser.fullName} &bull; TeamWork Hub" scope="request" />
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
@@ -64,6 +65,7 @@
                     <p class="text-muted fs-8 mb-2">
                         @${profileUser.username} &bull; 
                         <c:choose>
+                            <%-- ◀ SERVLET: ProfileServlet → setAttribute("isOwner") --%>
                             <c:when test="${isOwner}">
                                 <span class="text-dark fw-medium">${profileUser.email}</span>
                             </c:when>
@@ -123,6 +125,7 @@
 
                     <%-- KỊCH BẢN 2: HỒ SƠ NGƯỜI KHÁC ➔ NÚT MỜI NHANH (NẾU LÀ PM) --%>
                     <c:otherwise>
+                        <%-- ◀ SERVLET: ProfileServlet → setAttribute("availableProjectsToInvite") --%>
                         <c:if test="${not empty availableProjectsToInvite}">
                             <button type="button" class="btn btn-success px-4 py-2 rounded-pill fw-semibold shadow-sm fs-7" 
                                     data-bs-toggle="modal" data-bs-target="#quickInviteModal">
@@ -156,6 +159,7 @@
                             <i class="bi bi-folder2-open fs-7"></i>
                         </span>
                     </div>
+                    <%-- ◀ SERVLET: ProfileServlet → setAttribute("userProjects") --%>
                     <h3 class="fw-extrabold text-primary mb-0">${userProjects.size()}</h3>
                     <span class="fs-9 text-muted mt-1">không gian làm việc</span>
                 </div>
@@ -170,6 +174,7 @@
                             <i class="bi bi-person-workspace fs-7"></i>
                         </span>
                     </div>
+                    <%-- ◀ SERVLET: ProfileServlet → setAttribute("leadTaskCount") --%>
                     <h3 class="fw-extrabold text-warning mb-0">${leadTaskCount}</h3>
                     <span class="fs-9 text-muted mt-1">công việc lớn</span>
                 </div>
@@ -184,6 +189,8 @@
                             <i class="bi bi-check-all fs-7"></i>
                         </span>
                     </div>
+                    <%-- ◀ SERVLET: ProfileServlet → setAttribute("completedSubTasks") --%>
+                    <%-- ◀ SERVLET: ProfileServlet → setAttribute("totalSubTasks") --%>
                     <h3 class="fw-extrabold text-success mb-0">${completedSubTasks} / ${totalSubTasks}</h3>
                     <span class="fs-9 text-muted mt-1">việc hoàn tất</span>
                 </div>
@@ -198,6 +205,7 @@
                             <i class="bi bi-speedometer2 fs-7"></i>
                         </span>
                     </div>
+                    <%-- ◀ SERVLET: ProfileServlet → setAttribute("completionRate") --%>
                     <h3 class="fw-extrabold text-dark mb-0">${completionRate}%</h3>
                     <div class="project-progress-container mt-2">
                         <div class="project-progress-bar progress-init-zero" data-progress="${completionRate}%"></div>
@@ -280,6 +288,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
 
+                <%-- ▶ SERVLET: /profile → ProfileServlet.doPost() → case "update" --%>
                 <form action="${pageContext.request.contextPath}/profile" method="post">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="userId" value="${profileUser.id}">
@@ -377,6 +386,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
 
+                <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "sendInvite" → handleSendInvite() --%>
                 <form action="${pageContext.request.contextPath}/invite" method="post">
                     <input type="hidden" name="action" value="sendInvite">
                     <input type="hidden" name="usernameOrEmail" value="${profileUser.username}">

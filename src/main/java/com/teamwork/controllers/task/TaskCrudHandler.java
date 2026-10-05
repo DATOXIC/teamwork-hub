@@ -91,6 +91,7 @@ public final class TaskCrudHandler {
 
         if (title == null || title.trim().isEmpty()) {
             if (session != null) {
+                // ▶ JSP: docs.jsp đọc bằng ${toastError}
                 session.setAttribute("toastError", "Tiêu đề công việc không được để trống!");
             }
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
@@ -364,6 +365,7 @@ public final class TaskCrudHandler {
                 }
 
                 if (session != null) {
+                    // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                     session.setAttribute("toastSuccess", toastSuccessMsg);
                 }
             } else if (isAjax) {

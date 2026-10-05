@@ -133,6 +133,7 @@ public class ProjectInviteServlet extends HttpServlet {
         HttpSession session = request.getSession();
         int projectId = safeParseInt(request.getParameter("projectId"), 0);
         if (projectId <= 0) {
+            // ▶ JSP: docs.jsp đọc bằng ${toastError}
             session.setAttribute("toastError", "Mã ID dự án không hợp lệ!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -224,6 +225,7 @@ public class ProjectInviteServlet extends HttpServlet {
             "INVITE"
         );
 
+        // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
         session.setAttribute("toastSuccess", "Đã gửi lời mời tham gia dự án thành công tới " + targetUser.getFullName() + " (Hạn phản hồi: 7 ngày)!");
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
     }

@@ -163,6 +163,7 @@
                 </div>
 
                 <%-- Thông báo thành công (sau khi Đăng ký) --%>
+                <%-- ◀ SERVLET: AuthServlet → setAttribute("successMessage") --%>
                 <c:if test="${not empty successMessage}">
                     <div class="login-success-banner">
                         <p><i class="bi bi-check-circle-fill"></i> ${successMessage}</p>
@@ -170,6 +171,7 @@
                 </c:if>
 
                 <%-- Thông báo lỗi đăng nhập --%>
+                <%-- ◀ SERVLET: AuthServlet → setAttribute("errorMessage") --%>
                 <c:if test="${not empty errorMessage}">
                     <div class="login-error-banner">
                         <p><i class="bi bi-exclamation-triangle-fill"></i> ${errorMessage}</p>
@@ -177,6 +179,7 @@
                 </c:if>
 
                 <%-- Thông báo lỗi đăng ký --%>
+                <%-- ◀ SERVLET: AuthServlet → setAttribute("regError") --%>
                 <c:if test="${not empty regError}">
                     <div class="login-error-banner">
                         <p><i class="bi bi-exclamation-triangle-fill"></i> ${regError}</p>
@@ -205,7 +208,9 @@
                      - Method: POST
                      - Handled by: AuthServlet.doPost() -> handleLogin()
                      ====================================================== --%>
+                <%-- ◀ SERVLET: AuthServlet → setAttribute("activeTab") --%>
                 <div class="login-tab-pane ${activeTab != 'register' ? 'active' : ''}" id="pane-login">
+                    <%-- ▶ SERVLET: /auth → AuthServlet.doPost() → case "login" → processLogin() --%>
                     <form action="${pageContext.request.contextPath}/auth" method="post" autocomplete="off">
                         <input type="hidden" name="action" value="login">
 
@@ -267,6 +272,7 @@
                      - Handled by: AuthServlet.doPost() -> handleRegister()
                      ====================================================== --%>
                 <div class="login-tab-pane ${activeTab == 'register' ? 'active' : ''}" id="pane-register">
+                    <%-- ▶ SERVLET: /auth → AuthServlet.doPost() → case "register" → processRegister() --%>
                     <form action="${pageContext.request.contextPath}/auth"
                           onsubmit="return validateRegisterForm()"
                           method="post" autocomplete="off">

@@ -57,6 +57,7 @@
                         <h6 class="fw-bold mb-0 text-dark fs-7">Danh mục tài liệu</h6>
                     </div>
                     <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                        <%-- ◀ SERVLET: DocServlet → setAttribute("docs") --%>
                         ${docs.size()} bài
                     </span>
                 </div>
@@ -75,11 +76,13 @@
                 <div class="doc-list d-flex flex-column gap-2 overflow-y-auto wiki-doc-list-scroll" id="docListContainer">
                     
                     <c:forEach items="${docs}" var="d">
+                        <%-- ◀ SERVLET: DocServlet → setAttribute("project") --%>
                         <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${d.id}" 
                            class="wiki-doc-item ${selectedDoc.id == d.id ? 'active' : ''}"
                            data-doc-title="${d.title.toLowerCase()}">
                             
                             <div class="d-flex align-items-start gap-2 mb-1">
+                                <%-- ◀ SERVLET: DocServlet → setAttribute("selectedDoc") --%>
                                 <i class="bi bi-file-earmark-text ${selectedDoc.id == d.id ? 'text-primary' : 'text-secondary'} mt-0-5 fs-7"></i>
                                 <span class="fw-bold fs-8 wiki-doc-title ${selectedDoc.id == d.id ? 'text-primary' : 'text-dark'} text-truncate d-block flex-grow-1">${d.title}</span>
                             </div>
@@ -170,6 +173,7 @@
                                     <h6 class="fw-bold mb-0 text-dark fs-7">Các công việc đang áp dụng tài liệu này</h6>
                                 </div>
                                 <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                    <%-- ◀ SERVLET: DocServlet → setAttribute("relatedTasks") --%>
                                     ${relatedTasks.size()} công việc
                                 </span>
                             </div>
@@ -241,6 +245,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
 
+            <%-- ▶ SERVLET: /doc → DocServlet.doPost() → case "create" → handleCreateDoc() --%>
             <form method="post" action="${pageContext.request.contextPath}/doc">
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="projectId" value="${project.id}">
@@ -298,6 +303,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
 
+                <%-- ▶ SERVLET: /doc → DocServlet.doPost() → case "update" → handleUpdateDoc() --%>
                 <form method="post" action="${pageContext.request.contextPath}/doc">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="projectId" value="${project.id}">

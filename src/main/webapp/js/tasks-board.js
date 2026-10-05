@@ -440,6 +440,8 @@
             params.append('completed', isCompleted ? 'true' : 'false');
             params.append('ajax', 'true');
 
+            // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "toggleSubTask" → SubTaskHandler.handleToggleSubTask()
+            //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
             fetch(basePath + '/task', {
                 method: 'POST',
                 headers: {
@@ -489,6 +491,8 @@
             params.append('newStatus', newStatus);
             params.append('ajax', 'true');
 
+            // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus()
+            //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
             fetch(basePath + '/task', {
                 method: 'POST',
                 headers: {
@@ -588,6 +592,8 @@
         params.append('ajax', 'true');
 
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "quickAddParentTask" → TaskCrudHandler.handleQuickAddParentTask()
+        //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
         fetch(basePath + '/task', {
             method: 'POST',
             headers: {
@@ -737,6 +743,8 @@
         params.append('ajax', 'true');
 
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "quickAddSubTask" → SubTaskHandler.handleQuickAddSubTask()
+        //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
         fetch(basePath + '/task', {
             method: 'POST',
             headers: {

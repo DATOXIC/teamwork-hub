@@ -609,6 +609,8 @@
         body.append('newDueDate', newDueDate);
         body.append('isAjax', 'true');
 
+        // ▶ SERVLET: POST /timeline → TimelineServlet.doPost() → case "updateDueDate" → TimelineServlet.handleUpdateDueDate()
+        //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
         fetch(state.contextPath + '/timeline', {
             method: 'POST',
             headers: {

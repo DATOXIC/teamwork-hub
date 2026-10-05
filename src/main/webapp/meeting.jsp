@@ -34,6 +34,7 @@
 <script src="https://meet.jit.si/external_api.js"></script>
 <script>
     window.MEET_CONFIG = {
+        <%-- ◀ SERVLET: MeetingServlet → setAttribute("roomName") --%>
         room: '<c:out value="${roomName}" />',
         displayName: '<c:out value="${sessionScope.currentUser.fullName}" />'
     };
