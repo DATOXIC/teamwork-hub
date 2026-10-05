@@ -82,43 +82,6 @@ public class TaskDB {
     }
 
     /**
-     * HÀM 3: Lấy danh sách task của một dự án ĐƯỢC LỌC THEO 3 CỘT KANBAN
-     */
-    public static List<Task> selectByProjectAndStatus(int projectId, String status) {
-        if (projectId <= 0 || status == null) return new ArrayList<>();
-
-        EntityManager em = JPAUtil.getEntityManager();
-        try {
-            String jpql;
-            if ("TODO".equalsIgnoreCase(status)) {
-                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND t.status = 'TODO' ORDER BY t.id ASC";
-            } else if ("IN_PROGRESS".equalsIgnoreCase(status)) {
-                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND t.status IN ('PLANNING', 'IN_PROGRESS', 'SUBMITTED', 'REVISE', 'REJECTED') ORDER BY t.id ASC";
-            } else if ("DONE".equalsIgnoreCase(status)) {
-                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND t.status IN ('DONE', 'APPROVED') ORDER BY t.id ASC";
-            } else {
-                jpql = "SELECT t FROM Task t WHERE t.projectId = :pid AND UPPER(t.status) = :st ORDER BY t.id ASC";
-            }
-
-            var query = em.createQuery(jpql, Task.class).setParameter("pid", projectId);
-            if (!"TODO".equalsIgnoreCase(status) && !"IN_PROGRESS".equalsIgnoreCase(status) && !"DONE".equalsIgnoreCase(status)) {
-                query.setParameter("st", status.trim().toUpperCase());
-            }
-
-            List<Task> list = query.getResultList();
-            for (Task t : list) {
-                populateAssigneeName(em, t);
-            }
-            return list;
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lọc Task theo Status qua JPA", e);
-            return new ArrayList<>();
-        } finally {
-            JPAUtil.closeEntityManager(em);
-        }
-    }
-
-    /**
      * HÀM 4: Tìm task theo ID duy nhất
      */
     public static Task selectById(int id) {
@@ -444,34 +407,6 @@ public class TaskDB {
         } catch (Exception e) {
             JPAUtil.rollbackIfActive(tx);
             LOGGER.log(Level.SEVERE, "Lỗi khi update Task ID qua JPA: " + updatedTask.getId(), e);
-            return false;
-        } finally {
-            JPAUtil.closeEntityManager(em);
-        }
-    }
-
-    /**
-     * Cập nhật riêng cờ requires_gate cho Task
-     */
-    public static boolean updateRequiresGate(int taskId, boolean requiresGate) {
-        if (taskId <= 0) return false;
-
-        EntityManager em = JPAUtil.getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        try {
-            tx.begin();
-            Task t = em.find(Task.class, taskId);
-            if (t != null) {
-                t.setRequiresGate(requiresGate);
-                em.merge(t);
-                tx.commit();
-                return true;
-            }
-            tx.commit();
-            return false;
-        } catch (Exception e) {
-            JPAUtil.rollbackIfActive(tx);
-            LOGGER.log(Level.SEVERE, "Lỗi khi update requires_gate Task ID qua JPA: " + taskId, e);
             return false;
         } finally {
             JPAUtil.closeEntityManager(em);

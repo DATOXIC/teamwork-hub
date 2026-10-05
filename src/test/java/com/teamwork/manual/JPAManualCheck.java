@@ -1,11 +1,15 @@
-package com.teamwork.test;
+package com.teamwork.manual;
 
 import com.teamwork.business.*;
 import com.teamwork.data.*;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 
-public class JPATest {
+/**
+ * Kiểm tra thủ công kết nối JPA + DB thật (chạy tay bằng main(), KHÔNG chạy trong `mvn test`
+ * vì tên không kết thúc bằng "Test").
+ */
+public class JPAManualCheck {
     public static void main(String[] args) {
         System.out.println("=================================================");
         System.out.println("=== KIỂM THỬ TOÀN DIỆN JPA 3.1 & HIBERNATE 6 ===");

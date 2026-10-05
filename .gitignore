@@ -1,29 +1,30 @@
+# --- Build output ---
 target/
 *.class
-.idea/
-.vscode/
-*.log
 sources.txt
+*.log
+
+# --- IDE ---
+.idea/
+.vscode/*
+!.vscode/settings.json
+
+# --- Cấu hình máy cá nhân (mỗi người một file, KHÔNG commit) ---
 env.bat
 local.env.bat
-SLIDE_NOTE/
-LUYEN_TAP/
-.agents/
-.claude/
-PRODUCT.md
-skills-lock.json
-.agent/
-.agents/
-skills-lock.json
-AGENTS.MD
 
-AGENTS.MD
-.claude/
-PRODUCT.md
-skills-lock.json
-build_and_run.bat
-.codegraph/
-
-# Cấu hình SMTP chứa mật khẩu ứng dụng Gmail
+# --- Cấu hình SMTP chứa mật khẩu ứng dụng Gmail ---
 mail.properties
 **/WEB-INF/classes/mail.properties
+
+# --- Công cụ AI / ghi chú cá nhân ---
+.agent/
+.agents/
+.claude/
+.codegraph/
+.tmp-browser/
+skills-lock.json
+PRODUCT.md
+AGENTS.MD
+SLIDE_NOTE/
+LUYEN_TAP/

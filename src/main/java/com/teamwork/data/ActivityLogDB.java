@@ -29,13 +29,6 @@ public class ActivityLogDB {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     /**
-     * Tương thích ngược: kiểm tra bảng
-     */
-    public static void ensureTableExists() {
-        // Hibernate tự động quản lý hoặc xác thực schema
-    }
-
-    /**
      * Ghi nhận một hành động hoạt động vào nhật ký dự án (Synchronous an toàn).
      */
     public static void log(int projectId, int userId, String actionType,

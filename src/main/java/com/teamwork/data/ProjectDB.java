@@ -20,44 +20,6 @@ public class ProjectDB {
     private static final Logger LOGGER = Logger.getLogger(ProjectDB.class.getName());
 
     /**
-     * Hàm phụ trợ ánh xạ 1 dòng từ ResultSet sang đối tượng JavaBean Project (Tương thích ngược JDBC)
-     */
-    public static Project mapResultSetToProject(java.sql.ResultSet rs) throws java.sql.SQLException {
-        int id = rs.getInt("id");
-        String projectCode = rs.getString("project_code");
-        String name = rs.getString("name");
-        String description = rs.getString("description");
-        String projectType = "TEAM";
-        try {
-            String pt = rs.getString("project_type");
-            if (pt != null && !pt.trim().isEmpty()) projectType = pt.trim().toUpperCase();
-        } catch (java.sql.SQLException ignored) {}
-        int ownerId = rs.getInt("owner_id");
-        String createdAt = "";
-        try {
-            createdAt = rs.getString("created_at_str");
-        } catch (java.sql.SQLException ignored) {}
-        int totalTasks = 0;
-        int doneTasks = 0;
-        try {
-            totalTasks = rs.getInt("total_tasks");
-            doneTasks = rs.getInt("done_tasks");
-        } catch (java.sql.SQLException ignored) {}
-
-        return new Project(
-            id,
-            projectCode != null ? projectCode : "PRJ-" + id,
-            name != null ? name : "",
-            description != null ? description : "",
-            projectType,
-            ownerId,
-            createdAt != null ? createdAt : "",
-            totalTasks,
-            doneTasks
-        );
-    }
-
-    /**
      * Hàm phụ trợ tính toán số lượng task và task hoàn thành độc lập với loại DB
      */
     private static void populateTaskStats(EntityManager em, Project project) {

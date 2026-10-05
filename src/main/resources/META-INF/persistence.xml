@@ -121,7 +121,7 @@
             <property name="hibernate.show_sql" value="false" />
             <property name="hibernate.format_sql" value="false" />
 
-            <!-- Vì bạn đã chạy schema.sql trong SSMS nên để none -->
+            <!-- Vì bạn đã chạy database/schema_sqlserver.sql trong SSMS nên để none -->
             <property name="hibernate.hbm2ddl.auto" value="none" />
         </properties>
     </persistence-unit>
