@@ -156,7 +156,7 @@ body:has(.homepage-shell) .navbar {
     backdrop-filter: blur(12px);
     font-size: 0.85rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: var(--home-text-title);
     margin-bottom: 1.85rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -257,7 +257,7 @@ body:has(.homepage-shell) .navbar {
 .btn-cta-secondary {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #e2e8f0 !important;
+    color: var(--home-text-title) !important;
     padding: 0.9rem 2rem;
     border-radius: 9999px;
     font-weight: 600;
@@ -373,7 +373,7 @@ body:has(.homepage-shell) .navbar {
     border-radius: 9999px;
     padding: 0.2rem 1.5rem;
     font-size: 0.78rem;
-    color: #94a3b8;
+    color: var(--home-text-body);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -713,7 +713,7 @@ body:has(.homepage-shell) .navbar {
     border-radius: 8px;
     padding: 0.6rem 0.75rem;
     font-size: 0.78rem;
-    color: #e2e8f0;
+    color: var(--home-text-title);
     margin-bottom: 0.5rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s ease, border-color 0.2s ease;
@@ -754,7 +754,7 @@ body:has(.homepage-shell) .navbar {
 .mini-chat-bubble--other {
     background: rgba(30, 41, 59, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #e2e8f0;
+    color: var(--home-text-title);
     align-self: flex-start;
 }
 
@@ -988,6 +988,18 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) body:has(.homepage-she
    không cần tách riêng selector sáng/tối như rule nền ở trên. */
 body:has(.homepage-shell) .navbar .text-white {
     color: var(--home-text-title) !important;
+}
+
+/* Logo icon bên trong khối brand-icon giữ màu trắng sáng tương phản với nền xanh gradient */
+body:has(.homepage-shell) .navbar .brand-icon i,
+body:has(.homepage-shell) .navbar .brand-icon .text-white {
+    color: #ffffff !important;
+}
+
+/* Avatar và badge chức vụ trong user-pill giữ chữ trắng tương phản với nền xanh/tím */
+body:has(.homepage-shell) .navbar .navbar-user-pill .avatar-sm i,
+body:has(.homepage-shell) .navbar .navbar-user-pill .badge {
+    color: #ffffff !important;
 }
 
 body:has(.homepage-shell) .navbar .app-nav-link {

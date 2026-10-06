@@ -2093,6 +2093,237 @@
     border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* =========================================================================
+   28. UNIVERSAL SAAS LIGHT THEME & CONTRAST REINFORCEMENT
+   Đảm bảo khi chuyển sang chế độ Sáng (Light Mode), toàn bộ chữ, nhãn, bảng,
+   thẻ công việc, nhật ký hoạt động (Activity) và thanh công cụ đều có độ tương
+   phản cao (High Contrast 100%), tuyệt đối không bị chìm hay mờ chữ.
+   ========================================================================= */
+
+/* 28.1 Nhật Ký Hoạt Động & Audit Trail (#clickup-view-activity) */
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity,
+[data-theme="light"] #clickup-view-activity,
+[data-bs-theme="light"] #clickup-view-activity {
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .card,
+[data-theme="light"] #clickup-view-activity .card,
+[data-bs-theme="light"] #clickup-view-activity .card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .card-header,
+[data-theme="light"] #clickup-view-activity .card-header,
+[data-bs-theme="light"] #clickup-view-activity .card-header {
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .activity-timeline-line,
+[data-theme="light"] #clickup-view-activity .activity-timeline-line,
+[data-bs-theme="light"] #clickup-view-activity .activity-timeline-line {
+    border-color: #e2e8f0 !important;
+    background-color: #e2e8f0 !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .activity-badge-dot,
+[data-theme="light"] #clickup-view-activity .activity-badge-dot,
+[data-bs-theme="light"] #clickup-view-activity .activity-badge-dot {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #2563eb !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .activity-content-box,
+[data-theme="light"] #clickup-view-activity .activity-content-box,
+[data-bs-theme="light"] #clickup-view-activity .activity-content-box {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .activity-content-box:hover,
+[data-theme="light"] #clickup-view-activity .activity-content-box:hover,
+[data-bs-theme="light"] #clickup-view-activity .activity-content-box:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .text-dark,
+[data-theme="light"] #clickup-view-activity .text-dark,
+[data-bs-theme="light"] #clickup-view-activity .text-dark {
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .text-secondary,
+[data-theme="light"] #clickup-view-activity .text-secondary,
+[data-bs-theme="light"] #clickup-view-activity .text-secondary {
+    color: #334155 !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) #clickup-view-activity .text-muted,
+[data-theme="light"] #clickup-view-activity .text-muted,
+[data-bs-theme="light"] #clickup-view-activity .text-muted {
+    color: #64748b !important;
+}
+
+/* 28.2 Công việc & Danh sách Phân cấp (Tasks List & Kanban View) */
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-task-row,
+[data-theme="light"] .clickup-task-row,
+[data-bs-theme="light"] .clickup-task-row {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-task-row:hover,
+[data-theme="light"] .clickup-task-row:hover,
+[data-bs-theme="light"] .clickup-task-row:hover {
+    background-color: #f8fafc !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-task-row .text-dark,
+[data-theme="light"] .clickup-task-row .text-dark,
+[data-bs-theme="light"] .clickup-task-row .text-dark {
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-task-row .text-secondary,
+[data-theme="light"] .clickup-task-row .text-secondary,
+[data-bs-theme="light"] .clickup-task-row .text-secondary {
+    color: #475569 !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-subtask-row,
+[data-theme="light"] .clickup-subtask-row,
+[data-bs-theme="light"] .clickup-subtask-row {
+    background-color: #fafbfc !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #334155 !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-subtask-row:hover,
+[data-theme="light"] .clickup-subtask-row:hover,
+[data-bs-theme="light"] .clickup-subtask-row:hover {
+    background-color: #f1f5f9 !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-list-header-row th,
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-list-table thead th,
+[data-theme="light"] .clickup-list-header-row th,
+[data-theme="light"] .clickup-list-table thead th,
+[data-bs-theme="light"] .clickup-list-header-row th,
+[data-bs-theme="light"] .clickup-list-table thead th {
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+}
+
+/* Thẻ công việc trên bảng Kanban ở chế độ Sáng */
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-card,
+[data-theme="light"] .kanban-card,
+[data-bs-theme="light"] .kanban-card {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-card:hover,
+[data-theme="light"] .kanban-card:hover,
+[data-bs-theme="light"] .kanban-card:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04) !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-card .text-dark,
+[data-theme="light"] .kanban-card .text-dark,
+[data-bs-theme="light"] .kanban-card .text-dark {
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-card .text-secondary,
+[data-theme="light"] .kanban-card .text-secondary,
+[data-bs-theme="light"] .kanban-card .text-secondary {
+    color: #475569 !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-card .text-muted,
+[data-theme="light"] .kanban-card .text-muted,
+[data-bs-theme="light"] .kanban-card .text-muted {
+    color: #64748b !important;
+}
+
+/* Cột Kanban ở chế độ Sáng */
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-col-todo,
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-col-in-progress,
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .kanban-col-done,
+[data-theme="light"] .kanban-col-todo,
+[data-theme="light"] .kanban-col-in-progress,
+[data-theme="light"] .kanban-col-done,
+[data-bs-theme="light"] .kanban-col-todo,
+[data-bs-theme="light"] .kanban-col-in-progress,
+[data-bs-theme="light"] .kanban-col-done {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+/* Tăng cường độ tương phản cho các huy hiệu (badges) màu nhạt trong light mode */
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .badge.bg-light.text-secondary,
+[data-theme="light"] .badge.bg-light.text-secondary,
+[data-bs-theme="light"] .badge.bg-light.text-secondary {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+/* 28.3 Khung chi tiết công việc (Task Drawer) trong Light Mode */
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .clickup-task-drawer,
+[data-theme="light"] .clickup-task-drawer,
+[data-bs-theme="light"] .clickup-task-drawer {
+    background-color: #ffffff !important;
+    border-left: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .drawer-header,
+[data-theme="light"] .drawer-header,
+[data-bs-theme="light"] .drawer-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .drawer-body,
+[data-theme="light"] .drawer-body,
+[data-bs-theme="light"] .drawer-body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .subtask-checklist-item,
+[data-theme="light"] .subtask-checklist-item,
+[data-bs-theme="light"] .subtask-checklist-item {
+    background-color: #ffffff !important;
+    border: 1px solid #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .subtask-checklist-item:hover,
+[data-theme="light"] .subtask-checklist-item:hover,
+[data-bs-theme="light"] .subtask-checklist-item:hover {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+}
+
+
 
 
 
