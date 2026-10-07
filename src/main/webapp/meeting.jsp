@@ -41,6 +41,6 @@
         displayName: '${fn:replace(fn:escapeXml(sessionScope.currentUser.fullName), '\\', '\\\\')}'
     };
 </script>
-<script src="${pageContext.request.contextPath}/js/meeting.js"></script>
+<script src="${pageContext.request.contextPath}/js/meeting.js?v=<%= System.currentTimeMillis() %>"></script>
 
 <jsp:include page="/includes/footer.jsp" />

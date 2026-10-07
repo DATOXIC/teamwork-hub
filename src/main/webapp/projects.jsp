@@ -565,6 +565,6 @@
                 </div>
             </div>
 
-            <script src="${pageContext.request.contextPath}/js/projects.js"></script>
+            <script src="${pageContext.request.contextPath}/js/projects.js?v=<%= System.currentTimeMillis() %>"></script>
 
             <jsp:include page="/includes/footer.jsp" />

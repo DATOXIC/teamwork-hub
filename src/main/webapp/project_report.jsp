@@ -889,6 +889,6 @@
 <!-- =========================================================================
 JAVASCRIPT TIỆN ÍCH: BỘ LỌC TƯƠNG TÁC + TÌM KIẾM + ĐỒNG BỘ KPI + THEME TOGGLE
 ========================================================================= -->
-<script src="${pageContext.request.contextPath}/js/project_report.js"></script>
+<script src="${pageContext.request.contextPath}/js/project_report.js?v=<%= System.currentTimeMillis() %>"></script>
 
 <jsp:include page="/includes/footer.jsp" />

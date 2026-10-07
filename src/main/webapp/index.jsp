@@ -445,6 +445,6 @@
 <!-- ============================================================
      8. JAVASCRIPT: TƯƠNG TÁC TAB SHOWCASE, SPOTLIGHT & SCROLL REVEAL
      ============================================================ -->
-<script src="${pageContext.request.contextPath}/js/home.js"></script>
+<script src="${pageContext.request.contextPath}/js/home.js?v=<%= System.currentTimeMillis() %>"></script>
 
 <jsp:include page="/includes/footer.jsp" />

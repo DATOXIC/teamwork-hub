@@ -40,6 +40,6 @@
     <%-- ◀ SERVLET: WhiteboardServlet → setAttribute("project") --%>
     window.WB_CONFIG = { saveUrl: '${pageContext.request.contextPath}/whiteboard?projectId=${project.id}' };
 </script>
-<script src="${pageContext.request.contextPath}/js/whiteboard.js"></script>
+<script src="${pageContext.request.contextPath}/js/whiteboard.js?v=<%= System.currentTimeMillis() %>"></script>
 
 <jsp:include page="/includes/footer.jsp" />

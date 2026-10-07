@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <%-- CSRF token của session (CsrfFilter tạo); csrf.js tự gắn vào mọi form POST và fetch --%>
     <meta name="csrf-token" content="${sessionScope.csrfToken}">
-    <script src="${pageContext.request.contextPath}/js/csrf.js"></script>
+    <script src="${pageContext.request.contextPath}/js/csrf.js?v=<%= System.currentTimeMillis() %>"></script>
 
     <!-- Khởi tạo Theme tức thời để loại bỏ triệt để hiện tượng nhấp nháy giao diện (FOUC) -->
     <script>
