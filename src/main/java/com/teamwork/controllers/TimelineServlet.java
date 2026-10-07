@@ -244,12 +244,18 @@ public class TimelineServlet extends HttpServlet {
             return;
         }
 
+        Project project = ProjectDB.selectById(projectId);
+        if (project == null) {
+            respondJsonOrRedirect(request, response, false, "Dự án không tồn tại!", null);
+            return;
+        }
+
         switch (action) {
             case "updateDueDate":
-                handleUpdateDueDate(request, response, currentUser, projectId);
+                handleUpdateDueDate(request, response, currentUser, project);
                 break;
             case "quickAddTask":
-                handleQuickAddTask(request, response, currentUser, projectId);
+                handleQuickAddTask(request, response, currentUser, project);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/timeline?projectId=" + projectId);
@@ -261,7 +267,8 @@ public class TimelineServlet extends HttpServlet {
      * Cập nhật nhanh ngày hết hạn (Due Date) của Task khi kéo chỉnh thanh Gantt hoặc chọn lịch
      */
     private void handleUpdateDueDate(HttpServletRequest request, HttpServletResponse response,
-                                     User currentUser, int projectId) throws IOException {
+                                     User currentUser, Project project) throws IOException {
+        int projectId = project.getId();
         int taskId = safeParseInt(request.getParameter("taskId"), 0);
         String newDueDate = request.getParameter("newDueDate");
 
@@ -273,6 +280,20 @@ public class TimelineServlet extends HttpServlet {
         Task task = TaskDB.selectById(taskId);
         if (task == null || task.getProjectId() != projectId) {
             respondJsonOrRedirect(request, response, false, "Công việc không tồn tại trong dự án!", projectId);
+            return;
+        }
+
+        // Chỉ Trưởng dự án hoặc người phụ trách (Task Lead) được đổi hạn chót
+        boolean isPm = project.getOwnerId() == currentUser.getId();
+        boolean isLead = task.getAssigneeId() > 0 && task.getAssigneeId() == currentUser.getId();
+        if (!isPm && !isLead) {
+            respondJsonOrRedirect(request, response, false,
+                    "Chỉ Trưởng dự án hoặc người phụ trách công việc mới được đổi hạn chót!", projectId);
+            return;
+        }
+        if ("DONE".equalsIgnoreCase(task.getStatus()) || "APPROVED".equalsIgnoreCase(task.getStatus())) {
+            respondJsonOrRedirect(request, response, false,
+                    "Công việc đã hoàn thành và được khóa, không thể đổi hạn chót!", projectId);
             return;
         }
 
@@ -310,16 +331,38 @@ public class TimelineServlet extends HttpServlet {
      * Thêm nhanh một công việc mới có gắn sẵn hạn chót trực tiếp trên giao diện Timeline
      */
     private void handleQuickAddTask(HttpServletRequest request, HttpServletResponse response,
-                                    User currentUser, int projectId) throws IOException {
+                                    User currentUser, Project project) throws IOException {
+        int projectId = project.getId();
         String title = request.getParameter("title");
         String dueDate = request.getParameter("dueDate");
         String priority = request.getParameter("priority");
         int assigneeId = safeParseInt(request.getParameter("assigneeId"), 0);
         String description = request.getParameter("description");
 
+        // Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo và giao công việc
+        if (project.getOwnerId() != currentUser.getId()) {
+            respondJsonOrRedirect(request, response, false, "Chỉ Trưởng dự án mới được tạo và giao công việc!", projectId);
+            return;
+        }
+
         if (title == null || title.trim().isEmpty()) {
             respondJsonOrRedirect(request, response, false, "Tiêu đề công việc không được để trống!", projectId);
             return;
+        }
+
+        String cleanPriority = priority != null ? priority.trim().toUpperCase() : "";
+        if (!"HIGH".equals(cleanPriority) && !"LOW".equals(cleanPriority)) {
+            cleanPriority = "MEDIUM";
+        }
+
+        String cleanDueDate = "";
+        if (dueDate != null && !dueDate.trim().isEmpty()) {
+            try {
+                cleanDueDate = LocalDate.parse(dueDate.trim()).format(ISO_DATE);
+            } catch (DateTimeParseException e) {
+                respondJsonOrRedirect(request, response, false, "Định dạng ngày không hợp lệ (YYYY-MM-DD)!", projectId);
+                return;
+            }
         }
 
         Task newTask = new Task();
@@ -327,10 +370,21 @@ public class TimelineServlet extends HttpServlet {
         newTask.setTitle(title.trim());
         newTask.setDescription(description != null ? description.trim() : "");
         newTask.setStatus("TODO");
-        newTask.setPriority(priority != null && !priority.trim().isEmpty() ? priority.trim().toUpperCase() : "MEDIUM");
-        newTask.setDueDate(dueDate != null ? dueDate.trim() : "");
-        newTask.setAssigneeId(assigneeId > 0 ? assigneeId : null);
-        newTask.setRequiresGate(true);
+        newTask.setPriority(cleanPriority);
+        newTask.setDueDate(cleanDueDate);
+
+        if (project.isSoloProject()) {
+            // Dự án cá nhân: tự giao cho chính mình, không có cổng duyệt
+            newTask.setAssigneeId(currentUser.getId());
+            newTask.setAssigneeName(currentUser.getFullName());
+            newTask.setRequiresGate(false);
+        } else {
+            // Chỉ giao được cho thành viên của dự án
+            User assignee = (assigneeId > 0 && ProjectMemberDB.isMember(projectId, assigneeId)) ? UserDB.selectById(assigneeId) : null;
+            newTask.setAssigneeId(assignee != null ? assignee.getId() : 0);
+            newTask.setAssigneeName(assignee != null ? assignee.getFullName() : "Chưa phân công");
+            newTask.setRequiresGate(true);
+        }
 
         int newId = TaskDB.insert(newTask);
         if (newId > 0) {

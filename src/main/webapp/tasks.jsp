@@ -34,6 +34,8 @@
 
 <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
 <jsp:include page="/includes/header.jsp" />
+<%-- Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo / giao công việc và bật-tắt cổng duyệt (server cũng chặn) --%>
+<c:set var="isPm" value="${project.ownerId == sessionScope.currentUser.id}" />
 
         <style>
             /* Khóa cứng Viewport SaaS: Triệt tiêu hoàn toàn thanh cuộn cấp độ trang web */
@@ -513,10 +515,12 @@
                             </div>
                         </div>
 
+                        <c:if test="${isPm}">
                         <button type="button" class="clickup-add-task-btn-dark" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Thêm công việc mới">
                             <i class="bi bi-plus-lg"></i>
                             <span>Thêm công việc</span>
                         </button>
+                        </c:if>
                     </div>
                 </div>
 
@@ -590,9 +594,11 @@
                                                     <i class="bi bi-chevron-down me-1" id="chevron-todo"></i>
                                                     <span class="clickup-group-badge bg-secondary text-white">CẦN LÀM</span>
                                                     <span class="clickup-group-count ms-1" id="group-count-todo">${todoTasks.size()}</span>
+                                                    <c:if test="${isPm}">
                                                     <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('todo');" title="Thêm công việc vào TO DO">
                                                         <i class="bi bi-plus-lg"></i>
                                                     </button>
+                                                    </c:if>
                                                 </div>
                                             </td>
                                         </tr>
@@ -736,6 +742,7 @@
                                                 </tr>
                                             </c:forEach>
                                         </c:forEach>
+                                        <c:if test="${isPm}">
                                         <tr class="group-todo-row">
                                             <td colspan="${project.soloProject ? 4 : 5}" class="py-1">
                                                 <a href="javascript:void(0)" onclick="showInlineCreateTask('todo')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
@@ -743,6 +750,7 @@
                                                 </a>
                                             </td>
                                         </tr>
+                                        </c:if>
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row group-header-inprog">
                                             <td colspan="${project.soloProject ? 4 : 5}">
@@ -1012,10 +1020,12 @@
                                 <span>Cần làm</span>
                                 <span class="pill-count">${todoTasks.size()}</span>
                             </div>
+                            <c:if test="${isPm}">
                             <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
                                 title="Thêm công việc vào Cần làm">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
+                            </c:if>
                         </div>
 
                         <!-- Khu vực chứa các thẻ Task (Drop Zone) -->
@@ -1140,10 +1150,12 @@
                             </c:if>
 
                             <!-- Nút tạo task nhanh phong cách nét đứt (Ảnh 2) -->
+                            <c:if test="${isPm}">
                             <button type="button" class="add-task-dashed-card mt-1" data-bs-toggle="modal" data-bs-target="#addTaskModal">
                                 <i class="bi bi-plus-lg"></i>
                                 <span>Tạo công việc mới</span>
                             </button>
+                            </c:if>
 
                         </div>
                     </div>
@@ -1162,10 +1174,12 @@
                                 <span>Đang làm</span>
                                 <span class="pill-count">${inProgressTasks.size()}</span>
                             </div>
+                            <c:if test="${isPm}">
                             <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
                                 title="Thêm công việc vào Đang làm">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
+                            </c:if>
                         </div>
 
                         <div class="kanban-task-area kanban-task-list d-flex flex-column gap-2-5 flex-grow-1"
@@ -2185,7 +2199,7 @@
                                                     </c:otherwise>
                                                 </c:choose>
                                             </div>
-                                            <c:if test="${project.teamProject}">
+                                            <c:if test="${project.teamProject && isPm}">
                                                 <input type="hidden" name="hasRequiresGateControl" value="true">
                                                 <div class="p-2-5 bg-light rounded-2 border mb-3">
                                                     <div class="form-check form-switch mb-1">

@@ -171,11 +171,13 @@
                 <option value="DONE">🟢 Đã xong</option>
             </select>
 
-            <!-- Nút Thêm công việc nhanh vào Lộ trình -->
+            <!-- Nút Thêm công việc nhanh vào Lộ trình (chỉ Trưởng dự án, server cũng chặn) -->
+            <c:if test="${isOwner}">
             <button type="button" class="btn btn-sm btn-primary-custom rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1 text-white"
                     data-bs-toggle="modal" data-bs-target="#quickAddTaskModal" title="Tạo công việc có gắn mốc thời gian">
                 <i class="bi bi-plus-circle-fill"></i> Thêm việc
             </button>
+            </c:if>
         </div>
     </div>
 
