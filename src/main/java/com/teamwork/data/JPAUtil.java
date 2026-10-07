@@ -5,6 +5,8 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.Persistence;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,20 +27,47 @@ public class JPAUtil {
     private static String persistenceUnitName = "teamwork-cloud"; // Mặc định Cloud Supabase
     // private static String persistenceUnitName = "teamwork-sqlserver";
 
+    // Thông tin kết nối ghi đè lên persistence.xml (mật khẩu KHÔNG được nằm trong code/repo)
+    private static final Map<String, String> CONNECTION_OVERRIDES = new HashMap<>();
+
     static {
-        // Kiểm tra cấu hình trong db.properties nếu có ghi đè persistence unit
+        // 1. File db.properties cục bộ (nằm trong .gitignore, xem db.properties.example)
+        Properties props = new Properties();
         try (InputStream in = JPAUtil.class.getClassLoader().getResourceAsStream("db.properties")) {
             if (in != null) {
-                Properties props = new Properties();
                 props.load(in);
-                String unit = props.getProperty("jpa.unit");
-                if (unit != null && !unit.trim().isEmpty()) {
-                    persistenceUnitName = unit.trim();
-                }
             }
         } catch (Exception e) {
-            LOGGER.warning("JPAUtil: Không thể đọc jpa.unit từ db.properties, dùng mặc định: " + persistenceUnitName);
+            LOGGER.warning("JPAUtil: Không thể đọc db.properties, chỉ dùng biến môi trường.");
         }
+
+        String unit = firstNonBlank(System.getenv("DB_JPA_UNIT"), props.getProperty("jpa.unit"));
+        if (unit != null) {
+            persistenceUnitName = unit;
+        }
+
+        // 2. Biến môi trường (Render/Docker) được ưu tiên hơn file cục bộ
+        putOverride("jakarta.persistence.jdbc.url", System.getenv("DB_URL"), props.getProperty("db.url"));
+        putOverride("jakarta.persistence.jdbc.user", System.getenv("DB_USERNAME"), props.getProperty("db.username"));
+        putOverride("jakarta.persistence.jdbc.password", System.getenv("DB_PASSWORD"), props.getProperty("db.password"));
+
+        if ("teamwork-cloud".equals(persistenceUnitName) && !CONNECTION_OVERRIDES.containsKey("jakarta.persistence.jdbc.password")) {
+            LOGGER.severe("JPAUtil: Chưa cấu hình mật khẩu DB. Đặt biến môi trường DB_PASSWORD "
+                    + "hoặc tạo src/main/resources/db.properties từ db.properties.example.");
+        }
+    }
+
+    private static void putOverride(String key, String envValue, String fileValue) {
+        String value = firstNonBlank(envValue, fileValue);
+        if (value != null) {
+            CONNECTION_OVERRIDES.put(key, value);
+        }
+    }
+
+    private static String firstNonBlank(String a, String b) {
+        if (a != null && !a.trim().isEmpty()) return a.trim();
+        if (b != null && !b.trim().isEmpty()) return b.trim();
+        return null;
     }
 
     /**
@@ -62,7 +91,7 @@ public class JPAUtil {
                 try {
                     LOGGER.info("JPAUtil: Đang khởi tạo EntityManagerFactory cho Persistence Unit: [" + persistenceUnitName
                             + "] (lần " + attempt + "/" + MAX_INIT_ATTEMPTS + ")...");
-                    emf = Persistence.createEntityManagerFactory(persistenceUnitName);
+                    emf = Persistence.createEntityManagerFactory(persistenceUnitName, CONNECTION_OVERRIDES);
                     LOGGER.info("JPAUtil: Khởi tạo EntityManagerFactory [" + persistenceUnitName + "] thành công!");
                     return emf;
                 } catch (RuntimeException ex) {

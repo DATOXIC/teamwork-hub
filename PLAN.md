@@ -266,12 +266,43 @@ Mức độ: **NT** = Nghiêm trọng · **C** = Cao · **TB** = Trung bình · 
 
 ---
 
-## 5. Thứ tự đề xuất & mốc kiểm tra
+## 5. Lộ trình làm tuần tự
 
-1. **Hôm nay:** 1.1 → 1.2 (đổi mật khẩu trước, viết lại lịch sử sau).
-2. **Tuần 1:** 1.3 – 1.16. Mốc: bộ test XSS/CSRF/phân quyền pass, demo được mà không lộ dữ liệu.
-3. **Tuần 2–3:** Giai đoạn 2 (ưu tiên 2.1, 2.2, 2.3, 2.8, 2.11 trước khi refactor lớn 2.9, 2.10).
-4. **Tuần 3–4:** Giai đoạn 3 — ưu tiên những gì lộ rõ khi demo: 3.2, 3.4, 3.6, 3.5.
-5. **Còn thời gian trước buổi bảo vệ:** 4.1 và 4.2 (giá trị cao, rủi ro thấp); 4.3 nếu muốn điểm nhấn kỹ thuật.
+Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đánh `[x]`, build + chạy thử, commit, rồi mới sang bước tiếp theo.
 
-> Ghi chú: E2E chưa chạy được trên máy khảo sát vì thiếu Node.js; nên chạy lại `node tests/e2e/runner.js` trước khi bắt đầu Giai đoạn 1 để có baseline.
+| Bước | Trạng thái | Nội dung | Task gốc | Ai làm |
+|---|---|---|---|---|
+| 1 | [x] | Đưa thông tin DB ra khỏi code: đọc từ biến môi trường / file `db.properties` cục bộ (không commit) | 1.1 | Claude |
+| 1b | [ ] | Đổi mật khẩu DB trên Supabase, cập nhật `db.properties` cục bộ + biến môi trường trên Render | 1.1 | **Bạn** |
+| 1c | [ ] | Xóa mật khẩu cũ khỏi lịch sử git (`git filter-repo`) + force-push, báo nhóm clone lại | 1.2 | **Bạn** (Claude hướng dẫn) |
+| 2 | [ ] | Chống XSS ở chat: `chat.js` escape trước khi tạo mention, bỏ gán `innerHTML` thô | 1.4 | Claude |
+| 3 | [ ] | Chống XSS ở `tasks.jsp` (màn hình demo chính) | 1.3 | Claude |
+| 4 | [ ] | Chống XSS ở các JSP còn lại + `includes/` + các chỗ `innerHTML` trong JS khác | 1.3, 1.4 | Claude |
+| 5 | [ ] | Sửa lỗi mời lại thành viên (ràng buộc UNIQUE + kiểm tra kết quả insert); ẩn nút tải tệp bàn giao khi chưa có tệp | 1.14 | Claude (+ bạn chạy migration SQL) |
+| 6 | [ ] | Phân quyền: chỉ PM tạo/giao task, chỉ PM bật/tắt cổng duyệt, đổi hạn chót chỉ PM/Lead | 1.7 | Claude |
+| 7 | [ ] | Kiểm tra trạng thái ở các bước duyệt (task & subtask phải `SUBMITTED`) | 1.8 | Claude |
+| 8 | [ ] | Tách chức danh khỏi quyền (bỏ cờ `ADMIN` trong `role`) | 1.9 | Claude |
+| 9 | [ ] | Chuyển các thao tác xóa / chấp nhận / từ chối / đăng xuất từ GET sang POST | 1.6 | Claude |
+| 10 | [ ] | Thêm CSRF token cho mọi form và `fetch` | 1.5 | Claude |
+| 11 | [ ] | Ẩn dữ liệu ngoài phạm vi (chỉ hiện dự án của tôi, bỏ danh sách mọi user, kiểm `docIds`) | 1.13 | Claude |
+| 12 | [ ] | Chặn open redirect | 1.12 | Claude |
+| 13 | [ ] | Băm mật khẩu PBKDF2 + tự nâng cấp hash cũ; secret remember-me bắt buộc từ env, cookie `SameSite` | 1.10, 1.11 | Claude |
+| 14 | [ ] | Giới hạn gửi OTP theo IP; thêm header bảo mật | 1.15, 1.16 | Claude |
+| — | | **Mốc kiểm tra:** chạy toàn bộ kịch bản demo với dữ liệu chứa `<script>`; đăng nhập bằng tài khoản thành viên thường để thử phân quyền | | Bạn + Claude |
+| 15 | [ ] | `BaseServlet` + kiểm tra quyền tập trung | 2.1 | Claude |
+| 16 | [ ] | Enum trạng thái + bảng chuyển trạng thái | 2.2 | Claude |
+| 17 | [ ] | Transaction cho thao tác nhiều bước | 2.3 | Claude |
+| 18 | [ ] | Sửa N+1 (hồ sơ, chat, CSV, danh sách dự án) | 2.8 | Claude |
+| 19 | [ ] | Unit test phân quyền & workflow | 2.11 | Claude |
+| 20 | [ ] | Đóng EMF / thread pool khi tắt app; xử lý lỗi mạng chung `apiFetch()` | 2.7, 2.6 | Claude |
+| 21 | [ ] | Chia nhỏ `tasks.jsp` thành fragment | 2.10 | Claude |
+| 22 | [ ] | Gom design token, sửa tương phản | 2.9 | Claude |
+| 23 | [ ] | Loading / rỗng / lỗi cho các danh sách | 3.4 | Claude |
+| 24 | [ ] | Accessibility (button thật, label, focus) | 3.6 | Claude |
+| 25 | [ ] | Cập nhật tại chỗ thay vì reload trang | 3.2 | Claude |
+| 26 | [ ] | Responsive mobile | 3.5 | Claude |
+| 27 | [ ] | Upload tệp bàn giao thật | 4.1 | Claude |
+| 28 | [ ] | @mention gửi thông báo + email nhắc hạn | 4.2 | Claude |
+| 29+ | [ ] | Tùy thời gian: 2.4, 2.5, 3.3, 3.8, 4.3 – 4.8 | | |
+
+> Ghi chú: E2E chưa chạy được trên máy khảo sát vì thiếu Node.js; nên cài Node và chạy `node tests/e2e/runner.js` để có baseline.

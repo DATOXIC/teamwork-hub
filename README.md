@@ -6,9 +6,10 @@ Hệ thống quản lý làm việc nhóm — **Java 21 · Jakarta Servlet 6 / J
 
 1. Cài **JDK 21** và **Apache Tomcat 10.1+**.
 2. (Tùy chọn) Copy `env.example.bat` → `env.bat` rồi điền `JAVA_HOME`, `CATALINA_HOME`. Nếu không, script tự dò; không thấy sẽ hỏi và tự lưu lại.
-3. Chạy **`build_and_run.bat`** (biên dịch + deploy + khởi động Tomcat) → mở <http://localhost:8080/teamwork-hub/>.
-4. Chỉ sửa `.jsp` / `.css` / `.js`? Dùng **`hot_jsp.bat`** (hoặc `hot_jsp.bat tasks.jsp`) rồi F5 — không cần restart, không mất đăng nhập. Sửa `.java` thì phải chạy lại `build_and_run.bat`.
-5. Gửi mail OTP quên mật khẩu: copy `src/main/resources/mail.properties.example` → `mail.properties` và điền mật khẩu ứng dụng Gmail (file này không bị commit).
+3. **Bắt buộc — mật khẩu DB:** copy `src/main/resources/db.properties.example` → `db.properties` (không bị commit) và điền `db.password` (hỏi trưởng nhóm). Trên Render/Docker đặt biến môi trường `DB_PASSWORD` (tùy chọn `DB_URL`, `DB_USERNAME`, `DB_JPA_UNIT`).
+4. Chạy **`build_and_run.bat`** (biên dịch + deploy + khởi động Tomcat) → mở <http://localhost:8080/teamwork-hub/>.
+5. Chỉ sửa `.jsp` / `.css` / `.js`? Dùng **`hot_jsp.bat`** (hoặc `hot_jsp.bat tasks.jsp`) rồi F5 — không cần restart, không mất đăng nhập. Sửa `.java` thì phải chạy lại `build_and_run.bat`.
+6. Gửi mail OTP quên mật khẩu: copy `src/main/resources/mail.properties.example` → `mail.properties` và điền mật khẩu ứng dụng Gmail (file này không bị commit).
 
 Docker / Render: `Dockerfile` (build bằng Maven). Chạy test: `mvn test` (unit) và `node tests/e2e/runner.js` (E2E tĩnh trên JSP).
 
@@ -27,7 +28,7 @@ teamwork-hub/
 │   ├── *.jsp            Trang;  includes/ = khung dùng chung (header, navbar, footer, toast…)
 │   ├── js/  styles/  images/   Tài nguyên tĩnh
 │   └── WEB-INF/         web.xml + lib/ (jar dùng cho build_and_run.bat)
-├── src/main/resources/  persistence.xml, db.properties, mail.properties.example
+├── src/main/resources/  persistence.xml, db.properties.example, mail.properties.example
 ├── src/test/            Unit test (JUnit) + manual/JPAManualCheck (chạy tay)
 ├── database/            schema_*.sql + migrations/
 ├── tests/e2e/           Bộ test E2E (Node) kiểm tra JSP

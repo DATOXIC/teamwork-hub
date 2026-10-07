@@ -30,7 +30,7 @@
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver" />
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require&amp;prepareThreshold=5&amp;reWriteBatchedInserts=true&amp;stringtype=unspecified&amp;ApplicationName=teamwork-hub" />
             <property name="jakarta.persistence.jdbc.user" value="postgres.nppsoolbarfagwqdtcdm" />
-            <property name="jakarta.persistence.jdbc.password" value="matkhaudenho123" />
+            <!-- Mật khẩu KHÔNG đặt ở đây: JPAUtil nạp từ biến môi trường DB_PASSWORD hoặc db.properties (không commit) -->
 
             <!-- Hibernate Dialect cho PostgreSQL -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />

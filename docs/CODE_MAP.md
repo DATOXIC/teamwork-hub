@@ -16,7 +16,7 @@
 | Filter | `src/main/java/com/teamwork/filters/AuthFilter.java` | Chặn mọi URL chưa đăng nhập (trừ /auth, /styles, /js, /images) |
 | Util | `src/main/java/com/teamwork/util/` | Mã hóa mật khẩu, OTP, gửi mail, chống brute-force, tính "sức khỏe" Task |
 | View | `src/main/webapp/*.jsp`, `includes/` | Giao diện; `js/`, `styles/`, `images/` là tài nguyên tĩnh |
-| Cấu hình | `src/main/resources/` + `WEB-INF/web.xml` | `persistence.xml` (JPA), `db.properties` (kết nối DB), `mail.properties` (SMTP) |
+| Cấu hình | `src/main/resources/` + `WEB-INF/web.xml` | `persistence.xml` (JPA), `db.properties` (mật khẩu DB, không commit — mẫu `db.properties.example`; hoặc env `DB_PASSWORD`), `mail.properties` (SMTP) |
 
 ## 1. Chức năng → URL → Servlet → JSP
 

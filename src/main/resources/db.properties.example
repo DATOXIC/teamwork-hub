@@ -1,0 +1,19 @@
+# =============================================================================
+# CẤU HÌNH KẾT NỐI DB CỤC BỘ (TEAMWORK-HUB)
+# Sao chép file này thành db.properties (cùng thư mục, nằm trong .gitignore) rồi điền mật khẩu.
+# KHÔNG BAO GIỜ commit db.properties.
+#
+# Trên Render/Docker: không cần file này, đặt biến môi trường thay thế:
+#   DB_PASSWORD (bắt buộc), DB_URL, DB_USERNAME, DB_JPA_UNIT (tùy chọn)
+# Biến môi trường được ưu tiên hơn giá trị trong file.
+# =============================================================================
+
+# Persistence unit trong persistence.xml: teamwork-cloud (mặc định) | teamwork-mysql | teamwork-sqlserver
+# jpa.unit=teamwork-cloud
+
+# Bắt buộc với teamwork-cloud: mật khẩu database Supabase
+db.password=
+
+# Tùy chọn: ghi đè URL / user đã khai báo trong persistence.xml cho unit đang dùng
+# db.url=
+# db.username=

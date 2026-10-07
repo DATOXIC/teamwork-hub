@@ -29,3 +29,7 @@ AGENTS.MD
 SLIDE_NOTE/
 LUYEN_TAP/
 /bin
+
+# --- Cấu hình DB chứa mật khẩu (mẫu: db.properties.example) ---
+db.properties
+**/WEB-INF/classes/db.properties
