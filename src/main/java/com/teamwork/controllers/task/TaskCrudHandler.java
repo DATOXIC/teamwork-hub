@@ -204,7 +204,8 @@ public final class TaskCrudHandler {
                 int docId = safeParseInt(docIdStr, 0);
                 if (docId > 0) {
                     Doc doc = DocDB.selectById(docId);
-                    if (doc != null) {
+                    // Chỉ gắn tài liệu của CHÍNH dự án này (không cho gắn — và làm lộ tên — tài liệu dự án khác)
+                    if (doc != null && doc.getProjectId() == projectId) {
                         TaskDocDB.insert(newTaskId, docId, doc.getTitle());
                     }
                 }

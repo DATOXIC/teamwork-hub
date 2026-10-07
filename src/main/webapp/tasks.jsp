@@ -3930,28 +3930,16 @@
 
                                 <div class="mb-3">
                                     <label for="inputUsernameOrEmail" class="form-label fw-semibold fs-7 text-dark">
-                                        Chọn tài khoản hoặc nhập Username / Email <span class="text-danger">*</span>
+                                        Username hoặc Email <span class="text-danger">*</span>
                                     </label>
-                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("inviteCandidates") --%>
-                                    <c:if test="${not empty inviteCandidates}">
-                                        <div class="mb-2">
-                                            <select class="form-select fs-7 rounded-3"
-                                                onchange="if(this.value) document.getElementById('inputUsernameOrEmail').value = this.value;">
-                                                <option value="">-- Chọn nhanh tài khoản trong hệ thống --</option>
-                                                <c:forEach items="${inviteCandidates}" var="cand">
-                                                    <option value="${fn:escapeXml(cand.username)}">${fn:escapeXml(cand.fullName)} (@${fn:escapeXml(cand.username)}
-                                                        - ${fn:escapeXml(cand.role)})</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                    </c:if>
+                                    <%-- Không liệt kê toàn bộ tài khoản hệ thống: PM nhập chính xác username/email người cần mời --%>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-end-0 fs-7 text-muted">
                                             <i class="bi bi-person-badge"></i>
                                         </span>
                                         <input type="text" class="form-control fs-7 rounded-end-3"
                                             id="inputUsernameOrEmail" name="usernameOrEmail"
-                                            placeholder="Hoặc tự gõ: chi hoặc chi@teamwork.com" required autofocus>
+                                            placeholder="Ví dụ: chi hoặc chi@teamwork.com" required autofocus>
                                     </div>
                                 </div>
 

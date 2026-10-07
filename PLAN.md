@@ -284,7 +284,7 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 8 | [x] | Tách chức danh khỏi quyền (bỏ cờ `ADMIN` trong `role`) | 1.9 | Claude |
 | 9 | [x] | Chuyển các thao tác xóa / chấp nhận / từ chối / đăng xuất từ GET sang POST | 1.6 | Claude |
 | 10 | [x] | Thêm CSRF token cho mọi form và `fetch` | 1.5 | Claude |
-| 11 | [ ] | Ẩn dữ liệu ngoài phạm vi (chỉ hiện dự án của tôi, bỏ danh sách mọi user, kiểm `docIds`) | 1.13 | Claude |
+| 11 | [x] | Ẩn dữ liệu ngoài phạm vi (chỉ hiện dự án của tôi, bỏ danh sách mọi user, kiểm `docIds`) | 1.13 | Claude |
 | 12 | [ ] | Chặn open redirect | 1.12 | Claude |
 | 13 | [ ] | Băm mật khẩu PBKDF2 + tự nâng cấp hash cũ; secret remember-me bắt buộc từ env, cookie `SameSite` | 1.10, 1.11 | Claude |
 | 14 | [ ] | Giới hạn gửi OTP theo IP; thêm header bảo mật | 1.15, 1.16 | Claude |

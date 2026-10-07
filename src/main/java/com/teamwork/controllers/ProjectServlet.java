@@ -130,36 +130,14 @@ public class ProjectServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
 
-        // 1. LẤY DỮ LIỆU DỰ ÁN TỪ KHO VÀ PHÂN LOẠI
-        List<Project> allProjects = ProjectDB.selectAll();
-        List<Project> myProjects = new ArrayList<>();
-        List<Project> otherProjects = new ArrayList<>();
-
-        if (currentUser != null) {
-            List<Project> userProjects = ProjectMemberDB.selectProjectsByUserId(currentUser.getId());
-            java.util.Set<Integer> userProjectIds = new java.util.HashSet<>();
-            for (Project up : userProjects) {
-                userProjectIds.add(up.getId());
-            }
-
-            // Phân loại Project có trong Database
-            for (Project p : allProjects) {
-                if (userProjectIds.contains(p.getId())) {
-                    myProjects.add(p);
-                } else {
-                    otherProjects.add(p);
-                }
-            }
-        } else {
-            // Trống NULL --> Safe Code --> Giúp JSP không bị lỗi
-            otherProjects.addAll(allProjects);
-        }
+        // 1. CHỈ LẤY DỰ ÁN MÀ NGƯỜI DÙNG LÀ THÀNH VIÊN
+        // Không liệt kê dự án của người khác: muốn vào thì nhập Mã dự án (xin gia nhập) hoặc được PM mời.
+        List<Project> myProjects = (currentUser != null)
+                ? ProjectMemberDB.selectProjectsByUserId(currentUser.getId())
+                : new ArrayList<>();
 
         // ▶ JSP: projects.jsp đọc bằng ${myProjects}
         request.setAttribute("myProjects", myProjects);
-        // ▶ JSP: projects.jsp đọc bằng ${otherProjects}
-        request.setAttribute("otherProjects", otherProjects);
-        request.setAttribute("projects", allProjects);
 
         // 2. TÍNH TOÁN CÁC CHỈ SỐ KPI TỔNG QUAN (Bento KPI Bar trên projects.jsp)
         int kpiPmCount = 0;
@@ -183,7 +161,7 @@ public class ProjectServlet extends HttpServlet {
 
         // 3. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
         Map<Integer, Integer> memberCountMap = new HashMap<>();
-        for (Project p : allProjects) {
+        for (Project p : myProjects) {
             memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
         }
         // ▶ JSP: projects.jsp đọc bằng ${memberCountMap}

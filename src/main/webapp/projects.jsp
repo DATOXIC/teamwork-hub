@@ -11,7 +11,7 @@
      - Model: com.teamwork.business.Project, com.teamwork.business.ProjectMember,
               com.teamwork.business.ProjectInvite, com.teamwork.business.User
      - Session Attributes: currentUser, toastSuccess, toastError
-     - Request Attributes: myProjects, otherProjects, kpiPmCount, kpiTotalTasks,
+     - Request Attributes: myProjects, pendingInvites, kpiPmCount, kpiTotalTasks,
                            kpiDoneTasks, memberCountMap, pendingInvites
      - Form Actions: POST /invite (action=accept | reject | requestJoin),
                      POST /project (action=create)
@@ -84,13 +84,13 @@
                     <div class="col-6 col-md-3">
                         <div class="workspace-kpi-card">
                             <div class="kpi-icon-box kpi-icon-accent">
-                                <i class="bi bi-globe-americas"></i>
+                                <i class="bi bi-envelope-paper"></i>
                             </div>
                             <div>
-                                <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Khám phá</div>
-                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("otherProjects") --%>
-                                <h4 class="fw-bold mb-0 workspace-kpi-value">${otherProjects.size()}</h4>
-                                <span class="fs-9 workspace-kpi-desc">Dự án đang mở</span>
+                                <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Lời mời</div>
+                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("pendingInvites") --%>
+                                <h4 class="fw-bold mb-0 workspace-kpi-value">${empty pendingInvites ? 0 : pendingInvites.size()}</h4>
+                                <span class="fs-9 workspace-kpi-desc">Đang chờ bạn phản hồi</span>
                             </div>
                         </div>
                     </div>
@@ -301,7 +301,7 @@
 
                                     <!-- Mô tả dự án -->
                                     <p class="text-secondary fs-8 mb-3 project-desc-line-clamp">
-                                        ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
+                                        ${not empty p.description ? fn:escapeXml(p.description) : 'Chưa có mô tả cho dự án này.'}
                                     </p>
 
                                     <!-- Thông tin phụ: Thành viên & Loại hình dự án (được chuyển xuống đây để thoáng header) -->
@@ -377,63 +377,24 @@
                 </div>
 
                 <!-- =========================================================================
-                     8. EXPLORATION GRID: CÁC DỰ ÁN KHÁC (CÓ THỂ XIN VÀO)
-                     VI: Khám phá các dự án đang mở trên hệ thống để gửi yêu cầu gia nhập
-                     EN: Discover other open workspace projects and request membership
+                     8. THAM GIA DỰ ÁN KHÁC BẰNG MÃ
+                     Không liệt kê dự án của người khác (tránh lộ tên/mô tả dự án): muốn tham gia thì
+                     nhập Mã dự án do trưởng dự án chia sẻ, hoặc chờ được mời.
                      ========================================================================= -->
-                <!-- LƯỚI 2: CÁC DỰ ÁN KHÁC (CÓ THỂ XIN VÀO) -->
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h6 class="fw-bold fs-7 mb-0 d-flex align-items-center gap-2 workspace-section-heading">
-                        <span class="d-inline-flex align-items-center justify-content-center rounded-2 p-1 workspace-section-badge-secondary">
-                            <i class="bi bi-compass"></i>
+                <div class="project-card-other d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-2 p-2 workspace-section-badge-secondary">
+                            <i class="bi bi-box-arrow-in-right"></i>
                         </span>
-                        <span>Khám phá dự án khác (${otherProjects.size()})</span>
-                    </h6>
-                    <span class="fs-9 workspace-info-hint">
-                        <i class="bi bi-info-circle me-1"></i>Có thể gửi yêu cầu xin gia nhập
-                    </span>
-                </div>
-
-                <div class="row g-3">
-                    <c:forEach items="${otherProjects}" var="p">
-                        <div class="col-12 col-md-6 col-lg-4">
-                            <div class="project-card-other">
-                                <div>
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="project-avatar-monogram project-avatar-monogram-subtle">
-                                                ${fn:escapeXml(p.name.substring(0, 1).toUpperCase())}
-                                            </div>
-                                            <span class="project-code-badge" data-code="${fn:escapeXml(p.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
-                                                title="Bấm để sao chép mã dự án">
-                                                <i class="bi bi-hash"></i>${fn:escapeXml(p.projectCode)}
-                                                <i class="bi bi-copy fs-9 ms-1 text-accent-soft"></i>
-                                            </span>
-                                        </div>
-                                        <span class="badge project-member-count-badge rounded-pill px-2 py-1 fs-9 fw-semibold">
-                                            <i class="bi bi-people-fill me-1"></i> ${memberCountMap[p.id]}/10
-                                        </span>
-                                    </div>
-                                    <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm">${fn:escapeXml(p.name)}</h5>
-                                    <p class="text-secondary fs-8 mb-3 project-desc-line-clamp">
-                                        ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
-                                    </p>
-                                </div>
-                                <div class="pt-3 border-top text-center border-divider-subtle">
-                                    <button type="button"
-                                        class="btn btn-explore-join-request w-100 rounded-pill py-1-5 fs-8 fw-semibold shadow-2xs"
-                                        data-code="${fn:escapeXml(p.projectCode)}" onclick="document.getElementById('inputProjectCode').value=this.dataset.code; new bootstrap.Modal(document.getElementById('joinByCodeModal')).show();">
-                                        <i class="bi bi-box-arrow-in-right me-1"></i> Xin gia nhập nhóm
-                                    </button>
-                                </div>
-                            </div>
+                        <div>
+                            <h6 class="fw-bold fs-7 mb-1">Tham gia dự án của nhóm khác</h6>
+                            <p class="text-secondary fs-8 mb-0">Nhập mã dự án do trưởng dự án chia sẻ để gửi yêu cầu gia nhập, hoặc chờ lời mời.</p>
                         </div>
-                    </c:forEach>
-                    <c:if test="${empty otherProjects}">
-                        <div class="col-12 text-center py-4">
-                            <span class="text-muted fs-8">Không có dự án nào khác trên hệ thống.</span>
-                        </div>
-                    </c:if>
+                    </div>
+                    <button type="button" class="btn btn-explore-join-request rounded-pill px-4 py-1-5 fs-8 fw-semibold shadow-2xs text-nowrap"
+                            data-bs-toggle="modal" data-bs-target="#joinByCodeModal">
+                        <i class="bi bi-hash me-1"></i> Nhập mã dự án
+                    </button>
                 </div>
             </div>
 

@@ -118,7 +118,7 @@
                 </div>
                 <h2 class="fw-extrabold mb-1 text-white tracking-tight">${fn:escapeXml(project.name)}</h2>
                 <p class="fs-8 mb-2 report-project-desc">
-                    ${not empty project.description ? project.description : 'Dự án chưa cập nhật mô tả chi tiết.'}
+                    ${not empty project.description ? fn:escapeXml(project.description) : 'Dự án chưa cập nhật mô tả chi tiết.'}
                 </p>
                 <div class="d-flex align-items-center gap-2 text-white-50 fs-9">
                     <i class="bi bi-info-circle report-health-info-icon"></i>
