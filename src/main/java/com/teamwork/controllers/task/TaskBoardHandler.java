@@ -19,7 +19,6 @@ import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -60,7 +59,6 @@ import static com.teamwork.controllers.task.TaskWorkflowHandler.*;
 public final class TaskBoardHandler {
 
     private TaskBoardHandler() {}
-
 
     /**
      * Nghiệp vụ 1: Lấy toàn bộ dữ liệu 3 cột Kanban, danh sách tài liệu dự án,

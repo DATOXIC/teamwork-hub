@@ -38,6 +38,8 @@
 | Thông báo (chuông) | `/notification?action=read\|readAll\|delete` | `NotificationServlet` | (JSON/redirect) | `NotificationDB` |
 | Trang lỗi | 404 / 500 | `web.xml` `<error-page>` | `404.jsp`, `500.jsp` | — |
 
+**Dùng chung cho mọi servlet:** `BaseServlet` (lớp cha: `currentUser`, `intParam`, `flash`, `requireMember`, `writeJson`) và `ProjectAccess` (nơi duy nhất trả lời "có phải thành viên / PM / tác giả không"). Đổi luật phân quyền thì sửa `ProjectAccess`.
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.
@@ -61,7 +63,7 @@ Tra **tên `action`** (là giá trị `name="action"` của form / `fetch` trong
 | `TaskWorkflowHandler` | `submitParentTask` | `handleSubmitParentTask` | Nộp bàn giao Task cha lên PM |
 | | `submitPlanningRequest`, `pmApprovePlanning`, `pmRejectPlanning` | `handleSubmitPlanningRequest`, `handlePmApprovePlanning`, `handlePmRejectPlanning` | Duyệt kế hoạch (Planning) |
 | | `pmApproveTask` / `pmReviseTask` / `pmRejectTask` | `handlePmApproveTask` / `handlePmReviseTask` / `handlePmRejectTask` | **Cổng 2** — PM nghiệm thu / cân chỉnh / trả về |
-| `TaskAccess` | — | `isProjectOwner`, `isTaskLead`, `canManageSubTask`, … | Phân quyền dùng chung (PM / Task Lead / Assignee) |
+| `TaskAccess` | — | `isProjectOwner`, `isTaskLead`, `canManageSubTask`, … | Phân quyền dùng chung (PM / Task Lead / Assignee); phần PM/thành viên gọi sang `ProjectAccess` |
 | `TaskJson` | — | `sendJsonResponse`, `isAjaxRequest` | Trả JSON cho AJAX |
 
 **Quy trình duyệt 2 cổng:** Việc con → (Cổng 1: Task Lead) → Task cha → (Cổng 2: PM). Trạng thái: `TODO → IN_PROGRESS → SUBMITTED → DONE/APPROVED`, nhánh `REVISE`, `REJECTED`.

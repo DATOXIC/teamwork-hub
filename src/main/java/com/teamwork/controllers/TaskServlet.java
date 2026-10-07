@@ -19,7 +19,6 @@ import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -111,8 +110,7 @@ import static com.teamwork.controllers.task.TaskWorkflowHandler.*;
  * </ul>
  */
 @WebServlet("/task")
-public class TaskServlet extends HttpServlet {
-
+public class TaskServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -125,7 +123,7 @@ public class TaskServlet extends HttpServlet {
         if (projectIdParam == null || projectIdParam.trim().isEmpty()) {
             // Tối ưu hóa Cookie: Đọc dự án truy cập gần nhất để vào thẳng mà không cần query lại
             HttpSession session = request.getSession(false);
-            User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+            User currentUser = currentUser(request);
 
             if (request.getCookies() != null) {
                 for (jakarta.servlet.http.Cookie c : request.getCookies()) {
@@ -133,7 +131,7 @@ public class TaskServlet extends HttpServlet {
                         try {
                             int cachedProjectId = Integer.parseInt(c.getValue().trim());
                             // Kiểm tra an toàn: Dự án hợp lệ VÀ người dùng hiện tại là thành viên dự án
-                            if (cachedProjectId > 0 && currentUser != null && ProjectMemberDB.isMember(cachedProjectId, currentUser.getId())) {
+                            if (ProjectAccess.isMember(currentUser, cachedProjectId)) {
                                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + cachedProjectId);
                                 return;
                             } else {
@@ -163,7 +161,7 @@ public class TaskServlet extends HttpServlet {
         }
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
 
         // TASK-01: Bắt buộc đăng nhập — nếu chưa có Session, redirect về trang login
         if (currentUser == null) {
@@ -171,10 +169,7 @@ public class TaskServlet extends HttpServlet {
             return;
         }
 
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            // ▶ JSP: docs.jsp đọc bằng ${toastError}
-            session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền truy cập vào dự án này!")) {
             return;
         }
 
@@ -221,7 +216,7 @@ public class TaskServlet extends HttpServlet {
             {
                 int projectId = Integer.parseInt(projectIdParam.trim());
                 HttpSession session = request.getSession(false);
-                User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+                User currentUser = currentUser(request);
 
                 // TASK-01: Bắt buộc đăng nhập ngay trong doPost
                 if (currentUser == null) {
@@ -229,9 +224,7 @@ public class TaskServlet extends HttpServlet {
                     return;
                 }
 
-                if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-                    session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
-                    response.sendRedirect(request.getContextPath() + "/project?action=list");
+                if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền thao tác trong dự án này!")) {
                     return;
                 }
             } 
@@ -329,7 +322,7 @@ public class TaskServlet extends HttpServlet {
 
             case "delete":
                 // handleDeleteTask tự kiểm tra task thuộc projectId và người xóa là PM / Task Lead
-                handleDeleteTask(request, response, safeParseInt(request.getParameter("projectId"), 0));
+                handleDeleteTask(request, response, intParam(request, "projectId", 0));
                 break;
 
             default:

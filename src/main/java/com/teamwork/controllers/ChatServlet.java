@@ -14,7 +14,6 @@ import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -51,7 +50,7 @@ import java.util.List;
  * </ul>
  */
 @WebServlet("/chat")
-public class ChatServlet extends HttpServlet {
+public class ChatServlet extends BaseServlet {
 
     private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -63,20 +62,6 @@ public class ChatServlet extends HttpServlet {
                 || (accept != null && accept.contains("application/json"));
     }
 
-    /**
-     * Tiện ích parse số nguyên an toàn, chống NumberFormatException
-     */
-    private int safeParseInt(String value, int defaultValue) {
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
     // =========================================================================
     // HÀM doGet: XỬ LÝ TOÀN BỘ CÁC YÊU CẦU ĐỌC, XEM VÀ XÓA TIN NHẮN
     // =========================================================================
@@ -86,26 +71,15 @@ public class ChatServlet extends HttpServlet {
 
         // 1. Kiểm tra xác thực người dùng
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
         // 2. Lấy và kiểm tra an toàn tham số projectId từ URL
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
-        if (projectId <= 0) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
-        }
-
-        // 3. Kiểm tra quyền thành viên trong dự án
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            if (session != null) {
-                // ▶ JSP: docs.jsp đọc bằng ${toastError}
-                session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
-            }
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        int projectId = intParam(request, "projectId", 0);
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền truy cập vào dự án này!")) {
             return;
         }
 
@@ -166,24 +140,14 @@ public class ChatServlet extends HttpServlet {
 
         // 1. Lấy thông tin User đang đăng nhập từ Session để bảo mật danh tính người gửi
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
-        if (projectId <= 0) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
-        }
-
-        // Kiểm tra quyền thành viên dự án
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            if (session != null) {
-                session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
-            }
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        int projectId = intParam(request, "projectId", 0);
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền thao tác trong dự án này!")) {
             return;
         }
 
@@ -343,7 +307,7 @@ public class ChatServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int taskId = safeParseInt(request.getParameter("taskId"), 0);
+        int taskId = intParam(request, "taskId", 0);
         String content = request.getParameter("content");
 
         if (taskId <= 0) {
@@ -401,7 +365,7 @@ public class ChatServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int messageId = safeParseInt(request.getParameter("messageId"), 0);
+        int messageId = intParam(request, "messageId", 0);
 
         if (messageId <= 0) {
             response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
@@ -428,7 +392,7 @@ public class ChatServlet extends HttpServlet {
             // thể gõ "ADMIN" vào đó để tự cấp quyền cho mình. Chỉ so sánh ID do server cung
             // cấp (authorId, ownerId) mới là căn cứ phân quyền an toàn.
             boolean isAuthor = (currentUser.getId() == msg.getAuthorId());
-            boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+            boolean isProjectOwner = ProjectAccess.isOwner(currentUser, project);
 
             if (isAuthor || isProjectOwner) {
                 MessageDB.delete(messageId);
@@ -472,7 +436,7 @@ public class ChatServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int messageId = safeParseInt(request.getParameter("messageId"), 0);
+        int messageId = intParam(request, "messageId", 0);
         String content = request.getParameter("content");
 
         if (messageId <= 0 || content == null || content.trim().isEmpty()) {
@@ -509,7 +473,7 @@ public class ChatServlet extends HttpServlet {
 
             // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án)
             boolean isAuthor = (currentUser.getId() == msg.getAuthorId());
-            boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
+            boolean isProjectOwner = ProjectAccess.isOwner(currentUser, project);
 
             if (isAuthor || isProjectOwner) {
                 boolean success = MessageDB.update(messageId, content.trim());

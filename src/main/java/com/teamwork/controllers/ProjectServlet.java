@@ -15,7 +15,6 @@ import com.teamwork.data.TaskDB;
 import com.teamwork.util.RedirectUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -54,7 +53,7 @@ import java.util.Map;
  * </ul>
  */
 @WebServlet("/project")
-public class ProjectServlet extends HttpServlet {
+public class ProjectServlet extends BaseServlet {
     private static final String PROJECT_CODE_PATTERN = "^[a-zA-Z0-9_-]{3,15}$";
 
     @Override
@@ -97,7 +96,7 @@ public class ProjectServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
 
         // Phòng trường hợp: 1. Hết hạn Session 2. Fake Post
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
@@ -129,7 +128,7 @@ public class ProjectServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
 
         // 1. CHỈ LẤY DỰ ÁN MÀ NGƯỜI DÙNG LÀ THÀNH VIÊN
         // Không liệt kê dự án của người khác: muốn vào thì nhập Mã dự án (xin gia nhập) hoặc được PM mời.
@@ -146,7 +145,7 @@ public class ProjectServlet extends HttpServlet {
         int kpiDoneTasks = 0;
         if (currentUser != null) {
             for (Project p : myProjects) {
-                if (p.getOwnerId() == currentUser.getId()) {
+                if (ProjectAccess.isOwner(currentUser, p)) {
                     kpiPmCount++;
                 }
                 kpiTotalTasks += p.getTotalTasks();
@@ -297,7 +296,7 @@ public class ProjectServlet extends HttpServlet {
         Project project = ProjectDB.selectById(projectId);
         HttpSession session = request.getSession(false);
 
-        if (project != null && project.getOwnerId() == currentUser.getId()) {
+        if (project != null && ProjectAccess.isOwner(currentUser, project)) {
             boolean switchingToSolo = "SOLO".equalsIgnoreCase(projectType) && !"SOLO".equalsIgnoreCase(project.getProjectType());
             if (switchingToSolo) {
                 int memberCount = ProjectMemberDB.countMembers(projectId);
@@ -400,10 +399,7 @@ public class ProjectServlet extends HttpServlet {
         }
 
         // 2. Kiểm tra tư cách thành viên trong dự án
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            HttpSession session = request.getSession();
-            session.setAttribute("toastError", "Bạn không có quyền truy cập báo cáo của dự án này!");
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền truy cập báo cáo của dự án này!")) {
             return;
         }
 

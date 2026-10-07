@@ -19,7 +19,6 @@ import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -36,8 +35,6 @@ import com.teamwork.business.ProjectInvite;
 import com.teamwork.business.ProjectMember;
 import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectInviteDB;
-import com.teamwork.data.ProjectMemberDB;
-import jakarta.servlet.http.HttpSession;
 import com.teamwork.business.UserWorkload;
 import com.teamwork.business.ActivityLog;
 import com.teamwork.data.ActivityLogDB;
@@ -60,7 +57,6 @@ import static com.teamwork.controllers.task.TaskWorkflowHandler.*;
 public final class TaskJson {
 
     private TaskJson() {}
-
 
     public static void writeLabelJson(HttpServletResponse response, int status, Label label, String error) throws IOException {
         response.setStatus(status);

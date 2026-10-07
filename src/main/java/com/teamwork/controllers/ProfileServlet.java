@@ -11,7 +11,6 @@ import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -46,21 +45,7 @@ import java.util.List;
  * </ul>
  */
 @WebServlet("/profile")
-public class ProfileServlet extends HttpServlet {
-
-    /**
-     * Tiện ích parse số nguyên an toàn
-     */
-    private int safeParseInt(String value, int defaultValue) {
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
+public class ProfileServlet extends BaseServlet {
 
     /**
      * Tiện ích chuẩn hóa và lọc URL mạng xã hội an toàn (chống XSS & tự động thêm https://)
@@ -86,14 +71,14 @@ public class ProfileServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
         // 1. Đọc userId từ tham số URL (nếu không truyền -> mặc định lấy ID của chính mình)
-        int targetUserId = safeParseInt(request.getParameter("userId"), currentUser.getId());
+        int targetUserId = intParam(request, "userId", currentUser.getId());
 
         // 2. Tìm thông tin User theo ID
         User profileUser = UserDB.selectById(targetUserId);
@@ -112,7 +97,7 @@ public class ProfileServlet extends HttpServlet {
         if (profileUser.getId() != currentUser.getId()) {
             List<Project> sharedProjects = new ArrayList<>();
             for (Project p : userProjects) {
-                if (ProjectMemberDB.isMember(p.getId(), currentUser.getId())) {
+                if (ProjectAccess.isMember(currentUser, p.getId())) {
                     sharedProjects.add(p);
                 }
             }
@@ -154,7 +139,7 @@ public class ProfileServlet extends HttpServlet {
         if (currentUser.getId() != profileUser.getId()) {
             List<Project> allProjects = ProjectDB.selectAll();
             for (Project p : allProjects) {
-                if (p.getOwnerId() == currentUser.getId()) {
+                if (ProjectAccess.isOwner(currentUser, p)) {
                     if (!ProjectMemberDB.isMember(p.getId(), profileUser.getId())) {
                         availableProjectsToInvite.add(p);
                     }
@@ -203,7 +188,7 @@ public class ProfileServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
@@ -224,7 +209,7 @@ public class ProfileServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int targetUserId = safeParseInt(request.getParameter("userId"), 0);
+        int targetUserId = intParam(request, "userId", 0);
         if (targetUserId <= 0) {
             response.sendRedirect(request.getContextPath() + "/profile");
             return;

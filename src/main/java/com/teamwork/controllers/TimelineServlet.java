@@ -15,7 +15,6 @@ import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -43,7 +42,7 @@ import java.util.logging.Logger;
  * </ul>
  */
 @WebServlet(name = "TimelineServlet", urlPatterns = {"/timeline"})
-public class TimelineServlet extends HttpServlet {
+public class TimelineServlet extends BaseServlet {
 
     private static final Logger LOGGER = Logger.getLogger(TimelineServlet.class.getName());
     private static final DateTimeFormatter ISO_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -54,7 +53,7 @@ public class TimelineServlet extends HttpServlet {
 
         // 1. Kiểm tra xác thực người dùng (Auth Boundary)
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
             return;
@@ -62,18 +61,7 @@ public class TimelineServlet extends HttpServlet {
 
         // 2. Xác định Project ID từ request hoặc Cookie ghi nhớ gần nhất
         int projectId = parseProjectId(request, currentUser);
-        if (projectId <= 0) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
-        }
-
-        // 3. Kiểm tra quyền truy cập dự án
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            if (session != null) {
-                // ▶ JSP: docs.jsp đọc bằng ${toastError}
-                session.setAttribute("toastError", "Bạn không có quyền truy cập vào lộ trình của dự án này!");
-            }
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền truy cập vào lộ trình của dự án này!")) {
             return;
         }
 
@@ -210,7 +198,7 @@ public class TimelineServlet extends HttpServlet {
 
         // Quyền chỉ dựa vào ID chủ dự án do server lưu. KHÔNG dùng User.role: đó là chức danh người dùng tự nhập
         // trong hồ sơ (ai cũng gõ được "ADMIN").
-        boolean isOwner = project.getOwnerId() == currentUser.getId();
+        boolean isOwner = ProjectAccess.isOwner(currentUser, project);
         // ▶ JSP: profile.jsp, tasks.jsp đọc bằng ${isOwner}
         request.setAttribute("isOwner", isOwner);
         // ▶ JSP: navbar.jsp đọc bằng ${activeNav}
@@ -229,7 +217,7 @@ public class TimelineServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             respondJsonOrRedirect(request, response, false, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!", null);
             return;
@@ -240,8 +228,8 @@ public class TimelineServlet extends HttpServlet {
             action = "updateDueDate";
         }
 
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
-        if (projectId <= 0 || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+        int projectId = intParam(request, "projectId", 0);
+        if (!ProjectAccess.isMember(currentUser, projectId)) {
             respondJsonOrRedirect(request, response, false, "Bạn không có quyền thao tác trong dự án này!", null);
             return;
         }
@@ -271,7 +259,7 @@ public class TimelineServlet extends HttpServlet {
     private void handleUpdateDueDate(HttpServletRequest request, HttpServletResponse response,
                                      User currentUser, Project project) throws IOException {
         int projectId = project.getId();
-        int taskId = safeParseInt(request.getParameter("taskId"), 0);
+        int taskId = intParam(request, "taskId", 0);
         String newDueDate = request.getParameter("newDueDate");
 
         if (taskId <= 0) {
@@ -286,7 +274,7 @@ public class TimelineServlet extends HttpServlet {
         }
 
         // Chỉ Trưởng dự án hoặc người phụ trách (Task Lead) được đổi hạn chót
-        boolean isPm = project.getOwnerId() == currentUser.getId();
+        boolean isPm = ProjectAccess.isOwner(currentUser, project);
         boolean isLead = task.getAssigneeId() > 0 && task.getAssigneeId() == currentUser.getId();
         if (!isPm && !isLead) {
             respondJsonOrRedirect(request, response, false,
@@ -338,11 +326,11 @@ public class TimelineServlet extends HttpServlet {
         String title = request.getParameter("title");
         String dueDate = request.getParameter("dueDate");
         String priority = request.getParameter("priority");
-        int assigneeId = safeParseInt(request.getParameter("assigneeId"), 0);
+        int assigneeId = intParam(request, "assigneeId", 0);
         String description = request.getParameter("description");
 
         // Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo và giao công việc
-        if (project.getOwnerId() != currentUser.getId()) {
+        if (!ProjectAccess.isOwner(currentUser, project)) {
             respondJsonOrRedirect(request, response, false, "Chỉ Trưởng dự án mới được tạo và giao công việc!", projectId);
             return;
         }
@@ -527,7 +515,7 @@ public class TimelineServlet extends HttpServlet {
                 if ("last_project_id".equals(c.getName()) && c.getValue() != null) {
                     try {
                         int cachedId = Integer.parseInt(c.getValue().trim());
-                        if (cachedId > 0 && ProjectMemberDB.isMember(cachedId, currentUser.getId())) {
+                        if (ProjectAccess.isMember(currentUser, cachedId)) {
                             return cachedId;
                         }
                     } catch (NumberFormatException ignored) {}
@@ -545,12 +533,4 @@ public class TimelineServlet extends HttpServlet {
         response.addCookie(c);
     }
 
-    private int safeParseInt(String val, int def) {
-        if (val == null || val.trim().isEmpty()) return def;
-        try {
-            return Integer.parseInt(val.trim());
-        } catch (NumberFormatException e) {
-            return def;
-        }
-    }
 }

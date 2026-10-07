@@ -3,11 +3,9 @@ package com.teamwork.controllers;
 import com.teamwork.business.Project;
 import com.teamwork.business.User;
 import com.teamwork.data.ProjectDB;
-import com.teamwork.data.ProjectMemberDB;
 import com.teamwork.data.WhiteboardDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -25,31 +23,22 @@ import java.nio.charset.StandardCharsets;
  * </ul>
  */
 @WebServlet("/whiteboard")
-public class WhiteboardServlet extends HttpServlet {
+public class WhiteboardServlet extends BaseServlet {
 
     private static final int MAX_BODY_BYTES = 8 * 1024 * 1024;
-
-    private int safeParseInt(String value) {
-        try {
-            return Integer.parseInt(value == null ? "" : value.trim());
-        } catch (NumberFormatException e) {
-            return 0;
-        }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
-        int projectId = safeParseInt(request.getParameter("projectId"));
-        if (projectId <= 0 || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        int projectId = intParam(request, "projectId", 0);
+        if (!requireMember(request, response, currentUser, projectId, null)) {
             return;
         }
 
@@ -86,15 +75,15 @@ public class WhiteboardServlet extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("{\"ok\":false}");
             return;
         }
 
-        int projectId = safeParseInt(request.getParameter("projectId"));
-        if (projectId <= 0 || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+        int projectId = intParam(request, "projectId", 0);
+        if (!ProjectAccess.isMember(currentUser, projectId)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("{\"ok\":false}");
             return;

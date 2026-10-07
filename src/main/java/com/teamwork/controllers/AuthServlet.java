@@ -10,7 +10,6 @@ import com.teamwork.util.RememberMeToken;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -41,7 +40,7 @@ import java.util.logging.Logger;
  * </ul>
  */
 @WebServlet("/auth")
-public class AuthServlet extends HttpServlet {
+public class AuthServlet extends BaseServlet {
 
     // =========================================================================
     // CONSTANTS — Hằng số dùng chung trong toàn bộ Servlet

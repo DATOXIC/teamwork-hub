@@ -7,13 +7,11 @@ import com.teamwork.business.Task;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.ProjectDB;
-import com.teamwork.data.ProjectMemberDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.ActivityLogDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -50,23 +48,9 @@ import java.util.List;
  * </ul>
  */
 @WebServlet("/doc")
-public class DocServlet extends HttpServlet {
+public class DocServlet extends BaseServlet {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-    /**
-     * Tiện ích parse số nguyên an toàn, chống NumberFormatException
-     */
-    private int safeParseInt(String value, int defaultValue) {
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
 
     // ========================================================
     // HÀM doGet: XỬ LÝ CÁC YÊU CẦU ĐỌC, XEM VÀ XÓA TÀI LIỆU
@@ -77,26 +61,15 @@ public class DocServlet extends HttpServlet {
 
         // 1. Kiểm tra xác thực người dùng
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
         // 2. Lấy và kiểm tra an toàn tham số projectId từ URL
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
-        if (projectId <= 0) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
-        }
-
-        // 3. Kiểm tra quyền thành viên trong dự án
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            if (session != null) {
-                // ▶ JSP: docs.jsp đọc bằng ${toastError}
-                session.setAttribute("toastError", "Bạn không có quyền truy cập vào dự án này!");
-            }
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        int projectId = intParam(request, "projectId", 0);
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền truy cập vào dự án này!")) {
             return;
         }
 
@@ -130,24 +103,14 @@ public class DocServlet extends HttpServlet {
 
         // 1. Lấy thông tin User đang đăng nhập từ Session
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
         }
 
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
-        if (projectId <= 0) {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-            return;
-        }
-
-        // Kiểm tra quyền thành viên dự án
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            if (session != null) {
-                session.setAttribute("toastError", "Bạn không có quyền thao tác trong dự án này!");
-            }
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        int projectId = intParam(request, "projectId", 0);
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không có quyền thao tác trong dự án này!")) {
             return;
         }
 
@@ -200,7 +163,7 @@ public class DocServlet extends HttpServlet {
         List<Doc> docs = DocDB.selectByProjectId(projectId);
 
         // 3. Xác định bài viết nào sẽ được mở đọc ở khung bên phải (selectedDoc)
-        int docId = safeParseInt(request.getParameter("docId"), 0);
+        int docId = intParam(request, "docId", 0);
         Doc selectedDoc = null;
 
         if (docId > 0) {
@@ -253,7 +216,7 @@ public class DocServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession(false);
-        int docId = safeParseInt(request.getParameter("docId"), 0);
+        int docId = intParam(request, "docId", 0);
 
         if (docId <= 0) {
             response.sendRedirect(request.getContextPath() + "/doc?action=list&projectId=" + projectId);
@@ -274,7 +237,7 @@ public class DocServlet extends HttpServlet {
             }
 
             // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả bài viết HOẶC PM dự án)
-            if (currentUser.getId() == doc.getAuthorId() || currentUser.getId() == project.getOwnerId()) {
+            if (ProjectAccess.isAuthorOrOwner(currentUser, doc.getAuthorId(), project)) {
                 TaskDocDB.deleteByDocId(docId);
                 DocDB.delete(docId);
                 if (session != null) {
@@ -347,7 +310,7 @@ public class DocServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int docId = safeParseInt(request.getParameter("docId"), 0);
+        int docId = intParam(request, "docId", 0);
         String title = request.getParameter("title");
         String content = request.getParameter("content");
 
@@ -369,7 +332,7 @@ public class DocServlet extends HttpServlet {
         }
 
         // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả bài viết HOẶC PM của dự án mới được sửa)
-        if (currentUser.getId() != existingDoc.getAuthorId() && currentUser.getId() != project.getOwnerId()) {
+        if (!ProjectAccess.isAuthorOrOwner(currentUser, existingDoc.getAuthorId(), project)) {
             if (session != null) {
                 session.setAttribute("toastError", "Bạn không có quyền chỉnh sửa tài liệu của người khác!");
             }

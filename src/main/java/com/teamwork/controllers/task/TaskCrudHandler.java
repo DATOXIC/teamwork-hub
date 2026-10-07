@@ -19,7 +19,6 @@ import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -36,6 +35,7 @@ import com.teamwork.business.ProjectInvite;
 import com.teamwork.business.ProjectMember;
 import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectInviteDB;
+import com.teamwork.controllers.ProjectAccess;
 import com.teamwork.data.ProjectMemberDB;
 import jakarta.servlet.http.HttpSession;
 import com.teamwork.business.UserWorkload;
@@ -60,7 +60,6 @@ import static com.teamwork.controllers.task.TaskWorkflowHandler.*;
 public final class TaskCrudHandler {
 
     private TaskCrudHandler() {}
-
 
     /**
      * Ba trạng thái DUY NHẤT mà thao tác kéo-thả / đổi trạng thái trên bảng Kanban được phép đặt.
@@ -521,7 +520,7 @@ public final class TaskCrudHandler {
             writeLabelJson(response, 401, null, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!");
             return;
         }
-        if (projectId <= 0 || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+        if (!ProjectAccess.isMember(currentUser, projectId)) {
             writeLabelJson(response, 403, null, "Bạn không có quyền thao tác trong dự án này!");
             return;
         }
@@ -563,7 +562,7 @@ public final class TaskCrudHandler {
         }
 
         User currentUser = getCurrentUser(request);
-        if (currentUser == null || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
+        if (currentUser == null || !ProjectAccess.isMember(currentUser, projectId)) {
             sendJsonResponse(response, false, "Bạn không có quyền thao tác trong dự án này!", null);
             return;
         }

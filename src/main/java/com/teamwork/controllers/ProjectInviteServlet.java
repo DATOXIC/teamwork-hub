@@ -13,7 +13,6 @@ import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -28,30 +27,16 @@ import java.time.format.DateTimeFormatter;
  * - Tự động dọn dẹp phân công công việc khi thành viên rời nhóm hoặc bị kick
  */
 @WebServlet("/invite")
-public class ProjectInviteServlet extends HttpServlet {
+public class ProjectInviteServlet extends BaseServlet {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
-    /**
-     * Tiện ích parse số nguyên an toàn, chống NumberFormatException
-     */
-    private int safeParseInt(String value, int defaultValue) {
-        if (value == null || value.trim().isEmpty()) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
@@ -72,7 +57,7 @@ public class ProjectInviteServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;
@@ -119,7 +104,7 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        int projectId = intParam(request, "projectId", 0);
         if (projectId <= 0) {
             // ▶ JSP: docs.jsp đọc bằng ${toastError}
             session.setAttribute("toastError", "Mã ID dự án không hợp lệ!");
@@ -142,7 +127,7 @@ public class ProjectInviteServlet extends HttpServlet {
         }
 
         // --- RÀO BẢO MẬT 1: QUYỀN HẠN (Chỉ PM mới có quyền mời) ---
-        if (project.getOwnerId() != currentUser.getId()) {
+        if (!ProjectAccess.isOwner(currentUser, project)) {
             session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có thẩm quyền gửi lời mời!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
@@ -253,14 +238,14 @@ public class ProjectInviteServlet extends HttpServlet {
         }
 
         // --- RÀO BẢO MẬT 2.A: CHỐNG XIN VÀO DỰ ÁN DO CHÍNH MÌNH LÀM CHỦ ---
-        if (project.getOwnerId() == currentUser.getId()) {
+        if (ProjectAccess.isOwner(currentUser, project)) {
             session.setAttribute("toastError", "Bạn chính là Trưởng Dự Án của dự án [" + project.getName() + "] rồi!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
 
         // --- RÀO BẢO MẬT 2.B: CHỐNG XIN VÀO KHI ĐÃ LÀ THÀNH VIÊN ---
-        if (ProjectMemberDB.isMember(project.getId(), currentUser.getId())) {
+        if (ProjectAccess.isMember(currentUser, project.getId())) {
             session.setAttribute("toastError", "Bạn đã là thành viên chính thức của dự án [" + project.getName() + "] rồi!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -319,7 +304,7 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int inviteId = safeParseInt(request.getParameter("inviteId"), 0);
+        int inviteId = intParam(request, "inviteId", 0);
         if (inviteId <= 0) {
             session.setAttribute("toastError", "Mã lời mời không hợp lệ!");
             response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -409,7 +394,7 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int inviteId = safeParseInt(request.getParameter("inviteId"), 0);
+        int inviteId = intParam(request, "inviteId", 0);
         if (inviteId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -455,7 +440,7 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int inviteId = safeParseInt(request.getParameter("inviteId"), 0);
+        int inviteId = intParam(request, "inviteId", 0);
         if (inviteId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -464,7 +449,7 @@ public class ProjectInviteServlet extends HttpServlet {
         ProjectInvite invite = ProjectInviteDB.selectById(inviteId);
         if (invite != null && "PENDING".equalsIgnoreCase(invite.getStatus())) {
             Project project = ProjectDB.selectById(invite.getProjectId());
-            if (project != null && project.getOwnerId() == currentUser.getId()) {
+            if (project != null && ProjectAccess.isOwner(currentUser, project)) {
                 ProjectInviteDB.updateStatus(inviteId, "REVOKED");
                 session.setAttribute("toastSuccess", "Đã thu hồi lời mời tham gia dự án thành công!");
                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + invite.getProjectId());
@@ -481,7 +466,7 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
+        int projectId = intParam(request, "projectId", 0);
         if (projectId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
@@ -495,16 +480,14 @@ public class ProjectInviteServlet extends HttpServlet {
         }
 
         // Ràng buộc bảo mật: Trưởng Dự Án (PM/Owner) không thể tự rời khỏi dự án của mình
-        if (project.getOwnerId() == currentUser.getId()) {
+        if (ProjectAccess.isOwner(currentUser, project)) {
             session.setAttribute("toastError", "Bạn là Trưởng Dự Án, không thể rời dự án của chính mình!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
 
         // Kiểm tra xem người dùng có thực sự là thành viên không
-        if (!ProjectMemberDB.isMember(projectId, currentUser.getId())) {
-            session.setAttribute("toastError", "Bạn không phải thành viên của dự án này!");
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
+        if (!requireMember(request, response, currentUser, projectId, "Bạn không phải thành viên của dự án này!")) {
             return;
         }
 
@@ -535,8 +518,8 @@ public class ProjectInviteServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession();
-        int projectId = safeParseInt(request.getParameter("projectId"), 0);
-        int targetUserId = safeParseInt(request.getParameter("userId"), 0);
+        int projectId = intParam(request, "projectId", 0);
+        int targetUserId = intParam(request, "userId", 0);
 
         if (projectId <= 0 || targetUserId <= 0) {
             response.sendRedirect(request.getContextPath() + "/project?action=list");
@@ -551,7 +534,7 @@ public class ProjectInviteServlet extends HttpServlet {
         }
 
         // Ràng buộc bảo mật: Chỉ Trưởng Dự Án (PM/Owner) mới có quyền mời rời thành viên
-        if (project.getOwnerId() != currentUser.getId()) {
+        if (!ProjectAccess.isOwner(currentUser, project)) {
             session.setAttribute("toastError", "Chỉ Trưởng Dự Án mới có quyền mời thành viên rời dự án!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;

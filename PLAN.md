@@ -289,7 +289,7 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 13 | [x] | Băm mật khẩu PBKDF2 + tự nâng cấp hash cũ; secret remember-me bắt buộc từ env, cookie `SameSite` | 1.10, 1.11 | Claude |
 | 14 | [x] | Giới hạn gửi OTP theo IP; thêm header bảo mật | 1.15, 1.16 | Claude |
 | — | | **Mốc kiểm tra:** chạy toàn bộ kịch bản demo với dữ liệu chứa `<script>`; đăng nhập bằng tài khoản thành viên thường để thử phân quyền | | Bạn + Claude |
-| 15 | [ ] | `BaseServlet` + kiểm tra quyền tập trung | 2.1 | Claude |
+| 15 | [x] | `BaseServlet` + kiểm tra quyền tập trung | 2.1 | Claude |
 | 16 | [ ] | Enum trạng thái + bảng chuyển trạng thái | 2.2 | Claude |
 | 17 | [ ] | Transaction cho thao tác nhiều bước | 2.3 | Claude |
 | 18 | [ ] | Sửa N+1 (hồ sơ, chat, CSV, danh sách dự án) | 2.8 | Claude |

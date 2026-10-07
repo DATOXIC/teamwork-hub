@@ -6,7 +6,6 @@ import com.teamwork.data.NotificationDB;
 import com.teamwork.util.RedirectUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -33,7 +32,7 @@ import java.io.IOException;
  * </ul>
  */
 @WebServlet("/notification")
-public class NotificationServlet extends HttpServlet {
+public class NotificationServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -53,7 +52,7 @@ public class NotificationServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = request.getSession(false);
-        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+        User currentUser = currentUser(request);
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/auth?action=login");
             return;

@@ -19,7 +19,6 @@ import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -36,8 +35,6 @@ import com.teamwork.business.ProjectInvite;
 import com.teamwork.business.ProjectMember;
 import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectInviteDB;
-import com.teamwork.data.ProjectMemberDB;
-import jakarta.servlet.http.HttpSession;
 import com.teamwork.business.UserWorkload;
 import com.teamwork.business.ActivityLog;
 import com.teamwork.data.ActivityLogDB;
@@ -45,6 +42,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import com.teamwork.controllers.BaseServlet;
+import com.teamwork.controllers.ProjectAccess;
+import com.teamwork.util.RequestUtil;
 import static com.teamwork.controllers.task.TaskJson.*;
 import static com.teamwork.controllers.task.TaskBoardHandler.*;
 import static com.teamwork.controllers.task.TaskCrudHandler.*;
@@ -61,36 +61,27 @@ public final class TaskAccess {
 
     private TaskAccess() {}
 
-
     // ==================== BỘ TIỆN ÍCH TRÍCH XUẤT & PHÂN QUYỀN CHUẨN BACKEND CODE MASTERY ====================
 
     /**
      * Lấy User hiện tại đang đăng nhập từ Session một cách an toàn (tránh tạo Session rác).
      */
     public static User getCurrentUser(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        return (session != null) ? (User) session.getAttribute("currentUser") : null;
+        return BaseServlet.currentUser(request);
     }
 
     /**
      * Phân tích chuỗi thành số nguyên an toàn, trả về defaultValue nếu null, rỗng hoặc sai định dạng.
      */
     public static int safeParseInt(String param, int defaultValue) {
-        if (param == null || param.trim().isEmpty()) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(param.trim());
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
+        return RequestUtil.parseInt(param, defaultValue);
     }
 
     /**
      * Kiểm tra xem người dùng có phải là Trưởng Dự Án (PM / Project Owner) không.
      */
     public static boolean isProjectOwner(User user, Project project) {
-        return user != null && project != null && user.getId() == project.getOwnerId();
+        return ProjectAccess.isOwner(user, project);
     }
 
     /**
