@@ -292,7 +292,7 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 15 | [x] | `BaseServlet` + kiểm tra quyền tập trung | 2.1 | Claude |
 | 16 | [x] | Enum trạng thái + bảng chuyển trạng thái | 2.2 | Claude |
 | 17 | [x] | Transaction cho thao tác nhiều bước | 2.3 | Claude |
-| 18 | [ ] | Sửa N+1 (hồ sơ, chat, CSV, danh sách dự án) | 2.8 | Claude |
+| 18 | [x] | Sửa N+1 (hồ sơ, chat, CSV, danh sách dự án) | 2.8 | Claude |
 | 19 | [ ] | Unit test phân quyền & workflow | 2.11 | Claude |
 | 20 | [ ] | Đóng EMF / thread pool khi tắt app; xử lý lỗi mạng chung `apiFetch()` | 2.7, 2.6 | Claude |
 | 21 | [ ] | Chia nhỏ `tasks.jsp` thành fragment | 2.10 | Claude |

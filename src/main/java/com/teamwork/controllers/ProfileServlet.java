@@ -1,8 +1,6 @@
 package com.teamwork.controllers;
 
 import com.teamwork.business.Project;
-import com.teamwork.business.SubTask;
-import com.teamwork.business.Task;
 import com.teamwork.business.User;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectMemberDB;
@@ -16,7 +14,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * ProfileServlet — Controller quản lý Hồ Sơ Cá Nhân Công Khai (/profile).
@@ -95,9 +95,14 @@ public class ProfileServlet extends BaseServlet {
         // 3b. Xem hồ sơ người khác: chỉ khi làm chung ít nhất 1 dự án, và chỉ hiện các dự án chung
         //     (không để người ngoài dò email / danh sách dự án của bất kỳ tài khoản nào qua ?userId=...)
         if (profileUser.getId() != currentUser.getId()) {
+            // 1 truy vấn lấy dự án của người xem, rồi giao 2 tập trên RAM (thay vì isMember cho từng dự án)
+            Set<Integer> myProjectIds = new HashSet<>();
+            for (Project p : ProjectMemberDB.selectProjectsByUserId(currentUser.getId())) {
+                myProjectIds.add(p.getId());
+            }
             List<Project> sharedProjects = new ArrayList<>();
             for (Project p : userProjects) {
-                if (ProjectAccess.isMember(currentUser, p.getId())) {
+                if (myProjectIds.contains(p.getId())) {
                     sharedProjects.add(p);
                 }
             }
@@ -109,42 +114,23 @@ public class ProfileServlet extends BaseServlet {
             userProjects = sharedProjects;
         }
 
-        // 4. THUẬT TOÁN TÍNH CHỈ SỐ NĂNG SUẤT REAL-TIME (DỮ LIỆU KHÁCH QUAN)
-        int leadTaskCount = 0;
-        int totalSubTasks = 0;
-        int completedSubTasks = 0;
-
-        List<Task> allTasks = TaskDB.selectAll();
-        for (Task t : allTasks) {
-            // Đếm số Task lớn làm Lead
-            if (t.getAssigneeId() == profileUser.getId()) {
-                leadTaskCount++;
-            }
-            // Đếm số Việc con được giao & đã hoàn thành
-            List<SubTask> subs = SubTaskDB.selectByTaskId(t.getId());
-            for (SubTask st : subs) {
-                if (st.getAssigneeId() == profileUser.getId()) {
-                    totalSubTasks++;
-                    if (st.isCompleted()) {
-                        completedSubTasks++;
-                    }
-                }
-            }
+        // 4. CHỈ SỐ NĂNG SUẤT — chỉ tính trong các dự án đang hiển thị (của chính mình, hoặc dự án chung khi xem người khác).
+        //    2 câu COUNT thay cho việc nạp MỌI task của hệ thống + 1 truy vấn việc con cho từng task (N+1).
+        List<Integer> visibleProjectIds = new ArrayList<>();
+        for (Project p : userProjects) {
+            visibleProjectIds.add(p.getId());
         }
+        int leadTaskCount = TaskDB.countLeadTasks(profileUser.getId(), visibleProjectIds);
+        int[] subStats = SubTaskDB.countAssigned(profileUser.getId(), visibleProjectIds);
+        int totalSubTasks = subStats[0];
+        int completedSubTasks = subStats[1];
 
         int completionRate = (totalSubTasks > 0) ? (int) Math.round((completedSubTasks * 100.0) / totalSubTasks) : 100;
 
         // 5. Nếu người xem là PM, gom danh sách Dự án của PM mà người này CHƯA THAM GIA (cho nút Mời nhanh)
         List<Project> availableProjectsToInvite = new ArrayList<>();
         if (currentUser.getId() != profileUser.getId()) {
-            List<Project> allProjects = ProjectDB.selectAll();
-            for (Project p : allProjects) {
-                if (ProjectAccess.isOwner(currentUser, p)) {
-                    if (!ProjectMemberDB.isMember(p.getId(), profileUser.getId())) {
-                        availableProjectsToInvite.add(p);
-                    }
-                }
-            }
+            availableProjectsToInvite = ProjectDB.selectOwnedWithoutMember(currentUser.getId(), profileUser.getId());
         }
 
         // 6. Xử lý Flash Message (Toast)

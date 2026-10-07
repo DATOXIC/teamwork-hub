@@ -161,9 +161,14 @@ public class ProjectServlet extends BaseServlet {
         request.setAttribute("kpiDoneTasks", kpiDoneTasks);
 
         // 3. TÍNH TOÁN SỐ LƯỢNG THÀNH VIÊN CHO TỪNG DỰ ÁN
-        Map<Integer, Integer> memberCountMap = new HashMap<>();
+        // Một câu GROUP BY cho mọi dự án (trước đây: 1 câu COUNT cho từng dự án)
+        List<Integer> myProjectIds = new ArrayList<>();
         for (Project p : myProjects) {
-            memberCountMap.put(p.getId(), ProjectMemberDB.countMembers(p.getId()));
+            myProjectIds.add(p.getId());
+        }
+        Map<Integer, Integer> memberCountMap = new HashMap<>(ProjectMemberDB.countMembersByProject(myProjectIds));
+        for (Integer id : myProjectIds) {
+            memberCountMap.putIfAbsent(id, 0);
         }
         // ▶ JSP: projects.jsp đọc bằng ${memberCountMap}
         request.setAttribute("memberCountMap", memberCountMap);

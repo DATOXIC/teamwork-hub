@@ -8,7 +8,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,31 +69,7 @@ public class ProjectMemberDB {
      * Hàm 2: Lấy tất cả các Dự án mà một người dùng đang tham gia
      */
     public static List<Project> selectProjectsByUserId(int userId) {
-        if (userId <= 0) return new ArrayList<>();
-
-        EntityManager em = JPAUtil.getEntityManager();
-        try {
-            TypedQuery<Integer> query = em.createQuery(
-                "SELECT pm.projectId FROM ProjectMember pm WHERE pm.userId = :userId ORDER BY pm.projectId ASC",
-                Integer.class
-            );
-            query.setParameter("userId", userId);
-            List<Integer> projectIds = query.getResultList();
-
-            List<Project> result = new ArrayList<>();
-            for (Integer pId : projectIds) {
-                Project p = ProjectDB.selectById(pId);
-                if (p != null) {
-                    result.add(p);
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Lỗi khi lấy danh sách Project của User ID qua JPA: " + userId, e);
-            return new ArrayList<>();
-        } finally {
-            JPAUtil.closeEntityManager(em);
-        }
+        return ProjectDB.selectByMember(userId); // 2 câu truy vấn thay vì 3 câu × số dự án
     }
 
     /**
@@ -133,6 +112,32 @@ public class ProjectMemberDB {
         } finally {
             JPAUtil.closeEntityManager(em);
         }
+    }
+
+    /**
+     * Hàm 4b: Đếm thành viên cho NHIỀU dự án bằng một câu GROUP BY (dùng cho thẻ dự án ở trang danh sách).
+     * Dự án không có trong kết quả nghĩa là 0 thành viên.
+     */
+    public static Map<Integer, Integer> countMembersByProject(Collection<Integer> projectIds) {
+        Map<Integer, Integer> result = new HashMap<>();
+        if (projectIds == null || projectIds.isEmpty()) return result;
+
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Object[]> rows = em.createQuery(
+                "SELECT pm.projectId, COUNT(pm) FROM ProjectMember pm WHERE pm.projectId IN :ids GROUP BY pm.projectId",
+                Object[].class)
+                .setParameter("ids", projectIds)
+                .getResultList();
+            for (Object[] r : rows) {
+                result.put(((Number) r[0]).intValue(), ((Number) r[1]).intValue());
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi đếm thành viên theo danh sách dự án", e);
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+        return result;
     }
 
     /**

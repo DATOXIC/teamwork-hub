@@ -447,6 +447,28 @@ public class TaskDB {
     }
 
     /**
+     * Số Task lớn mà một người làm Task Lead, chỉ tính trong các dự án cho trước (trang hồ sơ).
+     * Một câu COUNT thay cho việc nạp mọi task của hệ thống rồi đếm trên RAM.
+     */
+    public static int countLeadTasks(int userId, java.util.Collection<Integer> projectIds) {
+        if (userId <= 0 || projectIds == null || projectIds.isEmpty()) return 0;
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long n = em.createQuery(
+                "SELECT COUNT(t) FROM Task t WHERE t.assigneeId = :uid AND t.projectId IN :pids", Long.class)
+                .setParameter("uid", userId)
+                .setParameter("pids", projectIds)
+                .getSingleResult();
+            return n != null ? n.intValue() : 0;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi đếm task lead của User ID: " + userId, e);
+            return 0;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
      * HÀM 15b: Xóa task CÙNG dữ liệu con (liên kết tài liệu, việc con, bình luận) trong MỘT transaction.
      * Lỗi giữa chừng → rollback hết, không còn việc con / bình luận mồ côi trỏ tới task đã mất.
      */

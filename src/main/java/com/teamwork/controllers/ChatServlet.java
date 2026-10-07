@@ -209,13 +209,12 @@ public class ChatServlet extends BaseServlet {
 
         // 5. Lấy danh sách thành viên thực tế của dự án này (phục vụ danh sách thành viên và gợi ý @mention)
         List<ProjectMember> memberList = ProjectMemberDB.selectByProjectId(projectId);
-        List<User> userList = new ArrayList<>();
+        // Một câu IN (...) cho cả nhóm thay vì selectById cho từng thành viên
+        List<Integer> memberIds = new ArrayList<>();
         for (ProjectMember pm : memberList) {
-            User u = UserDB.selectById(pm.getUserId());
-            if (u != null) {
-                userList.add(u);
-            }
+            memberIds.add(pm.getUserId());
         }
+        List<User> userList = UserDB.selectByIds(memberIds);
 
         // 6. Đóng gói toàn bộ vào Request Scope
         // ▶ JSP: tasks.jsp, command_palette.jsp, project_report.jsp đọc bằng ${project}

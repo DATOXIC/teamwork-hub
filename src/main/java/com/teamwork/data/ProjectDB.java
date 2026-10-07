@@ -5,7 +5,9 @@ import com.teamwork.business.ProjectMember;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +46,81 @@ public class ProjectDB {
     }
 
     /**
+     * Thống kê task cho NHIỀU dự án bằng MỘT câu GROUP BY (thay vì 2 câu COUNT cho mỗi dự án).
+     */
+    private static void populateTaskStats(EntityManager em, List<Project> projects) {
+        if (projects == null || projects.isEmpty()) return;
+        Map<Integer, Project> byId = new HashMap<>();
+        for (Project p : projects) {
+            p.setTotalTasks(0);
+            p.setDoneTasks(0);
+            byId.put(p.getId(), p);
+        }
+        try {
+            List<Object[]> rows = em.createQuery(
+                "SELECT t.projectId, COUNT(t), "
+                + "SUM(CASE WHEN t.status IN ('DONE', 'APPROVED') THEN 1 ELSE 0 END) "
+                + "FROM Task t WHERE t.projectId IN :ids GROUP BY t.projectId", Object[].class)
+                .setParameter("ids", byId.keySet())
+                .getResultList();
+            for (Object[] r : rows) {
+                Project p = byId.get(((Number) r[0]).intValue());
+                if (p != null) {
+                    p.setTotalTasks(((Number) r[1]).intValue());
+                    p.setDoneTasks(r[2] != null ? ((Number) r[2]).intValue() : 0);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Không thể tính thống kê task cho danh sách dự án", e);
+        }
+    }
+
+    /**
+     * Các dự án mà một người đang tham gia: 1 câu lấy dự án + 1 câu thống kê
+     * (trước đây: mỗi dự án mở một kết nối và chạy 3 câu riêng).
+     */
+    public static List<Project> selectByMember(int userId) {
+        if (userId <= 0) return new ArrayList<>();
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            List<Project> list = em.createQuery(
+                "SELECT p FROM Project p WHERE p.id IN "
+                + "(SELECT pm.projectId FROM ProjectMember pm WHERE pm.userId = :uid) ORDER BY p.id ASC", Project.class)
+                .setParameter("uid", userId)
+                .getResultList();
+            populateTaskStats(em, list);
+            return list;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy dự án của User ID: " + userId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
+     * Dự án do {@code ownerId} làm PM mà {@code userId} CHƯA tham gia (gợi ý "Mời vào dự án" ở trang hồ sơ).
+     */
+    public static List<Project> selectOwnedWithoutMember(int ownerId, int userId) {
+        if (ownerId <= 0 || userId <= 0) return new ArrayList<>();
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT p FROM Project p WHERE p.ownerId = :owner AND NOT EXISTS "
+                + "(SELECT pm FROM ProjectMember pm WHERE pm.projectId = p.id AND pm.userId = :uid) ORDER BY p.id ASC",
+                Project.class)
+                .setParameter("owner", ownerId)
+                .setParameter("uid", userId)
+                .getResultList();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy dự án có thể mời User ID: " + userId, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
      * Hàm 1: Lấy toàn bộ danh sách dự án bằng JPQL
      */
     public static List<Project> selectAll() {
@@ -51,9 +128,7 @@ public class ProjectDB {
         try {
             List<Project> list = em.createQuery("SELECT p FROM Project p ORDER BY p.id ASC", Project.class)
                 .getResultList();
-            for (Project p : list) {
-                populateTaskStats(em, p);
-            }
+            populateTaskStats(em, list);
             return list;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi lấy toàn bộ danh sách Project qua JPA", e);

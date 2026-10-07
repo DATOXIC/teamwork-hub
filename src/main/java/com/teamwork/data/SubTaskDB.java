@@ -445,6 +445,32 @@ public class SubTaskDB {
     }
 
     /**
+     * Thống kê việc con được giao cho một người trong các dự án cho trước (trang hồ sơ):
+     * trả về {tổng số, số đã xong (DONE/APPROVED)} bằng MỘT câu truy vấn.
+     */
+    public static int[] countAssigned(int userId, java.util.Collection<Integer> projectIds) {
+        if (userId <= 0 || projectIds == null || projectIds.isEmpty()) return new int[] {0, 0};
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Object[] r = em.createQuery(
+                "SELECT COUNT(st), SUM(CASE WHEN st.status IN ('DONE', 'APPROVED') THEN 1 ELSE 0 END) "
+                + "FROM SubTask st WHERE st.assigneeId = :uid "
+                + "AND st.taskId IN (SELECT t.id FROM Task t WHERE t.projectId IN :pids)", Object[].class)
+                .setParameter("uid", userId)
+                .setParameter("pids", projectIds)
+                .getSingleResult();
+            int total = r[0] != null ? ((Number) r[0]).intValue() : 0;
+            int done = r[1] != null ? ((Number) r[1]).intValue() : 0;
+            return new int[] {total, done};
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi thống kê việc con của User ID: " + userId, e);
+            return new int[] {0, 0};
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
      * HÀM BATCH: Lấy toàn bộ subtasks của TẤT CẢ các task trong một Project trong 1 câu JPQL duy nhất!
      */
     public static List<SubTask> selectByProjectId(int projectId) {

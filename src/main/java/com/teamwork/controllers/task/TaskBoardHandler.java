@@ -383,6 +383,11 @@ public final class TaskBoardHandler {
                 : ("project-" + projectId);
 
         List<Task> taskList = TaskDB.selectByProjectId(projectId);
+        // Toàn bộ việc con của dự án trong 1 câu, gom theo task (trước đây: 1 truy vấn cho mỗi task)
+        Map<Integer, List<SubTask>> subsByTask = new HashMap<>();
+        for (SubTask st : SubTaskDB.selectByProjectId(projectId)) {
+            subsByTask.computeIfAbsent(st.getTaskId(), k -> new ArrayList<>()).add(st);
+        }
 
         response.setContentType("text/csv; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
@@ -399,7 +404,7 @@ public final class TaskBoardHandler {
         writer.println("Mã công việc,Tiêu đề công việc,Mô tả tóm tắt,Trạng thái,Mức ưu tiên,Người phụ trách,Hạn chót,Số nhiệm vụ,Tiến độ hoàn thành (%),Ngày nộp bàn giao,Ngày duyệt");
 
         for (Task t : taskList) {
-            List<SubTask> subs = SubTaskDB.selectByTaskId(t.getId());
+            List<SubTask> subs = subsByTask.get(t.getId());
             int subCount = (subs != null) ? subs.size() : 0;
             int doneSubs = 0;
             if (subs != null) {
