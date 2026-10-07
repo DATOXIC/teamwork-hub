@@ -12,6 +12,16 @@
         <session-timeout>30</session-timeout>
     </session-config>
 
+    <!-- HEADER BẢO MẬT (khai báo ĐẦU TIÊN để áp cho mọi response, kể cả redirect của các filter sau) -->
+    <filter>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <filter-class>com.teamwork.filters.SecurityHeadersFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SecurityHeadersFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- CẤU HÌNH FILTER BẢO MẬT TẬP TRUNG -->
     <filter>
         <filter-name>AuthFilter</filter-name>

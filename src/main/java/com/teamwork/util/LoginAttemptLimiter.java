@@ -27,6 +27,22 @@ public class LoginAttemptLimiter {
 
     private final ConcurrentHashMap<String, Entry> entries = new ConcurrentHashMap<>();
 
+    private final int maxFails;
+    private final long lockMs;
+    private final long windowMs;
+
+    /** Ngưỡng mặc định cho đăng nhập: {@value #MAX_FAILS} lần sai / 15 phút → khóa 5 phút. */
+    public LoginAttemptLimiter() {
+        this(MAX_FAILS, LOCK_MS, WINDOW_MS);
+    }
+
+    /** Ngưỡng tùy chỉnh (vd. giới hạn số lần gửi OTP quên mật khẩu). */
+    public LoginAttemptLimiter(int maxFails, long lockMs, long windowMs) {
+        this.maxFails = maxFails;
+        this.lockMs = lockMs;
+        this.windowMs = windowMs;
+    }
+
     /** Khóa theo username (không phân biệt hoa thường) và địa chỉ IP. */
     public static String key(String username, String ip) {
         String u = username == null ? "" : username.trim().toLowerCase();
@@ -52,14 +68,14 @@ public class LoginAttemptLimiter {
         }
         Entry e = entries.computeIfAbsent(key, k -> new Entry());
         synchronized (e) {
-            if (now - e.lastFailAt > WINDOW_MS || (e.lockedUntil != 0 && now >= e.lockedUntil)) {
+            if (now - e.lastFailAt > windowMs || (e.lockedUntil != 0 && now >= e.lockedUntil)) {
                 e.fails = 0; // hết cửa sổ hoặc đã hết khóa → đếm lại
                 e.lockedUntil = 0;
             }
             e.fails++;
             e.lastFailAt = now;
-            if (e.fails >= MAX_FAILS) {
-                e.lockedUntil = now + LOCK_MS;
+            if (e.fails >= maxFails) {
+                e.lockedUntil = now + lockMs;
                 return true;
             }
             return false;
@@ -72,7 +88,7 @@ public class LoginAttemptLimiter {
     }
 
     private void purge(long now) {
-        entries.entrySet().removeIf(en -> now - en.getValue().lastFailAt > WINDOW_MS
+        entries.entrySet().removeIf(en -> now - en.getValue().lastFailAt > windowMs
                 && now >= en.getValue().lockedUntil);
     }
 }

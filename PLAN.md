@@ -287,7 +287,7 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 11 | [x] | Ẩn dữ liệu ngoài phạm vi (chỉ hiện dự án của tôi, bỏ danh sách mọi user, kiểm `docIds`) | 1.13 | Claude |
 | 12 | [x] | Chặn open redirect | 1.12 | Claude |
 | 13 | [x] | Băm mật khẩu PBKDF2 + tự nâng cấp hash cũ; secret remember-me bắt buộc từ env, cookie `SameSite` | 1.10, 1.11 | Claude |
-| 14 | [ ] | Giới hạn gửi OTP theo IP; thêm header bảo mật | 1.15, 1.16 | Claude |
+| 14 | [x] | Giới hạn gửi OTP theo IP; thêm header bảo mật | 1.15, 1.16 | Claude |
 | — | | **Mốc kiểm tra:** chạy toàn bộ kịch bản demo với dữ liệu chứa `<script>`; đăng nhập bằng tài khoản thành viên thường để thử phân quyền | | Bạn + Claude |
 | 15 | [ ] | `BaseServlet` + kiểm tra quyền tập trung | 2.1 | Claude |
 | 16 | [ ] | Enum trạng thái + bảng chuyển trạng thái | 2.2 | Claude |

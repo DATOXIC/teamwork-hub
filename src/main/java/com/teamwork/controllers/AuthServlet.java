@@ -58,6 +58,12 @@ public class AuthServlet extends HttpServlet {
     /** Bộ giới hạn đăng nhập sai dùng chung cho toàn ứng dụng */
     private static final LoginAttemptLimiter LOGIN_LIMITER = new LoginAttemptLimiter();
 
+    // Giới hạn gửi email OTP: 3 lần / 15 phút cho mỗi tài khoản (chống spam hộp thư nạn nhân),
+    // 20 lần / 15 phút cho mỗi IP (cao hơn vì sau proxy như Render nhiều người có thể chung 1 IP)
+    private static final long OTP_WINDOW_MS = 15 * 60 * 1000L;
+    private static final LoginAttemptLimiter OTP_USER_LIMITER = new LoginAttemptLimiter(3, OTP_WINDOW_MS, OTP_WINDOW_MS);
+    private static final LoginAttemptLimiter OTP_IP_LIMITER = new LoginAttemptLimiter(20, OTP_WINDOW_MS, OTP_WINDOW_MS);
+
     /** Khóa Session lưu trạng thái OTP quên mật khẩu */
     private static final String SESSION_OTP = "pwResetChallenge";
     private static final String SESSION_OTP_USER = "pwResetUsername";
@@ -494,6 +500,23 @@ public class AuthServlet extends HttpServlet {
             forwardForgot(request, response, 2);
             return;
         }
+
+        // Chống spam email trên nhiều session: giới hạn theo tài khoản và theo IP (đếm cả khi tài khoản
+        // không tồn tại để bộ đếm không làm lộ tài khoản nào có thật)
+        String otpUserKey = "otp-user|" + username.toLowerCase();
+        String otpIpKey = "otp-ip|" + request.getRemoteAddr();
+        long otpLocked = Math.max(OTP_USER_LIMITER.lockedSeconds(otpUserKey, now),
+                OTP_IP_LIMITER.lockedSeconds(otpIpKey, now));
+        if (otpLocked > 0) {
+            LOGGER.warning("Chặn gửi OTP do vượt giới hạn: user=" + logSafe(username) + " ip=" + request.getRemoteAddr());
+            request.setAttribute("forgotUsername", username);
+            request.setAttribute("forgotError", "Bạn đã yêu cầu mã quá nhiều lần. Vui lòng thử lại sau "
+                    + ((otpLocked + 59) / 60) + " phút!");
+            forwardForgot(request, response, 1);
+            return;
+        }
+        OTP_USER_LIMITER.recordFailure(otpUserKey, now);
+        OTP_IP_LIMITER.recordFailure(otpIpKey, now);
 
         User user = UserDB.selectByUsername(username);
         boolean deliverable = user != null && user.getEmail() != null && !user.getEmail().trim().isEmpty();

@@ -66,4 +66,16 @@ class LoginAttemptLimiterTest {
         assertEquals(0, l.lockedSeconds(LoginAttemptLimiter.key("admin", "9.9.9.9"), T0));
         assertEquals(0, l.lockedSeconds(LoginAttemptLimiter.key("bob", "1.2.3.4"), T0));
     }
+
+    @Test
+    void customThresholdsForOtpSending() {
+        // Giống cấu hình OTP trong AuthServlet: 3 lần / 15 phút, khóa 15 phút
+        long fifteenMin = 15 * 60 * 1000L;
+        LoginAttemptLimiter otp = new LoginAttemptLimiter(3, fifteenMin, fifteenMin);
+        assertFalse(otp.recordFailure("otp-user|an", T0));
+        assertFalse(otp.recordFailure("otp-user|an", T0 + 1));
+        assertTrue(otp.recordFailure("otp-user|an", T0 + 2), "lần thứ 3 → khóa");
+        assertEquals(15 * 60, otp.lockedSeconds("otp-user|an", T0 + 2));
+        assertEquals(0, otp.lockedSeconds("otp-user|an", T0 + 2 + fifteenMin));
+    }
 }
