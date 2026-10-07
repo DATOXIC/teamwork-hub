@@ -1,0 +1,26 @@
+# Chạy toàn bộ unit test (không cần DB) mỗi khi push hoặc mở Pull Request vào main.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build và chạy unit test
+        run: mvn -B test

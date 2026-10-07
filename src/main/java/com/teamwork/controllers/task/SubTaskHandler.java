@@ -128,7 +128,7 @@ public final class SubTaskHandler {
         // KIỂM SOÁT THẨM QUYỀN & KHÓA PHẠM VI (SCOPE LOCK):
         // 1. Chỉ Task Lead của chính Task này HOẶC Trưởng Dự Án mới được thêm việc con.
         // 2. Chỉ được thêm việc con khi Task đang ở trạng thái TODO (Giai đoạn Lập Kế Hoạch). Khi đã trình PM hoặc đã khóa thì không được thêm tự do.
-        if (isTaskLead(currentUser, parentTask) || isProjectOwner(currentUser, project)) {
+        if (canPlanSubTasks(currentUser, parentTask, project)) {
             // Cho phép thêm việc con khi Task đang ở TODO hoặc IN_PROGRESS (phục vụ phát sinh việc con)
             // Khóa lại khi Task đã nộp nghiệm thu (SUBMITTED, REVISE, REJECTED, DONE)
             if (!TaskStatus.allowsNewSubTasks(parentTask.getStatus())) {
@@ -378,7 +378,7 @@ public final class SubTaskHandler {
                 }
 
                 // KIỂM SOÁT THẨM QUYỀN: Chỉ Task Lead của chính Task này HOẶC Trưởng Dự Án mới được xóa việc con
-                if (isTaskLead(currentUser, parentTask) || isProjectOwner(currentUser, project)) {
+                if (canPlanSubTasks(currentUser, parentTask, project)) {
                     SubTaskDB.delete(subTaskId);
                     if (session != null) session.setAttribute("toastSuccess", "Đã xóa nhiệm vụ khỏi kế hoạch phân rã!");
                 } else {
@@ -434,7 +434,7 @@ public final class SubTaskHandler {
         }
 
         // Kiểm tra thẩm quyền: PM hoặc Task Lead của parentTask
-        if (!isProjectOwner(currentUser, project) && !isTaskLead(currentUser, parentTask)) {
+        if (!canPlanSubTasks(currentUser, parentTask, project)) {
             if (session != null) session.setAttribute("toastError", "Chỉ Trưởng Dự Án hoặc trưởng nhóm công việc mới có quyền sửa nhiệm vụ!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
@@ -507,10 +507,7 @@ public final class SubTaskHandler {
                 // KIỂM SOÁT THẨM QUYỀN NGHIỆM THU TẦNG 1:
                 // 1. Nếu việc con đã gán cho ai (assigneeId > 0): CHỈ chính thành viên đó mới được nộp kết quả.
                 // 2. Nếu việc con chưa gán cho ai (assigneeId == 0): Task Lead hoặc PM có thể nộp.
-                boolean isAssignedMember = isSubTaskAssignee(currentUser, st);
-                boolean isUnassignedAndLeadOrOwner = (st.getAssigneeId() == 0 && (isTaskLead(currentUser, parentTask) || isProjectOwner(currentUser, project)));
-
-                if (isAssignedMember || isUnassignedAndLeadOrOwner) {
+                if (canSubmitSubTask(currentUser, st, parentTask, project)) {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                     String now = LocalDateTime.now().format(formatter);
 
@@ -762,7 +759,7 @@ public final class SubTaskHandler {
             return;
         }
 
-        if (!isTaskLead(currentUser, parentTask) && !isProjectOwner(currentUser, project)) {
+        if (!canPlanSubTasks(currentUser, parentTask, project)) {
             sendJsonResponse(response, false, "Bạn không có quyền phân rã nhiệm vụ cho công việc này!", null);
             return;
         }

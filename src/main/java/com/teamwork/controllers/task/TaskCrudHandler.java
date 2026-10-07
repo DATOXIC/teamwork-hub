@@ -87,7 +87,7 @@ public final class TaskCrudHandler {
         HttpSession session = request.getSession(false);
 
         // Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo và giao công việc
-        if (!isProjectOwner(getCurrentUser(request), ProjectDB.selectById(projectId))) {
+        if (!canCreateTask(getCurrentUser(request), ProjectDB.selectById(projectId))) {
             if (session != null) {
                 session.setAttribute("toastError", "Chỉ Trưởng dự án mới được tạo và giao công việc!");
             }
@@ -255,10 +255,7 @@ public final class TaskCrudHandler {
                 // doPost() chỉ chặn tới mức "có phải thành viên dự án không", chưa xét quyền trên task.
                 // Quy ước lấy theo handleEditTask và handleDeleteTask: PM hoặc Task Lead của chính task đó.
                 User currentUser = getCurrentUser(request);
-                boolean isPm = isProjectOwner(currentUser, currentPrj);
-                boolean isLead = isTaskLead(currentUser, task);
-
-                if (!isPm && !isLead) {
+                if (!canManageTask(currentUser, task, currentPrj)) {
                     String errMsg = "Bạn không có quyền đổi trạng thái công việc [" + task.getTitle()
                             + "]! Chỉ Người phụ trách hoặc Trưởng Dự Án mới được phép.";
                     if (isAjax) {
@@ -445,10 +442,7 @@ public final class TaskCrudHandler {
         }
 
         // Kiểm tra thẩm quyền: PM hoặc Task Lead của task này
-        boolean isPm = isProjectOwner(currentUser, project);
-        boolean isLead = isTaskLead(currentUser, task);
-
-        if (!isPm && !isLead) {
+        if (!canManageTask(currentUser, task, project)) {
             if (session != null) session.setAttribute("toastError", "Bạn không có quyền chỉnh sửa thông tin công việc này!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
@@ -475,7 +469,7 @@ public final class TaskCrudHandler {
             task.setRequiresGate(false);
         } else {
             // Chỉ PM mới được đổi người phụ trách (assigneeId)
-            if (isPm && assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
+            if (canCreateTask(currentUser, project) && assigneeIdParam != null && !assigneeIdParam.trim().isEmpty()) {
                 int newAssigneeId = safeParseInt(assigneeIdParam, 0);
                 if (newAssigneeId > 0 && newAssigneeId != task.getAssigneeId() && ProjectMemberDB.isMember(projectId, newAssigneeId)) {
                     User newAssignee = UserDB.selectById(newAssigneeId);
@@ -498,7 +492,7 @@ public final class TaskCrudHandler {
             // Cập nhật chế độ Quality Gate nếu form có gửi cờ điều khiển
             // Chỉ PM được bật/tắt cổng duyệt; Task Lead không được tự bỏ qua bước duyệt của PM
             String hasControl = request.getParameter("hasRequiresGateControl");
-            if (isPm && hasControl != null && !hasControl.trim().isEmpty()) {
+            if (canToggleGate(currentUser, project) && hasControl != null && !hasControl.trim().isEmpty()) {
                 String reqGateParam = request.getParameter("requiresGate");
                 task.setRequiresGate("true".equalsIgnoreCase(reqGateParam) || "on".equalsIgnoreCase(reqGateParam) || "1".equals(reqGateParam));
             }
@@ -580,7 +574,7 @@ public final class TaskCrudHandler {
             return;
         }
         // Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo và giao công việc
-        if (!isProjectOwner(currentUser, ProjectDB.selectById(projectId))) {
+        if (!canCreateTask(currentUser, ProjectDB.selectById(projectId))) {
             sendJsonResponse(response, false, "Chỉ Trưởng dự án mới được tạo và giao công việc!", null);
             return;
         }

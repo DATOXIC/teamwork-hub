@@ -349,7 +349,7 @@ public final class TaskBoardHandler {
             Task task = TaskDB.selectById(taskId);
             Project project = ProjectDB.selectById(projectId);
 
-            if (task != null && task.getProjectId() == projectId && (isTaskLead(currentUser, task) || isProjectOwner(currentUser, project)))
+            if (task != null && task.getProjectId() == projectId && canManageTask(currentUser, task, project))
             {
                 // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG ĐƯỢC XÓA TASK ĐÃ DONE ĐỂ BẢO VỆ DỮ LIỆU & AUDIT LOG
                 if (TaskStatus.DONE.is(task.getStatus())) {

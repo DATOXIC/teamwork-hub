@@ -1,5 +1,6 @@
 package com.teamwork.controllers;
 
+import com.teamwork.controllers.task.TaskAccess;
 import com.teamwork.business.SubTaskStatus;
 import com.teamwork.business.TaskStatus;
 import com.teamwork.business.ActivityLog;
@@ -276,9 +277,7 @@ public class TimelineServlet extends BaseServlet {
         }
 
         // Chỉ Trưởng dự án hoặc người phụ trách (Task Lead) được đổi hạn chót
-        boolean isPm = ProjectAccess.isOwner(currentUser, project);
-        boolean isLead = task.getAssigneeId() > 0 && task.getAssigneeId() == currentUser.getId();
-        if (!isPm && !isLead) {
+        if (!TaskAccess.canManageTask(currentUser, task, project)) {
             respondJsonOrRedirect(request, response, false,
                     "Chỉ Trưởng dự án hoặc người phụ trách công việc mới được đổi hạn chót!", projectId);
             return;
@@ -332,7 +331,7 @@ public class TimelineServlet extends BaseServlet {
         String description = request.getParameter("description");
 
         // Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo và giao công việc
-        if (!ProjectAccess.isOwner(currentUser, project)) {
+        if (!TaskAccess.canCreateTask(currentUser, project)) {
             respondJsonOrRedirect(request, response, false, "Chỉ Trưởng dự án mới được tạo và giao công việc!", projectId);
             return;
         }

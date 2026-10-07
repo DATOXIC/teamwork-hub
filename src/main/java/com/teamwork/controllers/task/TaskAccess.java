@@ -106,4 +106,58 @@ public final class TaskAccess {
     public static boolean canReviewSubTask(User user, Task parentTask, Project project) {
         return isTaskLead(user, parentTask) || (parentTask != null && parentTask.getAssigneeId() == 0 && isProjectOwner(user, project));
     }
+
+    // ==================== MA TRẬN PHÂN QUYỀN /task ====================
+    // Mỗi thao tác một hàm có tên rõ ràng; handler chỉ gọi hàm này. Bảng đầy đủ + test: TaskPermissionMatrixTest.
+    //
+    //  Thao tác                          | PM | Task Lead | Người làm việc con | Thành viên khác
+    //  ----------------------------------+----+-----------+--------------------+----------------
+    //  Tạo / giao công việc              | ✔  |           |                    |
+    //  Bật/tắt cổng duyệt (requiresGate) | ✔  |           |                    |
+    //  Duyệt kế hoạch, nghiệm thu task   | ✔  |           |                    |
+    //  Sửa / xóa / đổi trạng thái task   | ✔  |    ✔      |                    |
+    //  Đổi hạn chót                      | ✔  |    ✔      |                    |
+    //  Thêm / sửa / xóa việc con         | ✔  |    ✔      |                    |
+    //  Gửi duyệt kế hoạch, nộp bàn giao  | ✔* |    ✔      |                    |
+    //  Duyệt việc con                    | ✔* |    ✔      |                    |
+    //  Tick hoàn thành việc con          | ✔  |    ✔      |        ✔           |
+    //  Nộp kết quả việc con              | ✔**|    ✔**    |        ✔           |
+    //  (*) chỉ khi task chưa có Task Lead   (**) chỉ khi việc con chưa giao cho ai
+
+    /** Tạo công việc mới và giao cho thành viên: chỉ PM. */
+    public static boolean canCreateTask(User user, Project project) {
+        return isProjectOwner(user, project);
+    }
+
+    /** Bật/tắt cổng duyệt chất lượng của một task: chỉ PM (Task Lead không được tự bỏ bước PM duyệt). */
+    public static boolean canToggleGate(User user, Project project) {
+        return isProjectOwner(user, project);
+    }
+
+    /** Duyệt / trả lại kế hoạch và nghiệm thu / trả sửa / từ chối bàn giao của task: chỉ PM. */
+    public static boolean canPmReview(User user, Project project) {
+        return isProjectOwner(user, project);
+    }
+
+    /** Sửa thông tin, xóa, kéo thả đổi trạng thái, đổi hạn chót của task: PM hoặc Task Lead của task đó. */
+    public static boolean canManageTask(User user, Task task, Project project) {
+        return isProjectOwner(user, project) || isTaskLead(user, task);
+    }
+
+    /** Thêm / sửa / xóa việc con trong kế hoạch: PM hoặc Task Lead của task cha. */
+    public static boolean canPlanSubTasks(User user, Task parentTask, Project project) {
+        return canManageTask(user, parentTask, project);
+    }
+
+    /** Gửi duyệt kế hoạch / nộp bàn giao task lên PM: Task Lead (hoặc PM nếu task chưa có lead). */
+    public static boolean canSubmitTask(User user, Task task, Project project) {
+        return canReviewSubTask(user, task, project);
+    }
+
+    /** Nộp kết quả việc con: người được giao; nếu chưa giao cho ai thì Task Lead hoặc PM. */
+    public static boolean canSubmitSubTask(User user, SubTask st, Task parentTask, Project project) {
+        if (st == null) return false;
+        if (st.getAssigneeId() > 0) return isSubTaskAssignee(user, st);
+        return canManageTask(user, parentTask, project);
+    }
 }
