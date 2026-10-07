@@ -136,7 +136,7 @@ public class ProjectDB {
             // Thêm Owner vào project_members
             try {
                 em.createNativeQuery("INSERT INTO project_members (project_id, user_id, project_role, joined_at) " +
-                                     "VALUES (:pid, :uid, 'OWNER', NOW())")
+                                     "VALUES (:pid, :uid, 'OWNER', CURRENT_TIMESTAMP)")
                     .setParameter("pid", project.getId())
                     .setParameter("uid", project.getOwnerId())
                     .executeUpdate();
