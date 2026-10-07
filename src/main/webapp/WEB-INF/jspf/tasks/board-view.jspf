@@ -45,7 +45,7 @@
 
                             <c:forEach items="${todoTasks}" var="task">
                                 <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskHealthMap") --%>
-                                <div class="card kanban-card p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''}"
+                                <div tabindex="0" class="card kanban-card p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -197,7 +197,7 @@
                             id="column-IN_PROGRESS" data-status="IN_PROGRESS">
 
                             <c:forEach items="${inProgressTasks}" var="task">
-                                <div class="card kanban-card kanban-card-inprogress p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
+                                <div tabindex="0" class="card kanban-card kanban-card-inprogress p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -353,7 +353,7 @@
                             id="column-DONE" data-status="DONE">
 
                             <c:forEach items="${doneTasks}" var="task">
-                                <div class="card kanban-card kanban-card-done kanban-card-locked p-3" id="task-${task.id}"
+                                <div tabindex="0" class="card kanban-card kanban-card-done kanban-card-locked p-3" id="task-${task.id}"
                                     draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"

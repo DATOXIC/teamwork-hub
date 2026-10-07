@@ -48,6 +48,8 @@
 
 **Loading / rỗng / lỗi:** form POST tự khóa nút + hiện spinner (bỏ qua bằng `data-no-loading`); `window.setButtonLoading(btn, bool)`; thanh tiến trình `#appProgressBar` chạy theo `apiFetch` và form submit; trạng thái rỗng dùng `.empty-state` (`components.css`); dải lỗi trong khối nội dung dùng `.inline-status--warning/--error` (vd chat mất kết nối / hết phiên); `.skeleton` cho khung đang tải.
 
+**Accessibility:** phần tử bấm được mà không phải nút thật (span/div/tr có `onclick`) phải có `tabindex="0"` (+ `role="button"` nếu là nút đơn lẻ) — `app.js` cho Enter/Space hoạt động như bấm chuột và tự gắn cho phần tử JS vẽ sau. Ô nhập không có `<label for>` thì dùng `aria-label`. Vòng focus `:focus-visible` chung ở cuối `components.css`. Toast có `aria-live` (lỗi = `role="alert"`).
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

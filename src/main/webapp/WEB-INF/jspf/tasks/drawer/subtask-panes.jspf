@@ -41,12 +41,12 @@
                                                 <input type="hidden" name="subTaskId" value="${st.id}">
                                                 <div class="mb-2">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề nhiệm vụ:</label>
-                                                    <input type="text" name="title" value="${fn:escapeXml(st.title)}" class="form-control form-control-sm" required>
+                                                    <input aria-label="Tiêu đề nhiệm vụ" type="text" name="title" value="${fn:escapeXml(st.title)}" class="form-control form-control-sm" required>
                                                 </div>
                                                 <div class="row g-2 mb-2">
                                                     <div class="col-6">
                                                         <label class="form-label fs-9 fw-bold text-dark mb-1">Người làm:</label>
-                                                        <select name="assigneeId" class="form-select form-select-sm" required>
+                                                        <select aria-label="Người làm" name="assigneeId" class="form-select form-select-sm" required>
                                                             <c:forEach items="${userList}" var="u">
                                                                 <option value="${u.id}" ${u.id==st.assigneeId ? 'selected' : ''}>${fn:escapeXml(u.fullName)}</option>
                                                             </c:forEach>
@@ -54,7 +54,7 @@
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
-                                                        <input type="date" name="dueDate" value="${fn:escapeXml(st.dueDate)}" class="form-control form-control-sm"
+                                                        <input aria-label="Hạn chót" type="date" name="dueDate" value="${fn:escapeXml(st.dueDate)}" class="form-control form-control-sm"
                                                             <c:if test="${not empty task.dueDate}">max="${fn:escapeXml(task.dueDate)}"</c:if>>
                                                     </div>
                                                 </div>
@@ -224,7 +224,7 @@
                                                         <input type="hidden" name="action" value="reviseSubTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="subTaskId" value="${st.id}">
-                                                        <textarea class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Ví dụ: Định dạng lại mã, kiểm tra CSS..." required></textarea>
+                                                        <textarea aria-label="Nội dung cần cân chỉnh" class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Ví dụ: Định dạng lại mã, kiểm tra CSS..." required></textarea>
                                                         <div class="d-flex align-items-center justify-content-end gap-1">
                                                             <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#reviseSubTaskPanel-${st.id}">Đóng</button>
                                                             <button type="submit" class="btn btn-primary rounded-pill px-3 py-0-5 fs-9 fw-semibold">Gửi Cân Chỉnh</button>
@@ -242,7 +242,7 @@
                                                         <input type="hidden" name="action" value="rejectSubTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="subTaskId" value="${st.id}">
-                                                        <textarea class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Nêu rõ lỗi hoặc yêu cầu làm lại..." required></textarea>
+                                                        <textarea aria-label="Lý do chưa đạt" class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Nêu rõ lỗi hoặc yêu cầu làm lại..." required></textarea>
                                                         <div class="d-flex align-items-center justify-content-end gap-1">
                                                             <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#rejectSubTaskPanel-${st.id}">Đóng</button>
                                                             <button type="submit" class="btn btn-danger rounded-pill px-3 py-0-5 fs-9 fw-semibold">Trả Về Làm Lại</button>

@@ -83,6 +83,9 @@
             container = document.createElement('div');
             container.id = 'toastContainerCustom';
             container.className = 'toast-container-custom';
+            // Trình đọc màn hình tự đọc toast mới (polite: chờ đọc xong câu đang đọc)
+            container.setAttribute('aria-live', 'polite');
+            container.setAttribute('aria-relevant', 'additions');
             document.body.appendChild(container);
         }
 
@@ -98,10 +101,12 @@
         var variant = variants[type] || variants.error;
 
         // Biểu tượng thừa hưởng màu chữ của toast nên mỗi biến thể tự hoà sắc.
-        var iconHtml = '<i class="bi ' + variant.icon + ' toast-icon"></i>';
+        var iconHtml = '<i class="bi ' + variant.icon + ' toast-icon" aria-hidden="true"></i>';
 
         var toast = document.createElement('div');
         toast.className = 'toast-item ' + variant.cls;
+        // Lỗi / cảnh báo: đọc ngay (alert); thành công / thông tin: đọc lịch sự (status)
+        toast.setAttribute('role', (type === 'error' || type === 'warning' || !variants[type]) ? 'alert' : 'status');
         
         var contentSpan = document.createElement('span');
         contentSpan.className = 'flex-grow-1';
@@ -109,6 +114,7 @@
 
         var closeBtn = document.createElement('button');
         closeBtn.className = 'toast-close btn-close btn-close-sm';
+        closeBtn.type = 'button';
         closeBtn.setAttribute('aria-label', 'Đóng');
 
         toast.innerHTML = iconHtml;
@@ -538,6 +544,63 @@
             document.querySelectorAll('input[type="submit"][disabled]').forEach(function (b) { b.disabled = false; });
             window.resetProgress();
         });
+    }
+
+    // =========================================================================
+    // BÀN PHÍM CHO PHẦN TỬ "GIẢ NÚT" (div/span/tr… có onclick, role="button" hoặc tabindex):
+    //   - Enter (và Space với role="button") = bấm chuột, giống <button> thật.
+    //   - Phần tử do JS vẽ sau (vd hàng Gantt) cũng được gắn tabindex/role tự động.
+    // Nút thật (<button>, <a>, input…) trình duyệt đã tự xử lý nên bỏ qua.
+    // =========================================================================
+    var NATIVE_INTERACTIVE = /^(A|BUTTON|INPUT|SELECT|TEXTAREA|SUMMARY|OPTION|LABEL)$/;
+
+    function makeKeyboardReachable(root) {
+        if (!root || !root.querySelectorAll) return;
+        var nodes = root.querySelectorAll('[onclick]:not([tabindex])');
+        for (var i = 0; i < nodes.length; i++) {
+            var el = nodes[i];
+            if (NATIVE_INTERACTIVE.test(el.tagName)) continue;
+            var handler = (el.getAttribute('onclick') || '').replace(/event\.stopPropagation\(\);?/g, '').trim();
+            if (!handler) continue;                       // onclick chỉ để chặn lan sự kiện
+            el.setAttribute('tabindex', '0');
+            var isRow = /^(TR|TH)$/.test(el.tagName);
+            var hasInnerControls = !!el.querySelector('button, a[href], input, select, textarea, [onclick]');
+            if (!isRow && !hasInnerControls && !el.hasAttribute('role')) el.setAttribute('role', 'button');
+        }
+    }
+
+    if (!window.__kbdClickInstalled) {
+        window.__kbdClickInstalled = true;
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter' && e.key !== ' ') return;
+            var el = e.target;
+            if (!el || NATIVE_INTERACTIVE.test(el.tagName) || el.isContentEditable) return;
+            var isButtonLike = el.getAttribute('role') === 'button';
+            var clickable = isButtonLike || el.hasAttribute('onclick');
+            if (!clickable || !el.hasAttribute('tabindex')) return;
+            // Space chỉ dành cho role="button" (trên hàng bảng, Space vẫn để cuộn trang)
+            if (e.key === ' ' && !isButtonLike) return;
+            e.preventDefault();
+            el.click();
+        });
+
+        var enhance = function () {
+            makeKeyboardReachable(document);
+            if (window.MutationObserver) {
+                new MutationObserver(function (mutations) {
+                    for (var i = 0; i < mutations.length; i++) {
+                        var added = mutations[i].addedNodes;
+                        for (var j = 0; j < added.length; j++) {
+                            if (added[j].nodeType !== 1) continue;
+                            if (added[j].hasAttribute('onclick')) makeKeyboardReachable(added[j].parentNode);
+                            else makeKeyboardReachable(added[j]);
+                        }
+                    }
+                }).observe(document.body, { childList: true, subtree: true });
+            }
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', enhance);
+        else enhance();
     }
 
     // app.js có thể được nạp 2 lần trên một trang (trực tiếp + qua footer): chỉ gắn listener một lần

@@ -67,7 +67,7 @@
                 <div class="mb-2">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control bg-light border-start-0 fs-9 rounded-end-pill" 
+                        <input aria-label="Tìm tài liệu" type="text" class="form-control bg-light border-start-0 fs-9 rounded-end-pill" 
                                id="docSearchInput" placeholder="Tìm tài liệu..." 
                                oninput="filterDocList(this.value)">
                     </div>

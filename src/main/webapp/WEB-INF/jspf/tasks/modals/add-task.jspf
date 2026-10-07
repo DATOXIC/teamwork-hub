@@ -30,7 +30,7 @@
                         <div class="modal-body px-4 py-4">
 
                             <div class="mb-3">
-                                <input type="text" class="form-control clickup-modal-title-input" id="taskTitle"
+                                <input aria-label="Tiêu đề công việc" type="text" class="form-control clickup-modal-title-input" id="taskTitle"
                                     name="title" placeholder="Tiêu đề công việc..." required autocomplete="off">
                             </div>
 
@@ -88,7 +88,7 @@
                                             <div class="col-12 col-md-5">
                                                 <label class="form-label fs-9 fw-semibold text-dark mb-1">Tên
                                                     nhãn:</label>
-                                                <input type="text" id="inlineLabelName"
+                                                <input aria-label="Tên nhãn" type="text" id="inlineLabelName"
                                                     class="form-control form-control-sm rounded-2 fs-8"
                                                     placeholder="Ví dụ: Security, API..." maxlength="30"
                                                     autocomplete="off">
@@ -97,7 +97,7 @@
                                             <div class="col-12 col-md-4">
                                                 <label class="form-label fs-9 fw-semibold text-dark mb-1">Màu
                                                     sắc:</label>
-                                                <select class="form-select form-select-sm rounded-2 fs-8"
+                                                <select aria-label="Màu sắc" class="form-select form-select-sm rounded-2 fs-8"
                                                     id="inlineLabelColor">
                                                     <option value="red">🔴 Đỏ san hô</option>
                                                     <option value="blue" selected>🔵 Xanh Dương</option>

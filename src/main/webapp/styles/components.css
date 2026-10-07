@@ -327,3 +327,25 @@ body:has(.hero-scrolltelling) .app-navbar {
     .skeleton { animation: none; }
     .app-progress, .app-progress.is-active { transition: opacity 0.2s ease; }
 }
+
+/* ==========================================================================
+   VÒNG FOCUS KHI DÙNG BÀN PHÍM (bước 24)
+   :focus-visible chỉ hiện khi điều hướng bằng phím Tab, không hiện khi bấm chuột.
+   :where(...) giữ độ ưu tiên = 0 để các thành phần đã có hiệu ứng focus riêng vẫn thắng.
+   ========================================================================== */
+:where(a, button, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--c-ocean-500);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+/* Hàng bảng: vẽ viền phía trong để không bị cột bên cạnh che */
+:where(tr[tabindex], th[tabindex]):focus-visible {
+    outline-offset: -2px;
+}
+[data-theme="dark"] :where(a, button, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline-color: var(--c-blue-400);
+}
+/* Phần tử bấm được bằng chuột thì con trỏ cũng nên là bàn tay */
+[role="button"]:not([disabled]) {
+    cursor: pointer;
+}

@@ -452,13 +452,13 @@
 </div>
 <div class="form-text fs-9 text-muted d-flex flex-wrap align-items-center gap-1">
     <span>Gợi ý kỹ năng:</span>
-    <span class="profile-skill-chip-interactive" onclick="addSkill('Java')">+ Java</span>
-    <span class="profile-skill-chip-interactive" onclick="addSkill('PostgreSQL')">+ PostgreSQL</span>
-    <span class="profile-skill-chip-interactive" onclick="addSkill('MySQL')">+ MySQL</span>
-                                <span class="profile-skill-chip-interactive" onclick="addSkill('Docker')">+ Docker</span>
-                                <span class="profile-skill-chip-interactive" onclick="addSkill('UI/UX')">+ UI/UX</span>
-                                <span class="profile-skill-chip-interactive" onclick="addSkill('Spring Boot')">+ Spring Boot</span>
-                                <span class="profile-skill-chip-interactive" onclick="addSkill('REST API')">+ REST API</span>
+    <span role="button" tabindex="0" class="profile-skill-chip-interactive" onclick="addSkill('Java')">+ Java</span>
+    <span role="button" tabindex="0" class="profile-skill-chip-interactive" onclick="addSkill('PostgreSQL')">+ PostgreSQL</span>
+    <span role="button" tabindex="0" class="profile-skill-chip-interactive" onclick="addSkill('MySQL')">+ MySQL</span>
+                                <span role="button" tabindex="0" class="profile-skill-chip-interactive" onclick="addSkill('Docker')">+ Docker</span>
+                                <span role="button" tabindex="0" class="profile-skill-chip-interactive" onclick="addSkill('UI/UX')">+ UI/UX</span>
+                                <span role="button" tabindex="0" class="profile-skill-chip-interactive" onclick="addSkill('Spring Boot')">+ Spring Boot</span>
+                                <span role="button" tabindex="0" class="profile-skill-chip-interactive" onclick="addSkill('REST API')">+ REST API</span>
                             </div>
                         </div>
 

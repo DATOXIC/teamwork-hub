@@ -140,12 +140,12 @@
             <!-- Ô tìm kiếm -->
             <div class="position-relative" style="min-width: 180px; max-width: 240px;">
                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2-5 text-muted fs-9"></i>
-                <input type="text" id="timelineSearchInput" class="form-control form-control-sm rounded-pill ps-4 shadow-none fs-8"
+                <input aria-label="Tìm công việc hoặc người" type="text" id="timelineSearchInput" class="form-control form-control-sm rounded-pill ps-4 shadow-none fs-8"
                        placeholder="Tìm công việc hoặc người...">
             </div>
 
             <!-- Lọc theo Thành viên -->
-            <select id="timelineMemberFilter" class="form-select form-select-sm rounded-pill shadow-none fs-8" style="width: auto;">
+            <select aria-label="Lọc theo người phụ trách" id="timelineMemberFilter" class="form-select form-select-sm rounded-pill shadow-none fs-8" style="width: auto;">
                 <option value="ALL">Tất cả thành viên</option>
                 <%-- ◀ SERVLET: TimelineServlet → setAttribute("members") --%>
                 <c:forEach items="${members}" var="m">
@@ -154,7 +154,7 @@
             </select>
 
             <!-- Lọc theo Mức ưu tiên -->
-            <select id="timelinePriorityFilter" class="form-select form-select-sm rounded-pill shadow-none fs-8" style="width: auto;">
+            <select aria-label="Lọc theo mức ưu tiên" id="timelinePriorityFilter" class="form-select form-select-sm rounded-pill shadow-none fs-8" style="width: auto;">
                 <option value="ALL">Mọi ưu tiên</option>
                 <option value="HIGH">🔴 Khẩn cấp (High)</option>
                 <option value="MEDIUM">🟡 Trung bình (Medium)</option>
@@ -162,7 +162,7 @@
             </select>
 
             <!-- Lọc theo Trạng thái -->
-            <select id="timelineStatusFilter" class="form-select form-select-sm rounded-pill shadow-none fs-8" style="width: auto;">
+            <select aria-label="Lọc theo trạng thái" id="timelineStatusFilter" class="form-select form-select-sm rounded-pill shadow-none fs-8" style="width: auto;">
                 <option value="ALL">Mọi trạng thái</option>
                 <option value="OVERDUE">🚨 Quá hạn</option>
                 <option value="TODO">⚪ Cần làm</option>
@@ -236,7 +236,7 @@
                     <c:if test="${empty ut.dueDate}">
                         <%-- ◀ SERVLET: TimelineServlet → setAttribute("todayDate") --%>
                         <%-- Dữ liệu người dùng đi qua data-* (escapeXml) rồi JS đọc ra, không nhúng thẳng vào chuỗi JS trong onclick --%>
-                        <div class="unscheduled-task-badge"
+                        <div role="button" tabindex="0" class="unscheduled-task-badge"
                              data-task-id="${ut.id}" data-title="${fn:escapeXml(ut.title)}"
                              data-assignee="${fn:escapeXml(ut.assigneeName)}" data-status="${fn:escapeXml(ut.status)}"
                              onclick="document.getElementById('modalTaskId').value=this.dataset.taskId; document.getElementById('modalTaskTitle').textContent=this.dataset.title; document.getElementById('modalTaskAssignee').textContent=this.dataset.assignee; document.getElementById('modalTaskStatus').textContent=this.dataset.status; document.getElementById('modalTaskDueDate').value='${todayDate}'; new bootstrap.Modal(document.getElementById('quickEditTimelineModal')).show();">

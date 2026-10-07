@@ -35,7 +35,7 @@
                         <div class="px-2.5 pt-2 pb-1">
                             <div class="clickup-search-box position-relative d-flex align-items-center">
                                 <i class="bi bi-search text-muted fs-8 ms-2.5"></i>
-                                <input type="text" id="clickupSearchInput" class="form-control form-control-sm border-0 bg-transparent fs-8 ps-2 pe-5 py-1-5 shadow-none" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm nhanh... (Ctrl+K)" autocomplete="off">
+                                <input aria-label="Tìm kiếm nhanh" type="text" id="clickupSearchInput" class="form-control form-control-sm border-0 bg-transparent fs-8 ps-2 pe-5 py-1-5 shadow-none" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm nhanh... (Ctrl+K)" autocomplete="off">
                                 <span class="search-kbd-badge position-absolute end-0 me-2 text-muted">Ctrl+K</span>
                             </div>
                         </div>

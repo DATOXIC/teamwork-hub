@@ -152,7 +152,7 @@
                                     <div class="pending-invite-card h-100 d-flex flex-column justify-content-between">
                                         <div>
                                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                                <span class="project-code-badge"
+                                                <span role="button" tabindex="0" class="project-code-badge"
                                                     data-code="${fn:escapeXml(inv.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
                                                     title="Bấm để sao chép mã">
                                                     <i class="bi bi-hash"></i><span>${fn:escapeXml(inv.projectCode)}</span>
@@ -235,8 +235,8 @@
                     <!-- Ô Live Search Box -->
                     <div class="search-input-group workspace-search-group">
                         <i class="bi bi-search text-muted me-2"></i>
-                        <input type="text" id="projectSearchInput" placeholder="Tìm tên hoặc mã dự án..." onkeyup="searchProjectsLive(this.value)">
-                        <button type="button" class="btn btn-link p-0 text-muted d-none" id="clearSearchBtn" onclick="clearProjectSearch()">
+                        <input aria-label="Tìm tên hoặc mã dự án" type="text" id="projectSearchInput" placeholder="Tìm tên hoặc mã dự án..." onkeyup="searchProjectsLive(this.value)">
+                        <button type="button" aria-label="Xóa ô tìm kiếm" class="btn btn-link p-0 text-muted d-none" id="clearSearchBtn" onclick="clearProjectSearch()">
                             <i class="bi bi-x-circle-fill"></i>
                         </button>
                     </div>
@@ -271,7 +271,7 @@
                                             <div class="project-avatar-monogram">
                                                 ${fn:escapeXml(p.name.substring(0, 1).toUpperCase())}
                                             </div>
-                                            <span class="project-code-badge" data-code="${fn:escapeXml(p.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
+                                            <span role="button" tabindex="0" class="project-code-badge" data-code="${fn:escapeXml(p.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
                                                 title="Bấm để sao chép mã dự án">
                                                 <i class="bi bi-hash"></i><span>${fn:escapeXml(p.projectCode)}</span>
                                                 <i class="bi bi-copy fs-9 text-primary" id="copy-icon-${fn:escapeXml(p.projectCode)}"></i>

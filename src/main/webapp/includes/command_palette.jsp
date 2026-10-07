@@ -26,7 +26,7 @@
         <!-- Header: Search Input & Shortcuts -->
         <div class="cp-header">
             <i class="bi bi-search cp-search-icon"></i>
-            <input type="text" id="commandPaletteInput" class="cp-input" 
+            <input aria-label="Tìm kiếm công việc, dự án, tài liệu hoặc gõ lệnh" type="text" id="commandPaletteInput" class="cp-input" 
                    placeholder="Tìm kiếm công việc, dự án, tài liệu hoặc gõ lệnh..." 
                    autocomplete="off" spellcheck="false">
             <button type="button" class="cp-close-btn" id="commandPaletteCloseBtn" title="Đóng (Esc)" aria-label="Đóng Bảng lệnh">

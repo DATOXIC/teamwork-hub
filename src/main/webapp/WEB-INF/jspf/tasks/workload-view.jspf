@@ -72,7 +72,7 @@
                 <div class="row g-3 mb-3" id="teamCapacityPulseRow">
                     <!-- Card 1: Tổng nhân sự -->
                     <div class="col-6 col-lg-3">
-                        <div class="capacity-summary-card card-cap-total active h-100" id="cap-card-all" onclick="filterWorkloadCapacity('ALL', null, this)" title="Nhấp để xem toàn bộ thành viên">
+                        <div role="button" tabindex="0" class="capacity-summary-card card-cap-total active h-100" id="cap-card-all" onclick="filterWorkloadCapacity('ALL', null, this)" title="Nhấp để xem toàn bộ thành viên">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="cap-card-label">Tổng nhân sự</span>
                                 <div class="cap-card-icon badge-cap-total">
@@ -91,7 +91,7 @@
 
                     <!-- Card 2: Quá tải / Có việc trễ -->
                     <div class="col-6 col-lg-3">
-                        <div class="capacity-summary-card card-cap-overload h-100" id="cap-card-overload" onclick="filterWorkloadCapacity('OVERLOAD', null, this)" title="Nhấp để lọc thành viên quá tải hoặc có việc quá hạn">
+                        <div role="button" tabindex="0" class="capacity-summary-card card-cap-overload h-100" id="cap-card-overload" onclick="filterWorkloadCapacity('OVERLOAD', null, this)" title="Nhấp để lọc thành viên quá tải hoặc có việc quá hạn">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="cap-card-label text-danger">Quá tải / Trễ hạn</span>
                                 <div class="cap-card-icon badge-cap-overload">
@@ -117,7 +117,7 @@
 
                     <!-- Card 3: Bận rộn -->
                     <div class="col-6 col-lg-3">
-                        <div class="capacity-summary-card card-cap-busy h-100" id="cap-card-busy" onclick="filterWorkloadCapacity('BUSY', null, this)" title="Nhấp để lọc thành viên đang bận (3-4 việc đang làm)">
+                        <div role="button" tabindex="0" class="capacity-summary-card card-cap-busy h-100" id="cap-card-busy" onclick="filterWorkloadCapacity('BUSY', null, this)" title="Nhấp để lọc thành viên đang bận (3-4 việc đang làm)">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="cap-card-label text-warning-contrast">Bận rộn</span>
                                 <div class="cap-card-icon badge-cap-busy">
@@ -136,7 +136,7 @@
 
                     <!-- Card 4: Cân bằng & Sẵn sàng -->
                     <div class="col-6 col-lg-3">
-                        <div class="capacity-summary-card card-cap-optimal h-100" id="cap-card-optimal" onclick="filterWorkloadCapacity('OPTIMAL', null, this)" title="Nhấp để lọc thành viên cân bằng hoặc sẵn sàng nhận thêm việc">
+                        <div role="button" tabindex="0" class="capacity-summary-card card-cap-optimal h-100" id="cap-card-optimal" onclick="filterWorkloadCapacity('OPTIMAL', null, this)" title="Nhấp để lọc thành viên cân bằng hoặc sẵn sàng nhận thêm việc">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="cap-card-label text-success">Cân bằng / Sẵn sàng</span>
                                 <div class="cap-card-icon badge-cap-optimal">
@@ -181,7 +181,7 @@
                             <!-- Search Input -->
                             <div class="input-group input-group-sm" style="width: 200px;">
                                 <span class="input-group-text bg-light border-end-0 py-0 text-muted fs-9"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control bg-light border-start-0 py-1 fs-9" placeholder="Tìm thành viên..." id="workloadSearchInput" oninput="filterWorkloadTable(this.value)">
+                                <input aria-label="Tìm thành viên" type="text" class="form-control bg-light border-start-0 py-1 fs-9" placeholder="Tìm thành viên..." id="workloadSearchInput" oninput="filterWorkloadTable(this.value)">
                             </div>
                         </div>
                     </div>
@@ -189,49 +189,49 @@
                         <table class="table table-hover align-middle mb-0 fs-8" id="workloadTable">
                             <thead class="table-light fs-9 text-muted text-uppercase">
                                 <tr>
-                                    <th class="ps-3 py-2.5 sortable-th" onclick="sortWorkloadTable(0)" title="Nhấn để sắp xếp theo tên thành viên">
+                                    <th tabindex="0" class="ps-3 py-2.5 sortable-th" onclick="sortWorkloadTable(0)" title="Nhấn để sắp xếp theo tên thành viên">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <span>Thành viên</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-0"></i>
                                         </div>
                                     </th>
-                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(1)" title="Nhấn để sắp xếp theo công suất">
+                                    <th tabindex="0" class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(1)" title="Nhấn để sắp xếp theo công suất">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
                                             <span>Công suất</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-1"></i>
                                         </div>
                                     </th>
-                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(2)" title="Nhấn để sắp xếp theo tổng việc">
+                                    <th tabindex="0" class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(2)" title="Nhấn để sắp xếp theo tổng việc">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
                                             <span>Tổng việc</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-2"></i>
                                         </div>
                                     </th>
-                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(3)" title="Nhấn để sắp xếp theo việc cần làm">
+                                    <th tabindex="0" class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(3)" title="Nhấn để sắp xếp theo việc cần làm">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
                                             <span>Cần làm</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-3"></i>
                                         </div>
                                     </th>
-                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(4)" title="Nhấn để sắp xếp theo việc đang làm">
+                                    <th tabindex="0" class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(4)" title="Nhấn để sắp xếp theo việc đang làm">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
                                             <span>Đang làm</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-4"></i>
                                         </div>
                                     </th>
-                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(5)" title="Nhấn để sắp xếp theo việc hoàn thành">
+                                    <th tabindex="0" class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(5)" title="Nhấn để sắp xếp theo việc hoàn thành">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
                                             <span>Hoàn thành</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-5"></i>
                                         </div>
                                     </th>
-                                    <th class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(6)" title="Nhấn để sắp xếp theo việc quá hạn">
+                                    <th tabindex="0" class="py-2.5 text-center sortable-th" onclick="sortWorkloadTable(6)" title="Nhấn để sắp xếp theo việc quá hạn">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
                                             <span>Quá hạn</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-6"></i>
                                         </div>
                                     </th>
-                                    <th class="py-2.5 sortable-th" style="min-width: 220px;" onclick="sortWorkloadTable(7)" title="Nhấn để sắp xếp theo tỷ lệ hoàn thành">
+                                    <th tabindex="0" class="py-2.5 sortable-th" style="min-width: 220px;" onclick="sortWorkloadTable(7)" title="Nhấn để sắp xếp theo tỷ lệ hoàn thành">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <span>Tỷ lệ hoàn thành</span>
                                             <i class="bi bi-arrow-down-up sort-icon" id="sort-icon-7"></i>
@@ -276,7 +276,7 @@
                                         </c:otherwise>
                                     </c:choose>
 
-                                    <tr class="workload-row" 
+                                    <tr tabindex="0" class="workload-row" 
                                         data-user-id="${wl.user.id}" 
                                         data-name="<c:out value="${wl.user.fullName}" />"
                                         data-capacity="${wlCapKey}"
@@ -378,7 +378,7 @@
                                                     <c:when test="${not empty wl.leadTasks}">
                                                         <div class="d-flex flex-column gap-1.5">
                                                             <c:forEach items="${wl.leadTasks}" var="t">
-                                                                <div class="d-flex align-items-center justify-content-between p-2 rounded-2 border bg-white shadow-2xs member-task-item flex-wrap gap-2" 
+                                                                <div tabindex="0" class="d-flex align-items-center justify-content-between p-2 rounded-2 border bg-white shadow-2xs member-task-item flex-wrap gap-2" 
                                                                      onclick="openClickUpTask(${t.id})" style="cursor: pointer;" title="Nhấn để xem chi tiết công việc">
                                                                     <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
                                                                         <c:choose>

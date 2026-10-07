@@ -408,6 +408,10 @@
                 '<span class="gantt-task-title-cell" title="' + escapeHtml(task.title) + '">' + escapeHtml(task.title) + '</span>' +
                 assigneeAvatar + dueBadge;
 
+            // Bàn phím: Tab tới hàng, Enter/Space mở hộp đổi hạn chót (app.js xử lý phím cho role="button")
+            leftRow.setAttribute('role', 'button');
+            leftRow.setAttribute('tabindex', '0');
+            leftRow.setAttribute('aria-label', 'Đổi hạn chót: ' + task.title);
             leftRow.addEventListener('click', function () {
                 openTaskQuickModal(task);
             });

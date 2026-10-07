@@ -23,7 +23,7 @@
                                         <i class="bi bi-gear text-secondary fs-9"></i>
                                     </button>
                                 </c:if>
-                                <i class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')"></i>
+                                <i role="button" tabindex="0" aria-label="Đánh dấu dự án yêu thích" class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')"></i>
                             </div>
 
                             <!-- Right: Actions & Badges -->

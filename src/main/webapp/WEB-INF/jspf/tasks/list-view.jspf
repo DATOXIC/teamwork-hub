@@ -41,7 +41,7 @@
                                         <!-- NHÓM 1: TO DO (CẦN LÀM) -->
                                         <tr class="clickup-group-header-row group-header-todo">
                                             <td colspan="${project.soloProject ? 4 : 5}">
-                                                <div class="clickup-group-banner text-secondary d-flex align-items-center" onclick="toggleClickUpGroup('todo')">
+                                                <div role="button" tabindex="0" class="clickup-group-banner text-secondary d-flex align-items-center" onclick="toggleClickUpGroup('todo')">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-todo"></i>
                                                     <span class="clickup-group-badge bg-secondary text-white">CẦN LÀM</span>
                                                     <span class="clickup-group-count ms-1" id="group-count-todo">${todoTasks.size()}</span>
@@ -58,13 +58,13 @@
                                             <td class="ps-3">
                                                 <div class="d-flex align-items-center gap-2 ps-1">
                                                     <span class="clickup-status-dot dot-todo"></span>
-                                                    <input type="text" id="inline-task-title-todo" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc cần làm mới... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'todo')" />
+                                                    <input aria-label="Tên công việc mới" type="text" id="inline-task-title-todo" class="form-control form-control-sm clickup-inline-input fs-8" placeholder="Nhập tên việc cần làm mới... (Enter lưu, Esc hủy)" onkeydown="handleInlineTaskKey(event, 'todo')" />
                                                 </div>
                                             </td>
                                             <c:choose>
                                                 <c:when test="${project.teamProject}">
                                                     <td>
-                                                        <select id="inline-task-assignee-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
+                                                        <select aria-label="Người phụ trách công việc mới" id="inline-task-assignee-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 130px;">
                                                             <option value="0">Chưa gán</option>
                                                             <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userList") --%>
                                                             <c:forEach items="${userList}" var="u">
@@ -78,7 +78,7 @@
                                                 </c:otherwise>
                                             </c:choose>
                                             <td>
-                                                <select id="inline-task-priority-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
+                                                <select aria-label="Mức ưu tiên công việc mới" id="inline-task-priority-todo" class="form-select form-select-sm py-0 fs-8" style="max-width: 110px;">
                                                     <option value="MEDIUM">Bình thường</option>
                                                     <option value="HIGH">Khẩn cấp</option>
                                                     <option value="LOW">Thấp</option>
@@ -89,20 +89,20 @@
                                             </td>
                                             <td class="pe-3" style="text-align: right;">
                                                 <div class="d-inline-flex align-items-center gap-1">
-                                                    <input type="date" id="inline-task-due-todo" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
+                                                    <input aria-label="Hạn chót công việc mới" type="date" id="inline-task-due-todo" class="form-control form-control-sm py-0 fs-9" style="max-width: 110px;" />
                                                     <button type="button" class="btn btn-sm btn-primary py-0 px-2 fs-8" onclick="submitInlineCreateTask('todo')" title="Lưu việc"><i class="bi bi-check-lg"></i></button>
                                                     <button type="button" class="btn btn-sm btn-light border py-0 px-2 fs-8" onclick="cancelInlineCreateTask('todo')" title="Hủy"><i class="bi bi-x-lg"></i></button>
                                                 </div>
                                             </td>
                                         </tr>
                                         <c:forEach items="${todoTasks}" var="task">
-                                            <tr class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr tabindex="0" class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
                                                             <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskSubTasksMap") --%>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
-                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng nhiệm vụ">
+                                                                <span role="button" tabindex="0" aria-label="Hiện hoặc ẩn nhiệm vụ con" class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng nhiệm vụ">
                                                                     <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
                                                                 </span>
                                                             </c:when>
@@ -110,7 +110,7 @@
                                                                 <span style="width: 18px; display: inline-block;"></span>
                                                             </c:otherwise>
                                                         </c:choose>
-                                                        <span class="clickup-status-dot dot-todo" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
+                                                        <span role="button" tabindex="0" aria-label="Đổi trạng thái" class="clickup-status-dot dot-todo" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
                                                         <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${fn:escapeXml(task.title)}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
                                                             <span class="badge bg-light text-secondary border rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} nhiệm vụ">
@@ -165,10 +165,10 @@
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
                                                 <c:set var="isStMarked" value="${isStDone || st.status == 'SUBMITTED'}" />
-                                                <tr class="clickup-subtask-row group-todo-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <tr tabindex="0" class="clickup-subtask-row group-todo-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td class="ps-3">
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
-                                                            <span class="clickup-status-dot dot-${isStMarked ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Nhiệm vụ: ${st.statusLabel} (Bấm để đổi)">
+                                                            <span role="button" tabindex="0" aria-label="Đổi trạng thái" class="clickup-status-dot dot-${isStMarked ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Nhiệm vụ: ${st.statusLabel} (Bấm để đổi)">
                                                                 <c:if test="${isStDone}">
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
@@ -205,7 +205,7 @@
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row group-header-inprog">
                                             <td colspan="${project.soloProject ? 4 : 5}">
-                                                <div class="clickup-group-banner text-primary d-flex align-items-center" onclick="toggleClickUpGroup('inprog')">
+                                                <div role="button" tabindex="0" class="clickup-group-banner text-primary d-flex align-items-center" onclick="toggleClickUpGroup('inprog')">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-inprog"></i>
                                                     <span class="clickup-group-badge bg-primary text-white">ĐANG LÀM</span>
                                                     <span class="clickup-group-count ms-1" id="group-count-inprog">${inProgressTasks.size()}</span>
@@ -213,12 +213,12 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${inProgressTasks}" var="task">
-                                            <tr class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr tabindex="0" class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
-                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng nhiệm vụ">
+                                                                <span role="button" tabindex="0" aria-label="Hiện hoặc ẩn nhiệm vụ con" class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng nhiệm vụ">
                                                                     <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
                                                                 </span>
                                                             </c:when>
@@ -226,7 +226,7 @@
                                                                 <span style="width: 18px; display: inline-block;"></span>
                                                             </c:otherwise>
                                                         </c:choose>
-                                                        <span class="clickup-status-dot dot-inprog" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
+                                                        <span role="button" tabindex="0" aria-label="Đổi trạng thái" class="clickup-status-dot dot-inprog" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
                                                         <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${fn:escapeXml(task.title)}</span>
                                                         <c:if test="${task.status == 'SUBMITTED'}">
                                                             <span class="badge bg-purple text-white rounded-pill px-2 py-0-5 fs-9 ms-1" title="Công việc đã nộp báo cáo kết quả, chờ trưởng dự án duyệt">
@@ -287,10 +287,10 @@
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
                                                 <c:set var="isStMarked" value="${isStDone || st.status == 'SUBMITTED'}" />
-                                                <tr class="clickup-subtask-row group-inprog-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <tr tabindex="0" class="clickup-subtask-row group-inprog-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td class="ps-3">
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
-                                                            <span class="clickup-status-dot dot-${isStMarked ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Nhiệm vụ: ${st.statusLabel} (Bấm để đổi)">
+                                                            <span role="button" tabindex="0" aria-label="Đổi trạng thái" class="clickup-status-dot dot-${isStMarked ? 'done' : 'todo'}" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${st.id}, true, '${st.status}', ${task.id});" title="Nhiệm vụ: ${st.statusLabel} (Bấm để đổi)">
                                                                 <c:if test="${isStDone}">
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
@@ -319,7 +319,7 @@
                                             <!-- NHÓM 3: DONE (ĐÃ HOÀN THÀNH) -->
                                             <tr class="clickup-group-header-row group-header-done">
                                                 <td colspan="${project.soloProject ? 4 : 5}">
-                                                    <div class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')">
+                                                    <div role="button" tabindex="0" class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')">
                                                         <i class="bi bi-chevron-down me-1" id="chevron-done"></i>
                                                         <span class="clickup-group-badge bg-success text-white">HOÀN THÀNH</span>
                                                         <span class="clickup-group-count ms-1" id="group-count-done">${doneTasks.size()}</span>
@@ -327,12 +327,12 @@
                                                 </td>
                                             </tr>
                                         <c:forEach items="${doneTasks}" var="task">
-                                            <tr class="clickup-task-row group-done-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr tabindex="0" class="clickup-task-row group-done-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2">
                                                         <c:choose>
                                                             <c:when test="${not empty taskSubTasksMap[task.id]}">
-                                                                <span class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng nhiệm vụ">
+                                                                <span role="button" tabindex="0" aria-label="Hiện hoặc ẩn nhiệm vụ con" class="subtask-caret ${subtaskMode == 'expanded' ? 'is-expanded' : ''}" id="caret-${task.id}" onclick="event.stopPropagation(); toggleSubtasks(${task.id}, event);" title="Thu gọn / Mở rộng nhiệm vụ">
                                                                     <i class="bi bi-chevron-${subtaskMode == 'expanded' ? 'down' : 'right'}"></i>
                                                                 </span>
                                                             </c:when>
@@ -394,7 +394,7 @@
                                             <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
                                                 <c:set var="isStDone" value="${st.status == 'APPROVED' || st.status == 'DONE'}" />
                                                 <c:set var="isStMarked" value="${isStDone || st.status == 'SUBMITTED'}" />
-                                                <tr class="clickup-subtask-row group-done-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
+                                                <tr tabindex="0" class="clickup-subtask-row group-done-row ${subtaskMode == 'expanded' ? '' : 'd-none'}" data-parent-id="${task.id}" data-subtask-id="${st.id}" data-assignee-id="${st.assigneeId}" data-subtask-title="<c:out value='${st.title}' />" onclick="event.stopPropagation(); openClickUpTask(${task.id}, ${st.id});">
                                                     <td class="ps-3">
                                                         <div class="d-flex align-items-center gap-2" style="padding-left: 28px;">
                                                             <span class="clickup-status-dot dot-done dot-locked" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation();" title="Nhiệm vụ đã hoàn tất (Đã khóa)">

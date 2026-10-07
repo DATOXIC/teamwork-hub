@@ -32,7 +32,7 @@
                                                         <input type="hidden" name="action" value="submitPlanningRequest">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
-                                                        <textarea name="planningNote" class="form-control form-control-sm fs-9 mb-2" rows="2"
+                                                        <textarea aria-label="Thuyết minh kế hoạch phân rã cho trưởng dự án (tùy chọn)" name="planningNote" class="form-control form-control-sm fs-9 mb-2" rows="2"
                                                             placeholder="Thuyết minh kế hoạch phân rã cho trưởng dự án (tùy chọn)..."></textarea>
                                                         <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
                                                             style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
@@ -253,14 +253,14 @@
                                                         </div>
                                                         <div class="row g-2 mb-2">
                                                             <div class="col-6">
-                                                                <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="demoUrl-${task.id}" name="demoUrl" placeholder="Liên kết bản demo/Figma...">
+                                                                <input aria-label="Liên kết bản demo/Figma" type="text" class="form-control form-control-sm fs-9 rounded-2" id="demoUrl-${task.id}" name="demoUrl" placeholder="Liên kết bản demo/Figma...">
                                                             </div>
                                                             <div class="col-6">
-                                                                <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="codeUrl-${task.id}" name="codeUrl" placeholder="Link PR/Mã nguồn...">
+                                                                <input aria-label="Link PR/Mã nguồn" type="text" class="form-control form-control-sm fs-9 rounded-2" id="codeUrl-${task.id}" name="codeUrl" placeholder="Link PR/Mã nguồn...">
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="deliverableFile-${task.id}" name="deliverableFile"
+                                                            <input aria-label="Tên tệp báo cáo (PDF, ZIP...)" type="text" class="form-control form-control-sm fs-9 rounded-2" id="deliverableFile-${task.id}" name="deliverableFile"
                                                                 placeholder="Tên tệp báo cáo (PDF, ZIP...)" value="${not empty task.deliverableFile ? fn:escapeXml(task.deliverableFile) : ''}">
                                                         </div>
                                                         <div class="d-flex align-items-center justify-content-end gap-1">
@@ -313,7 +313,7 @@
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
                                                         <div class="mb-2">
-                                                            <textarea class="form-control fs-9 rounded-2" id="pmReviseNote-${task.id}" name="feedback" rows="2" placeholder="Dặn dò tinh chỉnh cho trưởng nhóm công việc..." required></textarea>
+                                                            <textarea aria-label="Dặn dò tinh chỉnh cho trưởng nhóm công việc" class="form-control fs-9 rounded-2" id="pmReviseNote-${task.id}" name="feedback" rows="2" placeholder="Dặn dò tinh chỉnh cho trưởng nhóm công việc..." required></textarea>
                                                         </div>
                                                         <div class="d-flex align-items-center justify-content-end gap-1">
                                                             <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmRevisePanel-${task.id}">Đóng</button>
@@ -333,7 +333,7 @@
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
                                                         <div class="mb-2">
-                                                            <textarea class="form-control fs-9 rounded-2" id="pmRejectNote-${task.id}" name="feedback" rows="2" placeholder="Lý do chưa đạt / yêu cầu làm lại..." required></textarea>
+                                                            <textarea aria-label="Lý do chưa đạt / yêu cầu làm lại" class="form-control fs-9 rounded-2" id="pmRejectNote-${task.id}" name="feedback" rows="2" placeholder="Lý do chưa đạt / yêu cầu làm lại..." required></textarea>
                                                         </div>
                                                         <div class="d-flex align-items-center justify-content-end gap-1">
                                                             <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmRejectPanel-${task.id}">Đóng</button>
