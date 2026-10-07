@@ -3,6 +3,7 @@ package com.teamwork.controllers;
 import com.teamwork.business.Notification;
 import com.teamwork.business.User;
 import com.teamwork.data.NotificationDB;
+import com.teamwork.util.RedirectUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -106,21 +107,8 @@ public class NotificationServlet extends HttpServlet {
 
         NotificationDB.markAsRead(notifId, currentUser.getId());
 
-        // Lấy link mục tiêu để nhảy tới
-        String targetLink = request.getParameter("redirect");
-        if (targetLink == null || targetLink.trim().isEmpty() || "#".equals(targetLink.trim())) {
-            targetLink = "/project?action=list";
-        }
-
-        // Đảm bảo không bị lặp context path
-        if (!targetLink.startsWith(request.getContextPath())) {
-            if (!targetLink.startsWith("/")) {
-                targetLink = "/" + targetLink;
-            }
-            targetLink = request.getContextPath() + targetLink;
-        }
-
-        response.sendRedirect(targetLink);
+        // Nhảy tới link đích của thông báo — CHỈ đường dẫn nội bộ (chặn ?redirect=//trang-gia-mao.com)
+        response.sendRedirect(RedirectUtil.localOr(request, request.getParameter("redirect"), "/project?action=list"));
     }
 
     /**
@@ -131,13 +119,8 @@ public class NotificationServlet extends HttpServlet {
 
         NotificationDB.markAllAsRead(currentUser.getId());
 
-        // Quay lại trang trước đó (Referer header) hoặc về trang chủ dự án
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.trim().isEmpty()) {
-            response.sendRedirect(referer);
-        } else {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-        }
+        // Quay lại trang trước đó (Referer cùng host) hoặc về trang chủ dự án
+        response.sendRedirect(RedirectUtil.backOr(request, "/project?action=list"));
     }
 
     /**
@@ -156,11 +139,6 @@ public class NotificationServlet extends HttpServlet {
 
         NotificationDB.delete(notifId, currentUser.getId());
 
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.trim().isEmpty()) {
-            response.sendRedirect(referer);
-        } else {
-            response.sendRedirect(request.getContextPath() + "/project?action=list");
-        }
+        response.sendRedirect(RedirectUtil.backOr(request, "/project?action=list"));
     }
 }

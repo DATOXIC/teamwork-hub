@@ -8,8 +8,8 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import com.teamwork.util.RedirectUtil;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -108,7 +108,9 @@ public class CsrfFilter implements Filter {
             return;
         }
         session.setAttribute("toastError", message);
-        response.sendRedirect(safeBackUrl(request, session.getAttribute("currentUser") != null));
+        // Quay lại trang trước (Referer cùng host), ngược lại về trang mặc định — RedirectUtil chặn open redirect
+        boolean loggedIn = session.getAttribute("currentUser") != null;
+        response.sendRedirect(RedirectUtil.backOr(request, loggedIn ? "/project?action=list" : "/auth?action=viewLogin"));
     }
 
     private static boolean isAjax(HttpServletRequest request) {
@@ -117,26 +119,5 @@ public class CsrfFilter implements Filter {
         return "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))
                 || (accept != null && accept.contains("application/json"))
                 || (contentType != null && contentType.contains("application/json"));
-    }
-
-    /** Quay lại trang trước nếu Referer cùng origin, ngược lại về trang mặc định (tránh open redirect). */
-    private static String safeBackUrl(HttpServletRequest request, boolean loggedIn) {
-        String fallback = request.getContextPath() + (loggedIn ? "/project?action=list" : "/auth?action=viewLogin");
-        String referer = request.getHeader("Referer");
-        if (referer == null || referer.isEmpty()) {
-            return fallback;
-        }
-        try {
-            URI uri = URI.create(referer);
-            boolean sameHost = request.getServerName().equalsIgnoreCase(uri.getHost());
-            String refPath = uri.getRawPath();
-            if (sameHost && refPath != null && refPath.startsWith(request.getContextPath() + "/")
-                    && !refPath.startsWith("//")) {
-                return refPath + (uri.getRawQuery() != null ? "?" + uri.getRawQuery() : "");
-            }
-        } catch (IllegalArgumentException ignored) {
-            // Referer sai định dạng → dùng fallback
-        }
-        return fallback;
     }
 }

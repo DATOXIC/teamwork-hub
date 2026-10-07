@@ -12,6 +12,7 @@ import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
 import com.teamwork.data.TaskDB;
+import com.teamwork.util.RedirectUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -305,12 +306,8 @@ public class ProjectServlet extends HttpServlet {
                         // ▶ JSP: docs.jsp đọc bằng ${toastError}
                         session.setAttribute("toastError", "Dự án hiện đang có " + memberCount + " thành viên. Bạn không thể chuyển sang chế độ Cá nhân khi vẫn còn thành viên khác trong nhóm! Vui lòng mời các thành viên rời dự án trước.");
                     }
-                    String redirectUrl = request.getParameter("redirectUrl");
-                    if (redirectUrl != null && !redirectUrl.trim().isEmpty()) {
-                        response.sendRedirect(redirectUrl);
-                    } else {
-                        response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
-                    }
+                    response.sendRedirect(RedirectUtil.localOr(request, request.getParameter("redirectUrl"),
+                            "/task?action=list&projectId=" + projectId));
                     return;
                 }
             }
@@ -345,12 +342,9 @@ public class ProjectServlet extends HttpServlet {
             }
         }
 
-        String redirectUrl = request.getParameter("redirectUrl");
-        if (redirectUrl != null && !redirectUrl.trim().isEmpty()) {
-            response.sendRedirect(redirectUrl);
-        } else {
-            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
-        }
+        // Chỉ chuyển hướng tới đường dẫn nội bộ (chặn ?redirectUrl=https://trang-gia-mao.com)
+        response.sendRedirect(RedirectUtil.localOr(request, request.getParameter("redirectUrl"),
+                "/task?action=list&projectId=" + projectId));
     }
 
     /**
