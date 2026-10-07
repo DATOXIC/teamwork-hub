@@ -7,6 +7,7 @@ Hệ thống quản lý làm việc nhóm — **Java 21 · Jakarta Servlet 6 / J
 1. Cài **JDK 21** và **Apache Tomcat 10.1+**.
 2. (Tùy chọn) Copy `env.example.bat` → `env.bat` rồi điền `JAVA_HOME`, `CATALINA_HOME`. Nếu không, script tự dò; không thấy sẽ hỏi và tự lưu lại.
 3. **Bắt buộc — mật khẩu DB:** copy `src/main/resources/db.properties.example` → `db.properties` (không bị commit) và điền `db.password` (hỏi trưởng nhóm). Trên Render/Docker đặt biến môi trường `DB_PASSWORD` (tùy chọn `DB_URL`, `DB_USERNAME`, `DB_JPA_UNIT`).
+   - Muốn bật **Ghi nhớ đăng nhập**: đặt thêm `TEAMWORK_REMEMBER_SECRET` (chuỗi ngẫu nhiên ≥ 32 ký tự; chạy máy cá nhân thì khai báo trong `env.bat`, xem `env.example.bat`). Không đặt thì tính năng này tự tắt.
 4. Chạy **`build_and_run.bat`** (biên dịch + deploy + khởi động Tomcat) → mở <http://localhost:8080/teamwork-hub/>.
 5. Chỉ sửa `.jsp` / `.css` / `.js`? Dùng **`hot_jsp.bat`** (hoặc `hot_jsp.bat tasks.jsp`) rồi F5 — không cần restart, không mất đăng nhập. Sửa `.java` thì phải chạy lại `build_and_run.bat`.
 6. Gửi mail OTP quên mật khẩu: copy `src/main/resources/mail.properties.example` → `mail.properties` và điền mật khẩu ứng dụng Gmail (file này không bị commit).

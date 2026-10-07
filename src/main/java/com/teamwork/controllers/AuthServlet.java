@@ -281,12 +281,16 @@ public class AuthServlet extends HttpServlet {
             // 3. Xử lý Cookie "Ghi nhớ đăng nhập" (Remember Me — hạn 14 ngày)
             // Cookie chứa token có chữ ký HMAC (không còn là username thô nên không thể tự đặt cookie để mạo danh)
             String cookiePath = request.getContextPath().isEmpty() ? "/" : request.getContextPath();
+            // Chưa cấu hình TEAMWORK_REMEMBER_SECRET → issue() trả null → không phát cookie (xóa cookie cũ nếu có)
+            String rememberToken = isRemember ? RememberMeToken.issue(user) : null;
+            if (isRemember && rememberToken == null) {
+                LOGGER.warning("Ghi nhớ đăng nhập đang TẮT: chưa đặt biến môi trường TEAMWORK_REMEMBER_SECRET (>= 32 ký tự)");
+            }
             jakarta.servlet.http.Cookie rememberCookie =
-                    new jakarta.servlet.http.Cookie(RememberMeToken.COOKIE_NAME,
-                            isRemember ? RememberMeToken.issue(user) : "");
+                    new jakarta.servlet.http.Cookie(RememberMeToken.COOKIE_NAME, rememberToken != null ? rememberToken : "");
             rememberCookie.setPath(cookiePath);
             rememberCookie.setHttpOnly(true);  // Bảo mật: chống XSS đọc Cookie
-            rememberCookie.setMaxAge(isRemember ? RememberMeToken.MAX_AGE_SECONDS : 0); // 14 ngày hoặc xóa ngay
+            rememberCookie.setMaxAge(rememberToken != null ? RememberMeToken.MAX_AGE_SECONDS : 0); // 14 ngày hoặc xóa ngay
             response.addCookie(rememberCookie);
 
             // Điều hướng sang Dashboard danh sách dự án

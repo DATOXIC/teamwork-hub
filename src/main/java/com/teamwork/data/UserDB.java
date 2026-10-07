@@ -40,14 +40,28 @@ public class UserDB {
 
         // Mật khẩu đã băm: chỉ so khớp qua băm, tuyệt đối không so thẳng với chuỗi băm trong DB
         if (PasswordUtil.isHashed(storedPassword)) {
-            return PasswordUtil.verifyPassword(plain, storedPassword) ? user : null;
+            if (!PasswordUtil.verifyPassword(plain, storedPassword)) {
+                return null;
+            }
+            // Hash định dạng cũ (SHA-256 + salt chung) → băm lại bằng PBKDF2 ngay khi biết mật khẩu đúng
+            if (PasswordUtil.needsRehash(storedPassword) && updatePassword(user.getId(), plain)) {
+                User refreshed = selectById(user.getId());
+                if (refreshed != null) {
+                    return refreshed; // trả về bản có hash mới (cookie Ghi nhớ đăng nhập ký theo hash này)
+                }
+            }
+            return user;
         }
 
         // Dữ liệu cũ lưu mật khẩu thô (ví dụ dữ liệu seed): khớp thì băm lại ngay vào DB
         if (storedPassword != null && MessageDigest.isEqual(
                 plain.getBytes(StandardCharsets.UTF_8), storedPassword.getBytes(StandardCharsets.UTF_8))) {
             if (updatePassword(user.getId(), plain)) {
-                user.setPassword(PasswordUtil.hashPassword(plain));
+                // Đọc lại từ DB: salt ngẫu nhiên nên băm lại lần nữa sẽ ra chuỗi khác với chuỗi đã lưu
+                User refreshed = selectById(user.getId());
+                if (refreshed != null) {
+                    return refreshed;
+                }
             }
             return user;
         }

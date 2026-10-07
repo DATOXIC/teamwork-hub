@@ -24,3 +24,8 @@
 :: Tên Web Application Context Path (mặc định: teamwork-hub)
 set "APP_NAME=teamwork-hub"
 
+:: [TÙY CHỌN] Bật "Ghi nhớ đăng nhập": chuỗi ngẫu nhiên tối thiểu 32 ký tự, KHÔNG chia sẻ / commit.
+:: Không đặt thì tính năng ghi nhớ tự tắt (đăng nhập bình thường vẫn chạy).
+:: Tạo nhanh trong PowerShell: [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+:: set "TEAMWORK_REMEMBER_SECRET=dan-chuoi-ngau-nhien-cua-ban-vao-day"
+

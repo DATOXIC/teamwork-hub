@@ -23,18 +23,33 @@ public final class RememberMeToken {
     public static final String COOKIE_NAME = "teamwork_remember_user";
     public static final int MAX_AGE_SECONDS = 14 * 24 * 60 * 60; // 14 ngày
 
-    private static final String DEFAULT_SECRET = "TeamWorkHub_RememberMe_Default_Key_2026";
+    /** Secret phải dài tối thiểu chừng này (ký tự) mới được dùng. */
+    static final int MIN_SECRET_LENGTH = 32;
 
     private RememberMeToken() {}
 
+    /**
+     * Secret ký cookie lấy từ biến môi trường TEAMWORK_REMEMBER_SECRET (hoặc -Dteamwork.remember.secret).
+     * KHÔNG có giá trị mặc định trong code: repo public → ai cũng đọc được secret mặc định và tự ký cookie.
+     */
     private static byte[] secret() {
-        String env = System.getenv("TEAMWORK_REMEMBER_SECRET");
-        String key = (env != null && !env.isEmpty()) ? env : DEFAULT_SECRET;
-        return key.getBytes(StandardCharsets.UTF_8);
+        String key = System.getenv("TEAMWORK_REMEMBER_SECRET");
+        if (key == null || key.isEmpty()) {
+            key = System.getProperty("teamwork.remember.secret");
+        }
+        return (key != null && key.length() >= MIN_SECRET_LENGTH) ? key.getBytes(StandardCharsets.UTF_8) : null;
     }
 
-    /** Tạo token cho người dùng vừa đăng nhập thành công. */
+    /** @return true nếu đã cấu hình secret hợp lệ; chưa có thì tính năng "Ghi nhớ đăng nhập" tự tắt. */
+    public static boolean isEnabled() {
+        return secret() != null;
+    }
+
+    /** Tạo token cho người dùng vừa đăng nhập thành công, hoặc {@code null} nếu chưa cấu hình secret. */
     public static String issue(User user) {
+        if (!isEnabled()) {
+            return null;
+        }
         long expiresAt = System.currentTimeMillis() + MAX_AGE_SECONDS * 1000L;
         return build(user.getUsername(), expiresAt, user.getPassword());
     }
@@ -64,7 +79,7 @@ public final class RememberMeToken {
      */
     public static boolean verify(String token, User user) {
         String[] parts = split(token);
-        if (parts == null || user == null || user.getUsername() == null) return false;
+        if (parts == null || user == null || user.getUsername() == null || !isEnabled()) return false;
 
         String username = peekUsername(token);
         if (username == null || !username.equals(user.getUsername())) return false;
@@ -89,8 +104,12 @@ public final class RememberMeToken {
 
     private static String sign(String username, long expiresAt, String passwordHash) {
         try {
+            byte[] key = secret();
+            if (key == null) {
+                throw new IllegalStateException("Chưa cấu hình TEAMWORK_REMEMBER_SECRET");
+            }
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(secret(), "HmacSHA256"));
+            mac.init(new SecretKeySpec(key, "HmacSHA256"));
             String payload = username + "|" + expiresAt + "|" + (passwordHash == null ? "" : passwordHash);
             return b64(mac.doFinal(payload.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception e) {

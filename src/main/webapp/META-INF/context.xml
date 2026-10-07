@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Cấu hình riêng của webapp cho Tomcat (được copy cùng webapp khi deploy) -->
+<Context>
+    <!-- Mọi cookie (JSESSIONID, Ghi nhớ đăng nhập...) gắn SameSite=Lax: trình duyệt không gửi cookie
+         kèm request POST xuất phát từ trang web khác — lớp chống CSRF thứ hai bên cạnh CsrfFilter. -->
+    <CookieProcessor sameSiteCookies="lax" />
+</Context>
