@@ -33,3 +33,8 @@ set "APP_NAME=teamwork-hub"
 :: Nằm NGOÀI webapp nên redeploy không mất tệp; tải về qua /task-file (chỉ thành viên dự án).
 :: set "TEAMWORK_UPLOAD_DIR=D:\teamwork-hub-uploads"
 
+:: Nhắc hạn chót hằng ngày (thông báo + email, chạy lúc TEAMWORK_REMINDER_HOUR giờ VN, mặc định 8h).
+:: DB dùng chung cả nhóm → CHỈ server chính (Render) nên chạy; máy cá nhân tắt để tránh nhắc trùng.
+set "TEAMWORK_REMINDERS=off"
+:: set "TEAMWORK_REMINDER_HOUR=8"
+

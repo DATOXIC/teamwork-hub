@@ -542,4 +542,23 @@ public class TaskDB {
             JPAUtil.closeEntityManager(em);
         }
     }
+
+    /**
+     * Công việc CHƯA xong, có người phụ trách, hạn chót đúng ngày {@code isoDate} (yyyy-MM-dd) — dùng cho nhắc hạn.
+     */
+    public static List<Task> selectOpenDueOn(String isoDate) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT t FROM Task t WHERE t.dueDate = :d AND t.assigneeId > 0 "
+                + "AND t.status NOT IN ('DONE', 'APPROVED') ORDER BY t.id", Task.class)
+                .setParameter("d", isoDate)
+                .getResultList();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy task tới hạn ngày " + isoDate, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
 }

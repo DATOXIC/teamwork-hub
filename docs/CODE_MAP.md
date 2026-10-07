@@ -54,6 +54,8 @@
 
 **Tệp bàn giao:** form "Nộp bàn giao" gửi multipart (`TaskServlet` có `@MultipartConfig`, 20 MB) → `TaskWorkflowHandler.handleSubmitParentTask` → `util/DeliverableStorage` (kiểm tra đuôi/kích thước, lưu ngoài webapp tại `TEAMWORK_UPLOAD_DIR/task-<id>/<uuid>__<tên gốc>`). Tải về: `TaskFileServlet` (`/task-file?taskId=`) — chỉ thành viên dự án (người ngoài 403), luôn là tệp đính kèm.
 
+**Thông báo nhắc tên & nhắc hạn:** `@Họ Tên` / `@username` trong chat hoặc bình luận → `util/MentionNotifier` (dùng `MentionParser`, chỉ thành viên dự án) → thông báo kiểu `COMMENT`. Nhắc hạn: `util/DeadlineReminder` chạy hằng ngày (lên lịch trong `AppLifecycleListener`), chống gửi trùng bằng link riêng `#nhac-han-<task|subtask>-<id>-<ngày>` (`NotificationDB.existsWithLink`). Cột `notifications.type` là enum DB: INVITE, TASK_ASSIGNED, PROGRESS, COMMENT, GENERAL.
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

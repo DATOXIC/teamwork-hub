@@ -168,4 +168,26 @@ public class NotificationDB {
             JPAUtil.closeEntityManager(em);
         }
     }
+
+    /**
+     * Người nhận đã có thông báo với đúng đường link này chưa. Dùng làm "khóa" chống gửi trùng
+     * (vd nhắc hạn: link có đuôi #nhac-han-task-5-2026-10-09 → mỗi task mỗi hạn chỉ nhắc một lần).
+     */
+    public static boolean existsWithLink(int recipientId, String link) {
+        if (recipientId <= 0 || link == null) return false;
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Long n = em.createQuery(
+                "SELECT COUNT(n) FROM Notification n WHERE n.recipientId = :r AND n.link = :l", Long.class)
+                .setParameter("r", recipientId)
+                .setParameter("l", link)
+                .getSingleResult();
+            return n != null && n > 0;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra thông báo đã gửi cho User ID: " + recipientId, e);
+            return true;   // không chắc → coi như đã gửi, tránh spam
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
 }

@@ -496,5 +496,25 @@ public class SubTaskDB {
             JPAUtil.closeEntityManager(em);
         }
     }
-}
 
+    /**
+     * Việc con CHƯA xong, đã giao cho người làm, hạn chót đúng ngày {@code isoDate}, thuộc công việc cha chưa đóng.
+     */
+    public static List<SubTask> selectOpenDueOn(String isoDate) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT st FROM SubTask st WHERE st.dueDate = :d AND st.assigneeId > 0 "
+                + "AND st.status NOT IN ('DONE', 'APPROVED') "
+                + "AND st.taskId IN (SELECT t.id FROM Task t WHERE t.status NOT IN ('DONE', 'APPROVED')) ORDER BY st.id",
+                SubTask.class)
+                .setParameter("d", isoDate)
+                .getResultList();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy việc con tới hạn ngày " + isoDate, e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+}

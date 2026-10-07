@@ -30,14 +30,38 @@ public class MailUtil {
      * @return true nếu gửi thành công, false nếu thiếu cấu hình hoặc SMTP lỗi
      */
     public static boolean sendOtp(String toEmail, String fullName, String otp) {
-        Properties cfg = loadConfig();
+        String name = (fullName == null || fullName.isBlank()) ? "bạn" : fullName;
+        return send(toEmail, "Mã OTP đặt lại mật khẩu TeamWork Hub",
+                "Xin chào " + name + ",\n\n"
+                + "Mã OTP đặt lại mật khẩu của bạn là: " + otp + "\n\n"
+                + "Mã có hiệu lực trong 3 phút. Bạn được nhập sai tối đa 3 lần.\n"
+                + "Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.\n\n"
+                + "TeamWork Hub");
+    }
+
+    /** Đã cấu hình SMTP (có mail.properties với mail.user và mail.pass) hay chưa. Không ghi log lỗi. */
+    public static boolean isConfigured() {
+        Properties cfg = loadConfig(false);
+        return cfg != null && !cfg.getProperty("mail.user", "").isBlank() && !cfg.getProperty("mail.pass", "").isBlank();
+    }
+
+    /**
+     * Gửi một email văn bản thuần (UTF-8).
+     *
+     * @return true nếu gửi thành công, false nếu thiếu cấu hình hoặc SMTP lỗi
+     */
+    public static boolean send(String toEmail, String subject, String body) {
+        if (toEmail == null || toEmail.isBlank()) {
+            return false;
+        }
+        Properties cfg = loadConfig(true);
         if (cfg == null) {
             return false;
         }
         final String user = cfg.getProperty("mail.user", "").trim();
         final String pass = cfg.getProperty("mail.pass", "").replace(" ", "");
         if (user.isEmpty() || pass.isEmpty()) {
-            LOGGER.severe("mail.properties thiếu mail.user hoặc mail.pass — không thể gửi OTP.");
+            LOGGER.severe("mail.properties thiếu mail.user hoặc mail.pass — không thể gửi email.");
             return false;
         }
 
@@ -61,25 +85,22 @@ public class MailUtil {
             MimeMessage msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress(user, "TeamWork Hub", "UTF-8"));
             msg.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
-            msg.setSubject("Mã OTP đặt lại mật khẩu TeamWork Hub", "UTF-8");
-            String name = (fullName == null || fullName.isBlank()) ? "bạn" : fullName;
-            msg.setText("Xin chào " + name + ",\n\n"
-                    + "Mã OTP đặt lại mật khẩu của bạn là: " + otp + "\n\n"
-                    + "Mã có hiệu lực trong 3 phút. Bạn được nhập sai tối đa 3 lần.\n"
-                    + "Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.\n\n"
-                    + "TeamWork Hub", "UTF-8");
+            msg.setSubject(subject, "UTF-8");
+            msg.setText(body, "UTF-8");
             Transport.send(msg);
             return true;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Gửi OTP thất bại tới " + toEmail, e);
+            LOGGER.log(Level.SEVERE, "Gửi email thất bại tới " + toEmail, e);
             return false;
         }
     }
 
-    private static Properties loadConfig() {
+    private static Properties loadConfig(boolean logMissing) {
         try (InputStream in = MailUtil.class.getClassLoader().getResourceAsStream("mail.properties")) {
             if (in == null) {
-                LOGGER.severe("Không tìm thấy mail.properties trên classpath (sao chép từ mail.properties.example).");
+                if (logMissing) {
+                    LOGGER.severe("Không tìm thấy mail.properties trên classpath (sao chép từ mail.properties.example).");
+                }
                 return null;
             }
             Properties p = new Properties();

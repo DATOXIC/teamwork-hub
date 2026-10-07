@@ -12,6 +12,7 @@ import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectMemberDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
+import com.teamwork.util.MentionNotifier;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -278,6 +279,9 @@ public class ChatServlet extends BaseServlet {
         // Lưu vào kho dữ liệu
         int newId = MessageDB.insert(newMessage);
 
+        // @nhắc tên → thông báo 🔔 cho người được nhắc (chỉ thành viên dự án)
+        if (newId > 0) MentionNotifier.notifyMentions(projectId, currentUser, content.trim(), 0, null);
+
         // Hỗ trợ AJAX: Trả về JSON để client cập nhật giao diện mà KHÔNG cần reload/F5 trang
         if (isAjaxRequest(request)) {
             response.setContentType("application/json;charset=UTF-8");
@@ -344,8 +348,11 @@ public class ChatServlet extends BaseServlet {
             now
         );
 
-        // Lưu vào kho dữ liệu RAM
-        MessageDB.insert(commentMessage);
+        // Lưu vào kho dữ liệu
+        int commentId = MessageDB.insert(commentMessage);
+
+        // @nhắc tên trong bình luận → thông báo 🔔 cho người được nhắc
+        if (commentId > 0) MentionNotifier.notifyMentions(projectId, currentUser, content.trim(), taskId, task.getTitle());
 
         // Áp dụng PRG: Redirect về lại bảng Kanban của dự án
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
