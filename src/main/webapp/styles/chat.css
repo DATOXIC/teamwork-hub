@@ -476,6 +476,7 @@
     -webkit-backdrop-filter: blur(12px);
     position: relative;
     word-break: break-word;
+    min-width: 110px;
 }
 
 .chat-bubble-me .message-body {
@@ -493,6 +494,7 @@
     -webkit-backdrop-filter: blur(16px);
     position: relative;
     word-break: break-word;
+    min-width: 110px;
 }
 
 .chat-bubble-other .message-body {
@@ -507,11 +509,25 @@
 
 .chat-time-meta {
     font-size: 0.68rem;
-    opacity: 0.7;
+    opacity: 0.75;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     margin-top: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.2;
+    user-select: none;
+}
+
+.chat-time-meta .time-text {
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.chat-time-meta i {
+    font-size: 0.65rem;
+    flex-shrink: 0;
 }
 
 /* Hover Action Bar (Micro-dock on message cards) */

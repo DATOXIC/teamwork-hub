@@ -293,7 +293,7 @@ function clearDraft() {
 }
 
 // =========================================================================
-// HÀM 9: THIẾT LẬP BỘ LẮNG NGHE SỰ KIỆN FORM CHAT (ANTI-SPAM & LOADING)
+// HÀM 9: THIẾT LẬP BỘ LẮNG NGHE SỰ KIỆN FORM CHAT (CHỐNG F5 & AJAX SUBMIT)
 // =========================================================================
 function initChatForm() {
     var chatForm = document.getElementById("chatForm");
@@ -319,59 +319,197 @@ function initChatForm() {
         }
     });
 
-    // Xử lý gửi tin nhắn: Chống spam và hiện trạng thái Loading
+    // Xử lý gửi tin nhắn qua AJAX: KHÔNG RELOAD TRANG (CHỐNG F5), cuộn mượt
     chatForm.addEventListener("submit", function(e) {
+        e.preventDefault(); // Tuyệt đối ngăn form submit kiểu truyền thống gây reload/F5 trang
+
         var content = chatInput.value.trim();
         if (!content) {
-            e.preventDefault();
             chatInput.focus();
             return false;
         }
 
-        // Kích hoạt trạng thái disabled & loading spinner
+        // Kích hoạt trạng thái disabled & loading spinner trên nút gửi
         btnSend.disabled = true;
+        var originalBtnHtml = btnSend.innerHTML;
         btnSend.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span><span>Gửi...</span>';
 
-        // Xóa bản nháp khi submit
+        // Xóa bản nháp khi bắt đầu gửi
         clearDraft();
-        return true;
+
+        var params = new URLSearchParams();
+        params.append("action", "sendProjectMessage");
+        params.append("projectId", currentProjectId);
+        params.append("content", content);
+
+        fetch(contextPath + "/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: params.toString()
+        })
+        .then(function(res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json().catch(function() { return { success: true }; });
+        })
+        .then(function() {
+            // Xóa trắng ô input và đưa lại con trỏ chuột
+            chatInput.value = "";
+            chatInput.focus();
+            // Lập tức làm mới khung chat và cuộn mượt xuống dưới đáy
+            return refreshChatFeed();
+        })
+        .catch(function(err) {
+            console.error("Lỗi khi gửi tin nhắn qua AJAX, fallback submit:", err);
+            chatForm.submit();
+        })
+        .finally(function() {
+            btnSend.disabled = false;
+            btnSend.innerHTML = originalBtnHtml;
+        });
+
+        return false;
+    });
+}
+
+function initEditMessageForm() {
+    var editForm = document.getElementById("editMessageForm");
+    if (!editForm) return;
+
+    editForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        var msgId = document.getElementById("editMessageId").value;
+        var content = document.getElementById("editMessageContent").value.trim();
+        if (!content) return;
+
+        var params = new URLSearchParams();
+        params.append("action", "editProjectMessage");
+        params.append("projectId", currentProjectId);
+        params.append("messageId", msgId);
+        params.append("content", content);
+
+        fetch(contextPath + "/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: params.toString()
+        })
+        .then(function() {
+            var modalElem = document.getElementById('editMessageModal');
+            if (modalElem) {
+                var modalInstance = bootstrap.Modal.getInstance(modalElem);
+                if (modalInstance) modalInstance.hide();
+            }
+            refreshChatFeed();
+        })
+        .catch(function(err) {
+            console.error("Lỗi khi sửa tin nhắn:", err);
+            editForm.submit();
+        });
+    });
+}
+
+function initDeleteMessageButton() {
+    var confirmBtn = document.getElementById('btnConfirmDeleteMessage');
+    if (!confirmBtn) return;
+
+    confirmBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        var targetUrl = confirmBtn.getAttribute("href");
+        if (!targetUrl || targetUrl === "#") return;
+
+        fetch(targetUrl, {
+            method: "GET",
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+        .then(function() {
+            var modalElem = document.getElementById('deleteMessageModal');
+            if (modalElem) {
+                var modalInstance = bootstrap.Modal.getInstance(modalElem);
+                if (modalInstance) modalInstance.hide();
+            }
+            refreshChatFeed();
+        })
+        .catch(function(err) {
+            console.error("Lỗi khi xóa tin nhắn:", err);
+            window.location.href = targetUrl;
+        });
     });
 }
 
 // =========================================================================
-// HÀM 10: RÚT GỌN HIỂN THỊ THỜI GIAN TIN NHẮN (SMART TIMESTAMP)
+// HÀM 10: RÚT GỌN HIỂN THỊ THỜI GIAN TIN NHẮN (CHUẨN GIỜ VIỆT NAM UTC+7)
 // =========================================================================
+function parseToDate(rawTime) {
+    if (!rawTime) return null;
+    rawTime = rawTime.trim();
+
+    try {
+        // Pattern 1: ISO/Postgres: yyyy-MM-dd[ T]HH:mm[:ss]...(+00, Z, etc.)
+        var isoMatch = rawTime.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?([+-]\d{2}(?::?\d{2})?|Z)?/);
+        if (isoMatch) {
+            var y = parseInt(isoMatch[1], 10);
+            var m = parseInt(isoMatch[2], 10) - 1;
+            var d = parseInt(isoMatch[3], 10);
+            var hr = parseInt(isoMatch[4], 10);
+            var min = parseInt(isoMatch[5], 10);
+            var sec = isoMatch[6] ? parseInt(isoMatch[6], 10) : 0;
+            var tz = isoMatch[7];
+
+            if (tz) {
+                var offsetMinutes = 0;
+                if (tz !== 'Z' && tz !== 'z') {
+                    var tzSign = tz.charAt(0) === '-' ? -1 : 1;
+                    var tzNumbers = tz.replace(/[+-]/, '');
+                    var tzHour = 0, tzMin = 0;
+                    if (tzNumbers.indexOf(':') !== -1) {
+                        var parts = tzNumbers.split(':');
+                        tzHour = parseInt(parts[0], 10);
+                        tzMin = parseInt(parts[1], 10);
+                    } else if (tzNumbers.length <= 2) {
+                        tzHour = parseInt(tzNumbers, 10);
+                    } else {
+                        tzHour = parseInt(tzNumbers.substring(0, 2), 10);
+                        tzMin = parseInt(tzNumbers.substring(2, 4), 10);
+                    }
+                    offsetMinutes = tzSign * (tzHour * 60 + tzMin);
+                }
+                var utcMs = Date.UTC(y, m, d, hr, min, sec) - (offsetMinutes * 60000);
+                return new Date(utcMs);
+            } else {
+                return new Date(y, m, d, hr, min, sec);
+            }
+        }
+
+        // Pattern 2: dd/MM/yyyy HH:mm[:ss]
+        var dmyMatch = rawTime.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/);
+        if (dmyMatch) {
+            var day = parseInt(dmyMatch[1], 10);
+            var month = parseInt(dmyMatch[2], 10) - 1;
+            var year = parseInt(dmyMatch[3], 10);
+            var hour = parseInt(dmyMatch[4], 10);
+            var min = parseInt(dmyMatch[5], 10);
+            var sec = dmyMatch[6] ? parseInt(dmyMatch[6], 10) : 0;
+            return new Date(year, month, day, hour, min, sec);
+        }
+
+        var fallback = new Date(rawTime);
+        return isNaN(fallback.getTime()) ? null : fallback;
+    } catch (e) {
+        return null;
+    }
+}
+
 function formatSmartTimestamp(rawTime) {
     if (!rawTime) return "";
     rawTime = rawTime.trim();
 
     try {
-        var dateObj = null;
-
-        // Định dạng 1: yyyy-MM-dd[ T]HH:mm (VD: 2026-08-21 04:05:49.482369+00)
-        var isoMatch = rawTime.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
-        if (isoMatch) {
-            var year = parseInt(isoMatch[1], 10);
-            var month = parseInt(isoMatch[2], 10) - 1;
-            var day = parseInt(isoMatch[3], 10);
-            var hour = parseInt(isoMatch[4], 10);
-            var min = parseInt(isoMatch[5], 10);
-            dateObj = new Date(year, month, day, hour, min);
-        }
-
-        // Định dạng 2: dd/MM/yyyy HH:mm[:ss]
-        if (!dateObj) {
-            var dmyMatch = rawTime.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
-            if (dmyMatch) {
-                var day = parseInt(dmyMatch[1], 10);
-                var month = parseInt(dmyMatch[2], 10) - 1;
-                var year = parseInt(dmyMatch[3], 10);
-                var hour = parseInt(dmyMatch[4], 10);
-                var min = parseInt(dmyMatch[5], 10);
-                dateObj = new Date(year, month, day, hour, min);
-            }
-        }
-
+        var dateObj = parseToDate(rawTime);
         if (dateObj && !isNaN(dateObj.getTime())) {
             var now = new Date();
             var isToday = (dateObj.getDate() === now.getDate() &&
@@ -405,18 +543,32 @@ function formatSmartTimestamp(rawTime) {
     return rawTime;
 }
 
+function formatFullTimestamp(rawTime) {
+    if (!rawTime) return "";
+    var dateObj = parseToDate(rawTime);
+    if (dateObj && !isNaN(dateObj.getTime())) {
+        var pad = function(n) { return n < 10 ? '0' + n : n; };
+        return pad(dateObj.getHours()) + ":" + pad(dateObj.getMinutes()) + " - " +
+               pad(dateObj.getDate()) + "/" + pad(dateObj.getMonth() + 1) + "/" + dateObj.getFullYear() + " (GMT+7)";
+    }
+    return rawTime;
+}
+
 function renderAllTimestamps() {
     var metaEls = document.querySelectorAll(".chat-time-meta");
     for (var el of metaEls) {
-        var raw = el.getAttribute("data-raw-time") || el.getAttribute("title");
+        var raw = el.getAttribute("data-raw-time");
         if (!raw) {
-            raw = el.textContent.trim();
+            raw = el.getAttribute("title") || el.textContent.trim();
             el.setAttribute("data-raw-time", raw);
         }
         var shortTime = formatSmartTimestamp(raw);
+        var fullTime = formatFullTimestamp(raw);
+        el.classList.add("text-nowrap");
         var timeSpan = el.querySelector(".time-text");
         if (timeSpan) {
             timeSpan.textContent = shortTime;
+            timeSpan.classList.add("text-nowrap");
         } else {
             var icon = el.querySelector("i");
             el.innerHTML = "";
@@ -424,11 +576,11 @@ function renderAllTimestamps() {
                 el.appendChild(icon);
             }
             var span = document.createElement("span");
-            span.className = "time-text ms-1";
+            span.className = "time-text ms-1 text-nowrap";
             span.textContent = shortTime;
             el.appendChild(span);
         }
-        el.setAttribute("title", raw);
+        el.setAttribute("title", fullTime);
     }
 }
 
@@ -503,8 +655,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // 2. Khôi phục bản nháp nếu có
     restoreDraft();
 
-    // 3. Khởi tạo xử lý Form & Anti-Spam
+    // 3. Khởi tạo xử lý Form & Anti-Spam (AJAX gửi tin không F5)
     initChatForm();
+    initEditMessageForm();
+    initDeleteMessageButton();
 
     // 4. Tự động cuộn xuống dòng tin nhắn mới nhất
     scrollToBottom();
