@@ -46,6 +46,8 @@
 
 **Màu & design token:** mọi màu nằm trong `styles/tokens.css` (nạp đầu tiên ở `header.jsp`, `login.jsp`, `forgot-password.jsp`). File CSS khác chỉ viết `var(--c-…)`, không viết mã hex. Màu chữ trên nền sáng dùng biến `--c-aa-*` (đạt WCAG AA ≥ 4.5:1 ở chế độ sáng, giữ màu gốc ở chế độ tối). Thêm thang `--space-*`, `--text-*`, `--z-*`.
 
+**Loading / rỗng / lỗi:** form POST tự khóa nút + hiện spinner (bỏ qua bằng `data-no-loading`); `window.setButtonLoading(btn, bool)`; thanh tiến trình `#appProgressBar` chạy theo `apiFetch` và form submit; trạng thái rỗng dùng `.empty-state` (`components.css`); dải lỗi trong khối nội dung dùng `.inline-status--warning/--error` (vd chat mất kết nối / hết phiên); `.skeleton` cho khung đang tải.
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

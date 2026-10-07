@@ -15,7 +15,13 @@
         <span id="wbStatus" class="badge rounded-pill bg-light text-muted border px-3 py-1 fs-8"><i class="bi bi-cloud-check me-1 text-success"></i> Tự động lưu</span>
     </div>
 
-    <div id="wbRoot" class="wb-frame"></div>
+    <div id="wbRoot" class="wb-frame">
+        <%-- Hiện trong lúc tải thư viện vẽ (React thay nội dung này khi bảng vẽ sẵn sàng) --%>
+        <div class="empty-state h-100" role="status">
+            <span class="spinner-border text-primary mb-3" aria-hidden="true"></span>
+            <div class="empty-state-title">Đang tải bảng vẽ…</div>
+        </div>
+    </div>
 </div>
 
 <style>

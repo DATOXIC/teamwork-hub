@@ -368,7 +368,18 @@
 
         // 3. Nếu danh sách sau khi lọc trống
         if (state.filteredTasks.length === 0) {
-            leftBody.innerHTML = '<div class="p-4 text-center text-muted fs-8"><i class="bi bi-search me-1"></i> Không tìm thấy công việc nào phù hợp!</div>';
+            // Phân biệt "dự án chưa có gì để vẽ" với "bộ lọc loại hết"
+            leftBody.innerHTML = state.tasks.length === 0
+                ? '<div class="empty-state py-4">'
+                    + '<i class="bi bi-calendar2-range empty-state-icon"></i>'
+                    + '<div class="empty-state-title">Dự án chưa có công việc nào</div>'
+                    + '<p class="empty-state-hint">Trưởng dự án tạo công việc ở trang Công việc; công việc có hạn chót sẽ hiện thành thanh trên sơ đồ.</p>'
+                    + '</div>'
+                : '<div class="empty-state py-4">'
+                    + '<i class="bi bi-search empty-state-icon"></i>'
+                    + '<div class="empty-state-title">Không có công việc khớp bộ lọc</div>'
+                    + '<p class="empty-state-hint">Thử đổi từ khóa, người phụ trách hoặc trạng thái.</p>'
+                    + '</div>';
             return;
         }
 

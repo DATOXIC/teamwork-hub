@@ -390,6 +390,66 @@
     // =========================================================================
     var API_TIMEOUT_MS = 15000;
 
+    // ---- Thanh tiến trình mảnh ở mép trên: hiện khi còn ít nhất 1 yêu cầu đang chạy ----
+    var progressCount = 0;
+    var progressHideTimer = null;
+    function progressBar() {
+        var bar = document.getElementById('appProgressBar');
+        if (!bar && document.body) {
+            bar = document.createElement('div');
+            bar.id = 'appProgressBar';
+            bar.className = 'app-progress';
+            bar.setAttribute('role', 'progressbar');
+            bar.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(bar);
+        }
+        return bar;
+    }
+    window.startProgress = function () {
+        progressCount++;
+        var bar = progressBar();
+        if (!bar) return;
+        clearTimeout(progressHideTimer);
+        bar.classList.remove('is-done');
+        // ép trình duyệt vẽ lại để hiệu ứng chạy từ 0 mỗi lần bắt đầu
+        void bar.offsetWidth;
+        bar.classList.add('is-active');
+    };
+    window.resetProgress = function () {
+        progressCount = 1;
+        window.endProgress();
+    };
+    window.endProgress = function () {
+        progressCount = Math.max(0, progressCount - 1);
+        if (progressCount > 0) return;
+        var bar = progressBar();
+        if (!bar) return;
+        bar.classList.remove('is-active');
+        bar.classList.add('is-done');
+        progressHideTimer = setTimeout(function () { bar.classList.remove('is-done'); }, 400);
+    };
+
+    // ---- Nút đang xử lý: spinner + khóa, chống bấm 2 lần ----
+    window.setButtonLoading = function (btn, loading) {
+        if (!btn) return;
+        if (loading) {
+            if (btn.classList.contains('is-loading')) return;
+            btn.classList.add('is-loading');
+            btn.setAttribute('aria-busy', 'true');
+            btn.disabled = true;
+            var spinner = document.createElement('span');
+            spinner.className = 'spinner-border btn-loading-spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            btn.insertBefore(spinner, btn.firstChild);
+        } else {
+            btn.classList.remove('is-loading');
+            btn.removeAttribute('aria-busy');
+            btn.disabled = false;
+            var s = btn.querySelector('.btn-loading-spinner');
+            if (s) s.remove();
+        }
+    };
+
     function failure(message) {
         return { success: false, ok: false, message: message };
     }
@@ -400,6 +460,8 @@
         var method = (opts.method || 'GET').toUpperCase();
         var timeoutMs = opts.timeout || API_TIMEOUT_MS;
         delete opts.timeout;
+
+        window.startProgress();
 
         function attempt(retriesLeft) {
             var controller = window.AbortController ? new AbortController() : null;
@@ -436,8 +498,47 @@
                 throw networkError;
             });
         }
-        return attempt(1);
+        return attempt(1).then(function (data) {
+            window.endProgress();
+            return data;
+        }, function (err) {
+            window.endProgress();
+            throw err;
+        });
     };
+
+    // =========================================================================
+    // FORM GỬI THEO KIỂU TRUYỀN THỐNG (POST → server → chuyển trang):
+    // nút submit hiện spinner + bị khóa để người dùng biết đang xử lý và không bấm 2 lần
+    // (bấm 2 lần = tạo 2 task / 2 tài liệu giống nhau).
+    // Bỏ qua: form GET (tìm kiếm, lọc), form có data-no-loading, form đã bị chặn
+    // (onsubmit="return confirm(...)" bị hủy, hoặc JS tự gửi bằng AJAX qua preventDefault).
+    // =========================================================================
+    if (!window.__formLoadingInstalled) {
+        window.__formLoadingInstalled = true;
+        document.addEventListener('submit', function (e) {
+            var form = e.target;
+            if (!form || form.tagName !== 'FORM') return;
+            if (e.defaultPrevented || form.hasAttribute('data-no-loading')) return;
+            if ((form.getAttribute('method') || 'get').toLowerCase() !== 'post') return;
+            if (form.target && form.target !== '_self') return;
+            var btn = e.submitter || form.querySelector('button[type="submit"], button:not([type]), input[type="submit"]');
+            window.startProgress();
+            // Khóa SAU khi trình duyệt đã lấy dữ liệu form: nút bị disabled ngay lập tức
+            // sẽ không gửi kèm name/value của chính nó.
+            setTimeout(function () {
+                if (btn && btn.tagName === 'BUTTON') window.setButtonLoading(btn, true);
+                else if (btn) btn.disabled = true;
+            }, 0);
+        });
+        // Quay lại trang bằng nút Back (trang lấy từ bộ nhớ đệm): mở khóa các nút
+        window.addEventListener('pageshow', function (e) {
+            if (!e.persisted) return;
+            document.querySelectorAll('.is-loading').forEach(function (b) { window.setButtonLoading(b, false); });
+            document.querySelectorAll('input[type="submit"][disabled]').forEach(function (b) { b.disabled = false; });
+            window.resetProgress();
+        });
+    }
 
     // app.js có thể được nạp 2 lần trên một trang (trực tiếp + qua footer): chỉ gắn listener một lần
     if (!window.__postLinkHandlerInstalled) {

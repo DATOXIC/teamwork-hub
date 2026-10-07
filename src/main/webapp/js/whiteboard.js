@@ -8,6 +8,19 @@
  * "dấu xóa" (isDeleted) một thời gian để việc xóa cũng lan sang người khác.
  */
 (function () {
+// Thư viện vẽ tải từ CDN (unpkg): mất mạng / CDN lỗi thì báo rõ thay vì để khung trắng
+if (!window.React || !window.ReactDOM || !window.ExcalidrawLib) {
+    var root = document.getElementById('wbRoot');
+    if (root) {
+        root.innerHTML = '<div class="empty-state h-100" role="alert">'
+            + '<i class="bi bi-wifi-off empty-state-icon"></i>'
+            + '<div class="empty-state-title">Không tải được bảng vẽ</div>'
+            + '<p class="empty-state-hint">Thư viện vẽ (Excalidraw) chưa tải được — kiểm tra kết nối mạng rồi tải lại trang. Nét vẽ đã lưu không bị mất.</p>'
+            + '<button type="button" class="btn btn-sm btn-primary-custom rounded-pill px-3 mt-3" onclick="location.reload()">Tải lại trang</button>'
+            + '</div>';
+    }
+    return;
+}
 var saveUrl = WB_CONFIG.saveUrl;
 var statusEl = document.getElementById('wbStatus');
 var initial = null;

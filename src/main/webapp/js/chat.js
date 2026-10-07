@@ -619,18 +619,66 @@ function refreshChatFeed() {
         });
 }
 
+// Số lần hỏi máy chủ thất bại liên tiếp: >= 2 lần (~8 giây) mới báo, tránh nháy dải lỗi khi mạng chập chờn 1 nhịp
+var chatPollFailures = 0;
+
+/** Dải trạng thái ngay trên khung tin nhắn: null = ẩn; 'offline' = mất kết nối; 'expired' = hết phiên. */
+function setChatStatus(kind) {
+    var feed = document.getElementById("chatMessageContainer");
+    if (!feed) return;
+    var bar = document.getElementById("chatConnectionStatus");
+    if (!kind) {
+        if (bar) bar.remove();
+        return;
+    }
+    if (!bar) {
+        bar = document.createElement("div");
+        bar.id = "chatConnectionStatus";
+        bar.setAttribute("role", "status");
+        bar.setAttribute("aria-live", "polite");
+        feed.parentNode.insertBefore(bar, feed);
+    }
+    if (kind === "expired") {
+        bar.className = "inline-status inline-status--error mx-3 mt-2";
+        bar.innerHTML = '<i class="bi bi-shield-lock"></i><span>Phiên đăng nhập đã hết hạn — tin nhắn mới sẽ không hiện.</span>'
+            + '<button type="button" class="btn btn-sm btn-link p-0 ms-auto fw-bold" onclick="location.reload()">Tải lại trang</button>';
+    } else {
+        bar.className = "inline-status inline-status--warning mx-3 mt-2";
+        bar.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>'
+            + '<span>Mất kết nối tới máy chủ — đang thử lại…</span>';
+    }
+}
+
 function pollChat() {
     if (chatPollBusy || document.hidden) return;
     chatPollBusy = true;
     fetch(contextPath + "/chat?action=poll&projectId=" + encodeURIComponent(currentProjectId),
-          { credentials: "same-origin", headers: { "Accept": "application/json" } })
-        .then(function(res) { return res.json(); })
+          { credentials: "same-origin", headers: { "Accept": "application/json", "X-Requested-With": "XMLHttpRequest" } })
+        .then(function(res) {
+            // Hết phiên: AuthFilter chuyển hướng sang trang đăng nhập (HTML, không phải JSON)
+            var type = res.headers.get("Content-Type") || "";
+            if (res.redirected || type.indexOf("application/json") === -1) {
+                var expired = new Error("expired");
+                expired.expired = true;
+                throw expired;
+            }
+            return res.json();
+        })
         .then(function(data) {
+            chatPollFailures = 0;
+            setChatStatus(null);
             if (data && data.sig && data.sig !== chatSig) {
                 return refreshChatFeed();
             }
         })
-        .catch(function() { /* mất mạng / hết phiên: bỏ qua, lần sau thử lại */ })
+        .catch(function(err) {
+            if (err && err.expired) {
+                setChatStatus("expired");
+                return;
+            }
+            chatPollFailures++;
+            if (chatPollFailures >= 2) setChatStatus("offline");
+        })
         .then(function() { chatPollBusy = false; });
 }
 

@@ -232,3 +232,98 @@ body:has(.hero-scrolltelling) .app-navbar {
 .navbar-user-pill:hover {
     background-color: rgba(255, 255, 255, 0.22);
 }
+
+/* ==========================================================================
+   TRẠNG THÁI LOADING / LỖI dùng chung (bước 23)
+   ========================================================================== */
+
+/* Nút đang gửi: app.js tự thêm khi form submit hoặc gọi setButtonLoading(btn, true) */
+.btn.is-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.85;
+}
+.btn.is-loading .btn-loading-spinner {
+    width: 0.9em;
+    height: 0.9em;
+    border-width: 0.15em;
+    margin-right: 0.4em;
+    vertical-align: -0.1em;
+}
+
+/* Thanh tiến trình mảnh ở mép trên màn hình khi đang gọi máy chủ (apiFetch / chuyển trang bằng form) */
+.app-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0;
+    z-index: var(--z-toast);
+    background: linear-gradient(90deg, var(--c-ocean-500), var(--c-blue-500));
+    box-shadow: 0 0 8px var(--c-ocean-400);
+    opacity: 0;
+    transition: width 0.4s ease, opacity 0.3s ease;
+    pointer-events: none;
+}
+.app-progress.is-active {
+    width: 80%;
+    opacity: 1;
+    transition: width 8s cubic-bezier(0.1, 0.6, 0.2, 1), opacity 0.2s ease;
+}
+.app-progress.is-done {
+    width: 100%;
+    opacity: 0;
+}
+
+/* Khung xương (skeleton) khi nội dung đang tải */
+.skeleton {
+    display: block;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(90deg, var(--c-slate-100) 25%, var(--c-slate-200) 37%, var(--c-slate-100) 63%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+}
+[data-theme="dark"] .skeleton {
+    background: linear-gradient(90deg, var(--c-night-700) 25%, var(--c-slate-800) 37%, var(--c-night-700) 63%);
+    background-size: 400% 100%;
+}
+@keyframes skeleton-shimmer {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+/* Dải báo lỗi kết nối gắn trong một khối nội dung (vd khung chat) */
+.inline-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 600;
+}
+.inline-status--warning {
+    background: var(--c-amber-50);
+    color: var(--c-amber-800);
+    border: 1px solid var(--c-amber-200);
+}
+.inline-status--error {
+    background: var(--c-red-50);
+    color: var(--c-red-800);
+    border: 1px solid var(--c-red-200);
+}
+[data-theme="dark"] .inline-status--warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--c-amber-300);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+[data-theme="dark"] .inline-status--error {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--c-red-300);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton { animation: none; }
+    .app-progress, .app-progress.is-active { transition: opacity 0.2s ease; }
+}
