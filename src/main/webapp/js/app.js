@@ -374,6 +374,7 @@
             input.value = value;
             form.appendChild(input);
         });
+        if (typeof window.addCsrfInput === 'function') window.addCsrfInput(form); // form.submit() không phát sự kiện submit
         document.body.appendChild(form);
         form.submit();
     };

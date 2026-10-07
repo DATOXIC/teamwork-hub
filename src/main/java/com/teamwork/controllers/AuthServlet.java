@@ -120,6 +120,12 @@ public class AuthServlet extends HttpServlet {
                         request.setAttribute("username", registeredUser);
                         session.removeAttribute("registeredUsername");
                     }
+                    // Lỗi flash (vd. CsrfFilter chặn form đăng nhập để quá lâu) → hiện như lỗi đăng nhập
+                    String toastError = (String) session.getAttribute("toastError");
+                    if (toastError != null) {
+                        request.setAttribute("errorMessage", toastError);
+                        session.removeAttribute("toastError");
+                    }
                 }
 
                 // Đọc Cookie "Ghi nhớ đăng nhập" để điền sẵn username vào form

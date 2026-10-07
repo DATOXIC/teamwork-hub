@@ -295,6 +295,7 @@ document.addEventListener('DOMContentLoaded', function()
         form.appendChild(inputProject);
         form.appendChild(inputTask);
         form.appendChild(inputStatus);
+        if (typeof window.addCsrfInput === 'function') window.addCsrfInput(form); // form.submit() không phát sự kiện submit
 
         document.body.appendChild(form);
         form.submit();
