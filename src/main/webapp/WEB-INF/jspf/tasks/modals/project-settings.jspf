@@ -1,0 +1,84 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Modal cài đặt dự án (Solo / Team) --%>
+        <!-- MODAL: CÀI ĐẶT DỰ ÁN & QUY TRÌNH (SOLO VS TEAM) -->
+        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+            <div class="modal fade" id="projectSettingsModal" tabindex="-1" aria-labelledby="projectSettingsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <div class="modal-header bg-dark-navy text-white px-4 py-3 border-0">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-gear-fill text-warning fs-5"></i>
+                                <div>
+                                    <h5 class="modal-title fw-bold mb-0" id="projectSettingsModalLabel">Cài Đặt & Quy Trình Dự Án</h5>
+                                    <span class="fs-9 text-white-50">Tùy biến chế độ kiểm soát chất lượng</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+                        <%-- ▶ SERVLET: /project → ProjectServlet.doPost() → case "update" → updateProject() --%>
+                        <form method="post" action="${pageContext.request.contextPath}/project">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="projectId" value="${project.id}">
+                            <div class="modal-body p-4">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold fs-7 text-dark">Tên dự án <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control rounded-3 fs-7" name="name" value="${fn:escapeXml(project.name)}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold fs-7 text-dark">Mô tả dự án</label>
+                                    <textarea class="form-control rounded-3 fs-7" name="description" rows="2"><c:out value="${project.description}" /></textarea>
+                                </div>
+                                
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold fs-7 text-dark mb-2">Chế độ vận hành (Workflow Mode):</label>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="d-block p-3 rounded-3 border h-100 position-relative ${project.teamProject ? 'border-primary bg-primary-subtle' : 'bg-light'}" style="cursor: pointer;">
+                                                <input type="radio" name="projectType" value="TEAM" class="position-absolute top-2 end-2" ${project.teamProject ? 'checked' : ''}>
+                                                <div class="fw-bold text-dark fs-8 mb-1"><i class="bi bi-shield-check text-primary me-1"></i> Dự Án Nhóm</div>
+                                                <div class="fs-9 text-muted lh-sm">Kích hoạt kiểm duyệt 2 bước (duyệt kế hoạch + trưởng dự án nghiệm thu), thanh lọc nhân sự và cột Phụ trách.</div>
+                                            </label>
+                                        </div>
+                                        <c:choose>
+                                            <c:when test="${project.teamProject && memberCount > 1}">
+                                                <div class="col-6">
+                                                    <div class="d-block p-3 rounded-3 border h-100 position-relative bg-light opacity-75 border-secondary-subtle">
+                                                        <input type="radio" name="projectType" value="SOLO" class="position-absolute top-2 end-2" disabled>
+                                                        <div class="fw-bold text-secondary fs-8 mb-1"><i class="bi bi-lock-fill me-1"></i> Cá Nhân (Bị khóa)</div>
+                                                        <div class="fs-9 text-danger lh-sm">
+                                                            Đang có <strong>${memberCount} thành viên</strong>. Cần xóa hết thành viên khác trước khi chuyển sang chế độ Cá Nhân.
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="col-6">
+                                                    <label class="d-block p-3 rounded-3 border h-100 position-relative ${project.soloProject ? 'border-warning bg-warning-subtle' : 'bg-light'}" style="cursor: pointer;">
+                                                        <input type="radio" name="projectType" value="SOLO" class="position-absolute top-2 end-2" ${project.soloProject ? 'checked' : ''}>
+                                                        <div class="fw-bold text-dark fs-8 mb-1"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Cá Nhân (Không cần duyệt)</div>
+                                                        <div class="fs-9 text-muted lh-sm">Giao diện tối giản tuyệt đối, tự do kéo thả, ẩn toàn bộ thông tin phụ trách/đội ngũ.</div>
+                                                    </label>
+                                                </div>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <c:if test="${project.teamProject && memberCount == 1}">
+                                        <div class="mt-2 fs-9 text-muted bg-light p-2 rounded-2 border">
+                                            <i class="bi bi-info-circle text-primary me-1"></i> Khi chuyển sang <strong>Cá Nhân</strong>, toàn bộ công việc sẽ tự động mở khóa (bỏ kiểm duyệt) và hủy các lời mời đang chờ.
+                                        </div>
+                                    </c:if>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                                <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                                    <i class="bi bi-check-lg me-1"></i> Lưu Cấu Hình
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </c:if>
+

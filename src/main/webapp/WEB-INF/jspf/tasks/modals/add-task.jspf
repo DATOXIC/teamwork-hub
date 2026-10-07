@@ -1,0 +1,237 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Modal "+ Thêm công việc mới" (kèm tạo nhãn) --%>
+        <!-- ==========================================
+     6. MODAL POPUP: FORM "+ THÊM CÔNG VIỆC MỚI" (UC05)
+     ========================================== -->
+        <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                    <div class="modal-header bg-white px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2-5 py-1 fs-9 fw-bold">
+                                <i class="bi bi-plus-circle-fill me-1"></i> CÔNG VIỆC MỚI
+                            </span>
+                            <span class="fs-8 text-muted">trong <strong>${fn:escapeXml(project.name)}</strong></span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fs-9 text-muted d-none d-sm-inline"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> để tạo nhanh</span>
+                            <button type="button" class="btn-close fs-9" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+                    </div>
+
+                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "add" → TaskCrudHandler.handleAddTask() --%>
+                    <form method="post" action="${pageContext.request.contextPath}/task">
+
+                        <input type="hidden" name="action" value="add">
+                        <input type="hidden" name="projectId" value="${project.id}">
+
+                        <div class="modal-body px-4 py-4">
+
+                            <div class="mb-3">
+                                <input type="text" class="form-control clickup-modal-title-input" id="taskTitle"
+                                    name="title" placeholder="Tiêu đề công việc..." required autocomplete="off">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="taskDescription" class="form-label fw-semibold text-dark fs-7">Mô tả yêu
+                                    cầu</label>
+                                <textarea class="form-control rounded-3 p-3 fs-7" id="taskDescription"
+                                    name="description" rows="3"
+                                    placeholder="Mô tả mục tiêu của Module này..."></textarea>
+                            </div>
+
+                            <!-- Chọn Nhãn phân loại (Labels / Tags) -->
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <label class="form-label fw-semibold text-dark fs-7 mb-0">
+                                        <i class="bi bi-tags me-1 text-primary"></i> Nhãn phân loại
+                                    </label>
+
+                                    <!-- NÚT BẬT FORM CON SỔ RA TRỰC TIẾP TRONG FORM THÊM TASK -->
+                                    <button type="button"
+                                        class="btn btn-sm btn-light border border-secondary-subtle text-primary rounded-pill px-2-5 py-0-5 fs-8 fw-semibold d-inline-flex align-items-center gap-1 shadow-2xs"
+                                        data-bs-toggle="collapse" data-bs-target="#inlineCreateLabelBox"
+                                        aria-expanded="false" title="Mở bảng tạo nhãn con bên trong">
+                                        <i class="bi bi-plus-circle-dotted"></i> Thêm nhãn
+                                    </button>
+                                </div>
+
+                                <!-- Danh sách các nút nhãn hiện có -->
+                                <div class="d-flex flex-wrap gap-2 mb-2" id="labelButtonGroup">
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("projectLabels") --%>
+                                    <c:forEach items="${projectLabels}" var="lb">
+                                        <button type="button"
+                                            class="btn btn-sm ${lb.buttonClass} rounded-pill px-3 py-1 fs-8 fw-semibold label-toggle-btn"
+                                            data-label="<c:out value='${lb.key}'/>"
+                                            onclick="toggleTaskLabel(this, this.dataset.label)">${lb.iconEmoji} <c:out value="${lb.name}"/></button>
+                                    </c:forEach>
+                                </div>
+                                <input type="hidden" name="labels" id="taskSelectedLabels" value="">
+
+                                <!-- ==========================================================
+                             BẢNG CON TẠO NHÃN: NẰM GỌN TRỰC TIẾP TRONG FORM THÊM TASK
+                             ========================================================== -->
+                                <div class="collapse mt-2" id="inlineCreateLabelBox">
+                                    <div class="p-3 bg-light border border-primary-subtle rounded-3 shadow-2xs">
+                                        <div
+                                            class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                            <span class="fs-8 fw-bold text-primary">
+                                                <i class="bi bi-tag-fill me-1"></i> Tạo nhãn tùy biến mới:
+                                            </span>
+                                            <button type="button" class="btn-close fs-9" data-bs-toggle="collapse"
+                                                data-bs-target="#inlineCreateLabelBox" aria-label="Đóng"></button>
+                                        </div>
+
+                                        <div class="row g-2 align-items-end">
+                                            <div class="col-12 col-md-5">
+                                                <label class="form-label fs-9 fw-semibold text-dark mb-1">Tên
+                                                    nhãn:</label>
+                                                <input type="text" id="inlineLabelName"
+                                                    class="form-control form-control-sm rounded-2 fs-8"
+                                                    placeholder="Ví dụ: Security, API..." maxlength="30"
+                                                    autocomplete="off">
+                                            </div>
+
+                                            <div class="col-12 col-md-4">
+                                                <label class="form-label fs-9 fw-semibold text-dark mb-1">Màu
+                                                    sắc:</label>
+                                                <select class="form-select form-select-sm rounded-2 fs-8"
+                                                    id="inlineLabelColor">
+                                                    <option value="red">🔴 Đỏ san hô</option>
+                                                    <option value="blue" selected>🔵 Xanh Dương</option>
+                                                    <option value="purple">🟣 Tím nhạt</option>
+                                                    <option value="amber">🟡 Vàng Hổ Phách</option>
+                                                    <option value="green">🟢 Xanh Lá</option>
+                                                    <option value="pink">🌸 Hồng</option>
+                                                    <option value="cyan">💎 Xanh Ngọc</option>
+                                                    <option value="slate">🔘 Xám đá</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-12 col-md-3">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-primary-custom w-100 rounded-2 fs-8 fw-semibold"
+                                                    onclick="handleQuickCreateLabel()">
+                                                    <i class="bi bi-plus-lg me-1"></i> Tạo nhãn
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-12 col-md-6">
+                                    <span class="form-label fw-semibold text-dark fs-7 d-block" id="taskPriorityLabel">Mức độ ưu
+                                        tiên</span>
+                                    <div class="priority-picker" role="radiogroup" aria-labelledby="taskPriorityLabel">
+                                        <input type="radio" class="btn-check" name="priority" id="taskPriorityHigh"
+                                            value="HIGH" autocomplete="off">
+                                        <label class="priority-option priority-option-urgent" for="taskPriorityHigh">
+                                            <span class="clickup-priority-flag flag-urgent"><i class="bi bi-flag-fill"></i> Khẩn cấp</span>
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="priority" id="taskPriorityMedium"
+                                            value="MEDIUM" autocomplete="off" checked>
+                                        <label class="priority-option priority-option-normal" for="taskPriorityMedium">
+                                            <span class="clickup-priority-flag flag-normal"><i class="bi bi-flag-fill"></i> Bình thường</span>
+                                        </label>
+
+                                        <input type="radio" class="btn-check" name="priority" id="taskPriorityLow"
+                                            value="LOW" autocomplete="off">
+                                        <label class="priority-option priority-option-low" for="taskPriorityLow">
+                                            <span class="clickup-priority-flag flag-low"><i class="bi bi-flag-fill"></i> Thấp</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label for="taskDueDate" class="form-label fw-semibold text-dark fs-7">Hạn hoàn
+                                        thành</label>
+                                    <input type="date" class="form-control rounded-3 py-2 px-3 fs-7" id="taskDueDate"
+                                        name="dueDate">
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-2">
+                                <c:choose>
+                                    <c:when test="${project.teamProject}">
+                                        <div class="col-12 col-md-6">
+                                            <label for="taskAssignee" class="form-label fw-semibold text-dark fs-7">Chỉ định
+                                                Trưởng nhóm công việc <span class="text-danger">*</span></label>
+                                            <select class="form-select rounded-3 py-2 px-3 fs-7" id="taskAssignee"
+                                                name="assigneeId" required>
+                                                <option value="" selected disabled>-- Chọn người phụ trách --</option>
+                                                <c:forEach items="${userList}" var="u">
+                                                    <option value="${u.id}">${fn:escapeXml(u.fullName)} (${fn:escapeXml(u.role)})</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <input type="hidden" name="assigneeId" value="${sessionScope.currentUser.id}">
+                                        <div class="col-12">
+                                    </c:otherwise>
+                                </c:choose>
+                                    <label for="taskDocSelect" class="form-label fw-semibold text-dark fs-7">
+                                        <i class="bi bi-paperclip me-1 text-primary"></i> Đính kèm tài liệu Wiki
+                                    </label>
+                                    <c:choose>
+                                        <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("docList") --%>
+                                        <c:when test="${not empty docList}">
+                                            <select class="form-select rounded-3 py-1 px-3 fs-8" id="taskDocSelect"
+                                                name="docIds" multiple size="3"
+                                                title="Giữ Ctrl hoặc Cmd để chọn nhiều tài liệu">
+                                                <c:forEach items="${docList}" var="docItem">
+                                                    <option value="${docItem.id}">📄 ${fn:escapeXml(docItem.title)}</option>
+                                                </c:forEach>
+                                            </select>
+                                            <div class="form-text fs-9 text-muted mt-1">Giữ phím <kbd>Ctrl</kbd> để chọn
+                                                nhiều tài liệu cùng lúc.</div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="p-2 bg-light rounded-3 text-muted fs-8 border">
+                                                Chưa có tài liệu nào trong dự án.
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
+
+                            <c:if test="${project.teamProject}">
+                                <div class="p-3 bg-light rounded-3 border mb-2">
+                                    <div class="form-check form-switch mb-1">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="taskRequiresGate" name="requiresGate" value="true" checked>
+                                        <label class="form-check-label fw-bold text-dark fs-8" for="taskRequiresGate">
+                                            <i class="bi bi-shield-check text-primary me-1"></i> Bắt buộc kiểm duyệt
+                                        </label>
+                                    </div>
+                                    <p class="fs-9 text-muted mb-0">
+                                        Khi bật, công việc bắt buộc phân rã nhiệm vụ, được trưởng dự án duyệt kế hoạch và nghiệm thu chấm điểm. Tắt để làm nhanh, không cần duyệt.
+                                    </p>
+                                </div>
+                            </c:if>
+
+                        </div>
+
+                        <div class="modal-footer px-4 py-3 bg-light border-0 d-flex align-items-center justify-content-between">
+                            <div class="text-muted fs-9">
+                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Phím tắt: <kbd>Ctrl</kbd> + <kbd>Enter</kbd>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-light rounded-pill px-3 fs-7 fw-medium"
+                                    data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit"
+                                    class="btn btn-primary-custom rounded-pill px-4 py-2 fs-7 fw-semibold shadow-sm">
+                                    <i class="bi bi-check-lg me-1"></i> Lưu công việc
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>

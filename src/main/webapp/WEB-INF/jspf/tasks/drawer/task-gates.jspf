@@ -1,0 +1,411 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Ngăn kéo chi tiết task cha: nút Bắt đầu, Cổng 1 (duyệt kế hoạch), Cổng 2 (bàn giao & nghiệm thu), quy trình nhanh --%>
+
+                                    <c:choose>
+                                        <c:when test="${project.teamProject && task.requiresGate}">
+                                            <!-- NÚT BẮT ĐẦU (NẾU ĐANG TODO) -->
+                                            <c:if test="${task.status == 'TODO'}">
+                                        <c:set var="hasAssignee" value="${task.assigneeId > 0}" />
+                                        <c:set var="subTaskCount" value="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}" />
+                                        <c:set var="canStartTask" value="${hasAssignee && subTaskCount > 0}" />
+                                        <div class="mb-3">
+                                            <div class="task-sidebar-section-title d-flex align-items-center justify-content-between mb-2">
+                                                <span><i class="bi bi-lightning-charge me-1"></i> Thao tác nhanh</span>
+                                                <c:choose>
+                                                    <c:when test="${canStartTask}">
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 fs-9">
+                                                            <i class="bi bi-check-circle-fill me-1"></i> Đủ điều kiện
+                                                        </span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 fs-9">
+                                                            <i class="bi bi-lock-fill me-1"></i> Chưa đủ điều kiện
+                                                        </span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                            <c:choose>
+                                                <c:when test="${canStartTask && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitPlanningRequest" → TaskWorkflowHandler.handleSubmitPlanningRequest() --%>
+                                                    <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                        <input type="hidden" name="action" value="submitPlanningRequest">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <textarea name="planningNote" class="form-control form-control-sm fs-9 mb-2" rows="2"
+                                                            placeholder="Thuyết minh kế hoạch phân rã cho trưởng dự án (tùy chọn)..."></textarea>
+                                                        <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold d-flex align-items-center justify-content-center gap-1.5 shadow-sm py-2 text-white border-0"
+                                                            style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                                                            <i class="bi bi-send-check-fill fs-7"></i> Gửi duyệt kế hoạch (→ chờ trưởng dự án)
+                                                        </button>
+                                                    </form>
+                                                </c:when>
+                                                <c:when test="${canStartTask}">
+                                                    <div class="p-2.5 bg-light rounded-3 border fs-9 text-secondary">
+                                                        <i class="bi bi-info-circle text-primary me-1"></i> Chỉ trưởng nhóm công việc hoặc trưởng dự án mới gửi được kế hoạch để duyệt.
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <button type="button" class="btn btn-light text-muted border border-secondary-subtle btn-sm w-100 rounded-3 fs-9 fw-semibold d-flex align-items-center justify-content-center gap-1 opacity-75" disabled>
+                                                        <i class="bi bi-lock-fill text-secondary"></i> Gửi duyệt kế hoạch (→ chờ trưởng dự án)
+                                                    </button>
+                                                    <div class="p-2.5 bg-light rounded-3 border fs-9 text-secondary mt-1">
+                                                        <div class="fw-bold text-dark mb-1 pb-1 border-bottom fs-9"><i class="bi bi-shield-lock text-primary me-1"></i> Ràng buộc:</div>
+                                                        <div class="d-flex align-items-center gap-1.5 ${hasAssignee ? 'text-success fw-semibold' : 'text-danger'}">
+                                                            <i class="bi ${hasAssignee ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                                            <span>${hasAssignee ? 'Đã gán người phụ trách' : 'Chưa phân công (Bấm "Chỉnh sửa")'}</span>
+                                                        </div>
+                                                        <div class="d-flex align-items-center gap-1.5 ${subTaskCount > 0 ? 'text-success fw-semibold' : 'text-danger'} mt-1">
+                                                            <i class="bi ${subTaskCount > 0 ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                                                            <span>${subTaskCount > 0 ? 'Đã có nhiệm vụ' : 'Chưa có nhiệm vụ (Tạo ít nhất 1 nhiệm vụ)'}</span>
+                                                        </div>
+                                                    </div>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </c:if>
+
+                                    <!-- CỔNG 1: THẨM ĐỊNH & KHÓA KẾ HOẠCH PHÂN RÃ (SCOPE LOCK) -->
+                                    <c:if test="${task.status == 'PLANNING'}">
+                                        <div class="gate-card gate-card-primary mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="p-1 bg-white text-primary rounded-2 shadow-2xs lh-1"><i class="bi bi-diagram-3-fill fs-6"></i></span>
+                                                    <div>
+                                                        <h6 class="fw-bold text-primary fs-8 mb-0">Hồ Sơ Kế Hoạch</h6>
+                                                        <span class="fs-9 text-muted">${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} nhiệm vụ &bull; ${task.submittedAt}</span>
+                                                    </div>
+                                                </div>
+                                                <span class="badge bg-primary text-white rounded-pill px-2 py-0-5 fs-9 fw-semibold">Chờ trưởng dự án duyệt</span>
+                                            </div>
+
+                                            <c:if test="${not empty task.planningNote}">
+                                                <div class="p-2 bg-white rounded-2 border fs-9 text-dark mb-2 shadow-2xs">
+                                                    <strong class="text-primary d-block mb-1 fs-9"><i class="bi bi-chat-left-quote-fill me-1"></i> Thuyết minh từ trưởng nhóm công việc:</strong>
+                                                    <div class="text-secondary lh-base" style="white-space: pre-line;"><c:out value="${task.planningNote}" /></div>
+                                                </div>
+                                            </c:if>
+
+                                            <!-- Nút Duyệt / Trả Về Dành Cho PM -->
+                                            <c:choose>
+                                                <c:when test="${project.ownerId == sessionScope.currentUser.id}">
+                                                    <div class="d-flex align-items-center gap-1-5 pt-1 border-top border-primary-subtle">
+                                                        <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold flex-fill shadow-2xs"
+                                                            data-bs-toggle="collapse" data-bs-target="#rejectPlanningPanel-${task.id}">
+                                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Yêu Cầu Bổ Sung
+                                                        </button>
+                                                        <button type="button" class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold flex-fill shadow-2xs text-white"
+                                                            data-bs-toggle="collapse" data-bs-target="#approvePlanningPanel-${task.id}">
+                                                            <i class="bi bi-lock-fill me-1"></i> Phê Duyệt & Khóa 🔒
+                                                        </button>
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <div class="alert alert-info py-1 px-2 rounded-2 fs-9 d-flex align-items-center gap-1 mb-0">
+                                                        <i class="bi bi-hourglass-split text-primary fs-8"></i>
+                                                        <span>Đã trình kế hoạch lên trưởng dự án. Chờ trưởng dự án phê duyệt!</span>
+                                                    </div>
+                                                </c:otherwise>
+                                            </c:choose>
+
+                                            <!-- PANEL PM DUYỆT KẾ HOẠCH -->
+                                            <div class="collapse mt-2" id="approvePlanningPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
+                                                    <h6 class="fw-bold text-primary fs-8 mb-2"><i class="bi bi-lock-fill me-1"></i> Trưởng Dự Án Phê Duyệt & Khóa Kế Hoạch</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmApprovePlanning" → TaskWorkflowHandler.handlePmApprovePlanning() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmApprovePlanning">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <label for="feedback-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Dặn dò của trưởng dự án:</label>
+                                                            <textarea class="form-control fs-9 rounded-2" id="feedback-${task.id}" name="feedback" rows="2" placeholder="Ý kiến chỉ đạo của trưởng dự án..."></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#approvePlanningPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-3 py-0-5 fs-9 fw-semibold text-white">Khóa Kế Hoạch</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- PANEL PM TRẢ VỀ KẾ HOẠCH -->
+                                            <div class="collapse mt-2" id="rejectPlanningPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
+                                                    <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-arrow-counterclockwise text-warning me-1"></i> Yêu Cầu Bổ Sung</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmRejectPlanning" → TaskWorkflowHandler.handlePmRejectPlanning() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmRejectPlanning">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <label for="rejectFeedback-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Các hạng mục cần bổ sung <span class="text-danger">*</span>:</label>
+                                                            <textarea class="form-control fs-9 rounded-2" id="rejectFeedback-${task.id}" name="feedback" rows="2" placeholder="Ví dụ: Thiếu module kiểm thử..." required></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#rejectPlanningPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-warning rounded-pill px-3 py-0-5 fs-9 fw-semibold text-dark">Gửi Yêu Cầu</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:if>
+
+                                    <!-- CỔNG 2: BÀN GIAO & NGHIỆM THU TASK LỚN (TASK LEAD ➔ PM) -->
+                                    <c:if test="${task.status == 'IN_PROGRESS' || task.status == 'SUBMITTED' || task.status == 'REVISE' || task.status == 'REJECTED' || task.status == 'DONE'}">
+                                        <div class="gate-card gate-card-success mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
+                                                <div class="d-flex align-items-center gap-1.5">
+                                                    <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1"><i class="bi bi-box-seam-fill fs-8"></i></span>
+                                                    <h6 class="fw-bold text-dark fs-8 mb-0">Hồ Sơ Nghiệm Thu</h6>
+                                                </div>
+                                                <c:if test="${task.status == 'DONE' && task.qualityRating > 0}">
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0-5 fs-9 fw-bold">
+                                                        <i class="bi bi-star-fill text-warning me-1"></i>${task.qualityRating}/5 ⭐
+                                                    </span>
+                                                </c:if>
+                                            </div>
+
+                                            <!-- Tóm tắt bàn giao nếu có -->
+                                            <c:if test="${not empty task.finalDeliverableNote}">
+                                                <div class="p-2 bg-white rounded-2 border fs-9 text-dark mb-2 shadow-2xs">
+                                                    <span class="fw-bold text-warning fs-9 d-block mb-1"><i class="bi bi-file-earmark-check-fill me-1"></i> Báo Cáo Bàn Giao:</span>
+                                                    <div class="text-secondary fs-9 lh-base" style="white-space: pre-line;"><c:out value="${task.finalDeliverableNote}" /></div>
+                                                    <c:if test="${not empty task.deliverableFile}">
+                                                        <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
+                                                            <span class="fs-9 text-truncate fw-medium">${fn:escapeXml(task.deliverableFile)}</span>
+                                                            <%-- Link ngoài (http/https) → mở tab mới; tệp có thật trên server → nút Tải; còn lại chỉ hiện tên --%>
+                                                            <c:choose>
+                                                                <c:when test="${fn:startsWith(task.deliverableFile, 'https://') || fn:startsWith(task.deliverableFile, 'http://')}">
+                                                                    <a href="${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" target="_blank" rel="noopener noreferrer">
+                                                                        <i class="bi bi-box-arrow-up-right"></i> Mở
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:when test="${downloadableDeliverables.contains(task.id)}">
+                                                                    <a href="${pageContext.request.contextPath}/uploads/deliverables/${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
+                                                                        <i class="bi bi-download"></i> Tải
+                                                                    </a>
+                                                                </c:when>
+                                                            </c:choose>
+                                                        </div>
+                                                    </c:if>
+                                                </div>
+                                            </c:if>
+
+                                            <!-- Đánh giá / Dặn dò của PM nếu có -->
+                                            <c:if test="${not empty task.pmFeedback}">
+                                                <div class="p-2 ${task.status == 'REVISE' ? 'bg-primary-subtle text-primary border-primary-subtle' : (task.status == 'REJECTED' ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-success-subtle text-success border-success-subtle')} rounded-2 border fs-9 mb-2">
+                                                    <div class="fw-bold fs-9 mb-1"><i class="bi bi-info-circle-fill me-1"></i> Đánh giá từ trưởng dự án:</div>
+                                                    <p class="mb-0 fs-9">"${fn:escapeXml(task.pmFeedback)}"</p>
+                                                </div>
+                                            </c:if>
+
+                                            <!-- Nút Hành Động Nghiệm Thu -->
+                                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 pt-1 border-top">
+                                                <c:set var="canSubmitParentTask" value="${(not empty task.assigneeId && task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || ((empty task.assigneeId || task.assigneeId == 0) && project.ownerId == sessionScope.currentUser.id)}" />
+                                                <c:if test="${canSubmitParentTask && task.status != 'DONE'}">
+                                                    <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-9 py-1 px-2.5 fw-semibold shadow-2xs"
+                                                        data-bs-toggle="collapse" data-bs-target="#submitParentTaskPanel-${task.id}">
+                                                        <i class="bi bi-box-seam me-1"></i> ${task.status == 'SUBMITTED' ? 'Cập Nhật Bàn Giao' : 'Bàn Giao Cho Trưởng Dự Án'}
+                                                    </button>
+                                                </c:if>
+
+                                                <c:if test="${project.ownerId == sessionScope.currentUser.id && task.status == 'SUBMITTED'}">
+                                                    <c:choose>
+                                                        <c:when test="${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100}">
+                                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 fs-9">
+                                                                Nhiệm vụ chưa 100% (${taskProgressMap[task.id]}%)
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <div class="d-flex align-items-center gap-1 ms-auto">
+                                                                <button type="button" class="btn btn-success btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
+                                                                    data-bs-toggle="collapse" data-bs-target="#pmApprovePanel-${task.id}" title="Duyệt 100% Đạt">
+                                                                    <i class="bi bi-check-circle-fill me-1"></i> Duyệt Đạt
+                                                                </button>
+                                                                <button type="button" class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
+                                                                    data-bs-toggle="collapse" data-bs-target="#pmRevisePanel-${task.id}" title="Cần Cân Chỉnh">
+                                                                    <i class="bi bi-pencil-square"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-danger btn-sm rounded-pill fs-9 py-1 px-2 fw-semibold shadow-2xs"
+                                                                    data-bs-toggle="collapse" data-bs-target="#pmRejectPanel-${task.id}" title="Chưa Đạt">
+                                                                    <i class="bi bi-x-circle-fill"></i>
+                                                                </button>
+                                                            </div>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </c:if>
+                                            </div>
+
+                                            <!-- PANEL 1: TASK LEAD NỘP BÀN GIAO -->
+                                            <div class="collapse mt-2" id="submitParentTaskPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
+                                                    <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-box-seam-fill text-warning me-1"></i> Báo Cáo Bàn Giao Cho Trưởng Dự Án</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitParentTask" → TaskWorkflowHandler.handleSubmitParentTask() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="submitParentTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <label for="summary-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Tóm tắt kết quả tính năng <span class="text-danger">*</span>:</label>
+                                                            <textarea class="form-control fs-9 rounded-2" id="summary-${task.id}" name="summary" rows="2" placeholder="Mô tả tóm tắt kết quả hoàn thành..." required></textarea>
+                                                        </div>
+                                                        <div class="row g-2 mb-2">
+                                                            <div class="col-6">
+                                                                <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="demoUrl-${task.id}" name="demoUrl" placeholder="Liên kết bản demo/Figma...">
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="codeUrl-${task.id}" name="codeUrl" placeholder="Link PR/Mã nguồn...">
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="deliverableFile-${task.id}" name="deliverableFile"
+                                                                placeholder="Tên tệp báo cáo (PDF, ZIP...)" value="${not empty task.deliverableFile ? fn:escapeXml(task.deliverableFile) : ''}">
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#submitParentTaskPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-warning rounded-pill px-3 py-0-5 fs-9 fw-semibold text-dark ${not empty taskSubTasksMap[task.id] && taskProgressMap[task.id] < 100 ? 'disabled' : ''}">
+                                                                Gửi Bàn Giao
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- PANEL 2: PM DUYỆT ĐẠT & CHẤM SAO -->
+                                            <div class="collapse mt-2" id="pmApprovePanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-success shadow-sm">
+                                                    <h6 class="fw-bold text-success fs-8 mb-2"><i class="bi bi-patch-check-fill me-1"></i> Nghiệm Thu & Chấm Điểm Sao</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmApproveTask" → TaskWorkflowHandler.handlePmApproveTask() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmApproveTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <label for="qualityRating-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">Đánh giá chất lượng:</label>
+                                                            <select class="form-select form-select-sm rounded-2 fs-9" id="qualityRating-${task.id}" name="qualityRating">
+                                                                <option value="5" selected>⭐⭐⭐⭐⭐ 5 Sao - Xuất Sắc</option>
+                                                                <option value="4">⭐⭐⭐⭐ 4 Sao - Tốt</option>
+                                                                <option value="3">⭐⭐⭐ 3 Sao - Đạt Yêu Cầu</option>
+                                                                <option value="2">⭐⭐ 2 Sao - Cần Cải Thiện</option>
+                                                                <option value="1">⭐ 1 Sao - Yếu</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <textarea class="form-control fs-9 rounded-2" id="feedback-${task.id}" name="feedback" rows="2" placeholder="Lời nhận xét của trưởng dự án..."></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmApprovePanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-success rounded-pill px-3 py-0-5 fs-9 fw-semibold">Xác Nhận Duyệt Đạt 🏆</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- PANEL 3: PM CÂN CHỈNH -->
+                                            <div class="collapse mt-2" id="pmRevisePanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
+                                                    <h6 class="fw-bold text-primary fs-8 mb-2"><i class="bi bi-pencil-square me-1"></i> Trưởng Dự Án Dặn Dò Cân Chỉnh</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmReviseTask" → TaskWorkflowHandler.handlePmReviseTask() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmReviseTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <textarea class="form-control fs-9 rounded-2" id="pmReviseNote-${task.id}" name="feedback" rows="2" placeholder="Dặn dò tinh chỉnh cho trưởng nhóm công việc..." required></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmRevisePanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-3 py-0-5 fs-9 fw-semibold">Gửi Cân Chỉnh</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- PANEL 4: PM CHƯA ĐẠT -->
+                                            <div class="collapse mt-2" id="pmRejectPanel-${task.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-danger shadow-sm">
+                                                    <h6 class="fw-bold text-danger fs-8 mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Đánh Giá Chưa Đạt</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "pmRejectTask" → TaskWorkflowHandler.handlePmRejectTask() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="pmRejectTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="taskId" value="${task.id}">
+                                                        <div class="mb-2">
+                                                            <textarea class="form-control fs-9 rounded-2" id="pmRejectNote-${task.id}" name="feedback" rows="2" placeholder="Lý do chưa đạt / yêu cầu làm lại..." required></textarea>
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#pmRejectPanel-${task.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-danger rounded-pill px-3 py-0-5 fs-9 fw-semibold">Trả Về Làm Lại</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:if>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <!-- QUY TRÌNH NHANH (FAST-TRACK / SOLO DỰ ÁN CÁ NHÂN) -->
+                                            <div class="card border-0 bg-light-subtle rounded-3 p-3 mb-3 border shadow-2xs">
+                                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                                    <span class="fs-9 fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quy Trình Nhanh</span>
+                                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0-5 fs-9">Không cần duyệt</span>
+                                                </div>
+                                                <p class="fs-9 text-muted mb-2-5 lh-sm">Công việc này có thể tự do cập nhật trạng thái mà không cần trưởng dự án duyệt kế hoạch hay nghiệm thu.</p>
+                                                
+                                                <c:choose>
+                                                    <c:when test="${task.status == 'TODO'}">
+                                                        <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
+                                                        <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                            <input type="hidden" name="action" value="updateStatus">
+                                                            <input type="hidden" name="projectId" value="${project.id}">
+                                                            <input type="hidden" name="taskId" value="${task.id}">
+                                                            <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                                            <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3 fs-8 fw-bold py-2 text-white border-0 shadow-sm d-flex align-items-center justify-content-center gap-1.5"
+                                                                style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+                                                                <i class="bi bi-play-circle-fill fs-7"></i> Bắt đầu làm việc (→ Đang làm) 🚀
+                                                            </button>
+                                                        </form>
+                                                    </c:when>
+                                                    <c:when test="${task.status == 'IN_PROGRESS'}">
+                                                        <div class="d-flex flex-column gap-2">
+                                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
+                                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                                <input type="hidden" name="action" value="updateStatus">
+                                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                                <input type="hidden" name="taskId" value="${task.id}">
+                                                                <input type="hidden" name="newStatus" value="DONE">
+                                                                <button type="submit" class="btn btn-success btn-sm w-100 rounded-3 fs-8 fw-bold py-2 text-white border-0 shadow-sm d-flex align-items-center justify-content-center gap-1.5"
+                                                                    style="background: linear-gradient(135deg, #10b981, #059669);">
+                                                                    <i class="bi bi-check-circle-fill fs-7"></i> Hoàn thành công việc (→ Hoàn thành) ✓
+                                                                </button>
+                                                            </form>
+                                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
+                                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                                <input type="hidden" name="action" value="updateStatus">
+                                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                                <input type="hidden" name="taskId" value="${task.id}">
+                                                                <input type="hidden" name="newStatus" value="TODO">
+                                                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100 rounded-3 fs-9 py-1.5 d-flex align-items-center justify-content-center gap-1">
+                                                                    <i class="bi bi-arrow-counterclockwise"></i> Trả về Chưa làm (→ To Do)
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </c:when>
+                                                    <c:when test="${task.status == 'DONE'}">
+                                                        <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus() --%>
+                                                        <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                            <input type="hidden" name="action" value="updateStatus">
+                                                            <input type="hidden" name="projectId" value="${project.id}">
+                                                            <input type="hidden" name="taskId" value="${task.id}">
+                                                            <input type="hidden" name="newStatus" value="IN_PROGRESS">
+                                                            <button type="submit" class="btn btn-outline-primary btn-sm w-100 rounded-3 fs-9 py-1.5 d-flex align-items-center justify-content-center gap-1.5">
+                                                                <i class="bi bi-arrow-repeat"></i> Mở lại công việc (→ Đang làm)
+                                                            </button>
+                                                        </form>
+                                                    </c:when>
+                                                </c:choose>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>

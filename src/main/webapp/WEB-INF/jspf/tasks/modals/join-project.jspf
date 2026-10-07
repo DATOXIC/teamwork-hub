@@ -1,0 +1,43 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Modal gia nhập dự án bằng mã --%>
+        <!-- MODAL: GIA NHẬP DỰ ÁN BẰNG MÃ (JOIN BY CODE) -->
+        <div class="modal fade" id="joinByCodeModal" tabindex="-1" aria-labelledby="joinByCodeModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header border-0 bg-light px-4 pt-4 pb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-warning text-dark rounded-circle p-2">
+                                <i class="bi bi-key-fill fs-6"></i>
+                            </span>
+                            <div>
+                                <h5 class="modal-title fw-bold text-dark fs-6" id="joinByCodeModalLabel">Gia Nhập Dự Án Bằng Mã</h5>
+                                <p class="text-muted fs-8 mb-0">Nhập mã định danh dự án do trưởng dự án cung cấp</p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "requestJoin" → handleRequestJoin() --%>
+                    <form action="${pageContext.request.contextPath}/invite" method="POST">
+                        <input type="hidden" name="action" value="requestJoin">
+                        <div class="modal-body px-4 py-3">
+                            <div class="mb-3">
+                                <label for="inputProjectCode" class="form-label fw-semibold fs-7 text-dark">Mã dự án <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="bi bi-hash"></i></span>
+                                    <input type="text" class="form-control text-uppercase rounded-end-3 fs-7 fw-bold" id="inputProjectCode" name="projectCode" placeholder="Ví dụ: WEB-2026, PRJ-01" required autocomplete="off">
+                                </div>
+                                <div class="form-text fs-9 text-muted mt-1">Hệ thống sẽ gửi yêu cầu xin tham gia đến Trưởng dự án để phê duyệt.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+                            <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary-custom rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                                <i class="bi bi-send-fill me-1"></i> Gửi yêu cầu gia nhập
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+

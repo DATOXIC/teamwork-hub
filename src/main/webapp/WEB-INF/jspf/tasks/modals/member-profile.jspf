@@ -1,0 +1,157 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Modal thẻ hồ sơ thành viên --%>
+        <!-- =========================================================================
+     5. MODAL THẺ HỒ SƠ ĐỒNG ĐỘI (SOCIAL PROFILE CARD MODAL - PHẦN B.3.3)
+     ========================================================================= -->
+        <c:forEach items="${userWorkloadList}" var="uw">
+            <div class="modal fade" id="memberProfileModal-${uw.user.id}" tabindex="-1"
+                aria-labelledby="memberProfileModalLabel-${uw.user.id}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-md">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                        <!-- Đầu Card: Cover & Avatar lớn -->
+                        <div class="bg-primary-subtle p-4 text-center border-bottom position-relative">
+                            <div class="avatar-circle mx-auto bg-primary text-white d-flex align-items-center justify-content-center rounded-circle shadow-sm mb-2"
+                                style="width: 72px; height: 72px; font-size: 2rem;">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1" id="memberProfileModalLabel-${uw.user.id}">
+                                ${fn:escapeXml(uw.user.fullName)}
+                            </h5>
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <span
+                                    class="badge ${uw.user.id == project.ownerId ? 'bg-warning text-dark' : 'bg-primary'} rounded-pill px-3 py-1 fs-8">
+                                    ${uw.user.id == project.ownerId ? '👑 Trưởng Dự Án' : fn:escapeXml(uw.user.role)}
+                                </span>
+                                <span class="text-muted fs-8">
+                                    <i class="bi bi-envelope me-1"></i> ${fn:escapeXml(uw.user.email)}
+                                </span>
+                            </div>
+                            <button type="button" class="btn-close position-absolute top-0 end-0 m-3"
+                                data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+
+                        <!-- Thân Card: Bảng Thống Kê Khối Lượng Công Việc -->
+                        <div class="modal-body p-4">
+                            <h6 class="fw-bold text-dark fs-7 mb-3 text-uppercase tracking-wider">
+                                <i class="bi bi-graph-up-arrow text-primary me-1"></i> Khối lượng & Năng suất trong dự
+                                án này:
+                            </h6>
+
+                            <div class="row g-3 text-center mb-4">
+                                <!-- Chỉ số 1: Số Task Lead -->
+                                <div class="col-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <span class="fs-9 text-muted d-block mb-1">Trưởng nhóm công việc</span>
+                                        <h4 class="fw-extrabold text-primary mb-0">${uw.leadTaskCount}</h4>
+                                        <span class="fs-9 text-muted">chủ trì</span>
+                                    </div>
+                                </div>
+
+                                <!-- Chỉ số 2: Số Việc con -->
+                                <div class="col-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <span class="fs-9 text-muted d-block mb-1">Nhiệm vụ</span>
+                                        <h4 class="fw-extrabold text-dark mb-0">${uw.subTaskCount}</h4>
+                                        <span class="fs-9 text-muted">được giao</span>
+                                    </div>
+                                </div>
+
+                                <!-- Chỉ số 3: Đã hoàn thành -->
+                                <div class="col-4">
+                                    <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle">
+                                        <span class="fs-9 text-success d-block mb-1">Đã xong</span>
+                                        <h4 class="fw-extrabold text-success mb-0">${uw.completedSubTaskCount}</h4>
+                                        <span class="fs-9 text-success">hoàn tất</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tiến độ hoàn thành việc con -->
+                            <div class="p-3 bg-light rounded-3 border">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="fs-8 fw-semibold text-dark">Tỷ lệ hoàn thành nhiệm vụ</span>
+                                    <span class="fs-8 fw-bold text-success">
+                                        <c:choose>
+                                            <c:when test="${uw.subTaskCount > 0}">
+                                                ${Math.round((uw.completedSubTaskCount * 100.0) / uw.subTaskCount)}%
+                                            </c:when>
+                                            <c:otherwise>
+                                                100%
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </div>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-success rounded-pill" role="progressbar"
+                                        style="width: ${uw.subTaskCount > 0 ? Math.round((uw.completedSubTaskCount * 100.0) / uw.subTaskCount) : 100}%;"
+                                        aria-valuenow="${uw.subTaskCount > 0 ? Math.round((uw.completedSubTaskCount * 100.0) / uw.subTaskCount) : 100}"
+                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+
+                            <!-- KHỐI 2: DANH SÁCH TASK LỚN ĐANG CHỦ TRÌ (TASK LEAD) -->
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                                        <i class="bi bi-award-fill text-warning me-1"></i> Các công việc lớn đang chủ trì
+                                        (${uw.leadTasks.size()}):
+                                    </h6>
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0 fs-9">
+                                        ${uw.leadTasks.size()} công việc
+                                    </span>
+                                </div>
+
+                                <c:choose>
+                                    <c:when test="${not empty uw.leadTasks}">
+                                        <div class="d-flex flex-column gap-2">
+                                            <c:forEach items="${uw.leadTasks}" var="leadTask">
+                                                <div
+                                                    class="p-2 px-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                                                    <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                                                        <span
+                                                            class="badge ${leadTask.priorityBadgeClass} rounded-pill px-2 py-0 fs-9">${leadTask.priorityLabel}</span>
+                                                        <span class="fs-8 fw-semibold text-dark text-truncate"
+                                                            title="${fn:escapeXml(leadTask.title)}">
+                                                            ${fn:escapeXml(leadTask.title)}
+                                                        </span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-1 text-nowrap">
+                                                        <span
+                                                            class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0 fs-9 fw-bold"
+                                                            title="Tiến độ công việc">
+                                                            ${taskProgressMap[leadTask.id]}%
+                                                        </span>
+                                                        <span
+                                                            class="badge ${leadTask.status == 'DONE' ? 'bg-success' : (leadTask.status == 'IN_PROGRESS' ? 'bg-primary' : 'bg-secondary')} rounded-pill px-2 py-0 fs-9">
+                                                            ${leadTask.status == 'DONE' ? 'Đã xong' : (leadTask.status == 'IN_PROGRESS' ? 'Đang làm' : 'Cần làm')}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center">
+                                            <i class="bi bi-inbox d-block fs-5 mb-1 opacity-50"></i>
+                                            Chưa chủ trì công việc lớn nào trong dự án này.
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
+
+                        <!-- Chân Card: Nút đóng -->
+                        <div class="modal-footer px-4 py-3 bg-light border-0">
+                            <button type="button"
+                                class="btn btn-primary-custom w-100 rounded-pill fs-8 fw-semibold shadow-sm"
+                                data-bs-dismiss="modal">
+                                <i class="bi bi-check-lg me-1"></i> Đóng thẻ hồ sơ
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </c:forEach>

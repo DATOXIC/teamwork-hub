@@ -1,0 +1,195 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Đầu vùng làm việc: tiêu đề dự án, nút thao tác, thanh công cụ (chế độ xem, lọc, thêm task) --%>
+                    <!-- Header Dự Án: Breadcrumb, Actions & Project Multi-View Tabs -->
+                    <div class="clickup-main-header">
+                        <!-- Hàng 1: Project Title, Badges & Action Buttons -->
+                        <div class="clickup-project-title-row">
+                            <!-- Left: Breadcrumb & Title -->
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 btn-expand-sidebar ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
+                                    <i class="bi bi-chevron-bar-right fs-8"></i>
+                                </button>
+                                <div class="d-flex align-items-center gap-1.5 text-muted fs-8">
+                                    <span>Không gian</span>
+                                    <i class="bi bi-chevron-right fs-9 text-muted"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-0 fs-7">${fn:escapeXml(project.name)}</h6>
+                                <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
+                                    <i class="bi ${project.projectTypeIcon}"></i> ${project.projectTypeLabel}
+                                </span>
+                                <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+                                    <button type="button" class="btn btn-sm btn-light border rounded-circle p-1 ms-1 d-inline-flex align-items-center justify-content-center shadow-2xs" data-bs-toggle="modal" data-bs-target="#projectSettingsModal" title="Cài đặt dự án & Quy trình" style="width: 22px; height: 22px;">
+                                        <i class="bi bi-gear text-secondary fs-9"></i>
+                                    </button>
+                                </c:if>
+                                <i class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')"></i>
+                            </div>
+
+                            <!-- Right: Actions & Badges -->
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9 d-none d-md-inline-flex align-items-center gap-1" id="cloudSyncBadge">
+                                    <i class="bi bi-cloud-check-fill"></i>
+                                    <span id="cloudSyncText">Đã đồng bộ Cloud</span>
+                                </span>
+                                <c:if test="${project.ownerId == sessionScope.currentUser.id && project.teamProject}">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                                        <i class="bi bi-person-plus"></i> Mời bạn
+                                    </button>
+                                </c:if>
+                                <!-- Nút Xuất Excel (.csv UTF-8 BOM) -->
+                                <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
+                                   class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-pill shadow-2xs text-nowrap"
+                                   title="Tải toàn bộ danh sách công việc của dự án về máy tính (.csv chuẩn UTF-8 BOM)">
+                                    <i class="bi bi-file-earmark-excel-fill text-success fs-8"></i>
+                                    <span class="fs-8">Xuất Excel</span>
+                                </a>
+
+                                <!-- Nút chuyển đổi Giao diện Sáng / Tối toàn hệ thống -->
+                                <button type="button" onclick="toggleGlobalTheme()"
+                                        class="btn btn-sm btn-light border text-secondary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 shadow-2xs"
+                                        title="Chuyển đổi giao diện Sáng / Tối (Light / Dark Mode)"
+                                        aria-label="Chuyển đổi giao diện Sáng / Tối">
+                                    <i class="bi bi-moon-stars-fill" id="tasksThemeIconMoon"></i>
+                                    <i class="bi bi-sun-fill text-warning d-none" id="tasksThemeIconSun"></i>
+                                    <span id="tasksThemeBtnText" class="fs-8 fw-medium">Tối</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- ClickUp Control Toolbar (Views, Subtasks, Progress, and + Add Task) -->
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("allProjectTasks") --%>
+                <c:set var="progTotal" value="${not empty allProjectTasks ? allProjectTasks.size() : 0}" />
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("doneTasks") --%>
+                <c:set var="progDone" value="${not empty doneTasks ? doneTasks.size() : 0}" />
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("inProgressTasks") --%>
+                <c:set var="progInProg" value="${not empty inProgressTasks ? inProgressTasks.size() : 0}" />
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("todoTasks") --%>
+                <c:set var="progTodo" value="${not empty todoTasks ? todoTasks.size() : 0}" />
+                <c:set var="pctDone" value="${progTotal > 0 ? ((progDone * 100 - (progDone * 100 % progTotal)) / progTotal) : 0}" />
+                <c:set var="pctInProg" value="${progTotal > 0 ? ((progInProg * 100 - (progInProg * 100 % progTotal)) / progTotal) : 0}" />
+                <c:set var="pctTodo" value="${progTotal > 0 ? (100 - pctDone - pctInProg) : 0}" />
+
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("currentView") --%>
+                <div class="clickup-control-toolbar ${currentView == 'tasks' ? '' : 'd-none'} d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 bg-white border-bottom shadow-2xs">
+                    <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+                        <!-- View Switcher (List vs Board vs Timeline) -->
+                        <div class="clickup-view-switcher" id="taskViewSwitcher">
+                            <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskView") --%>
+                            <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
+                                <i class="bi bi-list-ul"></i> Danh sách
+                            </button>
+                            <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
+                                <i class="bi bi-kanban"></i> Bảng
+                            </button>
+                            <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-timeline" title="Mở sơ đồ Gantt & Lộ trình thời gian">
+                                <i class="bi bi-calendar-range text-warning"></i> Lộ trình
+                            </a>
+                            <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-whiteboard" title="Mở bảng vẽ ý tưởng">
+                                <i class="bi bi-easel text-primary"></i> Bảng vẽ
+                            </a>
+                            <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-meeting" title="Họp video nhóm">
+                                <i class="bi bi-camera-video text-success"></i> Họp video
+                            </a>
+                            <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-report" title="Xem báo cáo tiến độ toàn diện">
+                                <i class="bi bi-file-earmark-bar-graph text-info"></i> Báo cáo
+                            </a>
+                        </div>
+
+                        <!-- Nút Chuyển Đổi Subtasks -->
+                        <button type="button" 
+                                class="btn btn-sm btn-light border d-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill shadow-2xs fs-8 text-dark fw-medium" 
+                                id="btnToggleSubtasks" 
+                                onclick="toggleAllSubtasks()" 
+                                title="Bấm 1 lần để chuyển đổi giữa Đóng và Mở rộng nhiệm vụ (Phím tắt: S)">
+                            <i class="bi ${subtaskMode == 'expanded' ? 'bi-chevron-down text-primary' : 'bi-chevron-right text-secondary'}" id="subtaskToggleIcon"></i>
+                            <span id="subtaskToggleLabel">Nhiệm vụ: ${subtaskMode == 'expanded' ? 'Mở rộng' : 'Đóng'}</span>
+                        </button>
+
+                        <!-- Bộ lọc Khoảng thời gian (Timeframe Filter) -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 fs-8 text-dark fw-medium shadow-2xs dropdown-toggle d-flex align-items-center gap-1.5" type="button" id="timeframeDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Lọc theo khoảng thời gian hạn chót">
+                                <i class="bi bi-calendar3 text-primary"></i>
+                                <span id="currentTimeframeLabel">Tất cả thời gian</span>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm border-0 fs-8" aria-labelledby="timeframeDropdownBtn">
+                                <li><a class="dropdown-item active" href="javascript:void(0)" onclick="filterTasksByTimeframe('ALL', 'Tất cả thời gian')"><i class="bi bi-calendar-range me-2 text-secondary"></i> Tất cả thời gian</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterTasksByTimeframe('THIS_WEEK', 'Tuần này')"><i class="bi bi-calendar-week me-2 text-primary"></i> Tuần này</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterTasksByTimeframe('THIS_MONTH', 'Tháng này')"><i class="bi bi-calendar-month me-2 text-success"></i> Tháng này</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="filterTasksByTimeframe('OVERDUE', 'Quá hạn')"><i class="bi bi-exclamation-triangle me-2 text-danger"></i> Quá hạn</a></li>
+                            </ul>
+                        </div>
+
+                        <c:if test="${project.teamProject}">
+                            <div class="vr mx-1 opacity-25 d-none d-sm-block" style="height: 18px;"></div>
+
+                            <!-- Cụm Lọc thành viên ClickUp 3.0 -->
+                            <div class="d-flex align-items-center flex-wrap gap-1.5" id="globalAssigneeFilterGroup">
+                                <button type="button" id="assignee-btn-all" class="assignee-filter-btn active" onclick="filterClickUpTasks('ALL')" title="Xem tất cả công việc & thành viên">
+                                    Tất cả
+                                </button>
+                                <button type="button" id="assignee-btn-me" class="assignee-filter-btn" onclick="filterClickUpTasks('MY_TASKS')" title="Chế độ 'Me Mode' - Việc của tôi">
+                                    <i class="bi bi-person-fill text-primary"></i> Việc tôi
+                                </button>
+
+                                <!-- Dải Avatar Thành viên dự án -->
+                                <div class="d-flex align-items-center gap-1 flex-wrap ms-1">
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userWorkloadList") --%>
+                                    <c:forEach items="${userWorkloadList}" var="uw" varStatus="loop">
+                                        <c:if test="${loop.index < 7}">
+                                            <button type="button" class="assignee-avatar-btn position-relative" 
+                                                    data-user-id="${uw.user.id}" 
+                                                    onclick="handleToolbarAvatarClick('${uw.user.id}', '<c:out value="${uw.user.fullName}" />')"
+                                                    title="${fn:escapeXml(uw.user.fullName)} (${uw.totalTasks} việc &bull; ${uw.doneTasks} xong &bull; ${uw.overdueTasks > 0 ? uw.overdueTasks : 0} quá hạn)">
+                                                <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.65rem;">
+                                                    ${fn:escapeXml(uw.user.fullName.substring(0, 1).toUpperCase())}
+                                                </span>
+                                                <c:if test="${uw.overdueTasks > 0}">
+                                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="transform: translate(-30%, -20%) !important;" title="${uw.overdueTasks} việc quá hạn"></span>
+                                                </c:if>
+                                            </button>
+                                        </c:if>
+                                    </c:forEach>
+                                    <c:if test="${userWorkloadList.size() > 7}">
+                                        <span class="badge bg-light text-muted border rounded-circle p-1 fs-9 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;" title="Còn ${userWorkloadList.size() - 7} thành viên khác">
+                                            +${userWorkloadList.size() - 7}
+                                        </span>
+                                    </c:if>
+                                </div>
+
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("submittedCount") --%>
+                                <c:if test="${submittedCount > 0}">
+                                    <button type="button" id="assignee-btn-submitted" class="status-filter-btn status-btn-submitted ms-1" onclick="filterClickUpTasks('STATUS_SUBMITTED')" title="Lọc các công việc đã nộp báo cáo chờ trưởng dự án duyệt">
+                                        <i class="bi bi-send-check"></i>
+                                        <span>Chờ duyệt</span>
+                                        <span class="status-count-pill">${submittedCount}</span>
+                                    </button>
+                                </c:if>
+                            </div>
+                        </c:if>
+                    </div>
+
+                    <!-- Right: Fixed Primary CTA + Add Task Button -->
+                    <div class="d-flex align-items-center gap-2 ms-auto flex-shrink-0">
+                        <!-- Mini Progress Strip -->
+                        <div class="clickup-mini-progress d-none d-xl-inline-flex" title="Tiến độ: ${pctDone}% (${progDone}/${progTotal} việc hoàn thành)">
+                            <i class="bi bi-pie-chart-fill text-primary"></i>
+                            <span class="tabular-nums">${pctDone}%</span>
+                            <div class="clickup-mini-progress-bar">
+                                <div style="width: ${pctDone}%; background-color: #10b981;"></div>
+                                <div style="width: ${pctInProg}%; background-color: #3b82f6;"></div>
+                                <div style="width: ${pctTodo}%; background-color: #f59e0b;"></div>
+                            </div>
+                        </div>
+
+                        <c:if test="${isPm}">
+                        <button type="button" class="clickup-add-task-btn-dark" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Thêm công việc mới">
+                            <i class="bi bi-plus-lg"></i>
+                            <span>Thêm công việc</span>
+                        </button>
+                        </c:if>
+                    </div>
+                </div>
+
+

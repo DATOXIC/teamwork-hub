@@ -1,0 +1,328 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Ngăn kéo chi tiết: các khung VIỆC CON của ${task} --%>
+                    <!-- =========================================================================
+                         B. PANE SUBTASKS CỦA TASK CHA #${task.id}
+                         ========================================================================= -->
+                    <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
+                        <div id="subtaskPane-${st.id}" class="subtask-detail-pane d-none" data-parent-id="${task.id}" data-subtask-id="${st.id}">
+                            <!-- SUBTASK HEADER: BREADCRUMB QUAY LẠI TASK CHA & CONTROLS -->
+                            <div class="drawer-header d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2 flex-grow-1 me-3 text-truncate">
+                                    <button type="button" class="breadcrumb-back-btn border-0" onclick="openClickUpTask(${task.id})">
+                                        <i class="bi bi-arrow-left"></i> Quay lại: <span class="text-truncate d-inline-block align-bottom" style="max-width: 220px;">${fn:escapeXml(task.title)}</span>
+                                    </button>
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">#SUB-${st.id}</span>
+                                    <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">${st.statusLabel}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                    <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
+                                        <button type="button" class="btn btn-outline-secondary btn-xs rounded-pill px-2-5 py-1 fs-9 d-flex align-items-center gap-1"
+                                            data-bs-toggle="collapse" data-bs-target="#editSubTaskCollapse-${st.id}">
+                                            <i class="bi bi-pencil-square"></i> Sửa nhiệm vụ
+                                        </button>
+                                    </c:if>
+                                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+                                </div>
+                            </div>
+
+                            <!-- SUBTASK BODY 2 CỘT -->
+                            <div class="row g-0">
+                                <!-- CỘT TRÁI (65%): THÔNG TIN VIỆC CON, TIẾN ĐỘ 5 BƯỚC, BÀN GIAO, NGHIỆM THU -->
+                                <div class="col-12 col-lg-8 p-4 border-end">
+                                    <!-- FORM SỬA SUBTASK (COLLAPSIBLE) -->
+                                    <c:if test="${task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id}">
+                                        <div class="collapse mb-3" id="editSubTaskCollapse-${st.id}">
+                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "editSubTask" → SubTaskHandler.handleEditSubTask() --%>
+                                            <form method="post" action="${pageContext.request.contextPath}/task"
+                                                class="p-3 bg-white rounded-3 border border-primary-subtle shadow-2xs">
+                                                <input type="hidden" name="action" value="editSubTask">
+                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                <input type="hidden" name="subTaskId" value="${st.id}">
+                                                <div class="mb-2">
+                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề nhiệm vụ:</label>
+                                                    <input type="text" name="title" value="${fn:escapeXml(st.title)}" class="form-control form-control-sm" required>
+                                                </div>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-6">
+                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Người làm:</label>
+                                                        <select name="assigneeId" class="form-select form-select-sm" required>
+                                                            <c:forEach items="${userList}" var="u">
+                                                                <option value="${u.id}" ${u.id==st.assigneeId ? 'selected' : ''}>${fn:escapeXml(u.fullName)}</option>
+                                                            </c:forEach>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
+                                                        <input type="date" name="dueDate" value="${fn:escapeXml(st.dueDate)}" class="form-control form-control-sm"
+                                                            <c:if test="${not empty task.dueDate}">max="${fn:escapeXml(task.dueDate)}"</c:if>>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button type="button" class="btn btn-light btn-sm fs-9" data-bs-toggle="collapse" data-bs-target="#editSubTaskCollapse-${st.id}">Hủy</button>
+                                                    <button type="submit" class="btn btn-primary btn-sm fs-9 fw-semibold">Lưu thay đổi</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </c:if>
+
+                                    <!-- TIÊU ĐỀ SUBTASK -->
+                                    <div class="mb-3">
+                                        <h4 class="fw-bold text-dark mb-1 ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : ''}">${fn:escapeXml(st.title)}</h4>
+                                        <div class="fs-8 text-muted">
+                                            <i class="bi bi-diagram-2 me-1"></i> Thuộc Công Việc Cha:
+                                            <a href="javascript:void(0)" onclick="openClickUpTask(${task.id})" class="fw-semibold text-primary text-decoration-none">${fn:escapeXml(task.title)}</a>
+                                        </div>
+                                    </div>
+
+                                    <!-- THANH TIẾN ĐỘ 5 TRẠNG THÁI SUBTASK (STEPPER) -->
+                                    <div class="p-3 bg-light rounded-3 border mb-4">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="fs-9 fw-bold text-secondary text-uppercase tracking-wider">
+                                                <i class="bi bi-diagram-3 text-primary me-1"></i> Quy trình nghiệm thu nhiệm vụ:
+                                            </span>
+                                            <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">${st.statusLabel}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between gap-1 text-center">
+                                            <!-- Step 1: TODO -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'TODO' ? 'bg-secondary text-white fw-bold shadow-2xs' : 'bg-white border text-muted'} fs-9">
+                                                1. Cần làm
+                                            </div>
+                                            <i class="bi bi-arrow-right text-muted fs-9"></i>
+                                            <!-- Step 2: SUBMITTED -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'SUBMITTED' ? 'bg-warning text-dark fw-bold shadow-2xs' : 'bg-white border text-muted'} fs-9">
+                                                2. Chờ duyệt
+                                            </div>
+                                            <i class="bi bi-arrow-right text-muted fs-9"></i>
+                                            <!-- Step 3: REVISE or REJECTED -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'REVISE' ? 'bg-info text-dark fw-bold shadow-2xs' : (st.status == 'REJECTED' ? 'bg-danger text-white fw-bold shadow-2xs' : 'bg-white border text-muted')} fs-9">
+                                                <c:choose>
+                                                    <c:when test="${st.status == 'REVISE'}">3. Cân chỉnh</c:when>
+                                                    <c:when test="${st.status == 'REJECTED'}">3. Chưa đạt</c:when>
+                                                    <c:otherwise>3. Cân chỉnh / Trả về</c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                            <i class="bi bi-arrow-right text-muted fs-9"></i>
+                                            <!-- Step 4: APPROVED -->
+                                            <div class="flex-fill p-1.5 rounded-2 ${st.status == 'APPROVED' ? 'bg-success text-white fw-bold shadow-2xs' : 'bg-white border text-muted'} fs-9">
+                                                4. Đã duyệt 🟢
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- KẾT QUẢ NỘP BÀI CỦA THÀNH VIÊN (NẾU CÓ) -->
+                                    <c:if test="${st.status == 'SUBMITTED' || not empty st.submissionNote}">
+                                        <div class="p-3 bg-white rounded-3 border fs-8 text-dark mb-3 shadow-2xs">
+                                            <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                                <span class="fw-bold text-warning fs-9">
+                                                    <i class="bi bi-file-earmark-check-fill me-1"></i> Báo cáo kết quả nộp bài của thành viên:
+                                                </span>
+                                                <span class="fs-9 text-muted">${st.submittedAt}</span>
+                                            </div>
+                                            <p class="mb-0 text-secondary fs-8" style="white-space: pre-line;">
+                                                ${not empty st.submissionNote ? fn:escapeXml(st.submissionNote) : 'Đã hoàn thành công việc, mời trưởng nhóm công việc kiểm tra và nghiệm thu.'}
+                                            </p>
+                                        </div>
+                                    </c:if>
+
+                                    <!-- Ý KIẾN ĐÁNH GIÁ TỪ TASK LEAD -->
+                                    <c:if test="${st.status == 'REVISE'}">
+                                        <div class="p-3 bg-primary-subtle text-primary border border-primary-subtle rounded-3 fs-8 mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <span class="fw-bold fs-9"><i class="bi bi-info-circle-fill me-1"></i> Dặn dò từ trưởng nhóm công việc:</span>
+                                                <span class="fs-9 opacity-75">${st.reviewedAt}</span>
+                                            </div>
+                                            <p class="mb-0 fs-8">"${fn:escapeXml(st.feedbackNote)}"</p>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${st.status == 'REJECTED'}">
+                                        <div class="p-3 bg-danger-subtle text-danger border border-danger-subtle rounded-3 fs-8 mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                                <span class="fw-bold fs-9"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lý do chưa đạt từ trưởng nhóm công việc:</span>
+                                                <span class="fs-9 opacity-75">${st.reviewedAt}</span>
+                                            </div>
+                                            <p class="mb-0 fs-8">"${fn:escapeXml(st.feedbackNote)}"</p>
+                                        </div>
+                                    </c:if>
+                                    <c:if test="${st.status == 'APPROVED'}">
+                                        <div class="p-3 bg-success-subtle text-success border border-success-subtle rounded-3 fs-8 mb-3 d-flex align-items-center gap-2">
+                                            <i class="bi bi-check-circle-fill fs-6"></i>
+                                            <span>Đã nghiệm thu hoàn thành 100% &bull; ${st.reviewedAt}</span>
+                                        </div>
+                                    </c:if>
+
+                                    <!-- NÚT NỘP BÀI CHO THÀNH VIÊN ĐƯỢC GIAO -->
+                                    <c:set var="canSubmitSubTask" value="${(not empty st.assigneeId && st.assigneeId > 0 && st.assigneeId == sessionScope.currentUser.id) || ((empty st.assigneeId || st.assigneeId == 0) && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id))}" />
+                                    <c:if test="${task.status != 'DONE' && canSubmitSubTask && st.status != 'APPROVED' && st.status != 'SUBMITTED'}">
+                                        <div class="mb-3">
+                                            <button type="button" class="btn btn-primary btn-sm rounded-pill fs-8 py-1-5 px-3 fw-semibold shadow-2xs"
+                                                data-bs-toggle="collapse" data-bs-target="#submitSubTaskPanel-${st.id}">
+                                                <i class="bi bi-upload me-1"></i> ${st.status == 'TODO' ? 'Nộp Báo Cáo Kết Quả' : 'Nộp Lại Kết Quả Mới'}
+                                            </button>
+                                        </div>
+                                        <!-- Collapse Form nộp bài -->
+                                        <div class="collapse mb-3" id="submitSubTaskPanel-${st.id}">
+                                            <div class="p-3 bg-white rounded-3 border border-primary shadow-sm">
+                                                <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-upload text-primary me-1"></i> Nộp Báo Cáo Kết Quả: [${fn:escapeXml(st.title)}]</h6>
+                                                <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitSubTask" → SubTaskHandler.handleSubmitSubTask() --%>
+                                                <form action="${pageContext.request.contextPath}/task" method="post">
+                                                    <input type="hidden" name="action" value="submitSubTask">
+                                                    <input type="hidden" name="projectId" value="${project.id}">
+                                                    <input type="hidden" name="subTaskId" value="${st.id}">
+                                                    <div class="mb-2">
+                                                        <label for="note-${st.id}" class="form-label fw-semibold fs-9 text-dark mb-1">
+                                                            Ghi chú hoàn thành / Link sản phẩm bàn giao <span class="text-danger">*</span>:
+                                                        </label>
+                                                        <textarea class="form-control fs-8 rounded-3" id="note-${st.id}" name="submissionNote" rows="2"
+                                                            placeholder="Mô tả công việc đã làm, link pull request, link tài liệu cho Leader..." required></textarea>
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-end gap-2">
+                                                        <button type="button" class="btn btn-light rounded-pill px-3 fs-9" data-bs-toggle="collapse" data-bs-target="#submitSubTaskPanel-${st.id}">Đóng</button>
+                                                        <button type="submit" class="btn btn-primary-custom rounded-pill px-4 fs-9 fw-semibold shadow-sm">
+                                                            <i class="bi bi-send-fill me-1"></i> Gửi Báo Cáo Cho Leader
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </c:if>
+
+                                    <!-- NÚT DUYỆT 3 LỰA CHỌN CHO TASK LEAD (KHI SUBMITTED) -->
+                                    <c:set var="isReviewer" value="${(task.assigneeId > 0 && task.assigneeId == sessionScope.currentUser.id) || (task.assigneeId == 0 && project.ownerId == sessionScope.currentUser.id)}" />
+                                    <c:if test="${task.status != 'DONE' && isReviewer && st.status == 'SUBMITTED'}">
+                                        <div class="p-3 bg-light rounded-3 border mb-3">
+                                            <span class="fs-9 fw-bold text-dark d-block mb-2"><i class="bi bi-shield-check text-primary me-1"></i> Quyền Thẩm Định Của Trưởng Nhóm Công Việc:</span>
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <!-- Duyệt Đạt -->
+                                                <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "approveSubTask" → SubTaskHandler.handleApproveSubTask() --%>
+                                                <form method="post" action="${pageContext.request.contextPath}/task" class="m-0">
+                                                    <input type="hidden" name="action" value="approveSubTask">
+                                                    <input type="hidden" name="projectId" value="${project.id}">
+                                                    <input type="hidden" name="subTaskId" value="${st.id}">
+                                                    <button type="submit" class="btn btn-success btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs">
+                                                        <i class="bi bi-check-lg me-1"></i> Duyệt Đạt (🟢)
+                                                    </button>
+                                                </form>
+                                                <!-- Cân Chỉnh -->
+                                                <button type="button" class="btn btn-primary btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs"
+                                                    data-bs-toggle="collapse" data-bs-target="#reviseSubTaskPanel-${st.id}">
+                                                    <i class="bi bi-pencil me-1"></i> Cân Chỉnh (🔵)
+                                                </button>
+                                                <!-- Chưa Đạt -->
+                                                <button type="button" class="btn btn-danger btn-sm rounded-pill fs-9 py-1 px-3 fw-semibold shadow-2xs"
+                                                    data-bs-toggle="collapse" data-bs-target="#rejectSubTaskPanel-${st.id}">
+                                                    <i class="bi bi-x-lg me-1"></i> Chưa Đạt (🔴)
+                                                </button>
+                                            </div>
+
+                                            <!-- Form Cân Chỉnh -->
+                                            <div class="collapse mt-2" id="reviseSubTaskPanel-${st.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-primary shadow-sm">
+                                                    <h6 class="fw-bold text-primary fs-9 mb-1"><i class="bi bi-pencil-square me-1"></i> Lời dặn dò cân chỉnh nhỏ:</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "reviseSubTask" → SubTaskHandler.handleReviseSubTask() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="reviseSubTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="subTaskId" value="${st.id}">
+                                                        <textarea class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Ví dụ: Định dạng lại mã, kiểm tra CSS..." required></textarea>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#reviseSubTaskPanel-${st.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-3 py-0-5 fs-9 fw-semibold">Gửi Cân Chỉnh</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- Form Chưa Đạt -->
+                                            <div class="collapse mt-2" id="rejectSubTaskPanel-${st.id}">
+                                                <div class="p-2.5 bg-white rounded-2 border border-danger shadow-sm">
+                                                    <h6 class="fw-bold text-danger fs-9 mb-1"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lý do chưa đạt yêu cầu:</h6>
+                                                    <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "rejectSubTask" → SubTaskHandler.handleRejectSubTask() --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                        <input type="hidden" name="action" value="rejectSubTask">
+                                                        <input type="hidden" name="projectId" value="${project.id}">
+                                                        <input type="hidden" name="subTaskId" value="${st.id}">
+                                                        <textarea class="form-control fs-9 rounded-2 mb-2" name="feedbackNote" rows="2" placeholder="Nêu rõ lỗi hoặc yêu cầu làm lại..." required></textarea>
+                                                        <div class="d-flex align-items-center justify-content-end gap-1">
+                                                            <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#rejectSubTaskPanel-${st.id}">Đóng</button>
+                                                            <button type="submit" class="btn btn-danger rounded-pill px-3 py-0-5 fs-9 fw-semibold">Trả Về Làm Lại</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:if>
+                                </div>
+
+                                <!-- CỘT PHẢI (35%): THUỘC TÍNH VIỆC CON & ĐIỀU HƯỚNG -->
+                                <div class="col-12 col-lg-4 p-4 bg-light-subtle d-flex flex-column justify-content-between" style="min-height: 480px;">
+                                    <div>
+                                        <div class="task-sidebar-section-title mb-2">
+                                            <i class="bi bi-sliders me-1"></i> Thuộc tính nhiệm vụ
+                                        </div>
+                                        <div class="task-property-list bg-white rounded-3 p-3 border shadow-2xs mb-3">
+                                            <div class="task-property-row">
+                                                <span class="task-property-label"><i class="bi bi-person"></i> Người làm</span>
+                                                <span class="task-property-value d-flex align-items-center gap-1">
+                                                    <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                        style="width: 18px; height: 18px; font-size: 0.65rem;">
+                                                        ${fn:escapeXml(st.assigneeName.substring(0, 1).toUpperCase())}
+                                                    </span>
+                                                    <span>${fn:escapeXml(st.assigneeName)}</span>
+                                                </span>
+                                            </div>
+                                            <div class="task-property-row">
+                                                <span class="task-property-label"><i class="bi bi-arrow-repeat"></i> Trạng thái</span>
+                                                <span class="task-property-value">
+                                                    <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">${st.statusLabel}</span>
+                                                </span>
+                                            </div>
+                                            <div class="task-property-row">
+                                                <span class="task-property-label"><i class="bi bi-calendar3"></i> Hạn chót</span>
+                                                <span class="task-property-value">
+                                                    <c:choose>
+                                                        <c:when test="${not empty st.dueDate}">
+                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
+                                                                <i class="bi bi-calendar-event me-1"></i>${fn:escapeXml(st.dueDate)}
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="text-muted fs-9">Chưa đặt</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </span>
+                                            </div>
+                                            <div class="task-property-row">
+                                                <span class="task-property-label"><i class="bi bi-diagram-2"></i> Công Việc Cha</span>
+                                                <span class="task-property-value text-truncate" style="max-width: 130px;" title="${fn:escapeXml(task.title)}">
+                                                    #${task.id}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Nút quay lại Task Cha -->
+                                        <button type="button" class="btn btn-outline-primary btn-sm w-100 rounded-pill fs-8 fw-semibold py-2 shadow-2xs mb-2"
+                                            onclick="openClickUpTask(${task.id})">
+                                            <i class="bi bi-arrow-left me-1"></i> Xem Chi Tiết Công Việc Cha
+                                        </button>
+                                    </div>
+
+                                    <!-- Footer: Xóa việc con nếu có quyền -->
+                                    <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
+                                        <div class="pt-2 mt-2 border-top text-end">
+                                            <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "deleteSubTask" → SubTaskHandler.handleDeleteSubTask() --%>
+                                            <form method="post" action="${pageContext.request.contextPath}/task" class="m-0 d-inline"
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhiệm vụ này?');">
+                                                <input type="hidden" name="action" value="deleteSubTask">
+                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                <input type="hidden" name="subTaskId" value="${st.id}">
+                                                <button type="submit" class="btn btn-link text-danger p-0 border-0 fs-9 text-decoration-none opacity-75 hover-opacity-100">
+                                                    <i class="bi bi-trash3 me-1"></i> Xóa nhiệm vụ này
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </c:if>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>

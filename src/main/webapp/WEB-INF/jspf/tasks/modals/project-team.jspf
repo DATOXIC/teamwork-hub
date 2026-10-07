@@ -1,0 +1,274 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Modal Đội ngũ dự án (khối lượng việc + thành viên + lời mời) --%>
+        <!-- =========================================================================
+     7. MODAL: XEM & QUẢN LÝ ĐỘI NGŨ DỰ ÁN (X/10 THÀNH VIÊN)
+     ========================================================================= -->
+        <div class="modal fade" id="projectTeamModal" tabindex="-1" aria-labelledby="projectTeamModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+                    <div class="modal-header bg-dark-navy text-white px-4 py-3 border-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-people-fill text-warning fs-5"></i>
+                            <div>
+                                <h5 class="modal-title fw-bold mb-0" id="projectTeamModalLabel">Đội Ngũ Dự Án & Lời Mời
+                                </h5>
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("memberCount") --%>
+                                <span class="fs-9 text-white-50">Hạn ngạch: <strong>${memberCount}/10</strong> thành
+                                    viên</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Đóng"></button>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <!-- Navigation Tabs phong cách ClickUp 3.0 -->
+                        <ul class="nav nav-pills nav-fill mb-4 bg-light p-1 rounded-pill border" id="projectTeamTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active rounded-pill fs-8 fw-semibold py-1-5" id="tab-workload-btn" data-bs-toggle="pill" data-bs-target="#tab-workload-pane" type="button" role="tab" aria-controls="tab-workload-pane" aria-selected="true">
+                                    <i class="bi bi-bar-chart-line-fill me-1 text-primary"></i> Khối lượng & Tiến độ
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link rounded-pill fs-8 fw-semibold py-1-5" id="tab-members-btn" data-bs-toggle="pill" data-bs-target="#tab-members-pane" type="button" role="tab" aria-controls="tab-members-pane" aria-selected="false">
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("projectMemberList") --%>
+                                    <i class="bi bi-people-fill me-1 text-success"></i> Quản lý Thành viên & Lời mời (${projectMemberList.size()})
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="projectTeamTabsContent">
+                            <!-- TAB 1: KHỐI LƯỢNG & TIẾN ĐỘ THÀNH VIÊN (CLICKUP 3.0 WORKLOAD) -->
+                            <div class="tab-pane fade show active" id="tab-workload-pane" role="tabpanel" aria-labelledby="tab-workload-btn">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                                        <i class="bi bi-pie-chart-fill text-primary me-1"></i> Phân công & Khối lượng công việc:
+                                    </h6>
+                                    <span class="fs-9 text-muted"><strong>${userWorkloadList.size()}</strong> thành viên có công việc</span>
+                                </div>
+
+                                <div class="d-flex flex-column gap-2-5">
+                                    <c:forEach items="${userWorkloadList}" var="uw">
+                                        <div class="p-3 bg-white rounded-3 border shadow-2xs">
+                                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                                <!-- Avatar & Tên thành viên -->
+                                                <div class="d-flex align-items-center gap-2-5">
+                                                    <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-7" style="width: 34px; height: 34px;">
+                                                        ${fn:escapeXml(uw.user.fullName.substring(0, 1).toUpperCase())}
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-1-5">
+                                                            <span class="fw-bold text-dark fs-7">${fn:escapeXml(uw.user.fullName)}</span>
+                                                            <c:if test="${uw.user.id == project.ownerId}">
+                                                                <span class="badge bg-warning-subtle text-dark rounded-pill px-1-5 py-0 fs-10 fw-semibold">Trưởng dự án</span>
+                                                            </c:if>
+                                                        </div>
+                                                        <span class="fs-9 text-muted">${fn:escapeXml(uw.user.email)}</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Nút xem nhanh các task của thành viên này -->
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <c:if test="${uw.overdueCount > 0}">
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0-5 fs-9 fw-bold" title="${uw.overdueCount} công việc đã quá hạn!">
+                                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>${uw.overdueCount} Quá hạn
+                                                        </span>
+                                                    </c:if>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2-5 py-1 fs-9 fw-semibold"
+                                                            onclick="bootstrap.Modal.getInstance(document.getElementById('projectTeamModal')).hide(); filterClickUpTasks('USER', '${uw.user.id}', '<c:out value="${uw.user.fullName}" />');"
+                                                            title="Xem tất cả việc của ${fn:escapeXml(uw.user.fullName)}">
+                                                        <i class="bi bi-funnel me-1"></i>Xem việc (${uw.totalTasks})
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Thanh tiến độ phân đoạn (Segmented Progress Bar) -->
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <div class="progress flex-grow-1" style="height: 7px; background-color: #f1f5f9; border-radius: 9999px; overflow: hidden;">
+                                                    <c:set var="pctDone" value="${uw.totalTasks > 0 ? (uw.doneTasks * 100 / uw.totalTasks) : 0}" />
+                                                    <c:set var="pctSubmitted" value="${uw.totalTasks > 0 ? (uw.submittedCount * 100 / uw.totalTasks) : 0}" />
+                                                    <c:set var="pctInProg" value="${uw.totalTasks > 0 ? ((uw.inProgressTasks - uw.submittedCount) * 100 / uw.totalTasks) : 0}" />
+                                                    <div class="progress-bar bg-success" style="width: ${pctDone}%;" title="Đã xong: ${uw.doneTasks}"></div>
+                                                    <div class="progress-bar" style="width: ${pctSubmitted}%; background-color: #8b5cf6;" title="Chờ trưởng dự án duyệt: ${uw.submittedCount}"></div>
+                                                    <div class="progress-bar bg-primary" style="width: ${pctInProg}%;" title="Đang làm: ${uw.inProgressTasks - uw.submittedCount}"></div>
+                                                </div>
+                                                <span class="fs-9 fw-bold text-dark tabular-nums">${uw.memberProgressPercentage}%</span>
+                                            </div>
+
+                                            <!-- Chi tiết trạng thái (Pills) -->
+                                            <div class="d-flex align-items-center flex-wrap gap-1-5 fs-9">
+                                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5" title="Chờ làm">
+                                                    <i class="bi bi-circle me-1 text-secondary"></i>${uw.todoCount} Cần làm
+                                                </span>
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0-5" title="Đang làm">
+                                                    <i class="bi bi-play-circle me-1"></i>${uw.inProgressCount} Đang làm
+                                                </span>
+                                                <c:if test="${uw.submittedCount > 0}">
+                                                    <span class="badge bg-purple text-white rounded-pill px-2 py-0-5" title="Đã nộp báo cáo chờ duyệt">
+                                                        <i class="bi bi-send-check me-1"></i>${uw.submittedCount} Chờ duyệt
+                                                    </span>
+                                                </c:if>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5" title="Đã xong">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>${uw.doneCount} Đã xong
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+
+                                    <c:if test="${empty userWorkloadList}">
+                                        <div class="text-center py-4 text-muted">
+                                            <i class="bi bi-inbox fs-2 d-block mb-1 text-secondary opacity-50"></i>
+                                            <span class="fs-8">Chưa có dữ liệu phân công công việc trong dự án</span>
+                                        </div>
+                                    </c:if>
+                                </div>
+                            </div>
+
+                            <!-- TAB 2: QUẢN LÝ THÀNH VIÊN & LỜI MỜI (EXISTING) -->
+                            <div class="tab-pane fade" id="tab-members-pane" role="tabpanel" aria-labelledby="tab-members-btn">
+                                <!-- PHẦN 1: DANH SÁCH THÀNH VIÊN ĐANG THAM GIA -->
+                                <div class="mb-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                                            <i class="bi bi-person-check-fill text-success me-1"></i> Thành viên chính thức
+                                            (${projectMemberList.size()}):
+                                        </h6>
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0 fs-9">Đang hoạt
+                                            động</span>
+                                    </div>
+
+                                    <div class="d-flex flex-column gap-2">
+                                        <c:forEach items="${projectMemberList}" var="pm">
+                                            <div
+                                                class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="avatar-sm rounded-circle ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-primary text-white'} d-flex align-items-center justify-content-center fw-bold fs-7"
+                                                        style="width: 36px; height: 36px;">
+                                                        <c:choose>
+                                                            <c:when test="${pm.projectRole == 'OWNER'}"><i
+                                                                    class="bi bi-star-fill"></i></c:when>
+                                                            <c:otherwise><i class="bi bi-person-fill"></i></c:otherwise>
+                                                        </c:choose>
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span class="fw-bold text-dark fs-7">${fn:escapeXml(pm.userName)}</span>
+                                                            <span
+                                                                class="badge ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-secondary'} rounded-pill px-2 py-0 fs-9">
+                                                                ${pm.projectRole == 'OWNER' ? 'Trưởng Dự Án' : 'Thành viên'}
+                                                            </span>
+                                                        </div>
+                                                        <div class="text-muted fs-8">
+                                                            ${fn:escapeXml(pm.userEmail)} &bull; <span
+                                                                class="text-primary">${fn:escapeXml(pm.userRole)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="text-end">
+                                                        <span class="fs-9 text-muted d-block">Gia nhập:</span>
+                                                        <span class="fs-9 fw-semibold text-secondary">${pm.joinedAt}</span>
+                                                    </div>
+                                                    <c:if
+                                                        test="${project.ownerId == sessionScope.currentUser.id && pm.userId != project.ownerId}">
+                                                        <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "kick" → handleKickMember() --%>
+                                                        <form method="post" action="${pageContext.request.contextPath}/invite"
+                                                            class="m-0"
+                                                            onsubmit="return confirm('Bạn có chắc chắn muốn mời thành viên [${fn:escapeXml(pm.userName)}] rời khỏi dự án?');">
+                                                            <input type="hidden" name="action" value="kick">
+                                                            <input type="hidden" name="projectId" value="${project.id}">
+                                                            <input type="hidden" name="userId" value="${pm.userId}">
+                                                            <button type="submit"
+                                                                class="btn btn-outline-danger btn-sm py-1 px-2 rounded-pill fs-9"
+                                                                title="Mời rời dự án">
+                                                                <i class="bi bi-person-x-fill me-1"></i> Mời rời
+                                                            </button>
+                                                        </form>
+                                                    </c:if>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </div>
+
+                                    <c:if test="${project.ownerId != sessionScope.currentUser.id}">
+                                        <div class="mt-3 pt-2 text-end">
+                                            <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "leave" → handleLeaveProject() --%>
+                                            <form method="post" action="${pageContext.request.contextPath}/invite"
+                                                class="m-0 d-inline"
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn rời khỏi dự án [${fn:escapeXml(project.name)}]? Bạn sẽ không thể truy cập lại trừ khi được mời lại.');">
+                                                <input type="hidden" name="action" value="leave">
+                                                <input type="hidden" name="projectId" value="${project.id}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fs-8">
+                                                    <i class="bi bi-box-arrow-left me-1"></i> Rời khỏi dự án này
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </c:if>
+                                </div>
+
+                                <!-- PHẦN 2: LỜI MỜI / YÊU CẦU ĐANG CHỜ PHẢN HỒI (PENDING) -->
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("projectInviteList") --%>
+                                <c:if test="${not empty projectInviteList}">
+                                    <div class="mt-4 pt-3 border-top">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <h6 class="fw-bold text-dark fs-7 mb-0 text-uppercase tracking-wider">
+                                                <i class="bi bi-hourglass-split text-warning me-1"></i> Lời mời & Yêu cầu đang
+                                                chờ (${projectInviteList.size()}):
+                                            </h6>
+                                            <span
+                                                class="badge bg-warning-subtle text-dark rounded-pill px-2 py-0 fs-9">Đang chờ</span>
+                                        </div>
+
+                                        <div class="d-flex flex-column gap-2">
+                                            <c:forEach items="${projectInviteList}" var="inv">
+                                                <div
+                                                    class="p-2 px-3 bg-white rounded-3 border d-flex align-items-center justify-content-between shadow-2xs">
+                                                    <div>
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <span
+                                                                class="badge ${inv.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${inv.statusLabel}</span>
+                                                            <span class="fs-8 fw-bold text-dark">${inv.type == 'INVITATION' ? inv.receiverName : inv.senderName}</span>
+                                                            <span class="fs-9 text-muted">(${inv.type == 'INVITATION' ? 'Được trưởng dự án mời' : 'Gửi đơn xin vào'})</span>
+                                                        </div>
+                                                        <span class="fs-9 text-danger d-block mt-1">
+                                                            <i class="bi bi-clock me-1"></i> Hạn: ${inv.expiredAt}
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Nút PM Thu hồi lời mời nếu còn PENDING -->
+                                                    <c:if
+                                                        test="${project.ownerId == sessionScope.currentUser.id && inv.status == 'PENDING'}">
+                                                        <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "revoke" → handleRevoke() --%>
+                                                        <form method="post" action="${pageContext.request.contextPath}/invite"
+                                                            class="m-0"
+                                                            onsubmit="return confirm('Bạn có chắc chắn muốn thu hồi lời mời này?');">
+                                                            <input type="hidden" name="action" value="revoke">
+                                                            <input type="hidden" name="inviteId" value="${inv.id}">
+                                                            <button type="submit"
+                                                                class="btn btn-outline-danger btn-sm rounded-pill fs-9 py-1 px-3"
+                                                                title="Thu hồi lời mời">
+                                                                <i class="bi bi-x-circle me-1"></i> Thu hồi
+                                                            </button>
+                                                        </form>
+                                                    </c:if>
+                                                </div>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+                                </c:if>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer px-4 py-3 bg-light border-0">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4 fs-8 fw-semibold"
+                            data-bs-dismiss="modal">Đóng</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+

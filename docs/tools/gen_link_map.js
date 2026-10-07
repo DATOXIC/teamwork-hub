@@ -63,7 +63,8 @@ for (const f of javaFiles) {
 }
 
 // ---------- 2. Quét JSP + JS ----------
-const jspFiles = walk(WEBAPP, '.jsp');
+// .jspf = mảnh JSP được include tĩnh (vd WEB-INF/jspf/tasks/*.jspf tách ra từ tasks.jsp)
+const jspFiles = [...walk(WEBAPP, '.jsp'), ...walk(WEBAPP, '.jspf')];
 const jsFiles = walk(path.join(WEBAPP, 'js'), '.js');
 const RESERVED = new Set(['empty', 'not', 'and', 'or', 'eq', 'ne', 'lt', 'gt', 'le', 'ge', 'div', 'mod', 'true', 'false',
   'null', 'fn', 'param', 'paramValues', 'header', 'cookie', 'initParam', 'pageContext', 'requestScope', 'sessionScope',

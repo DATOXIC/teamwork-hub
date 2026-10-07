@@ -1,0 +1,271 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Thanh bên trái: logo, điều hướng, danh sách dự án, hồ sơ người dùng --%>
+                <!-- =========================================================================
+                     1. CỘT DUY NHẤT BÊN TRÁI: UNIFIED WORKSPACE SIDEBAR (250PX)
+                     ========================================================================= -->
+                 <aside class="clickup-sidebar ${cookie.sidebar_collapsed.value == 'true' ? 'collapsed' : ''}" id="clickupSidebar">
+                    <!-- Header: Logo Brand & Click-to-Collapse Sidebar -->
+                    <div class="clickup-sidebar-header p-2">
+                        <button type="button" class="sidebar-brand-btn w-100 d-flex align-items-center justify-content-between p-1.5 rounded-3 border-0 bg-transparent text-start" onclick="toggleClickUpSidebar()" title="Bấm vào Logo để thu gọn thanh bên (Ctrl+B)">
+                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                <span class="brand-logo-icon d-inline-flex align-items-center justify-content-center text-white rounded-2 shadow-2xs flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.9rem; background: linear-gradient(135deg, #395886 0%, #628ECB 100%);">
+                                    <i class="bi bi-grid-1x2-fill"></i>
+                                </span>
+                                <div class="d-flex flex-column text-truncate" style="line-height: 1.2;">
+                                    <span class="fw-bold text-dark text-truncate fs-8">TeamWork <span class="text-primary">Hub</span></span>
+                                    <span class="fs-10 text-muted text-truncate fw-semibold">
+                                        <c:choose>
+                                            <%-- Vai trò trong dự án lấy từ ownerId, không lấy từ chức danh tự nhập --%>
+                                            <c:when test="${isPm}">Trưởng dự án</c:when>
+                                            <c:otherwise>Thành viên</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="sidebar-collapse-indicator text-secondary fs-8 p-1 rounded-2 d-inline-flex align-items-center justify-content-center" title="Thu gọn thanh bên">
+                                <i class="bi bi-chevron-bar-left"></i>
+                            </span>
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Body: Quick Nav, Favorites, Spaces List -->
+                    <div class="clickup-sidebar-scroll flex-grow-1 overflow-y-auto">
+                        <!-- Quick Search Box (Ctrl+K) -->
+                        <div class="px-2.5 pt-2 pb-1">
+                            <div class="clickup-search-box position-relative d-flex align-items-center">
+                                <i class="bi bi-search text-muted fs-8 ms-2.5"></i>
+                                <input type="text" id="clickupSearchInput" class="form-control form-control-sm border-0 bg-transparent fs-8 ps-2 pe-5 py-1-5 shadow-none" onkeyup="searchClickUpTasks(this.value)" placeholder="Tìm kiếm nhanh... (Ctrl+K)" autocomplete="off">
+                                <span class="search-kbd-badge position-absolute end-0 me-2 text-muted">Ctrl+K</span>
+                            </div>
+                        </div>
+
+                        <!-- Điều hướng toàn cục (Global Quick Nav) -->
+                        <div class="clickup-sidebar-section pt-1">
+                            <div class="d-flex flex-column gap-1">
+                                <a href="javascript:void(0)" onclick="openInboxDrawer()" data-bs-toggle="offcanvas" data-bs-target="#inboxDrawer" class="clickup-nav-link" id="nav-inbox" title="Hộp thư thông báo">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="clickup-nav-icon bg-primary-subtle text-primary">
+                                            <i class="bi bi-bell-fill"></i>
+                                        </span>
+                                        <span class="clickup-nav-label">Hộp thư thông báo</span>
+                                    </div>
+                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("unreadNotifCount") --%>
+                                    <c:if test="${unreadNotifCount > 0}">
+                                        <span class="badge bg-danger rounded-pill fs-9 px-2 py-0-5">${unreadNotifCount}</span>
+                                    </c:if>
+                                </a>
+                                <a href="${pageContext.request.contextPath}/project?action=list" class="clickup-nav-link" id="nav-all-spaces" title="Xem tất cả không gian dự án">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="clickup-nav-icon bg-secondary-subtle text-secondary">
+                                            <i class="bi bi-grid-fill"></i>
+                                        </span>
+                                        <span class="clickup-nav-label">Tất cả không gian</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right fs-10 text-muted opacity-50 ms-auto"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Section Mục yêu thích (Favorites) -->
+                        <div class="clickup-sidebar-section" id="sidebarFavoritesSection">
+                            <div class="clickup-section-title">
+                                <span>Mục yêu thích</span>
+                                <i class="bi bi-star-fill text-warning fs-9"></i>
+                            </div>
+                            <div id="favoritesList" class="d-flex flex-column gap-1">
+                                <!-- Rendered tự động qua JS từ localStorage -->
+                            </div>
+                        </div>
+
+                        <!-- Section Spaces (Danh sách Không Gian Dự Án) -->
+                        <div class="clickup-sidebar-section">
+                            <div class="clickup-section-title d-flex align-items-center justify-content-between">
+                                <span>Không Gian Dự Án</span>
+                                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userProjects") --%>
+                                <span class="badge bg-light text-muted border rounded-pill fs-10 px-1.5 py-0">${not empty userProjects ? userProjects.size() : 0} dự án</span>
+                            </div>
+                            <div class="d-flex flex-column gap-1 mb-2">
+                                <c:forEach items="${userProjects}" var="p">
+                                    <c:choose>
+                                        <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("project") --%>
+                                        <c:when test="${p.id == project.id}">
+                                            <!-- Không gian dự án hiện tại: Cây thư mục phân hệ (Tree View) -->
+                                            <div class="clickup-tree-node is-active-project" id="project-tree-${p.id}">
+                                                <div class="clickup-space-item active d-flex align-items-center gap-1.5 p-1-5">
+                                                    <button type="button" 
+                                                            class="tree-toggle-btn p-0 border-0 bg-transparent text-secondary d-flex align-items-center justify-content-center" 
+                                                            onclick="toggleProjectTree(${p.id}, event)" 
+                                                            title="Thu gọn / Mở rộng phân hệ" 
+                                                            aria-expanded="true"
+                                                            aria-label="Thu gọn hoặc mở rộng phân hệ dự án">
+                                                        <i class="bi bi-chevron-down tree-chevron-icon" id="tree-chevron-${p.id}"></i>
+                                                    </button>
+                                                    <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
+                                                       class="d-flex align-items-center gap-2 flex-grow-1 text-decoration-none overflow-hidden" 
+                                                       title="${fn:escapeXml(p.name)}">
+                                                        <span class="clickup-space-icon active-icon flex-shrink-0">
+                                                            <i class="bi bi-folder2-open"></i>
+                                                        </span>
+                                                        <span class="text-truncate flex-grow-1 fs-8 fw-semibold text-dark space-name-text">${fn:escapeXml(p.name)}</span>
+                                                        <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold flex-shrink-0">
+                                                            ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
+                                                        </span>
+                                                    </a>
+                                                </div>
+
+                                                <!-- Cây thư mục phân hệ (Collapsible Tree View) - Không có badge số đếm -->
+                                                <div class="clickup-tree-sublist" id="tree-sublist-${p.id}">
+                                                    <!-- 1. Công việc -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('tasks')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'tasks' ? 'active' : ''}" 
+                                                       id="tab-btn-tasks" 
+                                                       title="Công việc">
+                                                        <span class="tree-item-icon tree-icon-tasks"><i class="bi bi-kanban-fill"></i></span>
+                                                        <span class="tree-item-label">Công việc</span>
+                                                    </a>
+
+                                                    <!-- 1.5. Lộ trình & Sơ đồ Gantt -->
+                                                    <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-timeline" 
+                                                       title="Lộ trình & Sơ đồ Gantt">
+                                                        <span class="tree-item-icon text-warning"><i class="bi bi-calendar-range-fill"></i></span>
+                                                        <span class="tree-item-label">Lộ trình (Timeline)</span>
+                                                    </a>
+
+                                                    <!-- 1.6. Bảng vẽ ý tưởng (Whiteboard) -->
+                                                    <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-whiteboard" 
+                                                       title="Bảng vẽ ý tưởng & Sơ đồ nhóm">
+                                                        <span class="tree-item-icon text-primary"><i class="bi bi-easel-fill"></i></span>
+                                                        <span class="tree-item-label">Bảng vẽ</span>
+                                                    </a>
+
+                                                    <!-- 1.7. Họp video (Meeting) -->
+                                                    <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-meeting" 
+                                                       title="Phòng họp video trực tuyến">
+                                                        <span class="tree-item-icon text-success"><i class="bi bi-camera-video-fill"></i></span>
+                                                        <span class="tree-item-label">Họp video</span>
+                                                    </a>
+
+                                                    <!-- 2. Thảo luận (Chuyển trực tiếp sang trang Chat riêng) -->
+                                                    <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
+                                                       class="clickup-tree-item ${currentView == 'chat' ? 'active' : ''}" 
+                                                       id="tab-btn-chat" 
+                                                       title="Kênh thảo luận trực tiếp">
+                                                        <span class="tree-item-icon tree-icon-chat"><i class="bi bi-chat-dots-fill"></i></span>
+                                                        <span class="tree-item-label">Thảo luận</span>
+                                                    </a>
+
+                                                    <!-- 3. Tài liệu (Chuyển trực tiếp sang trang Wiki Tài liệu riêng) -->
+                                                    <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
+                                                       class="clickup-tree-item ${currentView == 'docs' ? 'active' : ''}" 
+                                                       id="tab-btn-docs" 
+                                                       title="Kho tài liệu Wiki dự án">
+                                                        <span class="tree-item-icon tree-icon-docs"><i class="bi bi-file-earmark-text-fill"></i></span>
+                                                        <span class="tree-item-label">Tài liệu</span>
+                                                    </a>
+
+                                                    <!-- 4. Báo cáo tiến độ & Đo lường sức khỏe -->
+                                                    <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-report" 
+                                                       title="Báo cáo tiến độ toàn diện">
+                                                        <span class="tree-item-icon text-info"><i class="bi bi-file-earmark-bar-graph-fill"></i></span>
+                                                        <span class="tree-item-label">Báo cáo</span>
+                                                    </a>
+
+
+                                                    <!-- 5. Phân bổ công việc -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'metrics' ? 'active' : ''}" 
+                                                       id="tab-btn-metrics" 
+                                                       title="Phân bổ công việc">
+                                                        <span class="tree-item-icon tree-icon-metrics"><i class="bi bi-pie-chart-fill"></i></span>
+                                                        <span class="tree-item-label">Phân bổ công việc</span>
+                                                    </a>
+
+                                                    <!-- 6. Hoạt động -->
+                                                    <a href="javascript:void(0)" onclick="switchClickUpTab('activity')" 
+                                                       class="clickup-tree-item clickup-tab-link ${currentView == 'activity' ? 'active' : ''}" 
+                                                       id="tab-btn-activity" 
+                                                       title="Hoạt động">
+                                                        <span class="tree-item-icon tree-icon-activity"><i class="bi bi-clock-history"></i></span>
+                                                        <span class="tree-item-label">Hoạt động</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <!-- Các dự án khác: Hiển thị mục gọn gàng, chuyển trang khi click -->
+                                            <div class="clickup-tree-node" id="project-tree-${p.id}">
+                                                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" class="clickup-space-item" title="${fn:escapeXml(p.name)}">
+                                                    <span class="clickup-space-icon flex-shrink-0">
+                                                        <i class="bi bi-folder2"></i>
+                                                    </span>
+                                                    <span class="text-truncate flex-grow-1 fs-8 fw-semibold space-name-text">${fn:escapeXml(p.name)}</span>
+                                                    <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold flex-shrink-0">
+                                                        ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
+                            </div>
+
+                            <!-- Cặp nút thao tác Dự án: Tạo mới & Nhập mã -->
+                            <div class="d-flex align-items-center gap-1.5 mt-2.5">
+                                <button type="button" class="btn btn-sm btn-create-space flex-grow-1 d-flex align-items-center justify-content-center gap-1.5 rounded-2 py-1-5 fs-8 text-white shadow-xs" data-bs-toggle="modal" data-bs-target="#createProjectModal" title="Tạo không gian dự án mới">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span>Tạo không gian</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-join-code d-flex align-items-center justify-content-center gap-1 rounded-2 py-1-5 px-2.5 fs-8 text-secondary" data-bs-toggle="modal" data-bs-target="#joinByCodeModal" title="Nhập mã tham gia không gian">
+                                    <i class="bi bi-key-fill text-warning"></i>
+                                    <span>Nhập mã</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Sidebar: User Profile Card & Phím tắt Help -->
+                    <div class="clickup-sidebar-footer d-flex align-items-center justify-content-between">
+                        <div class="dropdown flex-grow-1 me-2">
+                            <a href="#" class="sidebar-user-card d-flex align-items-center gap-2 text-decoration-none text-dark p-1 rounded-2" data-bs-toggle="dropdown" title="${fn:escapeXml(sessionScope.currentUser.fullName)}">
+                                <div class="user-avatar-wrap position-relative flex-shrink-0">
+                                    <div class="user-avatar-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-2xs" style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 9px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+                                        ${fn:escapeXml(sessionScope.currentUser.fullName.substring(0, 1).toUpperCase())}
+                                    </div>
+                                    <span class="user-status-dot position-absolute bottom-0 end-0 rounded-circle border border-white bg-success" style="width: 8px; height: 8px;" title="Đang trực tuyến"></span>
+                                </div>
+                                <div class="d-flex flex-column text-truncate" style="line-height: 1.25;">
+                                    <span class="fw-bold text-dark fs-8 text-truncate">${fn:escapeXml(sessionScope.currentUser.fullName)}</span>
+                                    <span class="fs-10 text-muted text-truncate">
+                                        <c:choose>
+                                            <%-- Vai trò trong dự án lấy từ ownerId, không lấy từ chức danh tự nhập --%>
+                                            <c:when test="${isPm}">Trưởng dự án</c:when>
+                                            <c:otherwise>Thành viên</c:otherwise>
+                                        </c:choose>
+                                    </span>
+                                </div>
+                                <i class="bi bi-chevron-expand fs-9 text-muted ms-auto opacity-75"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-start shadow-lg border rounded-3 p-2 fs-8" style="min-width: 220px; z-index: 1070;">
+                                <li class="px-2 py-1 mb-1 border-bottom">
+                                    <span class="fw-bold text-dark d-block">${fn:escapeXml(sessionScope.currentUser.fullName)}</span>
+                                    <span class="fs-9 text-muted">${fn:escapeXml(sessionScope.currentUser.email)}</span>
+                                </li>
+                                <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li><a data-method="post" class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-2xs flex-shrink-0 sidebar-help-btn" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" title="Phím tắt & Trợ giúp (?)" style="width: 28px; height: 28px;">
+                            <i class="bi bi-question-circle text-secondary fs-8"></i>
+                        </button>
+                    </div>
+                </aside>

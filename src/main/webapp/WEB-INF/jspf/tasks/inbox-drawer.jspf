@@ -1,0 +1,77 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Ngăn kéo Hộp thư thông báo --%>
+<!-- =========================================================================
+     INBOX SLIDE-OVER DRAWER (HỘP THƯ THÔNG BÁO THỰC TẾ)
+     ========================================================================= -->
+<div class="offcanvas offcanvas-end shadow-lg border-start-0" tabindex="-1" id="inboxDrawer" aria-labelledby="inboxDrawerLabel" style="width: 380px;">
+    <div class="offcanvas-header border-bottom py-3 px-3 bg-light">
+        <div class="d-flex align-items-center gap-2">
+            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                <i class="bi bi-inbox-fill fs-8"></i>
+            </span>
+            <div>
+                <h6 class="offcanvas-title fw-bold text-dark fs-7 mb-0" id="inboxDrawerLabel">Hộp thư &bull; Thông báo</h6>
+                <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("userNotifications") --%>
+                <span class="fs-9 text-muted">${userNotifications.size()} thông báo gần đây</span>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <c:if test="${unreadNotifCount > 0}">
+                <a data-method="post" href="${pageContext.request.contextPath}/notification?action=readAll" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-1 fs-9" title="Đánh dấu tất cả là đã đọc">
+                    <i class="bi bi-check2-all me-1"></i> Đọc hết
+                </a>
+            </c:if>
+            <button type="button" class="btn-close fs-9" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+        </div>
+    </div>
+    <div class="offcanvas-body p-3 overflow-y-auto d-flex flex-column gap-2">
+        <c:choose>
+            <c:when test="${empty userNotifications}">
+                <div class="text-center py-5 my-auto text-muted">
+                    <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                    <div class="fw-semibold fs-7">Hộp thư trống</div>
+                    <div class="fs-9">Bạn không có thông báo nào cần xử lý.</div>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <c:forEach items="${userNotifications}" var="notif">
+                    <%-- c:param mã hóa URL cho link đích (link có dấu & sẽ không bị cắt mất tham số) --%>
+                    <c:url var="notifReadUrl" value="/notification">
+                        <c:param name="action" value="read" />
+                        <c:param name="id" value="${notif.id}" />
+                        <c:param name="redirect" value="${notif.link}" />
+                    </c:url>
+                    <a href="${fn:escapeXml(notifReadUrl)}"
+                       class="notif-item ${notif.read ? '' : 'unread'}">
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <c:choose>
+                                    <c:when test="${notif.type == 'INVITE'}">
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-envelope-open me-1"></i>Lời mời</span>
+                                    </c:when>
+                                    <c:when test="${notif.type == 'TASK_ASSIGN' || notif.type == 'TASK'}">
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-check2-square me-1"></i>Công việc</span>
+                                    </c:when>
+                                    <c:when test="${notif.type == 'COMMENT' || notif.type == 'MENTION'}">
+                                        <span class="badge bg-info-subtle text-info rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-chat-quote me-1"></i>Nhắc tên</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0-5 fs-9"><i class="bi bi-bell me-1"></i>Hệ thống</span>
+                                    </c:otherwise>
+                                </c:choose>
+                                <span class="fs-9 text-muted"><i class="bi bi-clock me-1"></i>${notif.createdAt}</span>
+                            </div>
+                            <c:if test="${!notif.read}">
+                                <span class="notif-unread-dot" title="Chưa đọc"></span>
+                            </c:if>
+                        </div>
+                        <div class="fw-bold text-dark fs-8 mb-1"><c:out value="${notif.title}" /></div>
+                        <div class="fs-9 text-secondary lh-sm text-truncate-2"><c:out value="${notif.content}" /></div>
+                    </a>
+                </c:forEach>
+            </c:otherwise>
+        </c:choose>
+    </div>
+</div>
+

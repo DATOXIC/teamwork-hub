@@ -295,7 +295,7 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 18 | [x] | Sửa N+1 (hồ sơ, chat, CSV, danh sách dự án) | 2.8 | Claude |
 | 19 | [x] | Unit test phân quyền & workflow | 2.11 | Claude |
 | 20 | [x] | Đóng EMF / thread pool khi tắt app; xử lý lỗi mạng chung `apiFetch()` | 2.7, 2.6 | Claude |
-| 21 | [ ] | Chia nhỏ `tasks.jsp` thành fragment | 2.10 | Claude |
+| 21 | [x] | Chia nhỏ `tasks.jsp` thành fragment | 2.10 | Claude |
 | 22 | [ ] | Gom design token, sửa tương phản | 2.9 | Claude |
 | 23 | [ ] | Loading / rỗng / lỗi cho các danh sách | 3.4 | Claude |
 | 24 | [ ] | Accessibility (button thật, label, focus) | 3.6 | Claude |

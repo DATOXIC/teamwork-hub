@@ -1,0 +1,71 @@
+<%@ page pageEncoding="UTF-8" %>
+<%-- Mảnh của tasks.jsp (static include: dùng chung biến, taglib c/fn và vòng lặp của tasks.jsp).
+     Modal mời thành viên (PM) --%>
+        <!-- =========================================================================
+     8. MODAL: FORM MỜI THÀNH VIÊN VÀO DỰ ÁN (DÀNH RIÊNG CHO PM)
+     ========================================================================= -->
+        <c:if test="${project.ownerId == sessionScope.currentUser.id}">
+            <div class="modal fade" id="inviteMemberModal" tabindex="-1" aria-labelledby="inviteMemberModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg rounded-4 p-2">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title fw-bold text-dark" id="inviteMemberModalLabel">
+                                <i class="bi bi-person-plus-fill text-success me-2"></i>Mời thành viên mới
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                        </div>
+
+                        <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "sendInvite" → handleSendInvite() --%>
+                        <form action="${pageContext.request.contextPath}/invite" method="post">
+                            <input type="hidden" name="action" value="sendInvite">
+                            <input type="hidden" name="projectId" value="${project.id}">
+
+                            <div class="modal-body py-3">
+                                <p class="text-muted fs-8 mb-3">
+                                    Nhập <strong>Username hoặc Email</strong> của tài khoản bạn muốn mời vào dự án
+                                    <strong>[${fn:escapeXml(project.name)}]</strong>. Lời mời sẽ có hiệu lực trong vòng <strong>7
+                                        ngày</strong>.
+                                </p>
+
+                                <div class="mb-3">
+                                    <label for="inputUsernameOrEmail" class="form-label fw-semibold fs-7 text-dark">
+                                        Username hoặc Email <span class="text-danger">*</span>
+                                    </label>
+                                    <%-- Không liệt kê toàn bộ tài khoản hệ thống: PM nhập chính xác username/email người cần mời --%>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 fs-7 text-muted">
+                                            <i class="bi bi-person-badge"></i>
+                                        </span>
+                                        <input type="text" class="form-control fs-7 rounded-end-3"
+                                            id="inputUsernameOrEmail" name="usernameOrEmail"
+                                            placeholder="Ví dụ: chi hoặc chi@teamwork.com" required autofocus>
+                                    </div>
+                                </div>
+
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <div class="d-flex align-items-center justify-content-between fs-9 text-muted mb-1">
+                                        <span>Hạn ngạch thành viên:</span>
+                                        <strong class="text-dark">${memberCount}/10 người</strong>
+                                    </div>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                            style="width: ${memberCount * 10}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer border-0 pt-0">
+                                <button type="button" class="btn btn-light rounded-pill px-4 fs-7 fw-semibold"
+                                    data-bs-dismiss="modal">Hủy</button>
+                                <button type="submit"
+                                    class="btn btn-success rounded-pill px-4 fs-7 fw-semibold shadow-sm">
+                                    <i class="bi bi-send-fill me-1"></i> Gửi lời mời (7 ngày)
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </c:if>
+

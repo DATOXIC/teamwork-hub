@@ -77,6 +77,8 @@ Tra **tên `action`** (là giá trị `name="action"` của form / `fetch` trong
 Mọi trang (trừ `login`, `forgot-password`) nhúng khung chung: `includes/header.jsp` (CSS chung + Bootstrap) → `navbar.jsp` → nội dung → `footer.jsp` (Bootstrap JS, `app.js`, `command-palette.js`).
 Trang trong dự án còn nhúng `includes/project_subnav.jsp` (thanh Công việc / Timeline / Chat / Tài liệu / Báo cáo).
 
+**`tasks.jsp` đã chia nhỏ:** file chính chỉ còn khung trang (~165 dòng) + các dòng `<%@ include file="/WEB-INF/jspf/tasks/…" %>`. Mỗi phần giao diện nằm trong một mảnh `.jspf` (`sidebar`, `main-header`, `list-view`, `board-view`, `workload-view`, `activity-view`, `inbox-drawer`, `drawer/task-pane` → `drawer/task-gates`, `drawer/subtask-panes`, `modals/*`). Include tĩnh = ghép lúc biên dịch: các mảnh dùng chung biến `c:set`, biến vòng lặp `${task}` và taglib của `tasks.jsp`. Đặt trong `WEB-INF` nên không mở trực tiếp bằng URL được.
+
 | JSP | JS riêng | CSS riêng | Ghi chú |
 |---|---|---|---|
 | `tasks.jsp` | `js/tasks-board.js` (UI), `js/tasks.js` (kéo-thả + lọc) | `base.css` … (nạp tự động qua header), `page-components.css` | Dữ liệu server → JS qua đối tượng `TASK_PAGE` (khối `<script>` ngay trước `tasks-board.js`) |
