@@ -7,8 +7,9 @@
                         <div class="clickup-project-title-row">
                             <!-- Left: Breadcrumb & Title -->
                             <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 btn-expand-sidebar ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên">
-                                    <i class="bi bi-chevron-bar-right fs-8"></i>
+                                <button type="button" class="btn btn-sm btn-light border rounded-2 p-1 btn-expand-sidebar ${cookie.sidebar_collapsed.value == 'true' ? '' : 'd-none'}" id="btnExpandSidebar" onclick="toggleClickUpSidebar()" title="Mở rộng thanh bên" aria-label="Mở thanh bên" aria-controls="clickupSidebar">
+                                    <i class="bi bi-list fs-6 d-lg-none" aria-hidden="true"></i>
+                                    <i class="bi bi-chevron-bar-right fs-8 d-none d-lg-inline" aria-hidden="true"></i>
                                 </button>
                                 <div class="d-flex align-items-center gap-1.5 text-muted fs-8">
                                     <span>Không gian</span>

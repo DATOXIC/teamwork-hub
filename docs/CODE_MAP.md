@@ -50,6 +50,8 @@
 
 **Accessibility:** phần tử bấm được mà không phải nút thật (span/div/tr có `onclick`) phải có `tabindex="0"` (+ `role="button"` nếu là nút đơn lẻ) — `app.js` cho Enter/Space hoạt động như bấm chuột và tự gắn cho phần tử JS vẽ sau. Ô nhập không có `<label for>` thì dùng `aria-label`. Vòng focus `:focus-visible` chung ở cuối `components.css`. Toast có `aria-live` (lỗi = `role="alert"`).
 
+**Responsive:** trang Công việc < 992px: thanh bên thành ngăn trượt (`.mobile-open`, nút ☰ `#btnExpandSidebar`, đóng bằng Esc / bấm nền) — CSS cuối `workspace-shell.css`, JS `setMobileSidebar()` trong `tasks-board.js`. < 768px: cột Kanban vuốt ngang theo từng cột; bảng List cuộn ngang trong khung; Gantt cột trái thu hẹp. Vùng cuộn ngang có chủ đích phải nằm trong khung riêng (`overflow-x: auto`), không để cả trang cuộn ngang.
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

@@ -18,10 +18,61 @@
     };
 
     // 1. Sidebar Toggle & State persistence in localStorage and Cookie
+    // Màn hình hẹp (< 992px, khớp CSS trong workspace-shell.css): thanh bên là ngăn trượt đè lên nội dung
+    var MOBILE_SIDEBAR = window.matchMedia ? window.matchMedia('(max-width: 991.98px)') : null;
+
+    function sidebarBackdrop() {
+        var bd = document.getElementById('clickupSidebarBackdrop');
+        if (!bd) {
+            bd = document.createElement('div');
+            bd.id = 'clickupSidebarBackdrop';
+            bd.className = 'clickup-sidebar-backdrop';
+            bd.addEventListener('click', function () { setMobileSidebar(false); });
+            document.body.appendChild(bd);
+        }
+        return bd;
+    }
+
+    function setMobileSidebar(open) {
+        var sidebar = document.getElementById('clickupSidebar');
+        if (!sidebar) return;
+        sidebar.classList.toggle('mobile-open', open);
+        sidebarBackdrop().classList.toggle('show', open);
+        var btn = document.getElementById('btnExpandSidebar');
+        if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+            var first = sidebar.querySelector('a[href], button, input');
+            if (first) first.focus();
+        } else if (btn) {
+            btn.focus();
+        }
+    }
+
+    document.addEventListener('keydown', function (e) {
+        var sidebar = document.getElementById('clickupSidebar');
+        if (e.key === 'Escape' && sidebar && sidebar.classList.contains('mobile-open')) setMobileSidebar(false);
+    });
+    // Bấm một mục điều hướng trong ngăn trượt thì đóng ngăn lại
+    document.addEventListener('click', function (e) {
+        var sidebar = document.getElementById('clickupSidebar');
+        if (sidebar && sidebar.classList.contains('mobile-open') && e.target.closest && e.target.closest('#clickupSidebar a[href]')) {
+            setMobileSidebar(false);
+        }
+    });
+    // Xoay ngang / phóng to cửa sổ qua mốc 992px: bỏ trạng thái ngăn trượt
+    if (MOBILE_SIDEBAR && MOBILE_SIDEBAR.addEventListener) {
+        MOBILE_SIDEBAR.addEventListener('change', function (mq) { if (!mq.matches) setMobileSidebar(false); });
+    }
+
     function toggleClickUpSidebar() {
         var sidebar = document.getElementById('clickupSidebar');
         var expandBtns = document.querySelectorAll('.btn-expand-sidebar');
         if (!sidebar) return;
+        if (MOBILE_SIDEBAR && MOBILE_SIDEBAR.matches) {
+            // Không lưu vào cookie: trạng thái thu gọn trên desktop giữ nguyên
+            setMobileSidebar(!sidebar.classList.contains('mobile-open'));
+            return;
+        }
         var isCollapsed = sidebar.classList.toggle('collapsed');
         localStorage.setItem('clickup_sidebar_collapsed', isCollapsed ? '1' : '0');
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '/';

@@ -1178,3 +1178,143 @@
 .schedule-card-upcoming {
     border-left: 3.5px solid var(--c-emerald-500);
 }
+
+/* ==========================================================================
+   RESPONSIVE (bước 26) — trang Công việc trên máy tính bảng / điện thoại
+   < 992px : thanh bên thành ngăn trượt (off-canvas), mở bằng nút ☰ ở đầu trang
+   < 768px : đầu trang & thanh công cụ xuống dòng; cột Kanban cuộn ngang theo từng cột
+   ========================================================================== */
+.clickup-sidebar-backdrop {
+    display: none;
+}
+
+/* Đầu trang Công việc: tiêu đề + nút được xuống dòng khi không đủ chỗ (mọi bề ngang; vừa chỗ thì không đổi gì) */
+.clickup-project-title-row {
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+.clickup-project-title-row > .d-flex {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .clickup-sidebar,
+    .clickup-sidebar.collapsed {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: min(290px, 86vw) !important;
+        min-width: 0 !important;
+        border-right: 1px solid var(--sb-border) !important;
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.25s;
+        z-index: var(--z-offcanvas);
+        box-shadow: 0 20px 48px rgba(15, 23, 42, 0.28);
+    }
+    .clickup-sidebar.mobile-open {
+        transform: translateX(0);
+        visibility: visible;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s;
+    }
+    .clickup-sidebar-backdrop.show {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        z-index: calc(var(--z-offcanvas) - 1);
+    }
+    /* Nút mở thanh bên luôn hiện trên màn hình hẹp (kể cả khi đang mang class d-none của chế độ desktop) */
+    .clickup-main-header .btn-expand-sidebar,
+    .clickup-main-header .btn-expand-sidebar.d-none {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        min-height: 36px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .clickup-main-header {
+        padding: 8px 12px;
+    }
+    .clickup-project-title-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .clickup-project-title-row > .d-flex {
+        flex-wrap: wrap;
+        min-width: 0;
+        max-width: 100%;
+    }
+    .clickup-project-title-row h6 {
+        min-width: 0;
+        max-width: 62vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .clickup-control-toolbar {
+        padding: 8px 12px !important;
+    }
+    .clickup-control-toolbar > .d-flex,
+    .clickup-control-toolbar .d-flex {
+        flex-wrap: wrap;
+        min-width: 0;
+        max-width: 100%;
+    }
+    /* Bộ chuyển List / Board / Timeline: cuộn ngang trong khung của nó */
+    .clickup-view-switcher {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap !important;
+    }
+    .clickup-view-switcher::-webkit-scrollbar { display: none; }
+    .clickup-view-switcher > * { flex-shrink: 0; }
+    .clickup-control-toolbar > .ms-auto {
+        margin-left: 0 !important;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    /* Kanban: các cột nằm ngang, vuốt để chuyển cột, mỗi lần dừng đúng một cột */
+    .kanban-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 8px;
+    }
+    .kanban-board {
+        flex-wrap: nowrap !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .kanban-board > [class*="col-"] {
+        flex: 0 0 86%;
+        max-width: 86%;
+        scroll-snap-align: start;
+    }
+
+    /* List view: bảng giữ đủ rộng để đọc được tên công việc; vuốt ngang trong khung .table-responsive */
+    #task-subview-list .clickup-list-table {
+        min-width: 830px;  /* ~220px cho tên + 610px các cột cố định */
+    }
+    #task-subview-list .clickup-list-table.is-solo {
+        min-width: 630px;
+    }
+
+    /* Bảng rủi ro trên Board: từng dòng xuống hàng thay vì tràn ngang */
+    .risk-item,
+    .risk-panel-hint {
+        white-space: normal;
+        max-width: 100%;
+    }
+}

@@ -1331,3 +1331,17 @@ html:not([data-theme="dark"]) .mini-progress-header {
 /* Thẻ CTA cuối trang giữ nền tối ở cả 2 chế độ → chữ trắng vẫn đủ tương phản */
 html:not([data-theme="dark"]) .cta-title { color: var(--c-white) !important; }
 html:not([data-theme="dark"]) .cta-subtitle { color: var(--c-slate-300) !important; }
+
+/* Bước 26: thanh tab demo trên điện thoại — cuộn ngang trong khung thay vì tràn trang */
+@media (max-width: 575.98px) {
+    .showcase-tabs-nav {
+        display: flex;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        border-radius: 1rem;
+    }
+    .showcase-tabs-nav::-webkit-scrollbar { display: none; }
+    .showcase-tabs-nav > * { flex-shrink: 0; }
+}

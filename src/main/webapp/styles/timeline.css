@@ -602,3 +602,30 @@
         box-shadow: none !important;
     }
 }
+
+/* ==========================================================================
+   RESPONSIVE (bước 26): điện thoại — cột trái Gantt hẹp lại, phần thời gian cuộn ngang bên trong khung;
+   thẻ "Chưa xếp lịch" co theo màn hình thay vì đẩy cả trang tràn ngang.
+   ========================================================================== */
+@media (max-width: 767.98px) {
+    .gantt-left-pane {
+        width: 44vw;
+        min-width: 140px;
+        max-width: 200px;
+    }
+    .gantt-left-pane .gantt-task-title-cell {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .unscheduled-task-badge {
+        max-width: 100%;
+        min-width: 0;
+    }
+    .unscheduled-task-badge > .text-truncate {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none !important;
+    }
+}
