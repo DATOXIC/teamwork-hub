@@ -67,3 +67,20 @@ function validateRegisterForm() {
 
     return valid;
 }
+
+/* ── Hàm 4: Đăng nhập nhanh bằng tài khoản mẫu (khung "Tài khoản mẫu thử nghiệm" trong login.jsp) ──
+   Chỉ điền sẵn tên + mật khẩu, KHÔNG tự gửi: người demo vẫn bấm "Đăng Nhập" như bình thường. */
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.quick-login-btn[data-demo-user]');
+    if (!btn) return;
+    var user = document.getElementById('login-username');
+    var pass = document.getElementById('login-password');
+    if (!user || !pass) return;
+    switchTab('login');
+    user.value = btn.getAttribute('data-demo-user');
+    pass.value = btn.getAttribute('data-demo-pass') || '';
+    user.classList.remove('input-error');
+    pass.classList.remove('input-error');
+    var submit = document.querySelector('#pane-login .btn-login-primary');
+    if (submit) submit.focus();
+});

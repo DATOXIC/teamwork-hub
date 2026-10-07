@@ -661,3 +661,71 @@
     background-color: var(--c-night-900);
     border-top-color: rgba(255, 255, 255, 0.08);
 }
+/* ── Tài khoản mẫu thử nghiệm (đăng nhập nhanh cho buổi demo) ── */
+.quick-login-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--c-slate-200);
+}
+.quick-login-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-aa-slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+.quick-login-pills {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.quick-login-btn {
+    padding: 8px 10px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--c-slate-700);
+    background: var(--c-slate-50);
+    border: 1px solid var(--c-slate-200);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+}
+.quick-login-btn:hover,
+.quick-login-btn:focus-visible {
+    background: var(--c-blue-50);
+    border-color: var(--c-blue-300);
+    color: var(--c-blue-900);
+}
+.quick-login-hint {
+    margin: 10px 0 0;
+    font-size: 12px;
+    text-align: center;
+    color: var(--c-aa-slate-500);
+}
+[data-theme="dark"] .quick-login-section,
+[data-bs-theme="dark"] .quick-login-section {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .quick-login-btn,
+[data-bs-theme="dark"] .quick-login-btn {
+    color: var(--c-slate-200);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+[data-theme="dark"] .quick-login-btn:hover,
+[data-theme="dark"] .quick-login-btn:focus-visible,
+[data-bs-theme="dark"] .quick-login-btn:hover {
+    background: rgba(96, 165, 250, 0.12);
+    border-color: var(--c-blue-400);
+    color: var(--c-white);
+}
+@media (max-width: 380px) {
+    .quick-login-pills { grid-template-columns: 1fr; }
+}

@@ -103,6 +103,11 @@ public class AuthServlet extends BaseServlet {
 
             case "viewLogin":
             default:
+                // Khung "Tài khoản mẫu thử nghiệm" (bản demo cho giảng viên): hiện mặc định,
+                // ẩn bằng biến môi trường TEAMWORK_DEMO_ACCOUNTS=off khi dùng thật.
+                // ▶ JSP: login.jsp đọc bằng ${showDemoAccounts}
+                request.setAttribute("showDemoAccounts", !"off".equalsIgnoreCase(System.getenv("TEAMWORK_DEMO_ACCOUNTS")));
+
                 // Nếu người dùng đã đăng nhập hợp lệ, chuyển thẳng vào Dashboard
                 HttpSession session = request.getSession(false);
                 if (session != null) {

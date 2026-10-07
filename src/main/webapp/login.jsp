@@ -268,6 +268,38 @@
                         <span>Chưa có tài khoản?</span>
                         <a href="javascript:void(0)" onclick="switchTab('register')">Đăng ký ngay</a>
                     </div>
+
+                    <%-- Đăng nhập nhanh cho buổi demo: bấm một tài khoản → tự điền vào form (login.js).
+                         Tài khoản lấy từ dữ liệu seed (database/schema_postgres_supabase.sql).
+                         Ẩn bằng TEAMWORK_DEMO_ACCOUNTS=off (AuthServlet → ${showDemoAccounts});
+                         mở thẳng /login.jsp không qua servlet thì vẫn hiện (giá trị rỗng ≠ false). --%>
+                    <c:if test="${showDemoAccounts != false}">
+                        <div class="quick-login-section" role="group" aria-labelledby="quickLoginTitle">
+                            <div class="quick-login-title" id="quickLoginTitle">
+                                <i class="bi bi-lightning-charge-fill text-warning me-1" aria-hidden="true"></i>
+                                Tài khoản mẫu thử nghiệm
+                            </div>
+                            <div class="quick-login-pills">
+                                <button type="button" class="quick-login-btn" data-demo-user="admin" data-demo-pass="admin123">
+                                    <i class="bi bi-shield-lock-fill text-primary" aria-hidden="true"></i>
+                                    <span><strong>admin</strong> · Trưởng dự án</span>
+                                </button>
+                                <button type="button" class="quick-login-btn" data-demo-user="alice" data-demo-pass="alice123">
+                                    <i class="bi bi-brush-fill text-info" aria-hidden="true"></i>
+                                    <span><strong>alice</strong> · Frontend</span>
+                                </button>
+                                <button type="button" class="quick-login-btn" data-demo-user="bob" data-demo-pass="bob123">
+                                    <i class="bi bi-code-slash text-success" aria-hidden="true"></i>
+                                    <span><strong>bob</strong> · Backend</span>
+                                </button>
+                                <button type="button" class="quick-login-btn" data-demo-user="david" data-demo-pass="david123">
+                                    <i class="bi bi-bug-fill text-danger" aria-hidden="true"></i>
+                                    <span><strong>david</strong> · Kiểm thử (QA)</span>
+                                </button>
+                            </div>
+                            <p class="quick-login-hint">Bấm để tự điền, rồi chọn <strong>Đăng Nhập</strong>.</p>
+                        </div>
+                    </c:if>
                 </div>
 
                 <%-- ═══════ TAB 2: FORM ĐĂNG KÝ ═══════
