@@ -6,6 +6,17 @@
  * thẻ <script src> trong tasks.jsp (mục "TASK_PAGE"). Muốn thêm giá trị từ server → thêm vào đó.
  * File này KHÔNG chứa EL/JSTL nên có thể sửa và F5 mà không cần restart Tomcat (hot_jsp.bat).
  */
+    // Escape ký tự HTML trước khi ghép dữ liệu người dùng (tên, nhãn, từ khóa…) vào innerHTML.
+    // Dùng chung cho tasks.js (nạp sau file này).
+    window.escapeHtml = function(text) {
+        return String(text == null ? '' : text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    };
+
     // 1. Sidebar Toggle & State persistence in localStorage and Cookie
     function toggleClickUpSidebar() {
         var sidebar = document.getElementById('clickupSidebar');
@@ -961,7 +972,7 @@
             if (tbAvatar) tbAvatar.classList.add('active');
             filterTargetUserId = userId;
             if (banner && bannerText) {
-                bannerText.innerHTML = '<i class="bi bi-person me-1"></i> Đang lọc theo thành viên: <strong>' + (userName || 'Thành viên') + '</strong>';
+                bannerText.innerHTML = '<i class="bi bi-person me-1"></i> Đang lọc theo thành viên: <strong>' + window.escapeHtml(userName || 'Thành viên') + '</strong>';
                 banner.classList.remove('d-none');
                 banner.classList.add('d-flex');
             }
@@ -1372,7 +1383,7 @@
         var bannerText = document.getElementById('activeFilterText');
         if (timeframe !== 'ALL') {
             if (banner && bannerText) {
-                bannerText.innerHTML = '<i class="bi bi-calendar3 text-primary me-1"></i> Đang lọc theo thời gian: <strong>' + label + '</strong> <span class="badge bg-primary text-white rounded-pill ms-1">' + matchCount + ' việc</span>';
+                bannerText.innerHTML = '<i class="bi bi-calendar3 text-primary me-1"></i> Đang lọc theo thời gian: <strong>' + window.escapeHtml(label) + '</strong> <span class="badge bg-primary text-white rounded-pill ms-1">' + matchCount + ' việc</span>';
                 banner.classList.remove('d-none');
                 banner.classList.add('d-flex');
             }
@@ -1509,10 +1520,10 @@
         var html = '';
         list.forEach(function(item) {
             var isActive = item.id === currentProjectId;
-            var url = TASK_PAGE.contextPath + '/task?action=list&projectId=' + item.id;
+            var url = TASK_PAGE.contextPath + '/task?action=list&projectId=' + encodeURIComponent(item.id);
             html += '<a href="' + url + '" class="clickup-space-item ' + (isActive ? 'active' : '') + '">';
             html += '<span class="clickup-space-icon text-warning"><i class="bi bi-star-fill"></i></span>';
-            html += '<span class="text-truncate flex-grow-1 fs-8 fw-medium">' + item.name + '</span>';
+            html += '<span class="text-truncate flex-grow-1 fs-8 fw-medium">' + window.escapeHtml(item.name) + '</span>';
             html += '</a>';
         });
         container.innerHTML = html;

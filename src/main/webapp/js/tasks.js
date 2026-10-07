@@ -378,17 +378,17 @@ document.addEventListener('DOMContentLoaded', function()
             } else if (filterMode === 'MY_TASKS') {
                 desc = `Hiển thị <strong>${visibleCount}</strong> công việc liên quan đến <strong>bạn</strong>`;
             } else {
-                desc = `Hiển thị <strong>${visibleCount}</strong> công việc liên quan đến <strong>${userName}</strong>`;
+                desc = `Hiển thị <strong>${visibleCount}</strong> công việc liên quan đến <strong>${window.escapeHtml(userName)}</strong>`;
             }
 
             if (selectedPriority !== 'ALL') {
-                desc += ` (Ưu tiên: <strong>${selectedPriority}</strong>)`;
+                desc += ` (Ưu tiên: <strong>${window.escapeHtml(selectedPriority)}</strong>)`;
             }
             if (selectedLabel !== 'ALL') {
-                desc += ` (Nhãn: <strong>${selectedLabel}</strong>)`;
+                desc += ` (Nhãn: <strong>${window.escapeHtml(selectedLabel)}</strong>)`;
             }
             if (searchQuery !== '') {
-                desc += ` (Từ khóa: <em>"${searchQuery}"</em>)`;
+                desc += ` (Từ khóa: <em>"${window.escapeHtml(searchQuery)}"</em>)`;
             }
 
             filterResultCount.innerHTML = desc;

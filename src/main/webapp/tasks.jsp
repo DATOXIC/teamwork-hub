@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- =========================================================================
      MVC SKELETON & CONTRACT NOTE — tasks.jsp
@@ -159,11 +160,11 @@
                                                     </button>
                                                     <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
                                                        class="d-flex align-items-center gap-2 flex-grow-1 text-decoration-none overflow-hidden" 
-                                                       title="${p.name}">
+                                                       title="${fn:escapeXml(p.name)}">
                                                         <span class="clickup-space-icon active-icon flex-shrink-0">
                                                             <i class="bi bi-folder2-open"></i>
                                                         </span>
-                                                        <span class="text-truncate flex-grow-1 fs-8 fw-semibold text-dark space-name-text">${p.name}</span>
+                                                        <span class="text-truncate flex-grow-1 fs-8 fw-semibold text-dark space-name-text">${fn:escapeXml(p.name)}</span>
                                                         <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold flex-shrink-0">
                                                             ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
                                                         </span>
@@ -259,11 +260,11 @@
                                         <c:otherwise>
                                             <!-- Các dự án khác: Hiển thị mục gọn gàng, chuyển trang khi click -->
                                             <div class="clickup-tree-node" id="project-tree-${p.id}">
-                                                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" class="clickup-space-item" title="${p.name}">
+                                                <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" class="clickup-space-item" title="${fn:escapeXml(p.name)}">
                                                     <span class="clickup-space-icon flex-shrink-0">
                                                         <i class="bi bi-folder2"></i>
                                                     </span>
-                                                    <span class="text-truncate flex-grow-1 fs-8 fw-semibold space-name-text">${p.name}</span>
+                                                    <span class="text-truncate flex-grow-1 fs-8 fw-semibold space-name-text">${fn:escapeXml(p.name)}</span>
                                                     <span class="badge ${p.soloProject ? 'badge-solo' : 'badge-team'} rounded-pill px-1-5 py-0 fs-10 fw-semibold flex-shrink-0">
                                                         ${p.soloProject ? 'Cá nhân' : 'Nhóm'}
                                                     </span>
@@ -291,15 +292,15 @@
                     <!-- Footer Sidebar: User Profile Card & Phím tắt Help -->
                     <div class="clickup-sidebar-footer d-flex align-items-center justify-content-between">
                         <div class="dropdown flex-grow-1 me-2">
-                            <a href="#" class="sidebar-user-card d-flex align-items-center gap-2 text-decoration-none text-dark p-1 rounded-2" data-bs-toggle="dropdown" title="${sessionScope.currentUser.fullName}">
+                            <a href="#" class="sidebar-user-card d-flex align-items-center gap-2 text-decoration-none text-dark p-1 rounded-2" data-bs-toggle="dropdown" title="${fn:escapeXml(sessionScope.currentUser.fullName)}">
                                 <div class="user-avatar-wrap position-relative flex-shrink-0">
                                     <div class="user-avatar-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-2xs" style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 9px; background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
-                                        ${sessionScope.currentUser.fullName.substring(0, 1).toUpperCase()}
+                                        ${fn:escapeXml(sessionScope.currentUser.fullName.substring(0, 1).toUpperCase())}
                                     </div>
                                     <span class="user-status-dot position-absolute bottom-0 end-0 rounded-circle border border-white bg-success" style="width: 8px; height: 8px;" title="Đang trực tuyến"></span>
                                 </div>
                                 <div class="d-flex flex-column text-truncate" style="line-height: 1.25;">
-                                    <span class="fw-bold text-dark fs-8 text-truncate">${sessionScope.currentUser.fullName}</span>
+                                    <span class="fw-bold text-dark fs-8 text-truncate">${fn:escapeXml(sessionScope.currentUser.fullName)}</span>
                                     <span class="fs-10 text-muted text-truncate">
                                         <c:choose>
                                             <c:when test="${sessionScope.currentUser.role == 'ADMIN'}">Quản trị viên</c:when>
@@ -312,8 +313,8 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-start shadow-lg border rounded-3 p-2 fs-8" style="min-width: 220px; z-index: 1070;">
                                 <li class="px-2 py-1 mb-1 border-bottom">
-                                    <span class="fw-bold text-dark d-block">${sessionScope.currentUser.fullName}</span>
-                                    <span class="fs-9 text-muted">${sessionScope.currentUser.email}</span>
+                                    <span class="fw-bold text-dark d-block">${fn:escapeXml(sessionScope.currentUser.fullName)}</span>
+                                    <span class="fs-9 text-muted">${fn:escapeXml(sessionScope.currentUser.email)}</span>
                                 </li>
                                 <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
                                 <li><hr class="dropdown-divider my-1"></li>
@@ -343,7 +344,7 @@
                                     <span>Không gian</span>
                                     <i class="bi bi-chevron-right fs-9 text-muted"></i>
                                 </div>
-                                <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
+                                <h6 class="fw-bold text-dark mb-0 fs-7">${fn:escapeXml(project.name)}</h6>
                                 <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
                                     <i class="bi ${project.projectTypeIcon}"></i> ${project.projectTypeLabel}
                                 </span>
@@ -470,9 +471,9 @@
                                             <button type="button" class="assignee-avatar-btn position-relative" 
                                                     data-user-id="${uw.user.id}" 
                                                     onclick="handleToolbarAvatarClick('${uw.user.id}', '<c:out value="${uw.user.fullName}" />')"
-                                                    title="${uw.user.fullName} (${uw.totalTasks} việc &bull; ${uw.doneTasks} xong &bull; ${uw.overdueTasks > 0 ? uw.overdueTasks : 0} quá hạn)">
+                                                    title="${fn:escapeXml(uw.user.fullName)} (${uw.totalTasks} việc &bull; ${uw.doneTasks} xong &bull; ${uw.overdueTasks > 0 ? uw.overdueTasks : 0} quá hạn)">
                                                 <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 0.65rem;">
-                                                    ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                                                    ${fn:escapeXml(uw.user.fullName.substring(0, 1).toUpperCase())}
                                                 </span>
                                                 <c:if test="${uw.overdueTasks > 0}">
                                                     <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="transform: translate(-30%, -20%) !important;" title="${uw.overdueTasks} việc quá hạn"></span>
@@ -653,7 +654,7 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                         <span class="clickup-status-dot dot-todo" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
-                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${task.title}</span>
+                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${fn:escapeXml(task.title)}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
                                                             <span class="badge bg-light text-secondary border rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} nhiệm vụ">
                                                                 <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
@@ -667,10 +668,10 @@
                                                 <c:if test="${project.teamProject}">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2">
-                                                            <span class="avatar-circle-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${task.assigneeName}">
-                                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                            <span class="avatar-circle-sm bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${fn:escapeXml(task.assigneeName)}">
+                                                                ${fn:escapeXml(task.assigneeName.substring(0, 1).toUpperCase())}
                                                             </span>
-                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 130px;">${task.assigneeName}</span>
+                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 130px;">${fn:escapeXml(task.assigneeName)}</span>
                                                         </div>
                                                     </td>
                                                 </c:if>
@@ -691,7 +692,7 @@
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
                                                             <span class="badge ${task.getLabelBadgeClass(task.labelList[0])} rounded-pill px-2.5 py-1 fs-9 fw-semibold">
-                                                                ${task.getLabelDisplayName(task.labelList[0])}
+                                                                ${fn:escapeXml(task.getLabelDisplayName(task.labelList[0]))}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
@@ -700,7 +701,7 @@
                                                     </c:choose>
                                                 </td>
                                                 <td class="pe-3" style="text-align: right;">
-                                                    <span class="fs-9 text-muted font-monospace">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                    <span class="fs-9 text-muted font-monospace">${not empty task.dueDate ? fn:escapeXml(task.dueDate) : '—'}</span>
                                                 </td>
                                             </tr>
                                             <!-- Subtasks -->
@@ -715,12 +716,12 @@
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
                                                             </span>
-                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${st.title}</span>
+                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${fn:escapeXml(st.title)}</span>
                                                         </div>
                                                     </td>
                                                     <c:if test="${project.teamProject}">
                                                         <td>
-                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 130px;">${st.assigneeName}</span>
+                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 130px;">${fn:escapeXml(st.assigneeName)}</span>
                                                         </td>
                                                     </c:if>
                                                     <td>
@@ -767,7 +768,7 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                         <span class="clickup-status-dot dot-inprog" id="status-dot-${task.id}" onclick="event.stopPropagation(); openStatusDropdown(event, ${task.id}, false, '${task.status}');" title="Trạng thái: ${task.status} (Bấm để đổi)"></span>
-                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${task.title}</span>
+                                                        <span class="fw-semibold text-dark text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${fn:escapeXml(task.title)}</span>
                                                         <c:if test="${task.status == 'SUBMITTED'}">
                                                             <span class="badge bg-purple text-white rounded-pill px-2 py-0-5 fs-9 ms-1" title="Công việc đã nộp báo cáo kết quả, chờ trưởng dự án duyệt">
                                                                 <i class="bi bi-send-check me-0-5"></i>Chờ duyệt
@@ -787,10 +788,10 @@
                                                 <c:if test="${project.teamProject}">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2">
-                                                            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${task.assigneeName}">
-                                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                            <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${fn:escapeXml(task.assigneeName)}">
+                                                                ${fn:escapeXml(task.assigneeName.substring(0, 1).toUpperCase())}
                                                             </span>
-                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 130px;">${task.assigneeName}</span>
+                                                            <span class="fs-9 text-dark fw-medium text-truncate" style="max-width: 130px;">${fn:escapeXml(task.assigneeName)}</span>
                                                         </div>
                                                     </td>
                                                 </c:if>
@@ -811,7 +812,7 @@
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
                                                             <span class="badge ${task.getLabelBadgeClass(task.labelList[0])} rounded-pill px-2.5 py-1 fs-9 fw-semibold">
-                                                                ${task.getLabelDisplayName(task.labelList[0])}
+                                                                ${fn:escapeXml(task.getLabelDisplayName(task.labelList[0]))}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
@@ -820,7 +821,7 @@
                                                     </c:choose>
                                                 </td>
                                                 <td class="pe-3" style="text-align: right;">
-                                                    <span class="fs-9 text-dark fw-semibold font-monospace">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                    <span class="fs-9 text-dark fw-semibold font-monospace">${not empty task.dueDate ? fn:escapeXml(task.dueDate) : '—'}</span>
                                                 </td>
                                             </tr>
                                             <!-- Subtasks -->
@@ -835,12 +836,12 @@
                                                                     <i class="bi bi-check text-white"></i>
                                                                 </c:if>
                                                             </span>
-                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${st.title}</span>
+                                                            <span class="text-dark text-truncate fs-8 ${isStDone ? 'text-decoration-line-through text-muted' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${fn:escapeXml(st.title)}</span>
                                                         </div>
                                                     </td>
                                                     <c:if test="${project.teamProject}">
                                                         <td>
-                                                            <span class="fs-9 text-dark text-truncate" style="max-width: 130px;">${st.assigneeName}</span>
+                                                            <span class="fs-9 text-dark text-truncate" style="max-width: 130px;">${fn:escapeXml(st.assigneeName)}</span>
                                                         </td>
                                                     </c:if>
                                                     <td>
@@ -883,7 +884,7 @@
                                                         <span class="clickup-status-dot dot-done dot-locked" id="status-dot-${task.id}" onclick="event.stopPropagation();" title="Công việc đã hoàn thành (Đã khóa, không thể thay đổi)">
                                                             <i class="bi bi-check text-white"></i>
                                                         </span>
-                                                        <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${task.title}</span>
+                                                        <span class="fw-semibold text-secondary text-decoration-line-through text-truncate" id="task-title-text-${task.id}" style="max-width: 380px;">${fn:escapeXml(task.title)}</span>
                                                         <c:if test="${not empty taskSubTasksMap[task.id]}">
                                                             <span class="badge bg-light text-secondary border rounded-pill fs-9" id="subtask-count-badge-${task.id}" title="${taskSubTasksMap[task.id].size()} nhiệm vụ">
                                                                 <i class="bi bi-link-45deg"></i> <span class="badge-num">${taskSubTasksMap[task.id].size()}</span>
@@ -894,10 +895,10 @@
                                                 <c:if test="${project.teamProject}">
                                                     <td>
                                                         <div class="d-flex align-items-center gap-2">
-                                                            <span class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${task.assigneeName}">
-                                                                ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                            <span class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: 600;" title="${fn:escapeXml(task.assigneeName)}">
+                                                                ${fn:escapeXml(task.assigneeName.substring(0, 1).toUpperCase())}
                                                             </span>
-                                                            <span class="fs-9 text-secondary fw-medium text-truncate" style="max-width: 130px;">${task.assigneeName}</span>
+                                                            <span class="fs-9 text-secondary fw-medium text-truncate" style="max-width: 130px;">${fn:escapeXml(task.assigneeName)}</span>
                                                         </div>
                                                     </td>
                                                 </c:if>
@@ -918,7 +919,7 @@
                                                     <c:choose>
                                                         <c:when test="${not empty task.labelList}">
                                                             <span class="badge ${task.getLabelBadgeClass(task.labelList[0])} rounded-pill px-2.5 py-1 fs-9 fw-semibold">
-                                                                ${task.getLabelDisplayName(task.labelList[0])}
+                                                                ${fn:escapeXml(task.getLabelDisplayName(task.labelList[0]))}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
@@ -927,7 +928,7 @@
                                                     </c:choose>
                                                 </td>
                                                 <td class="pe-3" style="text-align: right;">
-                                                    <span class="fs-9 text-muted font-monospace">${not empty task.dueDate ? task.dueDate : '—'}</span>
+                                                    <span class="fs-9 text-muted font-monospace">${not empty task.dueDate ? fn:escapeXml(task.dueDate) : '—'}</span>
                                                 </td>
                                             </tr>
                                             <!-- Subtasks -->
@@ -940,12 +941,12 @@
                                                             <span class="clickup-status-dot dot-done dot-locked" id="subtask-status-dot-${st.id}" onclick="event.stopPropagation();" title="Nhiệm vụ đã hoàn tất (Đã khóa)">
                                                                 <i class="bi bi-check text-white"></i>
                                                             </span>
-                                                            <span class="text-secondary text-truncate fs-8 ${isStDone ? 'text-decoration-line-through' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${st.title}</span>
+                                                            <span class="text-secondary text-truncate fs-8 ${isStDone ? 'text-decoration-line-through' : ''}" id="subtask-title-text-${st.id}" style="max-width: 320px;">${fn:escapeXml(st.title)}</span>
                                                         </div>
                                                     </td>
                                                     <c:if test="${project.teamProject}">
                                                         <td>
-                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 130px;">${st.assigneeName}</span>
+                                                            <span class="fs-9 text-muted text-truncate" style="max-width: 130px;">${fn:escapeXml(st.assigneeName)}</span>
                                                         </td>
                                                     </c:if>
                                                     <td>
@@ -955,7 +956,7 @@
                                                         <span class="badge ${isStDone ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border'} rounded-pill px-2 py-0.5 fs-9" id="subtask-badge-${st.id}">${st.statusLabel}</span>
                                                     </td>
                                                     <td class="pe-3" style="text-align: right;">
-                                                        <span class="fs-9 text-muted font-monospace">${not empty st.dueDate ? st.dueDate : '—'}</span>
+                                                        <span class="fs-9 text-muted font-monospace">${not empty st.dueDate ? fn:escapeXml(st.dueDate) : '—'}</span>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
@@ -1032,7 +1033,7 @@
                                     data-task-status="${task.status}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
-                                    data-task-labels="${task.labels}"
+                                    data-task-labels="${fn:escapeXml(task.labels)}"
                                     data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
@@ -1054,7 +1055,7 @@
                                             </c:if>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
-                                                    ${task.getLabelDisplayName(lbl)}
+                                                    ${fn:escapeXml(task.getLabelDisplayName(lbl))}
                                                 </span>
                                             </c:forEach>
                                         </div>
@@ -1075,7 +1076,7 @@
                                     </div>
 
                                     <!-- 2. Tiêu đề công việc to, đậm, rõ nét -->
-                                    <h6 class="fw-bold text-dark mb-2 fs-7 lh-sm text-truncate-2">${task.title}</h6>
+                                    <h6 class="fw-bold text-dark mb-2 fs-7 lh-sm text-truncate-2">${fn:escapeXml(task.title)}</h6>
 
                                     <!-- 2.5. Thanh tiến độ mảnh mai (Linear style) -->
                                     <c:if test="${not empty taskSubTasksMap[task.id]}">
@@ -1090,9 +1091,9 @@
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
                                         <!-- Dải Avatar xếp lớp -->
                                         <c:if test="${project.teamProject}">
-                                            <div class="avatar-group" title="Trưởng nhóm công việc: ${task.assigneeName}">
+                                            <div class="avatar-group" title="Trưởng nhóm công việc: ${fn:escapeXml(task.assigneeName)}">
                                                 <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                    ${fn:escapeXml(task.assigneeName.substring(0, 1).toUpperCase())}
                                                 </div>
                                             </div>
                                         </c:if>
@@ -1119,9 +1120,9 @@
                                             <%@ include file="includes/health_badge.jsp" %>
                                             <!-- Hạn chót -->
                                             <c:if test="${not empty task.dueDate}">
-                                                <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${task.dueDate}">
+                                                <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${fn:escapeXml(task.dueDate)}">
                                                     <i class="bi bi-clock ${task.isOverdue() ? 'text-danger' : 'text-secondary'}"></i>
-                                                    <span>${task.dueDate}</span>
+                                                    <span>${fn:escapeXml(task.dueDate)}</span>
                                                 </span>
                                             </c:if>
                                         </div>
@@ -1180,7 +1181,7 @@
                                     data-task-status="${task.status}"
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
-                                    data-task-labels="${task.labels}"
+                                    data-task-labels="${fn:escapeXml(task.labels)}"
                                     data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
@@ -1202,7 +1203,7 @@
                                             </c:if>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
-                                                    ${task.getLabelDisplayName(lbl)}
+                                                    ${fn:escapeXml(task.getLabelDisplayName(lbl))}
                                                 </span>
                                             </c:forEach>
                                         </div>
@@ -1232,7 +1233,7 @@
                                     </c:if>
 
                                     <!-- 2. Tiêu đề công việc to, đậm, rõ nét -->
-                                    <h6 class="fw-bold text-dark mb-2 fs-7 lh-sm text-truncate-2">${task.title}</h6>
+                                    <h6 class="fw-bold text-dark mb-2 fs-7 lh-sm text-truncate-2">${fn:escapeXml(task.title)}</h6>
 
                                     <!-- 2.5. Thanh tiến độ mảnh mai (Linear style) -->
                                     <c:if test="${not empty taskSubTasksMap[task.id]}">
@@ -1247,9 +1248,9 @@
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
                                         <!-- Dải Avatar xếp lớp -->
                                         <c:if test="${project.teamProject}">
-                                            <div class="avatar-group" title="Trưởng nhóm công việc: ${task.assigneeName}">
+                                            <div class="avatar-group" title="Trưởng nhóm công việc: ${fn:escapeXml(task.assigneeName)}">
                                                 <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                    ${fn:escapeXml(task.assigneeName.substring(0, 1).toUpperCase())}
                                                 </div>
                                             </div>
                                         </c:if>
@@ -1284,9 +1285,9 @@
                                             <%@ include file="includes/health_badge.jsp" %>
                                             <!-- Hạn chót -->
                                             <c:if test="${not empty task.dueDate}">
-                                                <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${task.dueDate}">
+                                                <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${fn:escapeXml(task.dueDate)}">
                                                     <i class="bi bi-clock ${task.isOverdue() ? 'text-danger' : 'text-secondary'}"></i>
-                                                    <span>${task.dueDate}</span>
+                                                    <span>${fn:escapeXml(task.dueDate)}</span>
                                                 </span>
                                             </c:if>
                                         </div>
@@ -1334,7 +1335,7 @@
                                     data-task-assignee="<c:out value='${task.assigneeName}' />"
                                     data-assignee-id="${task.assigneeId}"
                                     data-task-status="${task.status}"
-                                    data-task-labels="${task.labels}"
+                                    data-task-labels="${fn:escapeXml(task.labels)}"
                                     data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
@@ -1356,7 +1357,7 @@
                                             </c:if>
                                             <c:forEach items="${task.labelList}" var="lbl">
                                                 <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-medium">
-                                                    ${task.getLabelDisplayName(lbl)}
+                                                    ${fn:escapeXml(task.getLabelDisplayName(lbl))}
                                                 </span>
                                             </c:forEach>
                                         </div>
@@ -1380,7 +1381,7 @@
                                     <div class="d-flex align-items-start gap-1-5 mb-2">
                                         <i class="bi bi-check-circle-fill text-success fs-7 mt-0-5 flex-shrink-0"></i>
                                         <h6 class="fw-semibold text-secondary mb-0 fs-7 lh-sm text-decoration-line-through text-truncate-2">
-                                            ${task.title}</h6>
+                                            ${fn:escapeXml(task.title)}</h6>
                                     </div>
 
                                     <!-- 2.5. Thanh tiến độ hoàn thành 100% mảnh mai (Linear style) -->
@@ -1396,9 +1397,9 @@
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9 text-secondary mt-1">
                                         <!-- Dải Avatar Task Lead hoàn thành -->
                                         <c:if test="${project.teamProject}">
-                                            <div class="avatar-group" title="Người hoàn thành: ${task.assigneeName}">
+                                            <div class="avatar-group" title="Người hoàn thành: ${fn:escapeXml(task.assigneeName)}">
                                                 <div class="avatar-circle-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                                                    ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                    ${fn:escapeXml(task.assigneeName.substring(0, 1).toUpperCase())}
                                                 </div>
                                             </div>
                                         </c:if>
@@ -1463,7 +1464,7 @@
                             <span>Không gian nhóm</span>
                             <i class="bi bi-chevron-right fs-9 text-muted"></i>
                         </div>
-                        <h6 class="fw-bold text-dark mb-0 fs-7">${project.name}</h6>
+                        <h6 class="fw-bold text-dark mb-0 fs-7">${fn:escapeXml(project.name)}</h6>
                         <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
                             <i class="bi ${project.projectTypeIcon}"></i> ${project.projectTypeLabel}
                         </span>
@@ -1735,15 +1736,15 @@
                                         data-overdue="${wl.overdueTasks}"
                                         data-rate="${wl.completionRate}"
                                         onclick="handleWorkloadRowClick('${wl.user.id}', '<c:out value="${wl.user.fullName}" />')"
-                                        title="Bấm để chọn xem chi tiết của ${wl.user.fullName}">
+                                        title="Bấm để chọn xem chi tiết của ${fn:escapeXml(wl.user.fullName)}">
                                         <td class="ps-3 py-3">
                                             <div class="d-flex align-items-center gap-2">
                                                 <span class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-2xs" style="width: 30px; height: 30px; font-size: 0.75rem; font-weight: 600;">
-                                                    ${wl.user.fullName.substring(0, 1).toUpperCase()}
+                                                    ${fn:escapeXml(wl.user.fullName.substring(0, 1).toUpperCase())}
                                                 </span>
                                                 <div>
-                                                    <div class="fw-semibold text-dark user-name-cell fs-8">${wl.user.fullName}</div>
-                                                    <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-10">${wl.user.role}</span>
+                                                    <div class="fw-semibold text-dark user-name-cell fs-8">${fn:escapeXml(wl.user.fullName)}</div>
+                                                    <span class="badge bg-light text-secondary border rounded-pill px-1-5 py-0 fs-10">${fn:escapeXml(wl.user.role)}</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -1815,7 +1816,7 @@
                                             <div class="p-3 border-bottom bg-light-subtle">
                                                 <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
                                                     <span class="fs-8 fw-bold text-dark d-flex align-items-center gap-1.5">
-                                                        <i class="bi bi-card-checklist text-primary"></i> Công việc do ${wl.user.fullName} chủ trì (${wl.leadTasks.size()} việc)
+                                                        <i class="bi bi-card-checklist text-primary"></i> Công việc do ${fn:escapeXml(wl.user.fullName)} chủ trì (${wl.leadTasks.size()} việc)
                                                     </span>
                                                     <button type="button" class="btn btn-sm btn-link text-primary text-decoration-none p-0 fs-9 fw-semibold d-inline-flex align-items-center gap-1" onclick="viewMemberTasks('${wl.user.id}', '<c:out value="${wl.user.fullName}" />', event)">
                                                         <span>Mở trên Bảng Công Việc</span>
@@ -1853,7 +1854,7 @@
                                                                         <c:if test="${not empty t.dueDate}">
                                                                             <span class="d-inline-flex align-items-center gap-1 ${t.overdue ? 'text-danger fw-bold' : 'text-muted'}">
                                                                                 <i class="bi ${t.overdue ? 'bi-exclamation-circle-fill' : 'bi-calendar3'}"></i>
-                                                                                ${t.dueDate}
+                                                                                ${fn:escapeXml(t.dueDate)}
                                                                                 <c:if test="${t.overdue}">
                                                                                     <span class="badge bg-danger text-white rounded-pill px-1-5 py-0 fs-10">Quá hạn</span>
                                                                                 </c:if>
@@ -1939,9 +1940,9 @@
                                                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
                                                     <div class="d-flex align-items-center gap-2">
                                                         <span class="avatar-circle-xs bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-9" style="width: 22px; height: 22px;">
-                                                            ${not empty act.userName ? act.userName.substring(0, 1).toUpperCase() : 'U'}
+                                                            ${not empty act.userName ? fn:escapeXml(act.userName.substring(0, 1).toUpperCase()) : 'U'}
                                                         </span>
-                                                        <span class="fw-semibold text-dark fs-8">${act.userName}</span>
+                                                        <span class="fw-semibold text-dark fs-8">${fn:escapeXml(act.userName)}</span>
                                                         <span class="badge ${act.badgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
                                                             ${act.actionLabel}
                                                         </span>
@@ -1952,9 +1953,9 @@
                                                 </div>
                                                 <div class="fs-8 text-dark mt-1">
                                                     <c:if test="${not empty act.targetTitle}">
-                                                        <span class="fw-semibold text-primary">#${act.targetTitle}</span> — 
+                                                        <span class="fw-semibold text-primary">#${fn:escapeXml(act.targetTitle)}</span> — 
                                                     </c:if>
-                                                    <span class="text-secondary">${act.description}</span>
+                                                    <span class="text-secondary">${fn:escapeXml(act.description)}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -2006,7 +2007,13 @@
             </c:when>
             <c:otherwise>
                 <c:forEach items="${userNotifications}" var="notif">
-                    <a href="${pageContext.request.contextPath}/notification?action=read&id=${notif.id}&redirect=${notif.link}" 
+                    <%-- c:param mã hóa URL cho link đích (link có dấu & sẽ không bị cắt mất tham số) --%>
+                    <c:url var="notifReadUrl" value="/notification">
+                        <c:param name="action" value="read" />
+                        <c:param name="id" value="${notif.id}" />
+                        <c:param name="redirect" value="${notif.link}" />
+                    </c:url>
+                    <a href="${fn:escapeXml(notifReadUrl)}"
                        class="notif-item ${notif.read ? '' : 'unread'}">
                         <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
                             <div class="d-flex align-items-center gap-2">
@@ -2051,10 +2058,11 @@
         currentUserId: "${sessionScope.currentUser.id}",
         subtaskMode: "${subtaskMode}",
         <%-- ◀ SERVLET: SubTaskHandler, TaskBoardHandler, TaskCrudHandler … → setAttribute("toastSuccess") --%>
-        toastSuccess: "<c:out value='${toastSuccess}' />",
+        <%-- Chuỗi trong JS: escapeXml chặn đóng thẻ/đóng nháy, replace thêm dấu \ để không phá chuỗi JS --%>
+        toastSuccess: "${fn:replace(fn:escapeXml(toastSuccess), '\\', '\\\\')}",
         members: [
             <c:forEach items="${userList}" var="u" varStatus="loop">
-            { id: ${u.id}, name: '<c:out value="${u.fullName}" />' }<c:if test="${!loop.last}">,</c:if>
+            { id: ${u.id}, name: '${fn:replace(fn:escapeXml(u.fullName), '\\', '\\\\')}' }<c:if test="${!loop.last}">,</c:if>
             </c:forEach>
         ]
     };
@@ -2076,7 +2084,7 @@
                                 <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">#${task.id}</span>
                                 <c:forEach items="${task.labelList}" var="lbl">
                                     <span class="badge ${task.getLabelBadgeClass(lbl)} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
-                                        ${task.getLabelDisplayName(lbl)}
+                                        ${fn:escapeXml(task.getLabelDisplayName(lbl))}
                                     </span>
                                 </c:forEach>
                                 <span class="badge ${task.priorityBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
@@ -2161,7 +2169,7 @@
                                                                 <c:when test="${project.ownerId == sessionScope.currentUser.id}">
                                                                     <select name="assigneeId" class="form-select form-select-sm" required>
                                                                         <c:forEach items="${userList}" var="u">
-                                                                            <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                                            <option value="${u.id}" ${u.id==task.assigneeId ? 'selected' : ''}>${fn:escapeXml(u.fullName)}</option>
                                                                         </c:forEach>
                                                                     </select>
                                                                 </c:when>
@@ -2199,7 +2207,7 @@
 
                                 <!-- TIÊU ĐỀ & MÔ TẢ -->
                                 <div class="mb-4">
-                                    <h4 class="fw-bold text-dark mb-2 ${task.status == 'DONE' ? 'text-decoration-line-through text-muted' : ''}">${task.title}</h4>
+                                    <h4 class="fw-bold text-dark mb-2 ${task.status == 'DONE' ? 'text-decoration-line-through text-muted' : ''}">${fn:escapeXml(task.title)}</h4>
                                     <div class="task-desc-card">
                                         <c:choose>
                                             <c:when test="${not empty task.description}">
@@ -2262,19 +2270,19 @@
                                                             </c:otherwise>
                                                         </c:choose>
                                                         <span class="fs-8 text-dark text-truncate ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : 'fw-medium'}">
-                                                            ${st.title}
+                                                            ${fn:escapeXml(st.title)}
                                                         </span>
                                                     </div>
                                                     <div class="d-flex align-items-center gap-1-5 flex-shrink-0">
                                                         <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${st.statusLabel}</span>
                                                         <c:if test="${not empty st.dueDate}">
-                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0 fs-9" title="${st.dueDate}">
+                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0 fs-9" title="${fn:escapeXml(st.dueDate)}">
                                                                 <i class="bi bi-calendar-event me-1"></i>${st.deadlineLabel}
                                                             </span>
                                                         </c:if>
                                                         <c:if test="${project.teamProject}">
                                                             <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
-                                                                <i class="bi bi-person-fill text-primary me-1"></i>${st.assigneeName}
+                                                                <i class="bi bi-person-fill text-primary me-1"></i>${fn:escapeXml(st.assigneeName)}
                                                             </span>
                                                         </c:if>
                                                         <i class="bi bi-chevron-right fs-9 text-muted ms-1"></i>
@@ -2308,7 +2316,7 @@
                                                     <select name="assigneeId" class="form-select form-select-sm border-0 bg-transparent shadow-none fs-9 py-0 text-muted" style="width: auto; max-width: 140px;">
                                                         <option value="0">-- Phân công --</option>
                                                         <c:forEach items="${userList}" var="u">
-                                                            <option value="${u.id}">${u.fullName}</option>
+                                                            <option value="${u.id}">${fn:escapeXml(u.fullName)}</option>
                                                         </c:forEach>
                                                     </select>
                                                 </c:when>
@@ -2317,7 +2325,7 @@
                                                 </c:otherwise>
                                             </c:choose>
                                             <input type="date" name="dueDate" class="form-control form-control-sm border-0 bg-transparent shadow-none fs-9 py-0 text-muted"
-                                                style="width: auto; max-width: 125px;" max="${task.dueDate}" title="Hạn chót nhiệm vụ (tối đa ${task.dueDate})">
+                                                style="width: auto; max-width: 125px;" max="${fn:escapeXml(task.dueDate)}" title="Hạn chót nhiệm vụ (tối đa ${fn:escapeXml(task.dueDate)})">
                                             <button type="submit" class="btn btn-primary-custom btn-sm rounded-pill px-3 py-0-5 fs-9 fw-semibold text-nowrap">
                                                 Tạo
                                             </button>
@@ -2342,7 +2350,7 @@
                                                 <div class="doc-attachment-item">
                                                     <div class="d-flex align-items-center gap-2 text-truncate">
                                                         <i class="bi bi-file-earmark-text text-primary fs-6"></i>
-                                                        <span class="fw-semibold text-dark fs-8 text-truncate">${td.docTitle}</span>
+                                                        <span class="fw-semibold text-dark fs-8 text-truncate">${fn:escapeXml(td.docTitle)}</span>
                                                     </div>
                                                     <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${td.docId}"
                                                         class="btn btn-outline-secondary btn-xs rounded-pill px-3 py-1 fs-9 text-nowrap"
@@ -2381,9 +2389,9 @@
                                                 <span class="task-property-value d-flex align-items-center gap-1">
                                                     <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
                                                         style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                                        ${task.assigneeName.substring(0, 1).toUpperCase()}
+                                                        ${fn:escapeXml(task.assigneeName.substring(0, 1).toUpperCase())}
                                                     </span>
-                                                    <span>${task.assigneeName}</span>
+                                                    <span>${fn:escapeXml(task.assigneeName)}</span>
                                                 </span>
                                             </div>
                                         </c:if>
@@ -2399,7 +2407,7 @@
                                                 <c:choose>
                                                     <c:when test="${not empty task.dueDate}">
                                                         <span class="badge ${task.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                            <i class="bi bi-calendar-event me-1"></i>${task.dueDate}
+                                                            <i class="bi bi-calendar-event me-1"></i>${fn:escapeXml(task.dueDate)}
                                                         </span>
                                                     </c:when>
                                                     <c:otherwise>
@@ -2410,7 +2418,7 @@
                                         </div>
                                         <div class="task-property-row">
                                             <span class="task-property-label"><i class="bi bi-folder2-open"></i> Dự án</span>
-                                            <span class="task-property-value text-truncate" style="max-width: 130px;" title="${project.name}">#${project.projectCode}</span>
+                                            <span class="task-property-value text-truncate" style="max-width: 130px;" title="${fn:escapeXml(project.name)}">#${fn:escapeXml(project.projectCode)}</span>
                                         </div>
                                         <div class="task-property-row">
                                             <span class="task-property-label"><i class="bi bi-check2-circle"></i> Tiến độ</span>
@@ -2590,8 +2598,8 @@
                                                     <div class="text-secondary fs-9 lh-base" style="white-space: pre-line;"><c:out value="${task.finalDeliverableNote}" /></div>
                                                     <c:if test="${not empty task.deliverableFile}">
                                                         <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
-                                                            <span class="fs-9 text-truncate fw-medium">${task.deliverableFile}</span>
-                                                            <a href="${pageContext.request.contextPath}/uploads/deliverables/${task.deliverableFile}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
+                                                            <span class="fs-9 text-truncate fw-medium">${fn:escapeXml(task.deliverableFile)}</span>
+                                                            <a href="${pageContext.request.contextPath}/uploads/deliverables/${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
                                                                 <i class="bi bi-download"></i> Tải
                                                             </a>
                                                         </div>
@@ -2603,7 +2611,7 @@
                                             <c:if test="${not empty task.pmFeedback}">
                                                 <div class="p-2 ${task.status == 'REVISE' ? 'bg-primary-subtle text-primary border-primary-subtle' : (task.status == 'REJECTED' ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-success-subtle text-success border-success-subtle')} rounded-2 border fs-9 mb-2">
                                                     <div class="fw-bold fs-9 mb-1"><i class="bi bi-info-circle-fill me-1"></i> Đánh giá từ trưởng dự án:</div>
-                                                    <p class="mb-0 fs-9">"${task.pmFeedback}"</p>
+                                                    <p class="mb-0 fs-9">"${fn:escapeXml(task.pmFeedback)}"</p>
                                                 </div>
                                             </c:if>
 
@@ -2667,7 +2675,7 @@
                                                         </div>
                                                         <div class="mb-2">
                                                             <input type="text" class="form-control form-control-sm fs-9 rounded-2" id="deliverableFile-${task.id}" name="deliverableFile"
-                                                                placeholder="Tên tệp báo cáo (PDF, ZIP...)" value="${not empty task.deliverableFile ? task.deliverableFile : ''}">
+                                                                placeholder="Tên tệp báo cáo (PDF, ZIP...)" value="${not empty task.deliverableFile ? fn:escapeXml(task.deliverableFile) : ''}">
                                                         </div>
                                                         <div class="d-flex align-items-center justify-content-end gap-1">
                                                             <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#submitParentTaskPanel-${task.id}">Đóng</button>
@@ -2831,7 +2839,7 @@
                                                     <span class="fw-bold fs-9 ${comment.authorName == 'Hệ Thống' ? 'text-success' : 'text-dark'}">
                                                         <c:choose>
                                                             <c:when test="${comment.authorName == 'Hệ Thống'}"><i class="bi bi-robot me-1"></i> Hệ Thống</c:when>
-                                                            <c:otherwise>${comment.authorName}</c:otherwise>
+                                                            <c:otherwise>${fn:escapeXml(comment.authorName)}</c:otherwise>
                                                         </c:choose>
                                                     </span>
                                                     <span class="text-muted fs-9">${comment.sentAt}</span>
@@ -2888,7 +2896,7 @@
                             <div class="drawer-header d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center gap-2 flex-grow-1 me-3 text-truncate">
                                     <button type="button" class="breadcrumb-back-btn border-0" onclick="openClickUpTask(${task.id})">
-                                        <i class="bi bi-arrow-left"></i> Quay lại: <span class="text-truncate d-inline-block align-bottom" style="max-width: 220px;">${task.title}</span>
+                                        <i class="bi bi-arrow-left"></i> Quay lại: <span class="text-truncate d-inline-block align-bottom" style="max-width: 220px;">${fn:escapeXml(task.title)}</span>
                                     </button>
                                     <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">#SUB-${st.id}</span>
                                     <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">${st.statusLabel}</span>
@@ -2926,14 +2934,14 @@
                                                         <label class="form-label fs-9 fw-bold text-dark mb-1">Người làm:</label>
                                                         <select name="assigneeId" class="form-select form-select-sm" required>
                                                             <c:forEach items="${userList}" var="u">
-                                                                <option value="${u.id}" ${u.id==st.assigneeId ? 'selected' : ''}>${u.fullName}</option>
+                                                                <option value="${u.id}" ${u.id==st.assigneeId ? 'selected' : ''}>${fn:escapeXml(u.fullName)}</option>
                                                             </c:forEach>
                                                         </select>
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
                                                         <input type="date" name="dueDate" value="${st.dueDate}" class="form-control form-control-sm"
-                                                            <c:if test="${not empty task.dueDate}">max="${task.dueDate}"</c:if>>
+                                                            <c:if test="${not empty task.dueDate}">max="${fn:escapeXml(task.dueDate)}"</c:if>>
                                                     </div>
                                                 </div>
                                                 <div class="d-flex justify-content-end gap-2">
@@ -2946,10 +2954,10 @@
 
                                     <!-- TIÊU ĐỀ SUBTASK -->
                                     <div class="mb-3">
-                                        <h4 class="fw-bold text-dark mb-1 ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : ''}">${st.title}</h4>
+                                        <h4 class="fw-bold text-dark mb-1 ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : ''}">${fn:escapeXml(st.title)}</h4>
                                         <div class="fs-8 text-muted">
                                             <i class="bi bi-diagram-2 me-1"></i> Thuộc Công Việc Cha:
-                                            <a href="javascript:void(0)" onclick="openClickUpTask(${task.id})" class="fw-semibold text-primary text-decoration-none">${task.title}</a>
+                                            <a href="javascript:void(0)" onclick="openClickUpTask(${task.id})" class="fw-semibold text-primary text-decoration-none">${fn:escapeXml(task.title)}</a>
                                         </div>
                                     </div>
 
@@ -2998,7 +3006,7 @@
                                                 <span class="fs-9 text-muted">${st.submittedAt}</span>
                                             </div>
                                             <p class="mb-0 text-secondary fs-8" style="white-space: pre-line;">
-                                                ${not empty st.submissionNote ? st.submissionNote : 'Đã hoàn thành công việc, mời trưởng nhóm công việc kiểm tra và nghiệm thu.'}
+                                                ${not empty st.submissionNote ? fn:escapeXml(st.submissionNote) : 'Đã hoàn thành công việc, mời trưởng nhóm công việc kiểm tra và nghiệm thu.'}
                                             </p>
                                         </div>
                                     </c:if>
@@ -3010,7 +3018,7 @@
                                                 <span class="fw-bold fs-9"><i class="bi bi-info-circle-fill me-1"></i> Dặn dò từ trưởng nhóm công việc:</span>
                                                 <span class="fs-9 opacity-75">${st.reviewedAt}</span>
                                             </div>
-                                            <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
+                                            <p class="mb-0 fs-8">"${fn:escapeXml(st.feedbackNote)}"</p>
                                         </div>
                                     </c:if>
                                     <c:if test="${st.status == 'REJECTED'}">
@@ -3019,7 +3027,7 @@
                                                 <span class="fw-bold fs-9"><i class="bi bi-exclamation-triangle-fill me-1"></i> Lý do chưa đạt từ trưởng nhóm công việc:</span>
                                                 <span class="fs-9 opacity-75">${st.reviewedAt}</span>
                                             </div>
-                                            <p class="mb-0 fs-8">"${st.feedbackNote}"</p>
+                                            <p class="mb-0 fs-8">"${fn:escapeXml(st.feedbackNote)}"</p>
                                         </div>
                                     </c:if>
                                     <c:if test="${st.status == 'APPROVED'}">
@@ -3041,7 +3049,7 @@
                                         <!-- Collapse Form nộp bài -->
                                         <div class="collapse mb-3" id="submitSubTaskPanel-${st.id}">
                                             <div class="p-3 bg-white rounded-3 border border-primary shadow-sm">
-                                                <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-upload text-primary me-1"></i> Nộp Báo Cáo Kết Quả: [${st.title}]</h6>
+                                                <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-upload text-primary me-1"></i> Nộp Báo Cáo Kết Quả: [${fn:escapeXml(st.title)}]</h6>
                                                 <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitSubTask" → SubTaskHandler.handleSubmitSubTask() --%>
                                                 <form action="${pageContext.request.contextPath}/task" method="post">
                                                     <input type="hidden" name="action" value="submitSubTask">
@@ -3144,9 +3152,9 @@
                                                 <span class="task-property-value d-flex align-items-center gap-1">
                                                     <span class="avatar-circle-sm bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
                                                         style="width: 18px; height: 18px; font-size: 0.65rem;">
-                                                        ${st.assigneeName.substring(0, 1).toUpperCase()}
+                                                        ${fn:escapeXml(st.assigneeName.substring(0, 1).toUpperCase())}
                                                     </span>
-                                                    <span>${st.assigneeName}</span>
+                                                    <span>${fn:escapeXml(st.assigneeName)}</span>
                                                 </span>
                                             </div>
                                             <div class="task-property-row">
@@ -3161,7 +3169,7 @@
                                                     <c:choose>
                                                         <c:when test="${not empty st.dueDate}">
                                                             <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0-5 fs-9">
-                                                                <i class="bi bi-calendar-event me-1"></i>${st.dueDate}
+                                                                <i class="bi bi-calendar-event me-1"></i>${fn:escapeXml(st.dueDate)}
                                                             </span>
                                                         </c:when>
                                                         <c:otherwise>
@@ -3172,7 +3180,7 @@
                                             </div>
                                             <div class="task-property-row">
                                                 <span class="task-property-label"><i class="bi bi-diagram-2"></i> Công Việc Cha</span>
-                                                <span class="task-property-value text-truncate" style="max-width: 130px;" title="${task.title}">
+                                                <span class="task-property-value text-truncate" style="max-width: 130px;" title="${fn:escapeXml(task.title)}">
                                                     #${task.id}
                                                 </span>
                                             </div>
@@ -3224,15 +3232,15 @@
                                 <i class="bi bi-person-fill"></i>
                             </div>
                             <h5 class="fw-bold text-dark mb-1" id="memberProfileModalLabel-${uw.user.id}">
-                                ${uw.user.fullName}
+                                ${fn:escapeXml(uw.user.fullName)}
                             </h5>
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <span
                                     class="badge ${uw.user.id == project.ownerId ? 'bg-warning text-dark' : 'bg-primary'} rounded-pill px-3 py-1 fs-8">
-                                    ${uw.user.id == project.ownerId ? '👑 Trưởng Dự Án' : uw.user.role}
+                                    ${uw.user.id == project.ownerId ? '👑 Trưởng Dự Án' : fn:escapeXml(uw.user.role)}
                                 </span>
                                 <span class="text-muted fs-8">
-                                    <i class="bi bi-envelope me-1"></i> ${uw.user.email}
+                                    <i class="bi bi-envelope me-1"></i> ${fn:escapeXml(uw.user.email)}
                                 </span>
                             </div>
                             <button type="button" class="btn-close position-absolute top-0 end-0 m-3"
@@ -3320,8 +3328,8 @@
                                                         <span
                                                             class="badge ${leadTask.priorityBadgeClass} rounded-pill px-2 py-0 fs-9">${leadTask.priorityLabel}</span>
                                                         <span class="fs-8 fw-semibold text-dark text-truncate"
-                                                            title="${leadTask.title}">
-                                                            ${leadTask.title}
+                                                            title="${fn:escapeXml(leadTask.title)}">
+                                                            ${fn:escapeXml(leadTask.title)}
                                                         </span>
                                                     </div>
                                                     <div class="d-flex align-items-center gap-1 text-nowrap">
@@ -3375,7 +3383,7 @@
                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2-5 py-1 fs-9 fw-bold">
                                 <i class="bi bi-plus-circle-fill me-1"></i> CÔNG VIỆC MỚI
                             </span>
-                            <span class="fs-8 text-muted">trong <strong>${project.name}</strong></span>
+                            <span class="fs-8 text-muted">trong <strong>${fn:escapeXml(project.name)}</strong></span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <span class="fs-9 text-muted d-none d-sm-inline"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> để tạo nhanh</span>
@@ -3527,7 +3535,7 @@
                                                 name="assigneeId" required>
                                                 <option value="" selected disabled>-- Chọn người phụ trách --</option>
                                                 <c:forEach items="${userList}" var="u">
-                                                    <option value="${u.id}">${u.fullName} (${u.role})</option>
+                                                    <option value="${u.id}">${fn:escapeXml(u.fullName)} (${fn:escapeXml(u.role)})</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
@@ -3548,7 +3556,7 @@
                                                 name="docIds" multiple size="3"
                                                 title="Giữ Ctrl hoặc Cmd để chọn nhiều tài liệu">
                                                 <c:forEach items="${docList}" var="docItem">
-                                                    <option value="${docItem.id}">📄 ${docItem.title}</option>
+                                                    <option value="${docItem.id}">📄 ${fn:escapeXml(docItem.title)}</option>
                                                 </c:forEach>
                                             </select>
                                             <div class="form-text fs-9 text-muted mt-1">Giữ phím <kbd>Ctrl</kbd> để chọn
@@ -3654,16 +3662,16 @@
                                                 <!-- Avatar & Tên thành viên -->
                                                 <div class="d-flex align-items-center gap-2-5">
                                                     <div class="avatar-circle-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-7" style="width: 34px; height: 34px;">
-                                                        ${uw.user.fullName.substring(0, 1).toUpperCase()}
+                                                        ${fn:escapeXml(uw.user.fullName.substring(0, 1).toUpperCase())}
                                                     </div>
                                                     <div>
                                                         <div class="d-flex align-items-center gap-1-5">
-                                                            <span class="fw-bold text-dark fs-7">${uw.user.fullName}</span>
+                                                            <span class="fw-bold text-dark fs-7">${fn:escapeXml(uw.user.fullName)}</span>
                                                             <c:if test="${uw.user.id == project.ownerId}">
                                                                 <span class="badge bg-warning-subtle text-dark rounded-pill px-1-5 py-0 fs-10 fw-semibold">Trưởng dự án</span>
                                                             </c:if>
                                                         </div>
-                                                        <span class="fs-9 text-muted">${uw.user.email}</span>
+                                                        <span class="fs-9 text-muted">${fn:escapeXml(uw.user.email)}</span>
                                                     </div>
                                                 </div>
 
@@ -3676,7 +3684,7 @@
                                                     </c:if>
                                                     <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2-5 py-1 fs-9 fw-semibold"
                                                             onclick="bootstrap.Modal.getInstance(document.getElementById('projectTeamModal')).hide(); filterClickUpTasks('USER', '${uw.user.id}', '<c:out value="${uw.user.fullName}" />');"
-                                                            title="Xem tất cả việc của ${uw.user.fullName}">
+                                                            title="Xem tất cả việc của ${fn:escapeXml(uw.user.fullName)}">
                                                         <i class="bi bi-funnel me-1"></i>Xem việc (${uw.totalTasks})
                                                     </button>
                                                 </div>
@@ -3752,15 +3760,15 @@
                                                     </div>
                                                     <div>
                                                         <div class="d-flex align-items-center gap-2">
-                                                            <span class="fw-bold text-dark fs-7">${pm.userName}</span>
+                                                            <span class="fw-bold text-dark fs-7">${fn:escapeXml(pm.userName)}</span>
                                                             <span
                                                                 class="badge ${pm.projectRole == 'OWNER' ? 'bg-warning text-dark' : 'bg-secondary'} rounded-pill px-2 py-0 fs-9">
                                                                 ${pm.projectRole == 'OWNER' ? 'Trưởng Dự Án' : 'Thành viên'}
                                                             </span>
                                                         </div>
                                                         <div class="text-muted fs-8">
-                                                            ${pm.userEmail} &bull; <span
-                                                                class="text-primary">${pm.userRole}</span>
+                                                            ${fn:escapeXml(pm.userEmail)} &bull; <span
+                                                                class="text-primary">${fn:escapeXml(pm.userRole)}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -3774,7 +3782,7 @@
                                                         <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "kick" → handleKickMember() --%>
                                                         <form method="post" action="${pageContext.request.contextPath}/invite"
                                                             class="m-0"
-                                                            onsubmit="return confirm('Bạn có chắc chắn muốn mời thành viên [${pm.userName}] rời khỏi dự án?');">
+                                                            onsubmit="return confirm('Bạn có chắc chắn muốn mời thành viên [${fn:escapeXml(pm.userName)}] rời khỏi dự án?');">
                                                             <input type="hidden" name="action" value="kick">
                                                             <input type="hidden" name="projectId" value="${project.id}">
                                                             <input type="hidden" name="userId" value="${pm.userId}">
@@ -3795,7 +3803,7 @@
                                             <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "leave" → handleLeaveProject() --%>
                                             <form method="post" action="${pageContext.request.contextPath}/invite"
                                                 class="m-0 d-inline"
-                                                onsubmit="return confirm('Bạn có chắc chắn muốn rời khỏi dự án [${project.name}]? Bạn sẽ không thể truy cập lại trừ khi được mời lại.');">
+                                                onsubmit="return confirm('Bạn có chắc chắn muốn rời khỏi dự án [${fn:escapeXml(project.name)}]? Bạn sẽ không thể truy cập lại trừ khi được mời lại.');">
                                                 <input type="hidden" name="action" value="leave">
                                                 <input type="hidden" name="projectId" value="${project.id}">
                                                 <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill fs-8">
@@ -3892,7 +3900,7 @@
                             <div class="modal-body py-3">
                                 <p class="text-muted fs-8 mb-3">
                                     Nhập <strong>Username hoặc Email</strong> của tài khoản bạn muốn mời vào dự án
-                                    <strong>[${project.name}]</strong>. Lời mời sẽ có hiệu lực trong vòng <strong>7
+                                    <strong>[${fn:escapeXml(project.name)}]</strong>. Lời mời sẽ có hiệu lực trong vòng <strong>7
                                         ngày</strong>.
                                 </p>
 
@@ -3907,8 +3915,8 @@
                                                 onchange="if(this.value) document.getElementById('inputUsernameOrEmail').value = this.value;">
                                                 <option value="">-- Chọn nhanh tài khoản trong hệ thống --</option>
                                                 <c:forEach items="${inviteCandidates}" var="cand">
-                                                    <option value="${cand.username}">${cand.fullName} (@${cand.username}
-                                                        - ${cand.role})</option>
+                                                    <option value="${cand.username}">${fn:escapeXml(cand.fullName)} (@${fn:escapeXml(cand.username)}
+                                                        - ${fn:escapeXml(cand.role)})</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
