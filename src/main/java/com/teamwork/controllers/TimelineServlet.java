@@ -452,7 +452,11 @@ public class TimelineServlet extends HttpServlet {
                 .replace("\f", "\\f")
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
-                .replace("\t", "\\t");
+                .replace("\t", "\\t")
+                // JSON này được nhúng trong <script> của timeline.jsp: chặn "</script>" và thẻ HTML
+                .replace("<", "\\u003c")
+                .replace(">", "\\u003e")
+                .replace("&", "\\u0026");
     }
 
     private int parseProjectId(HttpServletRequest request, User currentUser) {

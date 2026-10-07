@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- =========================================================================
      [MVC VIEW SKELETON: WORKSPACE DASHBOARD & PROJECT MANAGEMENT]
@@ -31,7 +32,7 @@
                 <span>Không Gian Làm Việc</span>
             </h3>
             <p class="fs-8 mb-0 workspace-subtitle">
-                Chào mừng trở lại, <strong class="workspace-user-highlight">${sessionScope.currentUser.fullName}</strong>! Bạn đang tham gia
+                Chào mừng trở lại, <strong class="workspace-user-highlight">${fn:escapeXml(sessionScope.currentUser.fullName)}</strong>! Bạn đang tham gia
                 <strong class="workspace-count-highlight">${myProjects.size()} dự án</strong>.
             </p>
         </div>
@@ -152,9 +153,9 @@
                                         <div>
                                             <div class="d-flex align-items-center justify-content-between mb-2">
                                                 <span class="project-code-badge"
-                                                    onclick="copyProjectCode('${inv.projectCode}')"
+                                                    data-code="${fn:escapeXml(inv.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
                                                     title="Bấm để sao chép mã">
-                                                    <i class="bi bi-hash"></i><span>${inv.projectCode}</span>
+                                                    <i class="bi bi-hash"></i><span>${fn:escapeXml(inv.projectCode)}</span>
                                                     <i class="bi bi-copy fs-9 ms-1 copy-code-icon"></i>
                                                 </span>
                                                 <span
@@ -162,16 +163,16 @@
                                                     ${inv.statusLabel}
                                                 </span>
                                             </div>
-                                            <h6 class="fw-bold mb-1 fs-7 invite-project-title">${inv.projectName}</h6>
+                                            <h6 class="fw-bold mb-1 fs-7 invite-project-title">${fn:escapeXml(inv.projectName)}</h6>
                                             <p class="text-secondary fs-8 mb-2">
                                                 <c:choose>
                                                     <c:when test="${inv.type == 'INVITATION'}">
                                                         <i class="bi bi-person-fill me-1 invite-sender-icon"></i> Trưởng nhóm
-                                                        <strong>${inv.senderName}</strong> đã gửi lời mời bạn vào dự án này.
+                                                        <strong>${fn:escapeXml(inv.senderName)}</strong> đã gửi lời mời bạn vào dự án này.
                                                     </c:when>
                                                     <c:otherwise>
                                                         <i class="bi bi-person-plus-fill text-warning me-1"></i> Thành
-                                                        viên <strong>${inv.senderName}</strong> gửi đơn xin gia nhập dự án của bạn.
+                                                        viên <strong>${fn:escapeXml(inv.senderName)}</strong> gửi đơn xin gia nhập dự án của bạn.
                                                     </c:otherwise>
                                                 </c:choose>
                                             </p>
@@ -261,19 +262,19 @@
 
                 <div class="row g-3 mb-5" id="myProjectsGrid">
                     <c:forEach items="${myProjects}" var="p">
-                        <div class="col-12 col-md-6 col-lg-4 project-item" data-name="${p.name.toLowerCase()}" data-code="${p.projectCode.toLowerCase()}" data-role="${p.ownerId == sessionScope.currentUser.id ? 'owner' : 'member'}">
+                        <div class="col-12 col-md-6 col-lg-4 project-item" data-name="${fn:escapeXml(p.name.toLowerCase())}" data-code="${fn:escapeXml(p.projectCode.toLowerCase())}" data-role="${p.ownerId == sessionScope.currentUser.id ? 'owner' : 'member'}">
                             <div class="project-card">
                                 <div class="project-card-body">
                                     <!-- Header thẻ: Monogram Avatar + Mã dự án + Badge vai trò (Gọn gàng, không chật chội) -->
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="project-avatar-monogram">
-                                                ${p.name.substring(0, 1).toUpperCase()}
+                                                ${fn:escapeXml(p.name.substring(0, 1).toUpperCase())}
                                             </div>
-                                            <span class="project-code-badge" onclick="copyProjectCode('${p.projectCode}')"
+                                            <span class="project-code-badge" data-code="${fn:escapeXml(p.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
                                                 title="Bấm để sao chép mã dự án">
-                                                <i class="bi bi-hash"></i><span>${p.projectCode}</span>
-                                                <i class="bi bi-copy fs-9 text-primary" id="copy-icon-${p.projectCode}"></i>
+                                                <i class="bi bi-hash"></i><span>${fn:escapeXml(p.projectCode)}</span>
+                                                <i class="bi bi-copy fs-9 text-primary" id="copy-icon-${fn:escapeXml(p.projectCode)}"></i>
                                             </span>
                                         </div>
                                         <div class="flex-shrink-0">
@@ -296,7 +297,7 @@
                                     </div>
 
                                     <!-- Tên dự án -->
-                                    <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm text-truncate" title="${p.name}">${p.name}</h5>
+                                    <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm text-truncate" title="${fn:escapeXml(p.name)}">${fn:escapeXml(p.name)}</h5>
 
                                     <!-- Mô tả dự án -->
                                     <p class="text-secondary fs-8 mb-3 project-desc-line-clamp">
@@ -401,11 +402,11 @@
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="project-avatar-monogram project-avatar-monogram-subtle">
-                                                ${p.name.substring(0, 1).toUpperCase()}
+                                                ${fn:escapeXml(p.name.substring(0, 1).toUpperCase())}
                                             </div>
-                                            <span class="project-code-badge" onclick="copyProjectCode('${p.projectCode}')"
+                                            <span class="project-code-badge" data-code="${fn:escapeXml(p.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
                                                 title="Bấm để sao chép mã dự án">
-                                                <i class="bi bi-hash"></i>${p.projectCode}
+                                                <i class="bi bi-hash"></i>${fn:escapeXml(p.projectCode)}
                                                 <i class="bi bi-copy fs-9 ms-1 text-accent-soft"></i>
                                             </span>
                                         </div>
@@ -413,7 +414,7 @@
                                             <i class="bi bi-people-fill me-1"></i> ${memberCountMap[p.id]}/10
                                         </span>
                                     </div>
-                                    <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm">${p.name}</h5>
+                                    <h5 class="fw-bold text-dark mb-1 fs-6 lh-sm">${fn:escapeXml(p.name)}</h5>
                                     <p class="text-secondary fs-8 mb-3 project-desc-line-clamp">
                                         ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
                                     </p>
@@ -421,7 +422,7 @@
                                 <div class="pt-3 border-top text-center border-divider-subtle">
                                     <button type="button"
                                         class="btn btn-explore-join-request w-100 rounded-pill py-1-5 fs-8 fw-semibold shadow-2xs"
-                                        onclick="document.getElementById('inputProjectCode').value='${p.projectCode}'; new bootstrap.Modal(document.getElementById('joinByCodeModal')).show();">
+                                        data-code="${fn:escapeXml(p.projectCode)}" onclick="document.getElementById('inputProjectCode').value=this.dataset.code; new bootstrap.Modal(document.getElementById('joinByCodeModal')).show();">
                                         <i class="bi bi-box-arrow-in-right me-1"></i> Xin gia nhập nhóm
                                     </button>
                                 </div>

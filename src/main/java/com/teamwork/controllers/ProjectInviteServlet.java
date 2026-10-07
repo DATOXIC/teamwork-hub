@@ -214,7 +214,11 @@ public class ProjectInviteServlet extends HttpServlet {
             now.format(DATE_FORMATTER),
             expireTime.format(DATE_FORMATTER)
         );
-        ProjectInviteDB.insert(invite);
+        if (ProjectInviteDB.insert(invite) <= 0) {
+            session.setAttribute("toastError", "Không thể gửi lời mời lúc này. Vui lòng thử lại!");
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
 
         // BẮN THÔNG BÁO TỚI NGƯỜI NHẬN
         NotificationDB.send(
@@ -301,7 +305,11 @@ public class ProjectInviteServlet extends HttpServlet {
             now.format(DATE_FORMATTER),
             expireTime.format(DATE_FORMATTER)
         );
-        ProjectInviteDB.insert(requestInvite);
+        if (ProjectInviteDB.insert(requestInvite) <= 0) {
+            session.setAttribute("toastError", "Không thể gửi yêu cầu gia nhập lúc này. Vui lòng thử lại!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
 
         // BẮN THÔNG BÁO TỚI PM
         NotificationDB.send(

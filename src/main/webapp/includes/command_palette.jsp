@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ page import="com.teamwork.data.ProjectMemberDB" %>
 <%@ page import="com.teamwork.business.Project" %>
 <%@ page import="java.util.List" %>
@@ -40,9 +41,9 @@
             <%-- ◀ SERVLET: ChatServlet, DocServlet, MeetingServlet … → setAttribute("project") --%>
             <c:if test="${not empty project}">
                 <div class="cp-group" data-group="project-context">
-                    <div class="cp-group-title">Phân Hệ: ${project.name} (#${project.projectCode})</div>
+                    <div class="cp-group-title">Phân Hệ: ${fn:escapeXml(project.name)} (#${fn:escapeXml(project.projectCode)})</div>
                     <ul class="cp-list">
-                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" data-search="kanban cong viec bang nhiem vu ${project.name}">
+                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" data-search="kanban cong viec bang nhiem vu ${fn:escapeXml(project.name)}">
                             <div class="cp-item-icon"><i class="bi bi-kanban"></i></div>
                             <div class="cp-item-content">
                                 <div class="cp-item-title">Mở Bảng Kanban Công Việc</div>
@@ -52,7 +53,7 @@
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
-                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/timeline?projectId=${project.id}" data-search="timeline lo trinh gantt tien do lich ${project.name}">
+                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/timeline?projectId=${project.id}" data-search="timeline lo trinh gantt tien do lich ${fn:escapeXml(project.name)}">
                             <div class="cp-item-icon"><i class="bi bi-calendar-range"></i></div>
                             <div class="cp-item-content">
                                 <div class="cp-item-title">Mở Sơ Đồ Gantt &amp; Lộ Trình (Timeline)</div>
@@ -62,7 +63,7 @@
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
-                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" data-search="tai lieu wiki docs van ban huong dan ${project.name}">
+                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" data-search="tai lieu wiki docs van ban huong dan ${fn:escapeXml(project.name)}">
                             <div class="cp-item-icon"><i class="bi bi-journal-text"></i></div>
                             <div class="cp-item-content">
                                 <div class="cp-item-title">Mở Kho Tài Liệu & Wiki</div>
@@ -72,7 +73,7 @@
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
-                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" data-search="thao luan chat trao doi tin nhan ${project.name}">
+                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" data-search="thao luan chat trao doi tin nhan ${fn:escapeXml(project.name)}">
                             <div class="cp-item-icon"><i class="bi bi-chat-dots"></i></div>
                             <div class="cp-item-content">
                                 <div class="cp-item-title">Mở Kênh Thảo Luận Nhóm</div>
@@ -82,7 +83,7 @@
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
-                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/report?action=view&projectId=${project.id}" data-search="bao cao tien do kpi danh gia report ${project.name}">
+                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/report?action=view&projectId=${project.id}" data-search="bao cao tien do kpi danh gia report ${fn:escapeXml(project.name)}">
                             <div class="cp-item-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
                             <div class="cp-item-content">
                                 <div class="cp-item-title">Xem Báo Cáo Tiến Độ Dự Án</div>
@@ -92,7 +93,7 @@
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
-                        <li class="cp-item" data-action="print" data-search="in an print pdf xuat ban in bao cao ${project.name}">
+                        <li class="cp-item" data-action="print" data-search="in an print pdf xuat ban in bao cao ${fn:escapeXml(project.name)}">
                             <div class="cp-item-icon"><i class="bi bi-printer"></i></div>
                             <div class="cp-item-content">
                                 <div class="cp-item-title">In Báo Cáo / Xuất tệp PDF (A4)</div>
@@ -102,7 +103,7 @@
                             <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                         </li>
 
-                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" data-search="xuat csv excel download tai ve export ${project.name}">
+                        <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" data-search="xuat csv excel download tai ve export ${fn:escapeXml(project.name)}">
                             <div class="cp-item-icon"><i class="bi bi-file-earmark-spreadsheet"></i></div>
                             <div class="cp-item-content">
                                 <div class="cp-item-title">Xuất Danh Sách Công Việc Ra tệp CSV</div>
@@ -121,13 +122,13 @@
                     <div class="cp-group-title">Dự Án Của Bạn (${cpProjects.size()})</div>
                     <ul class="cp-list">
                         <c:forEach items="${cpProjects}" var="p">
-                            <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" data-search="${p.projectCode} ${p.name} du an project">
+                            <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" data-search="${fn:escapeXml(p.projectCode)} ${fn:escapeXml(p.name)} du an project">
                                 <div class="cp-item-icon"><i class="bi bi-folder2-open"></i></div>
                                 <div class="cp-item-content">
-                                    <div class="cp-item-title">${p.name}</div>
-                                    <div class="cp-item-desc">Mã: #${p.projectCode} &bull; ${p.doneTasks}/${p.totalTasks} công việc hoàn tất</div>
+                                    <div class="cp-item-title">${fn:escapeXml(p.name)}</div>
+                                    <div class="cp-item-desc">Mã: #${fn:escapeXml(p.projectCode)} &bull; ${p.doneTasks}/${p.totalTasks} công việc hoàn tất</div>
                                 </div>
-                                <span class="cp-item-badge">#${p.projectCode}</span>
+                                <span class="cp-item-badge">#${fn:escapeXml(p.projectCode)}</span>
                                 <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                             </li>
                         </c:forEach>

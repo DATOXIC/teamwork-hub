@@ -2128,7 +2128,7 @@
                                             <h6 class="fw-bold text-primary fs-8 mb-3"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công việc</h6>
                                             <div class="mb-2">
                                                 <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề:</label>
-                                                <input type="text" name="title" value="${task.title}" class="form-control form-control-sm" required>
+                                                <input type="text" name="title" value="${fn:escapeXml(task.title)}" class="form-control form-control-sm" required>
                                             </div>
                                             <div class="mb-2">
                                                 <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi tiết:</label>
@@ -2159,7 +2159,7 @@
                                             <div class="row g-2 mb-3">
                                                 <div class="col-6">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
-                                                    <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
+                                                    <input type="date" name="dueDate" value="${fn:escapeXml(task.dueDate)}" class="form-control form-control-sm">
                                                 </div>
                                                 <c:choose>
                                                     <c:when test="${project.teamProject}">
@@ -2175,7 +2175,7 @@
                                                                 </c:when>
                                                                 <c:otherwise>
                                                                     <input type="hidden" name="assigneeId" value="${task.assigneeId}">
-                                                                    <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
+                                                                    <input type="text" class="form-control form-control-sm bg-light" value="${fn:escapeXml(task.assigneeName)}" readonly>
                                                                 </c:otherwise>
                                                             </c:choose>
                                                         </div>
@@ -2599,9 +2599,19 @@
                                                     <c:if test="${not empty task.deliverableFile}">
                                                         <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
                                                             <span class="fs-9 text-truncate fw-medium">${fn:escapeXml(task.deliverableFile)}</span>
-                                                            <a href="${pageContext.request.contextPath}/uploads/deliverables/${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
-                                                                <i class="bi bi-download"></i> Tải
-                                                            </a>
+                                                            <%-- Link ngoài (http/https) → mở tab mới; tệp có thật trên server → nút Tải; còn lại chỉ hiện tên --%>
+                                                            <c:choose>
+                                                                <c:when test="${fn:startsWith(task.deliverableFile, 'https://') || fn:startsWith(task.deliverableFile, 'http://')}">
+                                                                    <a href="${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" target="_blank" rel="noopener noreferrer">
+                                                                        <i class="bi bi-box-arrow-up-right"></i> Mở
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:when test="${downloadableDeliverables.contains(task.id)}">
+                                                                    <a href="${pageContext.request.contextPath}/uploads/deliverables/${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
+                                                                        <i class="bi bi-download"></i> Tải
+                                                                    </a>
+                                                                </c:when>
+                                                            </c:choose>
                                                         </div>
                                                     </c:if>
                                                 </div>
@@ -2927,7 +2937,7 @@
                                                 <input type="hidden" name="subTaskId" value="${st.id}">
                                                 <div class="mb-2">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề nhiệm vụ:</label>
-                                                    <input type="text" name="title" value="${st.title}" class="form-control form-control-sm" required>
+                                                    <input type="text" name="title" value="${fn:escapeXml(st.title)}" class="form-control form-control-sm" required>
                                                 </div>
                                                 <div class="row g-2 mb-2">
                                                     <div class="col-6">
@@ -2940,7 +2950,7 @@
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
-                                                        <input type="date" name="dueDate" value="${st.dueDate}" class="form-control form-control-sm"
+                                                        <input type="date" name="dueDate" value="${fn:escapeXml(st.dueDate)}" class="form-control form-control-sm"
                                                             <c:if test="${not empty task.dueDate}">max="${fn:escapeXml(task.dueDate)}"</c:if>>
                                                     </div>
                                                 </div>
@@ -3915,7 +3925,7 @@
                                                 onchange="if(this.value) document.getElementById('inputUsernameOrEmail').value = this.value;">
                                                 <option value="">-- Chọn nhanh tài khoản trong hệ thống --</option>
                                                 <c:forEach items="${inviteCandidates}" var="cand">
-                                                    <option value="${cand.username}">${fn:escapeXml(cand.fullName)} (@${fn:escapeXml(cand.username)}
+                                                    <option value="${fn:escapeXml(cand.username)}">${fn:escapeXml(cand.fullName)} (@${fn:escapeXml(cand.username)}
                                                         - ${fn:escapeXml(cand.role)})</option>
                                                 </c:forEach>
                                             </select>
@@ -3979,7 +3989,7 @@
                             <div class="modal-body p-4">
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold fs-7 text-dark">Tên dự án <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control rounded-3 fs-7" name="name" value="${project.name}" required>
+                                    <input type="text" class="form-control rounded-3 fs-7" name="name" value="${fn:escapeXml(project.name)}" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold fs-7 text-dark">Mô tả dự án</label>

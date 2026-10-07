@@ -17,6 +17,7 @@
      ========================================================================= --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -166,7 +167,7 @@
                 <%-- ◀ SERVLET: AuthServlet → setAttribute("successMessage") --%>
                 <c:if test="${not empty successMessage}">
                     <div class="login-success-banner">
-                        <p><i class="bi bi-check-circle-fill"></i> ${successMessage}</p>
+                        <p><i class="bi bi-check-circle-fill"></i> ${fn:escapeXml(successMessage)}</p>
                     </div>
                 </c:if>
 
@@ -174,7 +175,7 @@
                 <%-- ◀ SERVLET: AuthServlet → setAttribute("errorMessage") --%>
                 <c:if test="${not empty errorMessage}">
                     <div class="login-error-banner">
-                        <p><i class="bi bi-exclamation-triangle-fill"></i> ${errorMessage}</p>
+                        <p><i class="bi bi-exclamation-triangle-fill"></i> ${fn:escapeXml(errorMessage)}</p>
                     </div>
                 </c:if>
 
@@ -182,7 +183,7 @@
                 <%-- ◀ SERVLET: AuthServlet → setAttribute("regError") --%>
                 <c:if test="${not empty regError}">
                     <div class="login-error-banner">
-                        <p><i class="bi bi-exclamation-triangle-fill"></i> ${regError}</p>
+                        <p><i class="bi bi-exclamation-triangle-fill"></i> ${fn:escapeXml(regError)}</p>
                     </div>
                 </c:if>
 
@@ -283,7 +284,7 @@
                         <div class="login-input-group">
                             <i class="bi bi-person-badge input-icon"></i>
                             <input type="text" id="reg-fullname" name="fullName"
-                                   value="${regFullName}" placeholder="Ví dụ: Nguyễn Văn A" required>
+                                   value="${fn:escapeXml(regFullName)}" placeholder="Ví dụ: Nguyễn Văn A" required>
                         </div>
 
                         <%-- Tên đăng nhập (Username) --%>
@@ -291,7 +292,7 @@
                         <div class="login-input-group">
                             <i class="bi bi-person input-icon"></i>
                             <input type="text" id="reg-username" name="username"
-                                   value="${regUsername}" placeholder="Tối thiểu 4 ký tự" required>
+                                   value="${fn:escapeXml(regUsername)}" placeholder="Tối thiểu 4 ký tự" required>
                         </div>
 
                         <%-- Email liên hệ (Contact Email) --%>
@@ -299,7 +300,7 @@
                         <div class="login-input-group">
                             <i class="bi bi-envelope input-icon"></i>
                             <input type="email" id="reg-email" name="email"
-                                   value="${regEmail}" placeholder="ten@vidu.com" required>
+                                   value="${fn:escapeXml(regEmail)}" placeholder="ten@vidu.com" required>
                         </div>
 
                         <%-- Mật khẩu + Xác nhận (2 cột) — Password & Confirm --%>

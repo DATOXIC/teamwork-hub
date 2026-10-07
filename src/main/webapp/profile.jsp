@@ -18,9 +18,10 @@
      ========================================================================= --%>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- ◀ SERVLET: ProfileServlet → setAttribute("profileUser") --%>
-<c:set var="pageTitle" value="Hồ Sơ: ${profileUser.fullName} &bull; TeamWork Hub" scope="request" />
+<c:set var="pageTitle" value="Hồ Sơ: ${fn:escapeXml(profileUser.fullName)} &bull; TeamWork Hub" scope="request" />
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
 
@@ -57,20 +58,20 @@
                 
                 <div class="flex-grow-1">
                     <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-2 mb-1">
-                        <h3 class="fw-extrabold text-dark mb-0">${profileUser.fullName}</h3>
+                        <h3 class="fw-extrabold text-dark mb-0">${fn:escapeXml(profileUser.fullName)}</h3>
                         <span class="badge bg-primary text-white rounded-pill px-3 py-1 fs-8">
-                            ${profileUser.role}
+                            ${fn:escapeXml(profileUser.role)}
                         </span>
                     </div>
                     <p class="text-muted fs-8 mb-2">
-                        @${profileUser.username} &bull; 
+                        @${fn:escapeXml(profileUser.username)} &bull; 
                         <c:choose>
                             <%-- ◀ SERVLET: ProfileServlet → setAttribute("isOwner") --%>
                             <c:when test="${isOwner}">
-                                <span class="text-dark fw-medium">${profileUser.email}</span>
+                                <span class="text-dark fw-medium">${fn:escapeXml(profileUser.email)}</span>
                             </c:when>
                             <c:otherwise>
-                                <span class="text-muted" title="Email liên lạc">${profileUser.email}</span>
+                                <span class="text-muted" title="Email liên lạc">${fn:escapeXml(profileUser.email)}</span>
                             </c:otherwise>
                         </c:choose>
                     </p>
@@ -86,7 +87,7 @@
                             <c:when test="${not empty profileUser.skillList}">
                                 <c:forEach items="${profileUser.skillList}" var="sk">
                                     <span class="badge profile-skill-badge">
-                                        <i class="bi bi-check-circle-fill me-1"></i> ${sk}
+                                        <i class="bi bi-check-circle-fill me-1"></i> ${fn:escapeXml(sk)}
                                     </span>
                                 </c:forEach>
                             </c:when>
@@ -99,12 +100,12 @@
                     <!-- Liên kết Mạng xã hội công việc (GitHub / LinkedIn) -->
                     <div class="d-flex align-items-center justify-content-center justify-content-sm-start gap-2">
                         <c:if test="${not empty profileUser.githubUrl}">
-                            <a href="${profileUser.githubUrl}" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3 fs-8 fw-semibold shadow-2xs">
+                            <a href="${fn:escapeXml(profileUser.githubUrl)}" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3 fs-8 fw-semibold shadow-2xs">
                                 <i class="bi bi-github me-1"></i> GitHub
                             </a>
                         </c:if>
                         <c:if test="${not empty profileUser.linkedinUrl}">
-                            <a href="${profileUser.linkedinUrl}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-8 fw-semibold shadow-2xs">
+                            <a href="${fn:escapeXml(profileUser.linkedinUrl)}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-8 fw-semibold shadow-2xs">
                                 <i class="bi bi-linkedin me-1"></i> LinkedIn
                             </a>
                         </c:if>
@@ -232,11 +233,11 @@
                         <div>
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9 fw-bold">
-                                    #${p.projectCode}
+                                    #${fn:escapeXml(p.projectCode)}
                                 </span>
                                 <span class="text-muted fs-9">${p.createdAt}</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">${p.name}</h6>
+                            <h6 class="fw-bold text-dark mb-1">${fn:escapeXml(p.name)}</h6>
                             <p class="text-secondary fs-8 mb-3 line-clamp-2">
                                 ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
                             </p>
@@ -297,11 +298,11 @@
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-md-6">
                                 <label for="inputFullName" class="form-label fw-semibold fs-7 text-dark">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control fs-7 rounded-3" id="inputFullName" name="fullName" value="${profileUser.fullName}" required>
+                                <input type="text" class="form-control fs-7 rounded-3" id="inputFullName" name="fullName" value="${fn:escapeXml(profileUser.fullName)}" required>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="inputRole" class="form-label fw-semibold fs-7 text-dark">Chuyên môn / Chức danh</label>
-                                <input type="text" class="form-control fs-7 rounded-3" id="inputRole" name="role" value="${profileUser.role}" placeholder="Ví dụ: Lập trình viên Backend cao cấp">
+                                <input type="text" class="form-control fs-7 rounded-3" id="inputRole" name="role" value="${fn:escapeXml(profileUser.role)}" placeholder="Ví dụ: Lập trình viên Backend cao cấp">
                             </div>
                         </div>
 
@@ -311,14 +312,14 @@
                                 <span class="text-muted fs-9 fw-normal">Tối đa 250 ký tự</span>
                             </label>
                             <textarea class="form-control fs-7 rounded-3" id="inputBio" name="bio" rows="3" maxlength="250" 
-                                      placeholder="Mô tả ngắn gọn đam mê, chuyên môn và phong cách làm việc của bạn...">${profileUser.bio}</textarea>
+                                      placeholder="Mô tả ngắn gọn đam mê, chuyên môn và phong cách làm việc của bạn...">${fn:escapeXml(profileUser.bio)}</textarea>
                         </div>
 
                         <div class="mb-3">
                             <label for="inputSkills" class="form-label fw-semibold fs-7 text-dark">
                                 Kỹ năng chuyên môn
                             </label>
-                            <input type="text" class="form-control fs-7 rounded-3" id="inputSkills" name="skills" value="${profileUser.skills}" 
+                            <input type="text" class="form-control fs-7 rounded-3" id="inputSkills" name="skills" value="${fn:escapeXml(profileUser.skills)}" 
                                    placeholder="Cách nhau bằng dấu phẩy, ví dụ: Java, Jakarta EE, MySQL, Docker, RESTful API">
                             <div class="form-text fs-9 text-muted mt-1">
                                 Gợi ý kỹ năng: <span class="profile-skill-chip-interactive" onclick="addSkill('Java')">+ Java</span>
@@ -332,11 +333,11 @@
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label for="inputGithub" class="form-label fw-semibold fs-7 text-dark">Liên kết GitHub</label>
-                                <input type="url" class="form-control fs-7 rounded-3" id="inputGithub" name="githubUrl" value="${profileUser.githubUrl}" placeholder="https://github.com/username">
+                                <input type="url" class="form-control fs-7 rounded-3" id="inputGithub" name="githubUrl" value="${fn:escapeXml(profileUser.githubUrl)}" placeholder="https://github.com/username">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="inputLinkedin" class="form-label fw-semibold fs-7 text-dark">Liên kết LinkedIn</label>
-                                <input type="url" class="form-control fs-7 rounded-3" id="inputLinkedin" name="linkedinUrl" value="${profileUser.linkedinUrl}" placeholder="https://linkedin.com/in/username">
+                                <input type="url" class="form-control fs-7 rounded-3" id="inputLinkedin" name="linkedinUrl" value="${fn:escapeXml(profileUser.linkedinUrl)}" placeholder="https://linkedin.com/in/username">
                             </div>
                         </div>
                     </div>
@@ -381,7 +382,7 @@
             <div class="modal-content border-0 shadow-lg rounded-4 p-2">
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold text-dark" id="quickInviteModalLabel">
-                        <i class="bi bi-person-plus-fill text-success me-2"></i>Mời ${profileUser.fullName} vào Dự án
+                        <i class="bi bi-person-plus-fill text-success me-2"></i>Mời ${fn:escapeXml(profileUser.fullName)} vào Dự án
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
@@ -389,11 +390,11 @@
                 <%-- ▶ SERVLET: /invite → ProjectInviteServlet.doPost() → case "sendInvite" → handleSendInvite() --%>
                 <form action="${pageContext.request.contextPath}/invite" method="post">
                     <input type="hidden" name="action" value="sendInvite">
-                    <input type="hidden" name="usernameOrEmail" value="${profileUser.username}">
+                    <input type="hidden" name="usernameOrEmail" value="${fn:escapeXml(profileUser.username)}">
 
                     <div class="modal-body py-3">
                         <p class="text-muted fs-8 mb-3">
-                            Chọn dự án bạn muốn mời <strong>${profileUser.fullName}</strong> tham gia. Lời mời sẽ có hiệu lực trong <strong>7 ngày</strong>.
+                            Chọn dự án bạn muốn mời <strong>${fn:escapeXml(profileUser.fullName)}</strong> tham gia. Lời mời sẽ có hiệu lực trong <strong>7 ngày</strong>.
                         </p>
 
                         <div class="mb-3">
@@ -402,7 +403,7 @@
                             </label>
                             <select class="form-select fs-7 rounded-3" id="selectProject" name="projectId" required>
                                 <c:forEach items="${availableProjectsToInvite}" var="ap">
-                                    <option value="${ap.id}">[${ap.projectCode}] ${ap.name}</option>
+                                    <option value="${ap.id}">[${fn:escapeXml(ap.projectCode)}] ${fn:escapeXml(ap.name)}</option>
                                 </c:forEach>
                             </select>
                         </div>
