@@ -25,191 +25,251 @@
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
 
-<div class="container py-4 my-auto">
+<div class="container py-4 my-auto profile-page-shell">
 
-    <!-- 1. Breadcrumb & Nút Quay lại -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
+    <!-- 1. Breadcrumb & Nút Quay lại / Tác vụ nhanh -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
         <a href="${pageContext.request.contextPath}/project?action=list" 
-           class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-none d-flex align-items-center gap-1">
-            <i class="bi bi-arrow-left"></i> Quay lại Không gian làm việc
+           class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1.5 fw-medium">
+            <i class="bi bi-arrow-left"></i> <span>Quay lại Không gian làm việc</span>
         </a>
-        <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 fs-8">
-            <i class="bi bi-shield-check text-success me-1"></i> Hồ sơ chuyên môn công khai
-        </span>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1 fs-8 text-secondary d-inline-flex align-items-center gap-1.5 shadow-2xs hover-bg-light"
+                    onclick="copyProfileLink()" id="btnCopyProfile" title="Sao chép đường dẫn hồ sơ công khai vào bộ nhớ tạm">
+                <i class="bi bi-share-fill text-primary"></i> <span id="btnCopyProfileText">Chia sẻ hồ sơ</span>
+            </button>
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fs-8 fw-semibold d-inline-flex align-items-center gap-1">
+                <i class="bi bi-patch-check-fill"></i> Hồ sơ chuyên môn công khai
+            </span>
+        </div>
     </div>
 
     <!-- 2. Thông báo Flash — UI-04: Floating Toast -->
     <jsp:include page="/includes/toast.jsp" />
 
-
     <!-- =========================================================================
          [SECTION 1: IDENTITY & CV HEADER / THÔNG TIN CHUYÊN MÔN]
-         VI: Hiển thị avatar, họ tên, chuyên môn, bio, dải kỹ năng và liên kết mạng xã hội
-         EN: Displays avatar, name, role, bio, tech stack badges, and social links
+         VI: Hiển thị cover banner, avatar, họ tên, chuyên môn, bio, dải kỹ năng và liên kết
+         EN: Displays cover banner, avatar, name, role, bio, tech stack badges, and social links
          ========================================================================= -->
     <div class="card profile-identity-card">
-        <div class="row align-items-center g-4">
-            
-            <!-- Cột Trái: Avatar & Tên & Chuyên Môn -->
-            <div class="col-12 col-md-8 d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-4 text-center text-sm-start">
-                <div class="profile-avatar-banner">
-                    <i class="bi bi-person-fill"></i>
-                </div>
+        <!-- Ảnh bìa công nghệ phát quang (Tech Aurora Cover) -->
+        <div class="profile-cover-banner">
+            <div class="profile-cover-glow profile-cover-glow--1"></div>
+            <div class="profile-cover-glow profile-cover-glow--2"></div>
+        </div>
+
+        <div class="profile-identity-body">
+            <div class="row align-items-start g-4">
                 
-                <div class="flex-grow-1">
-                    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-2 mb-1">
-                        <h3 class="fw-extrabold text-dark mb-0">${fn:escapeXml(profileUser.fullName)}</h3>
-                        <span class="badge bg-primary text-white rounded-pill px-3 py-1 fs-8">
-                            ${fn:escapeXml(profileUser.role)}
-                        </span>
-                    </div>
-                    <p class="text-muted fs-8 mb-2">
-                        @${fn:escapeXml(profileUser.username)} &bull; 
-                        <c:choose>
-                            <%-- ◀ SERVLET: ProfileServlet → setAttribute("isOwner") --%>
-                            <c:when test="${isOwner}">
-                                <span class="text-dark fw-medium">${fn:escapeXml(profileUser.email)}</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="text-muted" title="Email liên lạc">${fn:escapeXml(profileUser.email)}</span>
-                            </c:otherwise>
-                        </c:choose>
-                    </p>
-                    
-                    <!-- Bio giới thiệu bản thân -->
-                    <p class="profile-bio-text">
-                        ${not empty profileUser.bio ? profileUser.bio : 'Chưa có lời giới thiệu bản thân.'}
-                    </p>
+<!-- Cột Trái: Avatar & Tên & Chuyên Môn & Bio -->
+<div class="col-12 col-lg-8">
+    <!-- Khối Avatar phủ đè viền ảnh bìa -->
+    <div class="profile-avatar-wrapper">
+        <div class="profile-avatar-banner" title="${fn:escapeXml(profileUser.fullName)}">
+            <c:out value="${not empty profileUser.fullName ? profileUser.fullName.substring(0, 1).toUpperCase() : 'U'}" />
+        </div>
+        <span class="profile-online-dot" title="Tài khoản đang hoạt động"></span>
+    </div>
 
-                    <!-- Dải Kỹ năng (Tech Stack) -->
-                    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-sm-start gap-2 mb-3">
-                        <c:choose>
-                            <c:when test="${not empty profileUser.skillList}">
-                                <c:forEach items="${profileUser.skillList}" var="sk">
-                                    <span class="badge profile-skill-badge">
-                                        <i class="bi bi-check-circle-fill me-1"></i> ${fn:escapeXml(sk)}
-                                    </span>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="text-muted fs-8 fst-italic">Chưa cập nhật kỹ năng chuyên môn.</span>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
+    <div>
+        <!-- Họ tên & Badge Chức danh -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+            <h2 class="fw-extrabold text-dark mb-0 tracking-tight">${fn:escapeXml(profileUser.fullName)}</h2>
+            <i class="bi bi-patch-check-fill text-primary fs-5" title="Thành viên đã xác thực danh tính"></i>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 fs-8 fw-semibold ms-1">
+                <i class="bi bi-briefcase-fill me-1"></i>${fn:escapeXml(profileUser.role)}
+            </span>
+        </div>
 
-                    <!-- Liên kết Mạng xã hội công việc (GitHub / LinkedIn) -->
-                    <div class="d-flex align-items-center justify-content-center justify-content-sm-start gap-2">
-                        <c:if test="${not empty profileUser.githubUrl}">
-                            <a href="${fn:escapeXml(profileUser.githubUrl)}" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3 fs-8 fw-semibold shadow-2xs">
-                                <i class="bi bi-github me-1"></i> GitHub
-                            </a>
-                        </c:if>
-                        <c:if test="${not empty profileUser.linkedinUrl}">
-                            <a href="${fn:escapeXml(profileUser.linkedinUrl)}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 fs-8 fw-semibold shadow-2xs">
-                                <i class="bi bi-linkedin me-1"></i> LinkedIn
-                            </a>
-                        </c:if>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cột Phải: Nút Hành Động (Chỉnh sửa hoặc Mời vào dự án) -->
-            <div class="col-12 col-md-4 text-center text-md-end">
+        <!-- Thông tin Username & Email -->
+        <div class="d-flex flex-wrap align-items-center gap-3 text-muted fs-8 mb-3 mt-1">
+            <span class="d-inline-flex align-items-center gap-1">
+                <i class="bi bi-at text-primary"></i>${fn:escapeXml(profileUser.username)}
+            </span>
+            <span class="d-inline-flex align-items-center gap-1.5" title="Email liên lạc chính thức">
+                <i class="bi bi-envelope text-secondary"></i>
                 <c:choose>
-                    <%-- KỊCH BẢN 1: HỒ SƠ CHÍNH MÌNH ➔ NÚT CHỈNH SỬA --%>
                     <c:when test="${isOwner}">
-                        <button type="button" class="btn btn-outline-primary px-4 py-2 rounded-pill fw-semibold shadow-sm fs-7" 
-                                data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            <i class="bi bi-pencil-square me-1"></i> Chỉnh sửa hồ sơ
-                        </button>
+                        <span class="text-dark fw-medium">${fn:escapeXml(profileUser.email)}</span>
                     </c:when>
-
-                    <%-- KỊCH BẢN 2: HỒ SƠ NGƯỜI KHÁC ➔ NÚT MỜI NHANH (NẾU LÀ PM) --%>
                     <c:otherwise>
-                        <%-- ◀ SERVLET: ProfileServlet → setAttribute("availableProjectsToInvite") --%>
-                        <c:if test="${not empty availableProjectsToInvite}">
-                            <button type="button" class="btn btn-success px-4 py-2 rounded-pill fw-semibold shadow-sm fs-7" 
-                                    data-bs-toggle="modal" data-bs-target="#quickInviteModal">
-                                <i class="bi bi-person-plus-fill me-1"></i> + Mời vào Dự án của tôi
-                            </button>
-                        </c:if>
+                        <span class="text-muted" title="Email liên lạc">${fn:escapeXml(profileUser.email)}</span>
                     </c:otherwise>
                 </c:choose>
-            </div>
+            </span>
+            <c:if test="${isOwner}">
+                <span class="badge bg-light text-secondary border rounded-pill fs-9 px-2 py-0.5">
+                    <i class="bi bi-shield-lock me-1"></i>Chính chủ
+                </span>
+            </c:if>
+        </div>
+                        
+        <!-- Bio giới thiệu bản thân -->
+        <p class="profile-bio-text">
+            <c:choose>
+                <c:when test="${not empty profileUser.bio}">
+                    <c:out value="${profileUser.bio}" />
+                </c:when>
+                <c:otherwise>
+                    <span class="fst-italic text-muted">Chưa cập nhật lời giới thiệu bản thân.</span>
+                </c:otherwise>
+            </c:choose>
+        </p>
 
+        <!-- Dải Kỹ năng Chuyên Môn (Tech Stack Badges) -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <c:choose>
+                <c:when test="${not empty profileUser.skillList}">
+                    <c:forEach items="${profileUser.skillList}" var="sk">
+                        <span class="profile-skill-badge shadow-2xs">
+                            <i class="bi bi-code-slash text-primary"></i> ${fn:escapeXml(sk)}
+                        </span>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <span class="text-muted fs-8 fst-italic">Chưa thiết lập danh sách kỹ năng chuyên môn.</span>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
+        <!-- Liên kết Mạng xã hội công việc (GitHub / LinkedIn) -->
+        <div class="d-flex flex-wrap align-items-center gap-2 pt-1">
+            <c:if test="${not empty profileUser.githubUrl}">
+                <a href="${fn:escapeXml(profileUser.githubUrl)}" target="_blank" rel="noopener noreferrer" 
+                   class="profile-social-btn profile-social-btn--github shadow-2xs">
+                    <i class="bi bi-github fs-7"></i>
+                    <span>GitHub</span>
+                    <i class="bi bi-box-arrow-up-right fs-9 opacity-75 ms-1"></i>
+                </a>
+            </c:if>
+            <c:if test="${not empty profileUser.linkedinUrl}">
+                <a href="${fn:escapeXml(profileUser.linkedinUrl)}" target="_blank" rel="noopener noreferrer" 
+                   class="profile-social-btn profile-social-btn--linkedin shadow-2xs">
+                    <i class="bi bi-linkedin fs-7"></i>
+                    <span>LinkedIn</span>
+                    <i class="bi bi-box-arrow-up-right fs-9 opacity-75 ms-1"></i>
+                </a>
+            </c:if>
+        </div>
+
+                    </div>
+                </div>
+
+                <!-- Cột Phải: Nút Hành Động Nhanh (Chỉnh sửa hoặc Mời vào dự án) -->
+                <div class="col-12 col-lg-4 text-start text-lg-end pt-lg-2">
+                    <c:choose>
+                        <%-- KỊCH BẢN 1: HỒ SƠ CHÍNH MÌNH ➔ NÚT CHỈNH SỬA --%>
+                        <c:when test="${isOwner}">
+                            <button type="button" class="btn btn-primary-custom px-4 py-2 rounded-pill fw-semibold shadow-sm fs-7 d-inline-flex align-items-center gap-2" 
+                                    data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                <i class="bi bi-pencil-square"></i>
+                                <span>Chỉnh sửa hồ sơ</span>
+                            </button>
+                        </c:when>
+
+                        <%-- KỊCH BẢN 2: HỒ SƠ NGƯỜI KHÁC ➔ NÚT MỜI NHANH (NẾU LÀ PM) --%>
+                        <c:otherwise>
+                            <%-- ◀ SERVLET: ProfileServlet → setAttribute("availableProjectsToInvite") --%>
+                            <c:if test="${not empty availableProjectsToInvite}">
+                                <button type="button" class="btn btn-success px-4 py-2 rounded-pill fw-semibold shadow-sm fs-7 d-inline-flex align-items-center gap-2" 
+                                        data-bs-toggle="modal" data-bs-target="#quickInviteModal">
+                                    <i class="bi bi-person-plus-fill"></i>
+                                    <span>+ Mời vào Dự án của tôi</span>
+                                </button>
+                            </c:if>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+
+            </div>
         </div>
     </div>
 
     <!-- =========================================================================
-         [SECTION 2: PRODUCTIVITY METRICS / BẢNG CHỈ SỐ NĂNG SUẤT REAL-TIME]
+         [SECTION 2: PRODUCTIVITY METRICS / BẢNG CHỈ SỐ NĂNG SUẤT BENTO-GRID]
          VI: Tổng hợp số lượng dự án, task lead, tiến độ việc con từ cơ sở dữ liệu
          EN: Aggregated workspace count, task leads, and subtask completion rates from DB
          ========================================================================= -->
-    <div class="mb-4">
-        <h5 class="fw-bold text-dark mb-3">
-            <i class="bi bi-graph-up-arrow text-primary me-2"></i>Chỉ số Năng suất & Cống hiến trên Hệ thống
-        </h5>
+    <div class="mb-5">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-graph-up-arrow text-primary"></i>
+                <span>Chỉ số Năng suất &amp; Cống hiến Real-time</span>
+            </h5>
+            <span class="fs-9 text-muted d-none d-sm-inline">Tự động tổng hợp dữ liệu thực tế từ hệ thống</span>
+        </div>
 
         <div class="row g-3">
             <!-- Chỉ số 1: Dự án tham gia -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-lg-3">
                 <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="fs-8 text-muted fw-semibold">Dự án tham gia</span>
-                        <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1">
-                            <i class="bi bi-folder2-open fs-7"></i>
-                        </span>
+                        <span class="fs-8 text-secondary fw-semibold">Không gian dự án</span>
+                        <div class="stat-icon-wrapper stat-icon-wrapper--primary shadow-2xs">
+                            <i class="bi bi-folder2-open"></i>
+                        </div>
                     </div>
                     <%-- ◀ SERVLET: ProfileServlet → setAttribute("userProjects") --%>
-                    <h3 class="fw-extrabold text-primary mb-0">${userProjects.size()}</h3>
-                    <span class="fs-9 text-muted mt-1">không gian làm việc</span>
+                    <div class="stat-number-display text-primary">${userProjects.size()}</div>
+                    <span class="fs-9 text-muted mt-1">không gian đang tham gia</span>
                 </div>
             </div>
 
             <!-- Chỉ số 2: Task Lead -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-lg-3">
                 <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="fs-8 text-muted fw-semibold">Trưởng nhóm công việc chủ trì</span>
-                        <span class="p-1 bg-warning-subtle text-warning-emphasis rounded-2 lh-1">
-                            <i class="bi bi-person-workspace fs-7"></i>
-                        </span>
+                        <span class="fs-8 text-secondary fw-semibold">Công việc chủ trì</span>
+                        <div class="stat-icon-wrapper stat-icon-wrapper--warning shadow-2xs">
+                            <i class="bi bi-person-workspace"></i>
+                        </div>
                     </div>
                     <%-- ◀ SERVLET: ProfileServlet → setAttribute("leadTaskCount") --%>
-                    <h3 class="fw-extrabold text-warning mb-0">${leadTaskCount}</h3>
-                    <span class="fs-9 text-muted mt-1">công việc lớn</span>
+                    <div class="stat-number-display text-warning">${leadTaskCount}</div>
+                    <span class="fs-9 text-muted mt-1">công việc lớn phụ trách</span>
                 </div>
             </div>
 
             <!-- Chỉ số 3: Việc con hoàn thành -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-lg-3">
                 <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="fs-8 text-muted fw-semibold">Nhiệm vụ đã xong</span>
-                        <span class="p-1 bg-success-subtle text-success rounded-2 lh-1">
-                            <i class="bi bi-check-all fs-7"></i>
-                        </span>
+                        <span class="fs-8 text-secondary fw-semibold">Nhiệm vụ đóng lại</span>
+                        <div class="stat-icon-wrapper stat-icon-wrapper--success shadow-2xs">
+                            <i class="bi bi-check2-all"></i>
+                        </div>
                     </div>
                     <%-- ◀ SERVLET: ProfileServlet → setAttribute("completedSubTasks") --%>
                     <%-- ◀ SERVLET: ProfileServlet → setAttribute("totalSubTasks") --%>
-                    <h3 class="fw-extrabold text-success mb-0">${completedSubTasks} / ${totalSubTasks}</h3>
-                    <span class="fs-9 text-muted mt-1">việc hoàn tất</span>
+                    <div class="stat-number-display text-success">
+                        ${completedSubTasks} <span class="fs-6 text-muted fw-normal">/ ${totalSubTasks}</span>
+                    </div>
+                    <span class="fs-9 text-muted mt-1">nhiệm vụ bàn giao xong</span>
                 </div>
             </div>
 
             <!-- Chỉ số 4: Tỷ lệ hoàn thành -->
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-lg-3">
                 <div class="stat-card-modern h-100 d-flex flex-column justify-content-between">
                     <div class="d-flex align-items-center justify-content-between mb-2">
-                        <span class="fs-8 text-muted fw-semibold">Tỷ lệ hoàn thành</span>
-                        <span class="p-1 bg-info-subtle text-info-emphasis rounded-2 lh-1">
-                            <i class="bi bi-speedometer2 fs-7"></i>
-                        </span>
+                        <span class="fs-8 text-secondary fw-semibold">Tỷ lệ hoàn tất</span>
+                        <c:choose>
+                            <c:when test="${completionRate >= 80}">
+                                <span class="stat-rate-badge bg-success-subtle text-success border border-success-subtle">Xuất sắc</span>
+                            </c:when>
+                            <c:when test="${completionRate >= 50}">
+                                <span class="stat-rate-badge bg-primary-subtle text-primary border border-primary-subtle">Tích cực</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="stat-rate-badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Tiến độ tốt</span>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                     <%-- ◀ SERVLET: ProfileServlet → setAttribute("completionRate") --%>
-                    <h3 class="fw-extrabold text-dark mb-0">${completionRate}%</h3>
-                    <div class="project-progress-container mt-2">
-                        <div class="project-progress-bar progress-init-zero" data-progress="${completionRate}%"></div>
+                    <div class="stat-number-display text-dark">${completionRate}%</div>
+                    <div class="profile-progress-track mt-2">
+                        <div class="profile-progress-fill ${completionRate == 100 ? 'is-done' : ''}" style="width: ${completionRate}%;"></div>
                     </div>
                 </div>
             </div>
@@ -222,37 +282,48 @@
          EN: Lists active projects the user belongs to along with dynamic progress
          ========================================================================= -->
     <div class="mb-5">
-        <h5 class="fw-bold text-dark mb-3">
-            <i class="bi bi-kanban text-primary me-2"></i>Các Dự án đang tham gia (${userProjects.size()})
-        </h5>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <i class="bi bi-kanban text-primary"></i>
+                <span>Các Không Gian Dự Án Đang Tham Gia (${userProjects.size()})</span>
+            </h5>
+            <span class="fs-9 text-muted">Truy cập nhanh bảng Kanban và tiến độ</span>
+        </div>
 
-        <div class="row g-4">
+        <div class="row g-3">
             <c:forEach items="${userProjects}" var="p">
                 <div class="col-12 col-md-6 col-lg-4">
-                    <div class="project-card h-100 d-flex flex-column justify-content-between">
+                    <div class="profile-project-card h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 fs-9 fw-bold">
-                                    #${fn:escapeXml(p.projectCode)}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fs-9 fw-bold">
+        #${fn:escapeXml(p.projectCode)}
                                 </span>
-                                <span class="text-muted fs-9">${p.createdAt}</span>
+                                <span class="text-muted fs-9 d-flex align-items-center gap-1">
+                                    <i class="bi bi-calendar3"></i> ${p.createdAt}
+                                </span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">${fn:escapeXml(p.name)}</h6>
-                            <p class="text-secondary fs-8 mb-3 line-clamp-2">
-                                ${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}
+<h6 class="fw-bold text-dark mb-1 fs-7">
+    <a href="${pageContext.request.contextPath}/task?projectId=${p.id}" class="text-dark text-decoration-none hover-primary">
+        ${fn:escapeXml(p.name)}
+    </a>
+</h6>
+<p class="text-secondary fs-8 mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.4em;">
+    <c:out value="${not empty p.description ? p.description : 'Chưa có mô tả cho dự án này.'}" />
                             </p>
                         </div>
                         <div class="pt-2 border-top">
-                            <div class="d-flex justify-content-between align-items-center fs-9 text-muted mb-1">
+                            <div class="d-flex justify-content-between align-items-center fs-9 text-muted mb-1.5">
                                 <span>Tiến độ dự án</span>
                                 <span class="fw-bold text-dark">${p.progressPercentage}%</span>
                             </div>
-                            <div class="project-progress-container mb-3">
-                                <div class="project-progress-bar progress-init-zero" data-progress="${p.progressPercentage}%"></div>
+                            <div class="profile-progress-track mb-3">
+                                <div class="profile-progress-fill ${p.progressPercentage == 100 ? 'is-done' : ''}" style="width: ${p.progressPercentage}%;"></div>
                             </div>
-                            <a href="${pageContext.request.contextPath}/task?action=list&projectId=${p.id}" 
-                               class="btn btn-outline-primary btn-sm w-100 rounded-pill py-1 fs-8 fw-semibold">
-                                Vào không gian dự án <i class="bi bi-arrow-right ms-1"></i>
+                            <a href="${pageContext.request.contextPath}/task?projectId=${p.id}" 
+                               class="btn btn-outline-primary btn-sm w-100 rounded-pill py-1.5 fs-8 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-2xs">
+                                <span>Vào không gian dự án</span>
+                                <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>
                     </div>
@@ -260,14 +331,63 @@
             </c:forEach>
 
             <c:if test="${empty userProjects}">
-                <div class="col-12 text-center py-4 bg-white rounded-4 border">
-                    <p class="text-muted fs-8 mb-0">Thành viên này hiện chưa tham gia dự án nào.</p>
+                <div class="col-12 text-center py-5 bg-white rounded-4 border shadow-2xs">
+                    <div class="avatar-sm rounded-circle bg-light text-muted mx-auto d-flex align-items-center justify-content-center mb-2" style="width: 48px; height: 48px;">
+                        <i class="bi bi-folder-x fs-4 opacity-50"></i>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-1 fs-7">Chưa tham gia dự án nào</h6>
+                    <p class="text-muted fs-8 mb-0">Thành viên này hiện chưa được thêm vào không gian làm việc nào trong hệ thống.</p>
                 </div>
             </c:if>
         </div>
     </div>
 
 </div>
+
+<script>
+    function copyProfileLink() {
+        var currentUrl = window.location.href;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(currentUrl).then(function() {
+                showCopyFeedback();
+            }).catch(function() {
+                fallbackCopy(currentUrl);
+            });
+        } else {
+            fallbackCopy(currentUrl);
+        }
+    }
+
+    function fallbackCopy(text) {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showCopyFeedback();
+        } catch (err) {
+            console.error('Không thể sao chép liên kết:', err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function showCopyFeedback() {
+        var btn = document.getElementById('btnCopyProfile');
+        var text = document.getElementById('btnCopyProfileText');
+        if (text) {
+            var oldText = text.textContent;
+            text.textContent = 'Đã sao chép!';
+            if (btn) btn.classList.add('btn-primary', 'text-white');
+            setTimeout(function() {
+                text.textContent = oldText;
+                if (btn) btn.classList.remove('btn-primary', 'text-white');
+            }, 2000);
+        }
+    }
+</script>
 
 <!-- =========================================================================
      [MODAL 1: EDIT PROFILE FORM / CHỈNH SỬA HỒ SƠ CÁ NHÂN (CHÍNH CHỦ)]
@@ -297,17 +417,23 @@
                     <div class="modal-body py-3">
                         <div class="row g-3 mb-3">
                             <div class="col-12 col-md-6">
-                                <label for="inputFullName" class="form-label fw-semibold fs-7 text-dark">Họ và tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control fs-7 rounded-3" id="inputFullName" name="fullName" value="${fn:escapeXml(profileUser.fullName)}" required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="inputRole" class="form-label fw-semibold fs-7 text-dark">Chuyên môn / Chức danh</label>
-                                <input type="text" class="form-control fs-7 rounded-3" id="inputRole" name="role" value="${fn:escapeXml(profileUser.role)}" placeholder="Ví dụ: Lập trình viên Backend cao cấp">
+<label for="inputFullName" class="form-label fw-semibold fs-7 text-dark mb-1">Họ và tên <span class="text-danger">*</span></label>
+<div class="input-group">
+    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+    <input type="text" class="form-control border-start-0 fs-7" id="inputFullName" name="fullName" value="${fn:escapeXml(profileUser.fullName)}" required>
+</div>
+</div>
+<div class="col-12 col-md-6">
+<label for="inputRole" class="form-label fw-semibold fs-7 text-dark mb-1">Chuyên môn / Chức danh</label>
+<div class="input-group">
+    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-briefcase"></i></span>
+    <input type="text" class="form-control border-start-0 fs-7" id="inputRole" name="role" value="${fn:escapeXml(profileUser.role)}" placeholder="Ví dụ: Kỹ sư Phần mềm Fullstack">
+</div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="inputBio" class="form-label fw-semibold fs-7 text-dark d-flex justify-content-between align-items-center">
+                            <label for="inputBio" class="form-label fw-semibold fs-7 text-dark mb-1 d-flex justify-content-between align-items-center">
                                 <span>Lời giới thiệu bản thân (Bio ngắn)</span>
                                 <span class="text-muted fs-9 fw-normal">Tối đa 250 ký tự</span>
                             </label>
@@ -316,28 +442,40 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="inputSkills" class="form-label fw-semibold fs-7 text-dark">
+                            <label for="inputSkills" class="form-label fw-semibold fs-7 text-dark mb-1">
                                 Kỹ năng chuyên môn
                             </label>
-                            <input type="text" class="form-control fs-7 rounded-3" id="inputSkills" name="skills" value="${fn:escapeXml(profileUser.skills)}" 
-                                   placeholder="Cách nhau bằng dấu phẩy, ví dụ: Java, Jakarta EE, MySQL, Docker, RESTful API">
-                            <div class="form-text fs-9 text-muted mt-1">
-                                Gợi ý kỹ năng: <span class="profile-skill-chip-interactive" onclick="addSkill('Java')">+ Java</span>
-                                <span class="profile-skill-chip-interactive" onclick="addSkill('MySQL')">+ MySQL</span>
+<div class="input-group mb-2">
+    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-code-slash"></i></span>
+    <input type="text" class="form-control border-start-0 fs-7" id="inputSkills" name="skills" value="${fn:escapeXml(profileUser.skills)}" 
+           placeholder="Cách nhau bằng dấu phẩy, ví dụ: Java, Jakarta EE, PostgreSQL, MySQL, Docker, RESTful API">
+</div>
+<div class="form-text fs-9 text-muted d-flex flex-wrap align-items-center gap-1">
+    <span>Gợi ý kỹ năng:</span>
+    <span class="profile-skill-chip-interactive" onclick="addSkill('Java')">+ Java</span>
+    <span class="profile-skill-chip-interactive" onclick="addSkill('PostgreSQL')">+ PostgreSQL</span>
+    <span class="profile-skill-chip-interactive" onclick="addSkill('MySQL')">+ MySQL</span>
                                 <span class="profile-skill-chip-interactive" onclick="addSkill('Docker')">+ Docker</span>
                                 <span class="profile-skill-chip-interactive" onclick="addSkill('UI/UX')">+ UI/UX</span>
                                 <span class="profile-skill-chip-interactive" onclick="addSkill('Spring Boot')">+ Spring Boot</span>
+                                <span class="profile-skill-chip-interactive" onclick="addSkill('REST API')">+ REST API</span>
                             </div>
                         </div>
 
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label for="inputGithub" class="form-label fw-semibold fs-7 text-dark">Liên kết GitHub</label>
-                                <input type="url" class="form-control fs-7 rounded-3" id="inputGithub" name="githubUrl" value="${fn:escapeXml(profileUser.githubUrl)}" placeholder="https://github.com/username">
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label for="inputLinkedin" class="form-label fw-semibold fs-7 text-dark">Liên kết LinkedIn</label>
-                                <input type="url" class="form-control fs-7 rounded-3" id="inputLinkedin" name="linkedinUrl" value="${fn:escapeXml(profileUser.linkedinUrl)}" placeholder="https://linkedin.com/in/username">
+<label for="inputGithub" class="form-label fw-semibold fs-7 text-dark mb-1">Liên kết GitHub</label>
+<div class="input-group">
+    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-github"></i></span>
+    <input type="url" class="form-control border-start-0 fs-7" id="inputGithub" name="githubUrl" value="${fn:escapeXml(profileUser.githubUrl)}" placeholder="https://github.com/username">
+</div>
+</div>
+<div class="col-12 col-md-6">
+<label for="inputLinkedin" class="form-label fw-semibold fs-7 text-dark mb-1">Liên kết LinkedIn</label>
+<div class="input-group">
+    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-linkedin text-primary"></i></span>
+    <input type="url" class="form-control border-start-0 fs-7" id="inputLinkedin" name="linkedinUrl" value="${fn:escapeXml(profileUser.linkedinUrl)}" placeholder="https://linkedin.com/in/username">
+</div>
                             </div>
                         </div>
                     </div>

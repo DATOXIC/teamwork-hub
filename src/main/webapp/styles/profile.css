@@ -1,19 +1,393 @@
-/* profile.css — Thẻ thống kê hồ sơ (profile.jsp).
- * Tách từ main.css (giữ nguyên thứ tự nạp; xem danh sách trong includes/header.jsp). */
 /* ==========================================================================
-   Profile Productivity Stat Cards (profile.jsp)
+   TEAMWORK HUB — PERSONAL PROFILE & PRODUCTIVITY SHOWCASE (profile.css)
+   Thiết kế chuẩn SaaS hiện đại: Bento Metrics, Mesh Cover, Dark/Light Support
    ========================================================================== */
-.stat-card-modern {
+
+/* -------------------- 1. PROFILE COVER & IDENTITY CARD -------------------- */
+.profile-cover-banner {
+    height: 160px;
+    background: linear-gradient(135deg, #1e293b 0%, #334155 40%, #1e3a8a 100%);
+    position: relative;
+    border-radius: 18px 18px 0 0;
+    overflow: hidden;
+}
+
+.profile-cover-glow {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.profile-cover-glow--1 {
+    top: -100px;
+    right: -40px;
+    background: radial-gradient(circle, #38bdf8 0%, #6366f1 100%);
+}
+
+.profile-cover-glow--2 {
+    bottom: -120px;
+    left: 20%;
+    background: radial-gradient(circle, #818cf8 0%, transparent 70%);
+}
+
+.profile-identity-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-identity-body {
+    padding: 0 2rem 2rem 2rem;
+    position: relative;
+}
+
+@media (max-width: 576px) {
+    .profile-identity-body {
+        padding: 0 1.25rem 1.5rem 1.25rem;
+    }
+}
+
+/* -------------------- 2. AVATAR & USER MONOGRAM -------------------- */
+.profile-avatar-wrapper {
+    position: relative;
+    margin-top: -52px;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.profile-avatar-banner {
+    width: 104px;
+    height: 104px;
+    font-size: 2.6rem;
+    background: linear-gradient(135deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
+    border-radius: 28px;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    box-shadow: 0 10px 25px -5px rgba(57, 88, 134, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.25);
+    border: 4px solid #ffffff;
+    flex-shrink: 0;
+    user-select: none;
+    transition: transform 0.2s ease;
+}
+
+.profile-avatar-banner:hover {
+    transform: scale(1.03);
+}
+
+.profile-online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    background-color: #10b981;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+/* -------------------- 3. BIO & SKILLS & SOCIAL CHIPS -------------------- */
+.profile-bio-text {
+    max-width: 680px;
+    color: #475569;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+}
+
+.profile-skill-badge {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.18s ease;
+}
+
+.profile-skill-badge:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+    transform: translateY(-1px);
+}
+
+.profile-skill-chip-interactive {
+    cursor: pointer;
+    background-color: #f1f5f9;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-weight: 550;
+    transition: all 0.15s ease;
+    user-select: none;
+    display: inline-block;
+    margin-right: 0.35rem;
+    margin-bottom: 0.35rem;
+}
+
+.profile-skill-chip-interactive:hover {
+    background-color: #395886;
+    color: #ffffff;
+    border-color: #395886;
+    transform: translateY(-1px);
+}
+
+.profile-social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.profile-social-btn--github {
+    background-color: #0f172a;
+    color: #ffffff;
+    border: 1px solid #0f172a;
+}
+
+.profile-social-btn--github:hover {
+    background-color: #1e293b;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.profile-social-btn--linkedin {
+    background-color: #eff6ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+}
+
+.profile-social-btn--linkedin:hover {
+    background-color: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+/* -------------------- 4. BENTO PRODUCTIVITY STAT CARDS -------------------- */
+.profile-page-shell .stat-card-modern {
     background-color: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
-    padding: 20px 16px;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 1.25rem 1.15rem;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-page-shell .stat-card-modern:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+}
+
+.stat-icon-wrapper {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.stat-icon-wrapper--primary {
+    background: #eef2ff;
+    color: #4f46e5;
+    border: 1px solid #c7d2fe;
+}
+
+.stat-icon-wrapper--warning {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.stat-icon-wrapper--success {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+}
+
+.stat-icon-wrapper--info {
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #bae6fd;
+}
+
+.stat-number-display {
+    font-size: clamp(1.6rem, 2.5vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-rate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* -------------------- 5. PROJECT CARDS IN PROFILE -------------------- */
+.profile-project-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
-.stat-card-modern:hover {
+.profile-project-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.08);
-    border-color: #cbd5e1;
+    box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08);
+    border-color: #93c5fd;
+}
+
+.profile-progress-track {
+    height: 7px;
+    background-color: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.profile-progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.profile-progress-fill.is-done {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+/* -------------------- 6. DARK MODE OVERRIDES (DEEP OBSIDIAN) -------------------- */
+[data-theme="dark"] .profile-cover-banner,
+[data-bs-theme="dark"] .profile-cover-banner {
+    background: linear-gradient(135deg, #070a13 0%, #0f172a 50%, #1e1b4b 100%);
+}
+
+[data-theme="dark"] .profile-identity-card,
+[data-bs-theme="dark"] .profile-identity-card {
+    background-color: #0E1322 !important;
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .profile-avatar-banner,
+[data-bs-theme="dark"] .profile-avatar-banner {
+    border-color: #0E1322 !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .profile-online-dot,
+[data-bs-theme="dark"] .profile-online-dot {
+    border-color: #0E1322 !important;
+}
+
+[data-theme="dark"] .profile-bio-text,
+[data-bs-theme="dark"] .profile-bio-text {
+    color: #CBD5E1 !important;
+}
+
+[data-theme="dark"] .profile-skill-badge,
+[data-bs-theme="dark"] .profile-skill-badge {
+    background-color: #151D30 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #93c5fd !important;
+}
+
+[data-theme="dark"] .profile-skill-badge:hover,
+[data-bs-theme="dark"] .profile-skill-badge:hover {
+    background-color: #1e293b !important;
+    color: #bfdbfe !important;
+}
+
+[data-theme="dark"] .profile-skill-chip-interactive,
+[data-bs-theme="dark"] .profile-skill-chip-interactive {
+    background-color: #151D30 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #CBD5E1 !important;
+}
+
+[data-theme="dark"] .profile-skill-chip-interactive:hover,
+[data-bs-theme="dark"] .profile-skill-chip-interactive:hover {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .profile-page-shell .stat-card-modern,
+[data-bs-theme="dark"] .profile-page-shell .stat-card-modern {
+    background-color: #0E1322 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .profile-page-shell .stat-card-modern:hover,
+[data-bs-theme="dark"] .profile-page-shell .stat-card-modern:hover {
+    border-color: rgba(99, 142, 203, 0.4) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .profile-project-card,
+[data-bs-theme="dark"] .profile-project-card {
+    background-color: #0E1322 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #F1F5F9 !important;
+}
+
+[data-theme="dark"] .profile-project-card:hover,
+[data-bs-theme="dark"] .profile-project-card:hover {
+    border-color: rgba(99, 142, 203, 0.45) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .profile-progress-track,
+[data-bs-theme="dark"] .profile-progress-track {
+    background-color: #151D30 !important;
+}
+
+[data-theme="dark"] .profile-social-btn--linkedin,
+[data-bs-theme="dark"] .profile-social-btn--linkedin {
+    background-color: rgba(2, 132, 199, 0.15) !important;
+    color: #38bdf8 !important;
+    border-color: rgba(2, 132, 199, 0.3) !important;
 }
