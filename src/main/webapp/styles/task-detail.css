@@ -4,36 +4,36 @@
    Task Detail Modal — Modern 2-Column SaaS Layout (Linear / Jira style)
    ========================================================================== */
 .task-modal-header {
-    background-color: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border-bottom: 1px solid var(--c-slate-200);
     padding: 14px 24px;
 }
 
 .task-modal-id-badge {
-    background-color: #f1f5f9;
-    color: #475569;
+    background-color: var(--c-slate-100);
+    color: var(--c-slate-600);
     font-size: 0.78rem;
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 6px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--c-slate-200);
     font-family: monospace;
 }
 
 .task-desc-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 10px;
     padding: 16px 20px;
     font-size: 0.9rem;
-    color: #334155;
+    color: var(--c-slate-700);
     line-height: 1.65;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .task-modal-sidebar {
-    background-color: #f8fafc;
-    border-left: 1px solid #e2e8f0;
+    background-color: var(--c-slate-50);
+    border-left: 1px solid var(--c-slate-200);
     padding: 22px;
 }
 
@@ -42,7 +42,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.6px;
-    color: #94a3b8;
+    color: var(--c-aa-slate-400);
     margin-bottom: 10px;
 }
 
@@ -57,7 +57,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 0;
-    border-bottom: 1px dashed #e2e8f0;
+    border-bottom: 1px dashed var(--c-slate-200);
     font-size: 0.835rem;
 }
 
@@ -66,7 +66,7 @@
 }
 
 .task-property-label {
-    color: #64748b;
+    color: var(--c-aa-slate-500);
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -75,7 +75,7 @@
 
 .task-property-value {
     font-weight: 600;
-    color: #0f172a;
+    color: var(--c-slate-900);
     text-align: right;
 }
 
@@ -83,43 +83,43 @@
    Subtask Checklist — Modern UI (Linear / Jira style)
    ========================================================================== */
 .subtask-progress-card {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-slate-50);
+    border: 1px solid var(--c-slate-200);
     border-radius: 10px;
     padding: 12px 16px;
     margin-bottom: 14px;
 }
 
 .subtask-item {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 8px;
     padding: 10px 14px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .subtask-item:hover {
-    border-color: #cbd5e1;
+    border-color: var(--c-slate-300);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
 }
 
 .subtask-item.subtask-approved {
-    background-color: #f8fafc;
-    border-color: #e2e8f0;
+    background-color: var(--c-slate-50);
+    border-color: var(--c-slate-200);
     opacity: 0.85;
 }
 
 .subtask-add-card {
-    background-color: #f8fafc;
-    border: 1px dashed #cbd5e1;
+    background-color: var(--c-slate-50);
+    border: 1px dashed var(--c-slate-300);
     border-radius: 8px;
     padding: 12px 16px;
     transition: all 0.15s ease;
 }
 
 .subtask-add-card:focus-within {
-    background-color: #ffffff;
-    border-color: #4f46e5;
+    background-color: var(--c-white);
+    border-color: var(--c-indigo-600);
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
 }
 
@@ -127,8 +127,8 @@
    Wiki Documents & Quality Gate Cards — Modern UI
    ========================================================================== */
 .doc-attachment-item {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 8px;
     padding: 8px 12px;
     display: flex;
@@ -138,14 +138,14 @@
 }
 
 .doc-attachment-item:hover {
-    border-color: #cbd5e1;
-    background-color: #f8fafc;
+    border-color: var(--c-slate-300);
+    background-color: var(--c-slate-50);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
 }
 
 .gate-card {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-slate-50);
+    border: 1px solid var(--c-slate-200);
     border-radius: 10px;
     padding: 14px 16px;
     margin-bottom: 16px;
@@ -153,16 +153,16 @@
 }
 
 .gate-card-primary {
-    background-color: #f8fafc;
-    border-left: 3.5px solid #4f46e5;
+    background-color: var(--c-slate-50);
+    border-left: 3.5px solid var(--c-indigo-600);
 }
 
 .gate-card-success {
-    background-color: #f8fafc;
-    border-left: 3.5px solid #10b981;
+    background-color: var(--c-slate-50);
+    border-left: 3.5px solid var(--c-emerald-500);
 }
 
 .gate-card-warning {
-    background-color: #f8fafc;
-    border-left: 3.5px solid #f59e0b;
+    background-color: var(--c-slate-50);
+    border-left: 3.5px solid var(--c-amber-500);
 }

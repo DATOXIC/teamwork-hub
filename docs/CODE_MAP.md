@@ -44,6 +44,8 @@
 
 **Lỗi & vòng đời:** `ErrorServlet` (/error, khai báo trong `web.xml`) cấp mã lỗi `E-XXXXXX` cho mọi lỗi 500 — ghi log + hiện ở `500.jsp` hoặc trả JSON cho AJAX. `listeners/AppLifecycleListener` dọn luồng ghi log, đóng kết nối DB, gỡ JDBC driver khi tắt app. Phía JS: gọi servlet bằng `window.apiFetch()` (`js/app.js`) — timeout, báo mất kết nối, GET tự thử lại 1 lần.
 
+**Màu & design token:** mọi màu nằm trong `styles/tokens.css` (nạp đầu tiên ở `header.jsp`, `login.jsp`, `forgot-password.jsp`). File CSS khác chỉ viết `var(--c-…)`, không viết mã hex. Màu chữ trên nền sáng dùng biến `--c-aa-*` (đạt WCAG AA ≥ 4.5:1 ở chế độ sáng, giữ màu gốc ở chế độ tối). Thêm thang `--space-*`, `--text-*`, `--z-*`.
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

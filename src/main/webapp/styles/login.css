@@ -5,21 +5,21 @@
 
 :root {
     --login-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --login-primary: #395886;
-    --login-primary-hover: #2d456a;
-    --login-accent: #638ECB;
-    --login-accent-light: #8AAEE0;
-    --login-navy: #1E2D42;
-    --login-border: #D5DEEF;
-    --login-text-dark: #1E2D42;
-    --login-text-muted: #627D98;
+    --login-primary: var(--c-ocean-700);
+    --login-primary-hover: var(--c-ocean-800);
+    --login-accent: var(--c-ocean-500);
+    --login-accent-light: var(--c-ocean-400);
+    --login-navy: var(--c-ocean-900);
+    --login-border: var(--c-ocean-200);
+    --login-text-dark: var(--c-ocean-900);
+    --login-text-muted: var(--c-aa-ocean-slate);
 }
 
 /* ── Layout chính: 2 cột ── */
 .login-wrapper {
     display: flex;
     min-height: calc(100vh - 65px - 58px);
-    background-color: #F0F3FA;
+    background-color: var(--c-ocean-50);
     overflow: hidden;
     font-family: var(--login-font-sans);
     -webkit-font-smoothing: antialiased;
@@ -34,7 +34,7 @@
     flex-direction: column;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(165deg, #1E2D42 0%, #293E5C 50%, #395886 100%);
+    background: linear-gradient(165deg, var(--c-ocean-900) 0%, var(--c-x-blue-700-5) 50%, var(--c-ocean-700) 100%);
     box-shadow: 4px 0 24px rgba(30, 45, 66, 0.12);
 }
 
@@ -65,7 +65,7 @@
 .branding-header-text h4 {
     font-size: 13.5px;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--c-white);
     margin: 0;
     letter-spacing: 0.5px;
     line-height: 1.35;
@@ -74,7 +74,7 @@
 .branding-header-text p {
     font-size: 11.5px;
     font-weight: 500;
-    color: #cbd5e1;
+    color: var(--c-slate-300);
     margin: 2px 0 0 0;
     line-height: 1.3;
 }
@@ -122,7 +122,7 @@
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.18);
-    color: #ffffff;
+    color: var(--c-white);
     font-size: 11.5px;
     font-weight: 600;
     padding: 4px 12px;
@@ -133,14 +133,14 @@
 .branding-title {
     font-size: 26px;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--c-white);
     margin: 0 0 8px 0;
     letter-spacing: -0.5px;
 }
 
 .branding-desc {
     font-size: 13.5px;
-    color: #cbd5e1;
+    color: var(--c-slate-300);
     margin: 0;
     max-width: 340px;
     line-height: 1.5;
@@ -160,7 +160,7 @@
     border-radius: 50px;
     font-size: 12.5px;
     font-weight: 600;
-    color: #B1C9EF;
+    color: var(--c-ocean-300);
     letter-spacing: 0.5px;
 }
 
@@ -171,7 +171,7 @@
     align-items: center;
     justify-content: center;
     position: relative;
-    background-color: #F0F3FA;
+    background-color: var(--c-ocean-50);
     padding: 40px 24px;
 }
 
@@ -181,9 +181,9 @@
     z-index: 1;
     width: 460px;
     max-width: 100%;
-    background: #ffffff;
+    background: var(--c-white);
     border-radius: 20px;
-    border: 1px solid #D5DEEF;
+    border: 1px solid var(--c-ocean-200);
     padding: 36px 36px;
     box-shadow: 0 12px 30px -5px rgba(57, 88, 134, 0.08), 0 4px 12px -2px rgba(57, 88, 134, 0.04);
 }
@@ -196,21 +196,21 @@
 .login-card-header h3 {
     font-size: 24px;
     font-weight: 800;
-    color: #1E2D42;
+    color: var(--c-ocean-900);
     margin: 0 0 6px 0;
     letter-spacing: -0.3px;
 }
 
 .login-card-header p {
     font-size: 13.5px;
-    color: #627D98;
+    color: var(--c-aa-ocean-slate);
     margin: 0;
 }
 
 /* ── Thông báo lỗi / thành công ── */
 .login-error-banner {
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    background: var(--c-red-50);
+    border: 1px solid var(--c-red-200);
     border-radius: 10px;
     padding: 10px 14px;
     margin-bottom: 18px;
@@ -220,7 +220,7 @@
 .login-error-banner p {
     font-size: 13px;
     font-weight: 500;
-    color: #dc2626;
+    color: var(--c-aa-red-600);
     margin: 0;
     line-height: 1.4;
 }
@@ -230,8 +230,8 @@
 }
 
 .login-success-banner {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    background: var(--c-green-50);
+    border: 1px solid var(--c-green-200);
     border-radius: 10px;
     padding: 10px 14px;
     margin-bottom: 18px;
@@ -241,7 +241,7 @@
 .login-success-banner p {
     font-size: 13px;
     font-weight: 500;
-    color: #16a34a;
+    color: var(--c-aa-green-600);
     margin: 0;
     line-height: 1.4;
 }
@@ -249,12 +249,12 @@
 /* ── Tab Pills ── */
 .login-tabs {
     display: flex;
-    background: #F0F3FA;
+    background: var(--c-ocean-50);
     border-radius: 50px;
     padding: 4px;
     margin-bottom: 22px;
     gap: 4px;
-    border: 1px solid #D5DEEF;
+    border: 1px solid var(--c-ocean-200);
 }
 
 .login-tab-btn {
@@ -263,7 +263,7 @@
     padding: 9px 0;
     font-size: 13.5px;
     font-weight: 600;
-    color: #627D98;
+    color: var(--c-aa-ocean-slate);
     background: transparent;
     border: none;
     border-radius: 50px;
@@ -272,12 +272,12 @@
 }
 
 .login-tab-btn:hover {
-    color: #1E2D42;
+    color: var(--c-ocean-900);
 }
 
 .login-tab-btn.active {
-    background: #395886;
-    color: #ffffff;
+    background: var(--c-ocean-700);
+    color: var(--c-white);
     box-shadow: 0 4px 10px rgba(57, 88, 134, 0.25);
 }
 
@@ -294,7 +294,7 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #1E2D42;
+    color: var(--c-ocean-900);
     margin-bottom: 6px;
 }
 
@@ -308,7 +308,7 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #8AAEE0;
+    color: var(--c-aa-ocean-400);
     font-size: 16px;
     pointer-events: none;
     transition: color 0.2s;
@@ -320,9 +320,9 @@
     padding: 8px 14px 8px 42px;
     font-size: 13.5px;
     font-family: inherit;
-    color: #1E2D42;
-    background: #ffffff;
-    border: 1px solid #D5DEEF;
+    color: var(--c-ocean-900);
+    background: var(--c-white);
+    border: 1px solid var(--c-ocean-200);
     border-radius: 10px;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -330,17 +330,17 @@
 }
 
 .login-input-group input::placeholder {
-    color: #8AAEE0;
+    color: var(--c-aa-ocean-400);
     font-size: 13px;
 }
 
 .login-input-group input:focus {
-    border-color: #395886;
+    border-color: var(--c-ocean-700);
     box-shadow: 0 0 0 3px rgba(57, 88, 134, 0.15);
 }
 
 .login-input-group:has(input:focus) .input-icon {
-    color: #395886;
+    color: var(--c-ocean-700);
 }
 
 /* ── Options Row ── */
@@ -356,7 +356,7 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #627D98;
+    color: var(--c-aa-ocean-slate);
     cursor: pointer;
     user-select: none;
 }
@@ -364,20 +364,20 @@
 .login-remember input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: #395886;
+    accent-color: var(--c-ocean-700);
     cursor: pointer;
 }
 
 .login-forgot-link {
     font-size: 13px;
     font-weight: 500;
-    color: #395886;
+    color: var(--c-ocean-700);
     text-decoration: none;
     transition: color 0.2s;
 }
 
 .login-forgot-link:hover {
-    color: #2d456a;
+    color: var(--c-ocean-800);
     text-decoration: underline;
 }
 
@@ -388,8 +388,8 @@
     height: 44px;
     font-size: 14px;
     font-weight: 700;
-    color: #ffffff;
-    background: linear-gradient(135deg, #395886 0%, #4D71A3 100%);
+    color: var(--c-white);
+    background: linear-gradient(135deg, var(--c-ocean-700) 0%, var(--c-ocean-600) 100%);
     border: none;
     border-radius: 50px;
     cursor: pointer;
@@ -404,7 +404,7 @@
 
 .btn-login-primary:hover,
 .btn-register-primary:hover {
-    background: linear-gradient(135deg, #2d456a 0%, #395886 100%);
+    background: linear-gradient(135deg, var(--c-ocean-800) 0%, var(--c-ocean-700) 100%);
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(57, 88, 134, 0.35);
 }
@@ -419,9 +419,9 @@
     height: 40px;
     font-size: 13.5px;
     font-weight: 600;
-    color: #627D98;
+    color: var(--c-aa-ocean-slate);
     background: transparent;
-    border: 1px solid #D5DEEF;
+    border: 1px solid var(--c-ocean-200);
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -432,19 +432,19 @@
 }
 
 .btn-login-exit:hover {
-    background: #F0F3FA;
-    color: #1E2D42;
-    border-color: #B1C9EF;
+    background: var(--c-ocean-50);
+    color: var(--c-ocean-900);
+    border-color: var(--c-ocean-300);
 }
 
 .login-signup-link {
     text-align: center;
     font-size: 13px;
-    color: #627D98;
+    color: var(--c-aa-ocean-slate);
 }
 
 .login-signup-link a {
-    color: #395886;
+    color: var(--c-ocean-700);
     font-weight: 600;
     text-decoration: none;
     margin-left: 4px;
@@ -468,7 +468,7 @@
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #8AAEE0;
+    color: var(--c-aa-ocean-400);
     font-size: 17px;
     cursor: pointer;
     padding: 2px 4px;
@@ -478,14 +478,14 @@
 }
 
 .toggle-password-btn:hover {
-    color: #395886;
+    color: var(--c-ocean-700);
 }
 
 /* ── Field Validation Error ── */
 .field-error {
     font-size: 12.5px;
     font-weight: 500;
-    color: #dc2626;
+    color: var(--c-aa-red-600);
     margin-top: 4px;
     margin-bottom: 4px;
     min-height: 0;
@@ -493,7 +493,7 @@
 }
 
 .login-input-group input.input-error {
-    border-color: #f87171;
+    border-color: var(--c-red-400);
     box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15);
 }
 
@@ -523,18 +523,18 @@
    ========================================================================== */
 [data-theme="dark"] .login-body,
 [data-bs-theme="dark"] .login-body {
-    background-color: #070A13;
-    color: #F1F5F9;
+    background-color: var(--c-night-950);
+    color: var(--c-slate-100);
 }
 
 [data-theme="dark"] .login-wrapper,
 [data-bs-theme="dark"] .login-wrapper {
-    background-color: #070A13;
+    background-color: var(--c-night-950);
 }
 
 [data-theme="dark"] .login-branding,
 [data-bs-theme="dark"] .login-branding {
-    background: linear-gradient(165deg, #0A0E1A 0%, #111827 50%, #1E2D42 100%);
+    background: linear-gradient(165deg, var(--c-night-900) 0%, var(--c-gray-900) 50%, var(--c-ocean-900) 100%);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
 }
 
@@ -544,9 +544,9 @@
 [data-bs-theme="dark"] .login-card,
 [data-theme="dark"] .login-form-card,
 [data-bs-theme="dark"] .login-form-card {
-    background-color: #0E1322 !important;
+    background-color: var(--c-night-800) !important;
     border: 1px solid rgba(255, 255, 255, 0.09) !important;
-    color: #F1F5F9 !important;
+    color: var(--c-slate-100) !important;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -554,110 +554,110 @@
 [data-bs-theme="dark"] .login-card-header h3,
 [data-theme="dark"] .login-form-header h2,
 [data-bs-theme="dark"] .login-form-header h2 {
-    color: #F1F5F9 !important;
+    color: var(--c-slate-100) !important;
 }
 
 [data-theme="dark"] .login-card-header p,
 [data-bs-theme="dark"] .login-card-header p,
 [data-theme="dark"] .login-form-header p,
 [data-bs-theme="dark"] .login-form-header p {
-    color: #94A3B8 !important;
+    color: var(--c-slate-400) !important;
 }
 
 [data-theme="dark"] .btn-login-exit,
 [data-bs-theme="dark"] .btn-login-exit {
-    color: #CBD5E1 !important;
+    color: var(--c-slate-300) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     background-color: transparent !important;
 }
 
 [data-theme="dark"] .btn-login-exit:hover,
 [data-bs-theme="dark"] .btn-login-exit:hover {
-    background-color: #151D30 !important;
-    color: #FFFFFF !important;
+    background-color: var(--c-night-700) !important;
+    color: var(--c-white) !important;
     border-color: rgba(99, 142, 203, 0.35) !important;
 }
 
 [data-theme="dark"] .login-tabs,
 [data-bs-theme="dark"] .login-tabs {
-    background: #151D30;
+    background: var(--c-night-700);
     border-color: rgba(255, 255, 255, 0.09);
 }
 
 [data-theme="dark"] .login-tab-btn,
 [data-bs-theme="dark"] .login-tab-btn {
-    color: #94A3B8;
+    color: var(--c-slate-400);
 }
 
 [data-theme="dark"] .login-tab-btn:hover,
 [data-bs-theme="dark"] .login-tab-btn:hover {
-    color: #F1F5F9;
+    color: var(--c-slate-100);
 }
 
 [data-theme="dark"] .login-tab-btn.active,
 [data-bs-theme="dark"] .login-tab-btn.active {
-    background: linear-gradient(135deg, #3B82F6, #2563EB);
-    color: #FFFFFF;
+    background: linear-gradient(135deg, var(--c-blue-500), var(--c-blue-600));
+    color: var(--c-white);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
 [data-theme="dark"] .login-label,
 [data-bs-theme="dark"] .login-label {
-    color: #F1F5F9;
+    color: var(--c-slate-100);
 }
 
 [data-theme="dark"] .login-input-group input,
 [data-bs-theme="dark"] .login-input-group input {
-    background: #151D30;
+    background: var(--c-night-700);
     border-color: rgba(255, 255, 255, 0.12);
-    color: #F1F5F9;
+    color: var(--c-slate-100);
 }
 
 [data-theme="dark"] .login-input-group input::placeholder,
 [data-bs-theme="dark"] .login-input-group input::placeholder {
-    color: #64748B;
+    color: var(--c-slate-500);
 }
 
 [data-theme="dark"] .login-input-group input:focus,
 [data-bs-theme="dark"] .login-input-group input:focus {
-    border-color: #638ECB;
+    border-color: var(--c-ocean-500);
     box-shadow: 0 0 0 3px rgba(99, 142, 203, 0.25);
 }
 
 [data-theme="dark"] .login-remember,
 [data-bs-theme="dark"] .login-remember {
-    color: #94A3B8;
+    color: var(--c-slate-400);
 }
 
 [data-theme="dark"] .login-forgot-link,
 [data-bs-theme="dark"] .login-forgot-link {
-    color: #60A5FA;
+    color: var(--c-blue-400);
 }
 
 [data-theme="dark"] .login-forgot-link:hover,
 [data-bs-theme="dark"] .login-forgot-link:hover {
-    color: #93C5FD;
+    color: var(--c-blue-300);
 }
 
 [data-theme="dark"] .login-signup-link,
 [data-bs-theme="dark"] .login-signup-link {
-    color: #94A3B8;
+    color: var(--c-slate-400);
 }
 
 [data-theme="dark"] .login-signup-link a,
 [data-bs-theme="dark"] .login-signup-link a {
-    color: #60A5FA;
+    color: var(--c-blue-400);
 }
 
 [data-theme="dark"] .login-demo-badge,
 [data-bs-theme="dark"] .login-demo-badge {
-    background-color: #151D30;
+    background-color: var(--c-night-700);
     border-color: rgba(255, 255, 255, 0.1);
-    color: #CBD5E1;
+    color: var(--c-slate-300);
 }
 
 [data-theme="dark"] .login-footer-panel,
 [data-bs-theme="dark"] .login-footer-panel {
-    background-color: #0A0E1A;
+    background-color: var(--c-night-900);
     border-top-color: rgba(255, 255, 255, 0.08);
 }

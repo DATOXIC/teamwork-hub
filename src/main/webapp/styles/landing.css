@@ -4,14 +4,14 @@
    Hero & Feature Cards (index.jsp)
    ========================================================================== */
 .text-gradient {
-    background: linear-gradient(135deg, #8AAEE0 0%, #B1C9EF 45%, #ffffff 100%);
+    background: linear-gradient(135deg, var(--c-ocean-400) 0%, var(--c-ocean-300) 45%, var(--c-white) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
 .feature-card-modern {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 16px;
     padding: 28px 24px;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -21,7 +21,7 @@
 .feature-card-modern:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
-    border-color: #cbd5e1;
+    border-color: var(--c-slate-300);
 }
 
 /* ==========================================================================
@@ -30,7 +30,7 @@
 
 /* Nền tối toàn trang liền mạch dành riêng cho Homepage (Không ảnh hưởng trang nội bộ) */
 body:has(.hero-scrolltelling) {
-    background-color: #0F1726 !important;
+    background-color: var(--c-night-750) !important;
 }
 
 body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
@@ -53,7 +53,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     border-radius: 9999px;
     font-size: 0.845rem;
     font-weight: 600;
-    color: #D5DEEF;
+    color: var(--c-ocean-200);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     margin-bottom: 1.5rem;
     transition: all 0.25s ease;
@@ -62,7 +62,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .hero-badge-pill:hover {
     background: rgba(57, 88, 134, 0.4);
     border-color: rgba(177, 201, 239, 0.6);
-    color: #ffffff;
+    color: var(--c-white);
     transform: translateY(-1px);
 }
 
@@ -70,20 +70,20 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: #8AAEE0;
-    box-shadow: 0 0 10px #8AAEE0;
+    background-color: var(--c-ocean-400);
+    box-shadow: 0 0 10px var(--c-ocean-400);
     display: inline-block;
 }
 
 /* ---------- Hero Block (Deep Ocean Midnight & Ambient Sky Blue Glow, Full Viewport) ---------- */
 .hero-scrolltelling {
     min-height: 92vh;
-    background-color: #0F1726;
+    background-color: var(--c-night-750);
     background-image: 
         radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 142, 203, 0.35), transparent 70%),
         radial-gradient(circle 600px at 15% 30%, rgba(57, 88, 134, 0.30), transparent 60%),
         radial-gradient(circle 500px at 85% 35%, rgba(138, 174, 224, 0.22), transparent 60%);
-    color: #f8fafc;
+    color: var(--c-slate-50);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -101,13 +101,13 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     letter-spacing: -0.035em;
     line-height: 1.16;
     margin-bottom: 1.25rem;
-    color: #ffffff;
+    color: var(--c-white);
     text-shadow: 0 4px 25px rgba(0, 0, 0, 0.35);
 }
 
 .hero-scrolltelling .hero-subtitle {
     font-size: clamp(1.05rem, 2vw, 1.25rem);
-    color: #B1C9EF;
+    color: var(--c-ocean-300);
     max-width: 660px;
     margin: 0 auto 2.25rem;
     line-height: 1.75;
@@ -115,9 +115,9 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 /* CTA button (Hero & CTA Section) */
 .btn-hero-cta {
-    background: linear-gradient(135deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
+    background: linear-gradient(135deg, var(--c-ocean-700) 0%, var(--c-ocean-500) 50%, var(--c-ocean-400) 100%);
     border: 1px solid rgba(255, 255, 255, 0.35);
-    color: #ffffff;
+    color: var(--c-white);
     padding: 0.92rem 2.4rem;
     border-radius: 9999px;
     font-weight: 700;
@@ -130,7 +130,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 .btn-hero-cta:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 32px rgba(57, 88, 134, 0.75), 0 0 20px rgba(138, 174, 224, 0.45);
-    color: #ffffff;
+    color: var(--c-white);
 }
 
 /* Dashboard peek image — nhô lên từ dưới hero với hào quang phát sáng 3D */
@@ -170,7 +170,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     border-radius: 16px 16px 0 0;
     border: 1px solid rgba(177, 201, 239, 0.2) !important;
     border-bottom: none !important;
-    background-color: #151F30;
+    background-color: var(--c-night-700);
     box-shadow: 
         0 -15px 45px -10px rgba(0, 0, 0, 0.5),
         0 20px 60px -15px rgba(0, 0, 0, 0.6),
@@ -183,7 +183,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
-    color: #94a3b8;
+    color: var(--c-slate-400);
     font-size: 0.8rem;
     display: flex;
     flex-direction: column;
@@ -205,14 +205,14 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* ---------- Feature Blocks (Liền mạch, hoàn toàn KHÔNG có đường kẻ cắt khúc) ---------- */
 .feature-block {
     padding: 7rem 1.5rem;
-    background-color: #0F1726;
+    background-color: var(--c-night-750);
     position: relative;
     border: none !important;
 }
 
 /* Khối xen kẽ dùng tông nền tối dịu với vệt sáng Ambient Glow nhẹ, không đường viền */
 .feature-block--alt {
-    background-color: #0C121E;
+    background-color: var(--c-night-850);
     background-image: 
         radial-gradient(ellipse 70% 45% at 50% 30%, rgba(99, 142, 203, 0.12), transparent 70%);
     border: none !important;
@@ -241,35 +241,35 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 /* 1. Kanban Module: Deep Sky Blue */
 .feature-icon-wrapper--kanban {
     border: 1px solid rgba(138, 174, 224, 0.4);
-    color: #8AAEE0;
+    color: var(--c-ocean-400);
     box-shadow: 0 0 25px rgba(99, 142, 203, 0.28);
 }
 
 /* 2. Wiki Module: Vibrant Ocean Blue */
 .feature-icon-wrapper--wiki {
     border: 1px solid rgba(99, 142, 203, 0.45);
-    color: #638ECB;
+    color: var(--c-ocean-500);
     box-shadow: 0 0 25px rgba(57, 88, 134, 0.3);
 }
 
 /* 3. Chat Module: Soft Periwinkle Blue */
 .feature-icon-wrapper--chat {
     border: 1px solid rgba(177, 201, 239, 0.45);
-    color: #B1C9EF;
+    color: var(--c-ocean-300);
     box-shadow: 0 0 25px rgba(138, 174, 224, 0.25);
 }
 
 /* 4. Productivity Module: Crisp Amber / Ocean Light */
 .feature-icon-wrapper--stats {
     border: 1px solid rgba(213, 222, 239, 0.45);
-    color: #D5DEEF;
+    color: var(--c-ocean-200);
     box-shadow: 0 0 25px rgba(99, 142, 203, 0.25);
 }
 
 .feature-block .feature-title {
     font-size: clamp(1.8rem, 4vw, 2.35rem);
     font-weight: 800;
-    color: #ffffff;
+    color: var(--c-white);
     letter-spacing: -0.03em;
     margin-bottom: 0.95rem;
     text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
@@ -277,7 +277,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 .feature-block .feature-desc {
     font-size: 1.08rem;
-    color: #B1C9EF;
+    color: var(--c-ocean-300);
     line-height: 1.8;
     max-width: 680px;
     margin-bottom: 3.25rem;
@@ -293,7 +293,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     margin: 0 auto;
     border-radius: 18px;
     border: 1px solid rgba(177, 201, 239, 0.16) !important;
-    background-color: #151F30;
+    background-color: var(--c-night-700);
     box-shadow: 
         0 20px 50px -10px rgba(0, 0, 0, 0.65),
         0 0 35px rgba(99, 142, 203, 0.12);
@@ -315,12 +315,12 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     aspect-ratio: 16 / 9;
     border-radius: 18px;
     border: 1px dashed rgba(255, 255, 255, 0.15);
-    background-color: #0f172a;
+    background-color: var(--c-slate-900);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: var(--c-slate-500);
     font-size: 0.875rem;
     font-weight: 500;
     margin: 0 auto;
@@ -328,7 +328,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .feature-block--alt .feature-screenshot {
-    background-color: #0d121f;
+    background-color: var(--c-night-850);
 }
 
 .feature-screenshot:has(img) {
@@ -387,12 +387,12 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 /* ---------- CTA Block (Deep Ocean Midnight Liền Mạch — Không Viền Cắt Ngang) ---------- */
 .cta-block {
-    background-color: #0C121E;
+    background-color: var(--c-night-850);
     background-image: 
         radial-gradient(ellipse 75% 65% at 50% 30%, rgba(99, 142, 203, 0.25), transparent 70%),
         radial-gradient(circle 500px at 80% 50%, rgba(57, 88, 134, 0.20), transparent 60%);
     border: none !important;
-    color: #ffffff;
+    color: var(--c-white);
     padding: 7rem 1.5rem;
     text-align: center;
     position: relative;
@@ -404,12 +404,12 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     font-weight: 800;
     letter-spacing: -0.03em;
     margin-bottom: 1.15rem;
-    color: #ffffff;
+    color: var(--c-white);
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .cta-block p {
-    color: #B1C9EF;
+    color: var(--c-ocean-300);
     font-size: 1.12rem;
     max-width: 580px;
     margin: 0 auto 2.5rem;
@@ -418,23 +418,23 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 
 /* Footer đồng bộ tông tối riêng cho Homepage (Không đường viền thô) */
 .cta-block ~ footer.footer {
-    background-color: #0C121E !important;
+    background-color: var(--c-night-850) !important;
     border-top: 1px solid rgba(138, 174, 224, 0.1) !important;
-    color: #8AAEE0 !important;
+    color: var(--c-ocean-400) !important;
 }
 
 .cta-block ~ footer.footer p,
 .cta-block ~ footer.footer a {
-    color: #8AAEE0 !important;
+    color: var(--c-ocean-400) !important;
 }
 
 .cta-block ~ footer.footer a:hover {
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 .cta-block ~ footer.footer .badge {
     background-color: rgba(57, 88, 134, 0.25) !important;
-    color: #B1C9EF !important;
+    color: var(--c-ocean-300) !important;
     border-color: rgba(138, 174, 224, 0.2) !important;
 }
 

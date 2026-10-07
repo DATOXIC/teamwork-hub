@@ -1,0 +1,315 @@
+/* ==========================================================================
+   tokens.css — NGUỒN DUY NHẤT của màu, font, bo góc, bóng, khoảng cách, z-index
+   ==========================================================================
+   Nạp ĐẦU TIÊN (trước base.css và mọi file CSS khác): includes/header.jsp, login.jsp, forgot-password.jsp.
+
+   Quy ước:
+   1. Bảng màu --c-*  : giá trị gốc, KHÔNG đổi theo theme. Các file CSS khác chỉ dùng var(--c-...),
+                        không viết mã hex trực tiếp (kiểm tra: grep "#[0-9a-f]{6}" styles/*.css).
+   2. Token ngữ nghĩa : --brand-*, --text-*, --surface-*... nói "dùng để làm gì"; bản tối được ghi đè
+                        trong [data-theme="dark"] (ở đây và trong page-components.css).
+   3. Màu chữ trên nền sáng phải đạt WCAG AA (≥ 4.5:1 trên nền trắng và nền app #f0f3fa):
+        chữ phụ  --c-slate-550 (#5f6f86)  · chữ phụ xanh --c-ocean-slate-600 (#52677f)
+        chữ xanh --c-ocean-650 (#46679a)   · trạng thái: emerald-700, amber-700, red-700, sky-700
+      Các màu nhạt (slate-400, ocean-400, emerald-500...) chỉ dùng cho viền, icon trang trí, nền.
+   ========================================================================== */
+
+:root {
+    /* ---------- 1. Bảng màu chuẩn (Tailwind) ---------- */
+    --c-amber-50: #fffbeb;
+    --c-amber-100: #fef3c7;
+    --c-amber-200: #fde68a;
+    --c-amber-300: #fcd34d;
+    --c-amber-400: #fbbf24;
+    --c-amber-500: #f59e0b;
+    --c-amber-600: #d97706;
+    --c-amber-700: #b45309;
+    --c-amber-800: #92400e;
+    --c-amber-900: #78350f;
+    --c-blue-50: #eff6ff;
+    --c-blue-200: #bfdbfe;
+    --c-blue-300: #93c5fd;
+    --c-blue-400: #60a5fa;
+    --c-blue-500: #3b82f6;
+    --c-blue-600: #2563eb;
+    --c-blue-900: #1e3a8a;
+    --c-cyan-500: #06b6d4;
+    --c-emerald-50: #ecfdf5;
+    --c-emerald-100: #d1fae5;
+    --c-emerald-200: #a7f3d0;
+    --c-emerald-300: #6ee7b7;
+    --c-emerald-400: #34d399;
+    --c-emerald-500: #10b981;
+    --c-emerald-600: #059669;
+    --c-emerald-700: #047857;
+    --c-emerald-800: #065f46;
+    --c-emerald-900: #064e3b;
+    --c-fuchsia-50: #fdf4ff;
+    --c-fuchsia-100: #fae8ff;
+    --c-gray-400: #9ca3af;
+    --c-gray-500: #6b7280;
+    --c-gray-900: #111827;
+    --c-green-50: #f0fdf4;
+    --c-green-100: #dcfce7;
+    --c-green-200: #bbf7d0;
+    --c-green-500: #22c55e;
+    --c-green-600: #16a34a;
+    --c-green-700: #15803d;
+    --c-green-800: #166534;
+    --c-indigo-50: #eef2ff;
+    --c-indigo-100: #e0e7ff;
+    --c-indigo-200: #c7d2fe;
+    --c-indigo-300: #a5b4fc;
+    --c-indigo-400: #818cf8;
+    --c-indigo-500: #6366f1;
+    --c-indigo-600: #4f46e5;
+    --c-indigo-700: #4338ca;
+    --c-indigo-800: #3730a3;
+    --c-indigo-900: #312e81;
+    --c-indigo-950: #1e1b4b;
+    --c-purple-100: #f3e8ff;
+    --c-purple-200: #e9d5ff;
+    --c-purple-300: #d8b4fe;
+    --c-purple-400: #c084fc;
+    --c-purple-700: #7e22ce;
+    --c-purple-800: #6b21a8;
+    --c-red-50: #fef2f2;
+    --c-red-100: #fee2e2;
+    --c-red-200: #fecaca;
+    --c-red-300: #fca5a5;
+    --c-red-400: #f87171;
+    --c-red-500: #ef4444;
+    --c-red-600: #dc2626;
+    --c-red-700: #b91c1c;
+    --c-red-800: #991b1b;
+    --c-red-900: #7f1d1d;
+    --c-rose-50: #fff1f2;
+    --c-rose-600: #e11d48;
+    --c-sky-50: #f0f9ff;
+    --c-sky-100: #e0f2fe;
+    --c-sky-200: #bae6fd;
+    --c-sky-300: #7dd3fc;
+    --c-sky-400: #38bdf8;
+    --c-sky-600: #0284c7;
+    --c-sky-700: #0369a1;
+    --c-sky-900: #0c4a6e;
+    --c-slate-50: #f8fafc;
+    --c-slate-100: #f1f5f9;
+    --c-slate-200: #e2e8f0;
+    --c-slate-300: #cbd5e1;
+    --c-slate-400: #94a3b8;
+    --c-slate-500: #64748b;
+    --c-slate-550: #5f6f86;
+    --c-slate-600: #475569;
+    --c-slate-700: #334155;
+    --c-slate-800: #1e293b;
+    --c-slate-900: #0f172a;
+    --c-violet-50: #f5f3ff;
+    --c-violet-200: #ddd6fe;
+    --c-violet-500: #8b5cf6;
+    --c-violet-600: #7c3aed;
+    --c-white: #ffffff;
+    --c-yellow-200: #fef08a;
+    --c-yellow-300: #fde047;
+    --c-yellow-400: #facc15;
+    --c-yellow-500: #eab308;
+    --c-yellow-800: #854d0e;
+    --c-yellow-900: #713f12;
+    --c-zinc-800: #27272a;
+    --c-zinc-900: #18181b;
+
+    /* ---------- 2. Màu thương hiệu "Ocean" & nền tối "Night" ---------- */
+    --c-night-700: #151d30;
+    --c-night-750: #0f1726;
+    --c-night-800: #0e1322;
+    --c-night-850: #0c121e;
+    --c-night-900: #0a0e1a;
+    --c-night-950: #070a13;
+    --c-ocean-50: #f0f3fa;
+    --c-ocean-75: #e8eef8;
+    --c-ocean-100: #e2eaf8;
+    --c-ocean-200: #d5deef;
+    --c-ocean-300: #b1c9ef;
+    --c-ocean-400: #8aaee0;
+    --c-ocean-500: #638ecb;
+    --c-ocean-600: #4d71a3;
+    --c-ocean-650: #46679a;
+    --c-ocean-700: #395886;
+    --c-ocean-800: #2d456a;
+    --c-ocean-900: #1e2d42;
+    --c-ocean-slate: #627d98;
+    --c-ocean-slate-600: #52677f;
+
+    /* ---------- 3. Màu ít dùng (1–3 chỗ) — tên tự sinh theo họ màu; khi sửa giao diện nên thay dần bằng màu chuẩn ở trên ---------- */
+    --c-x-blue-100: #d6e2f4;
+    --c-x-blue-200: #b4c7e3;
+    --c-x-blue-300: #9fb6d9;
+    --c-x-blue-300-2: #7b68ee;
+    --c-x-blue-400: #4c8deb;
+    --c-x-blue-500: #4f73aa;
+    --c-x-blue-500-2: #2a64c9;
+    --c-x-blue-600: #426394;
+    --c-x-blue-600-2: #46607f;
+    --c-x-blue-600-3: #1f4e9c;
+    --c-x-blue-700: #2b3e58;
+    --c-x-blue-700-2: #364b68;
+    --c-x-blue-700-3: #2f4b75;
+    --c-x-blue-700-4: #2a3d58;
+    --c-x-blue-700-5: #293e5c;
+    --c-x-blue-700-6: #2d4363;
+    --c-x-blue-700-7: #0c7c99;
+    --c-x-blue-800: #24344b;
+    --c-x-blue-800-2: #1b2a3f;
+    --c-x-blue-800-3: #24354d;
+    --c-x-blue-900: #162131;
+    --c-x-green-200: #c8e6c9;
+    --c-x-green-500: #27c93f;
+    --c-x-green-600: #43a047;
+    --c-x-green-600-2: #388e3c;
+    --c-x-green-600-3: #22c08a;
+    --c-x-green-700: #2e7d32;
+    --c-x-green-700-2: #256729;
+    --c-x-green-700-3: #0b8a5f;
+    --c-x-neutral-50: #edf2f9;
+    --c-x-neutral-50-2: #ebf1fa;
+    --c-x-neutral-50-3: #eaf1fb;
+    --c-x-neutral-100: #e6edf8;
+    --c-x-neutral-100-2: #e8f5e9;
+    --c-x-neutral-100-3: #dee2e6;
+    --c-x-neutral-500: #6c757d;
+    --c-x-neutral-900: #0d1117;
+    --c-x-orange-500: #f57f17;
+    --c-x-orange-500-2: #f0a020;
+    --c-x-orange-600: #c96a04;
+    --c-x-red-300: #ff5f56;
+    --c-x-teal-600: #14aecb;
+    --c-x-violet-300: #9a6ef2;
+    --c-x-violet-500: #6d33d9;
+    --c-x-yellow-100: #fff8e1;
+    --c-x-yellow-200: #ffe082;
+    --c-x-yellow-400: #ffbd2e;
+}
+
+:root {
+    /* ---------- 3b. Màu CHỮ đạt AA: chế độ sáng dùng màu đậm hơn (≥ 4.5:1); chế độ tối giữ màu gốc ---------- */
+    --c-aa-amber-500: var(--c-amber-700);
+    --c-aa-amber-600: var(--c-amber-700);
+    --c-aa-blue-500: var(--c-blue-600);
+    --c-aa-emerald-500: var(--c-emerald-700);
+    --c-aa-emerald-600: var(--c-emerald-700);
+    --c-aa-gray-400: var(--c-slate-550);
+    --c-aa-green-600: var(--c-emerald-700);
+    --c-aa-ocean-400: var(--c-ocean-650);
+    --c-aa-ocean-500: var(--c-ocean-650);
+    --c-aa-ocean-slate: var(--c-ocean-slate-600);
+    --c-aa-red-500: var(--c-red-700);
+    --c-aa-red-600: var(--c-red-700);
+    --c-aa-sky-600: var(--c-sky-700);
+    --c-aa-slate-400: var(--c-slate-550);
+    --c-aa-slate-500: var(--c-slate-550);
+    --c-aa-x-blue-300-2: var(--c-indigo-600);
+    --c-aa-x-orange-500: var(--c-amber-700);
+}
+
+[data-theme="dark"] {
+    --c-aa-amber-500: var(--c-amber-500);
+    --c-aa-amber-600: var(--c-amber-600);
+    --c-aa-blue-500: var(--c-blue-500);
+    --c-aa-emerald-500: var(--c-emerald-500);
+    --c-aa-emerald-600: var(--c-emerald-600);
+    --c-aa-gray-400: var(--c-gray-400);
+    --c-aa-green-600: var(--c-green-600);
+    --c-aa-ocean-400: var(--c-ocean-400);
+    --c-aa-ocean-500: var(--c-ocean-500);
+    --c-aa-ocean-slate: var(--c-ocean-slate);
+    --c-aa-red-500: var(--c-red-500);
+    --c-aa-red-600: var(--c-red-600);
+    --c-aa-sky-600: var(--c-sky-600);
+    --c-aa-slate-400: var(--c-slate-400);
+    --c-aa-slate-500: var(--c-slate-500);
+    --c-aa-x-blue-300-2: var(--c-x-blue-300-2);
+    --c-aa-x-orange-500: var(--c-x-orange-500);
+}
+
+:root {
+    /* ---------- 4. Token ngữ nghĩa (chuyển từ base.css) ---------- */
+    /* UI-08: Hệ thống Typography chuẩn SaaS (Inter / ClickUp 3.0 / Linear) */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+
+    /* Bảng màu thiết kế mới (Ocean & Sky Blue Palette từ Twine) */
+    --brand-primary: var(--c-ocean-700);
+    --brand-primary-hover: var(--c-ocean-800);
+    --brand-accent: var(--c-ocean-500);
+    --brand-accent-light: var(--c-ocean-400);
+    --brand-accent-soft: var(--c-ocean-300);
+    --brand-sky-light: var(--c-ocean-200);
+    --brand-bg: var(--c-ocean-50);
+    --brand-surface: var(--c-white);
+    --brand-dark: var(--c-ocean-900);
+    --brand-navy: var(--c-ocean-900);
+    --brand-border: var(--c-ocean-200);
+    --brand-text-main: var(--c-ocean-900);
+    --brand-text-body: var(--c-ocean-700);
+    --brand-text-muted: var(--c-aa-ocean-slate);
+    --brand-text-subtle: var(--c-aa-ocean-400);
+
+    /* UI-06: Hệ thống Border-radius chuẩn hóa 4 cấp */
+    --radius-sm: 6px;
+    /* Badge, chip, btn-xs */
+    --radius-md: 10px;
+    /* Input, subtask item, doc item */
+    --radius-lg: 14px;
+    /* Card, modal, dropdown */
+    --radius-xl: 20px;
+    /* Card lớn (project, login card) */
+    --radius-full: 9999px;
+    /* Button pill, avatar */
+
+    /* UI-07: Shadow chuẩn hóa */
+    --shadow-card: 0 2px 6px rgba(15, 23, 42, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-card-hover: 0 10px 24px -6px rgba(15, 23, 42, 0.10), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
+    --shadow-modal: 0 20px 40px -12px rgba(15, 23, 42, 0.18);
+
+    /* ---------- 5. Token ngữ nghĩa dùng chung cho chữ & bề mặt ---------- */
+    --text-strong: var(--c-ocean-900);
+    --text-body: var(--c-slate-700);
+    --text-muted: var(--c-slate-550);     /* AA trên nền trắng và nền app */
+    --surface: var(--c-white);
+    --surface-subtle: var(--c-slate-50);
+    --border-subtle: var(--c-slate-200);
+
+    /* ---------- 6. Khoảng cách: thang 4px ---------- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+
+    /* ---------- 7. Cỡ chữ (khớp các lớp .fs-7/.fs-8/.fs-9 trong base.css) ---------- */
+    --text-xs: 0.6875rem;   /* 11px */
+    --text-sm: 0.75rem;     /* 12px */
+    --text-md: 0.8125rem;   /* 13px */
+    --text-base: 0.875rem;  /* 14px — cỡ chữ mặc định của body */
+
+    /* ---------- 8. Lớp chồng (z-index) — khớp thang của Bootstrap 5 ---------- */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-offcanvas: 1045;
+    --z-modal: 1055;
+    --z-popover: 1070;
+    --z-toast: 1090;
+}
+
+[data-theme="dark"] {
+    --text-strong: var(--c-slate-100);
+    --text-body: var(--c-slate-300);
+    --text-muted: var(--c-slate-400);     /* 6.9:1 trên nền tối slate-900 */
+    --surface: var(--c-night-700);
+    --surface-subtle: var(--c-night-800);
+    --border-subtle: var(--c-slate-700);
+}

@@ -6,8 +6,8 @@
 .wiki-doc-item {
     display: block;
     text-decoration: none;
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 10px;
     padding: 12px 14px;
     transition: all 0.15s ease;
@@ -15,34 +15,34 @@
 }
 
 .wiki-doc-item:hover {
-    background-color: #f8fafc;
-    border-color: #cbd5e1;
+    background-color: var(--c-slate-50);
+    border-color: var(--c-slate-300);
     color: inherit;
     transform: translateX(2px);
 }
 
 .wiki-doc-item.active {
-    background-color: #F0F3FA;
-    border-color: #395886;
+    background-color: var(--c-ocean-50);
+    border-color: var(--c-ocean-700);
     border-left-width: 3.5px;
     box-shadow: 0 1px 4px rgba(57, 88, 134, 0.1);
 }
 
 .wiki-doc-item.active .wiki-doc-title {
-    color: #395886 !important;
+    color: var(--c-ocean-700) !important;
 }
 
 .wiki-body {
     font-size: 0.95rem;
     line-height: 1.8;
-    color: #1e293b;
+    color: var(--c-slate-800);
     white-space: pre-line;
     word-break: break-word;
 }
 
 .wiki-task-item {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 10px;
     padding: 12px 16px;
     display: flex;
@@ -53,6 +53,6 @@
 }
 
 .wiki-task-item:hover {
-    border-color: #cbd5e1;
-    background-color: #f8fafc;
+    border-color: var(--c-slate-300);
+    background-color: var(--c-slate-50);
 }

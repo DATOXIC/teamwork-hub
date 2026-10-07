@@ -4,8 +4,8 @@
    Project Grid & Workspace Styles (projects.jsp)
    ========================================================================== */
 .project-card {
-    background-color: #ffffff;
-    border: 1px solid #D5DEEF;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-ocean-200);
     border-radius: var(--radius-xl);
     padding: 0;
     height: 100%;
@@ -26,7 +26,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
+    background: linear-gradient(90deg, var(--c-ocean-700) 0%, var(--c-ocean-500) 50%, var(--c-ocean-400) 100%);
     opacity: 0.9;
     transition: height 0.2s ease;
 }
@@ -34,7 +34,7 @@
 .project-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 16px 32px -8px rgba(57, 88, 134, 0.16), 0 4px 12px -2px rgba(57, 88, 134, 0.08);
-    border-color: #8AAEE0;
+    border-color: var(--c-ocean-400);
 }
 
 .project-card:hover::before {
@@ -47,13 +47,13 @@
 
 .project-card-footer {
     padding: 16px 24px 22px 24px;
-    background-color: #FAFBFD;
-    border-top: 1px solid #EDF2F9;
+    background-color: var(--c-slate-50);
+    border-top: 1px solid var(--c-x-neutral-50);
 }
 
 .project-card-other {
-    background-color: #FFFFFF;
-    border: 1px dashed #B1C9EF;
+    background-color: var(--c-white);
+    border: 1px dashed var(--c-ocean-300);
     border-radius: var(--radius-xl);
     padding: 22px 24px;
     height: 100%;
@@ -66,9 +66,9 @@
 
 .project-card-other:hover {
     transform: translateY(-3px);
-    background-color: #FFFFFF;
+    background-color: var(--c-white);
     border-style: solid;
-    border-color: #638ECB;
+    border-color: var(--c-ocean-500);
     box-shadow: 0 12px 24px -6px rgba(57, 88, 134, 0.12);
 }
 
@@ -76,9 +76,9 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background-color: #F0F3FA;
-    color: #395886;
-    border: 1px solid #D5DEEF;
+    background-color: var(--c-ocean-50);
+    color: var(--c-ocean-700);
+    border: 1px solid var(--c-ocean-200);
     border-radius: 50px;
     padding: 3px 10px;
     font-size: 0.75rem;
@@ -92,9 +92,9 @@
 }
 
 .project-code-badge:hover {
-    background-color: #D5DEEF;
-    color: #1E2D42;
-    border-color: #B1C9EF;
+    background-color: var(--c-ocean-200);
+    color: var(--c-ocean-900);
+    border-color: var(--c-ocean-300);
     transform: scale(1.02);
 }
 
@@ -103,9 +103,9 @@
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #F0F3FA 0%, #D5DEEF 100%);
-    border: 1px solid #B1C9EF;
-    color: #395886;
+    background: linear-gradient(135deg, var(--c-ocean-50) 0%, var(--c-ocean-200) 100%);
+    border: 1px solid var(--c-ocean-300);
+    color: var(--c-ocean-700);
     font-weight: 800;
     font-size: 1rem;
     display: inline-flex;
@@ -116,7 +116,7 @@
 }
 
 .project-progress-container {
-    background-color: #E6EDF8;
+    background-color: var(--c-x-neutral-100);
     border-radius: 50px;
     height: 7px;
     overflow: hidden;
@@ -124,7 +124,7 @@
 }
 
 .project-progress-bar {
-    background: linear-gradient(90deg, #8AAEE0 0%, #638ECB 50%, #395886 100%);
+    background: linear-gradient(90deg, var(--c-ocean-400) 0%, var(--c-ocean-500) 50%, var(--c-ocean-700) 100%);
     height: 100%;
     border-radius: 50px;
     width: 0%;
@@ -133,9 +133,9 @@
 }
 
 .pending-invite-card {
-    background-color: #ffffff;
-    border: 1px solid #D5DEEF;
-    border-left: 4px solid #395886;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-ocean-200);
+    border-left: 4px solid var(--c-ocean-700);
     border-radius: 14px;
     padding: 18px 22px;
     box-shadow: 0 2px 8px rgba(57, 88, 134, 0.06);
@@ -144,15 +144,15 @@
 
 .pending-invite-card:hover {
     box-shadow: 0 8px 20px -4px rgba(57, 88, 134, 0.12);
-    border-color: #8AAEE0;
+    border-color: var(--c-ocean-400);
 }
 
 /* ==========================================================================
    Workspace Bento Dashboard Enhancements (KPI, Filter, Live Search)
    ========================================================================== */
 .workspace-kpi-card {
-    background: #ffffff;
-    border: 1px solid #D5DEEF;
+    background: var(--c-white);
+    border: 1px solid var(--c-ocean-200);
     border-radius: 16px;
     padding: 16px 20px;
     display: flex;
@@ -165,7 +165,7 @@
 
 .workspace-kpi-card:hover {
     transform: translateY(-3px);
-    border-color: #8AAEE0;
+    border-color: var(--c-ocean-400);
     box-shadow: 0 8px 20px -4px rgba(57, 88, 134, 0.12);
 }
 
@@ -181,32 +181,32 @@
 }
 
 .kpi-icon-primary {
-    background-color: #F0F3FA;
-    color: #395886;
-    border: 1px solid #D5DEEF;
+    background-color: var(--c-ocean-50);
+    color: var(--c-ocean-700);
+    border: 1px solid var(--c-ocean-200);
 }
 
 .kpi-icon-success {
-    background-color: #E8F5E9;
-    color: #2E7D32;
-    border: 1px solid #C8E6C9;
+    background-color: var(--c-x-neutral-100-2);
+    color: var(--c-x-green-700);
+    border: 1px solid var(--c-x-green-200);
 }
 
 .kpi-icon-warning {
-    background-color: #FFF8E1;
-    color: #F57F17;
-    border: 1px solid #FFE082;
+    background-color: var(--c-x-yellow-100);
+    color: var(--c-aa-x-orange-500);
+    border: 1px solid var(--c-x-yellow-200);
 }
 
 .kpi-icon-accent {
-    background-color: #E8EEF8;
-    color: #638ECB;
-    border: 1px solid #B1C9EF;
+    background-color: var(--c-ocean-75);
+    color: var(--c-aa-ocean-500);
+    border: 1px solid var(--c-ocean-300);
 }
 
 .search-input-group {
-    background-color: #ffffff;
-    border: 1px solid #D5DEEF;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-ocean-200);
     border-radius: 50px;
     padding: 4px 8px 4px 16px;
     display: flex;
@@ -216,7 +216,7 @@
 }
 
 .search-input-group:focus-within {
-    border-color: #395886;
+    border-color: var(--c-ocean-700);
     box-shadow: 0 0 0 3px rgba(57, 88, 134, 0.15);
 }
 
@@ -225,14 +225,14 @@
     outline: none;
     background: transparent;
     font-size: 0.85rem;
-    color: #1E2D42;
+    color: var(--c-ocean-900);
     width: 100%;
 }
 
 .filter-pill-btn {
-    border: 1px solid #D5DEEF;
-    background-color: #ffffff;
-    color: #627D98;
+    border: 1px solid var(--c-ocean-200);
+    background-color: var(--c-white);
+    color: var(--c-aa-ocean-slate);
     border-radius: 50px;
     padding: 6px 16px;
     font-size: 0.8rem;
@@ -243,14 +243,14 @@
 }
 
 .filter-pill-btn:hover {
-    background-color: #F0F3FA;
-    color: #395886;
-    border-color: #B1C9EF;
+    background-color: var(--c-ocean-50);
+    color: var(--c-ocean-700);
+    border-color: var(--c-ocean-300);
 }
 
 .filter-pill-btn.active {
-    background-color: #395886;
-    color: #ffffff;
-    border-color: #395886;
+    background-color: var(--c-ocean-700);
+    color: var(--c-white);
+    border-color: var(--c-ocean-700);
     box-shadow: 0 4px 10px rgba(57, 88, 134, 0.25);
 }

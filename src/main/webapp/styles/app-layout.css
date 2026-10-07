@@ -16,8 +16,8 @@
 .left-sidebar {
     width: 224px;
     min-width: 224px;
-    background-color: #0f172a;
-    border-right: 1px solid #1e293b;
+    background-color: var(--c-slate-900);
+    border-right: 1px solid var(--c-slate-800);
     display: flex;
     flex-direction: column;
     position: sticky;
@@ -32,7 +32,7 @@
 
     /* Cuộn mượt, ẩn scrollbar */
     scrollbar-width: thin;
-    scrollbar-color: #334155 transparent;
+    scrollbar-color: var(--c-slate-700) transparent;
 }
 
 .left-sidebar::-webkit-scrollbar {
@@ -40,7 +40,7 @@
 }
 .left-sidebar::-webkit-scrollbar-track { background: transparent; }
 .left-sidebar::-webkit-scrollbar-thumb {
-    background-color: #334155;
+    background-color: var(--c-slate-700);
     border-radius: 4px;
 }
 
@@ -53,14 +53,14 @@
 /* ── SIDEBAR HEADER: Project info ── */
 .sidebar-project-header {
     padding: 14px 16px 10px;
-    border-bottom: 1px solid #1e293b;
+    border-bottom: 1px solid var(--c-slate-800);
     flex-shrink: 0;
 }
 
 .sidebar-project-name {
     font-size: 0.825rem;
     font-weight: 700;
-    color: #f1f5f9;
+    color: var(--c-slate-100);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -72,9 +72,9 @@
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    background-color: #1e293b;
-    color: #94a3b8;
-    border: 1px solid #334155;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-400);
+    border: 1px solid var(--c-slate-700);
     border-radius: 5px;
     padding: 1px 6px;
     font-size: 0.68rem;
@@ -105,16 +105,16 @@
     height: 24px;
     border-radius: 6px;
     background: transparent;
-    border: 1px solid #334155;
-    color: #64748b;
+    border: 1px solid var(--c-slate-700);
+    color: var(--c-aa-slate-500);
     cursor: pointer;
     transition: all 0.15s ease;
     flex-shrink: 0;
 }
 .sidebar-toggle-btn:hover {
-    background-color: #1e293b;
-    color: #f1f5f9;
-    border-color: #475569;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-100);
+    border-color: var(--c-slate-600);
 }
 
 /* ── SIDEBAR NAV LINKS (Tab dọc: Kanban/Docs/Chat/Report) ── */
@@ -123,7 +123,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    border-bottom: 1px solid #1e293b;
+    border-bottom: 1px solid var(--c-slate-800);
     flex-shrink: 0;
 }
 
@@ -135,7 +135,7 @@
     border-radius: 8px;
     font-size: 0.8rem;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--c-aa-slate-400);
     text-decoration: none;
     transition: background-color 0.15s ease, color 0.15s ease;
     white-space: nowrap;
@@ -150,13 +150,13 @@
 }
 
 .sidebar-nav-link:hover {
-    background-color: #1e293b;
-    color: #e2e8f0;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-200);
 }
 
 .sidebar-nav-link.active {
-    background-color: #312e81;
-    color: #a5b4fc;
+    background-color: var(--c-indigo-900);
+    color: var(--c-indigo-300);
     font-weight: 700;
 }
 
@@ -166,7 +166,7 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.7px;
-    color: #475569;
+    color: var(--c-slate-600);
     padding: 10px 18px 4px;
     flex-shrink: 0;
 }
@@ -181,9 +181,9 @@
 
 .sidebar-filter-group .form-control,
 .sidebar-filter-group .form-select {
-    background-color: #1e293b;
-    border: 1px solid #334155;
-    color: #e2e8f0;
+    background-color: var(--c-slate-800);
+    border: 1px solid var(--c-slate-700);
+    color: var(--c-slate-200);
     font-size: 0.775rem;
     border-radius: 8px;
     padding: 6px 10px;
@@ -191,28 +191,28 @@
 }
 
 .sidebar-filter-group .form-control::placeholder {
-    color: #475569;
+    color: var(--c-slate-600);
 }
 
 .sidebar-filter-group .form-control:focus,
 .sidebar-filter-group .form-select:focus {
-    border-color: #4f46e5;
+    border-color: var(--c-indigo-600);
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-    background-color: #1e293b;
-    color: #f1f5f9;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-100);
     outline: none;
 }
 
 .sidebar-filter-group .form-select option {
-    background-color: #1e293b;
-    color: #e2e8f0;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-200);
 }
 
 .sidebar-filter-group .input-group-text {
-    background-color: #1e293b;
-    border: 1px solid #334155;
+    background-color: var(--c-slate-800);
+    border: 1px solid var(--c-slate-700);
     border-right: none;
-    color: #64748b;
+    color: var(--c-slate-500);
 }
 
 /* ── SIDEBAR MEMBER SECTION ── */
@@ -235,7 +235,7 @@
     border-radius: 7px;
     font-size: 0.775rem;
     font-weight: 500;
-    color: #94a3b8;
+    color: var(--c-aa-slate-400);
     background: transparent;
     border: 1px solid transparent;
     cursor: pointer;
@@ -246,15 +246,15 @@
 }
 
 .sidebar-member-btn:hover {
-    background-color: #1e293b;
-    color: #e2e8f0;
-    border-color: #334155;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-200);
+    border-color: var(--c-slate-700);
 }
 
 .sidebar-member-btn.active {
-    background-color: #312e81;
-    color: #a5b4fc;
-    border-color: #4338ca;
+    background-color: var(--c-indigo-900);
+    color: var(--c-indigo-300);
+    border-color: var(--c-indigo-700);
     font-weight: 700;
 }
 
@@ -268,15 +268,15 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    background: linear-gradient(135deg, #4f46e5, #06b6d4);
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--c-indigo-600), var(--c-cyan-500));
+    color: var(--c-white);
 }
 
 .sidebar-member-btn .member-count-badge {
     margin-left: auto;
-    background-color: #1e293b;
-    color: #64748b;
-    border: 1px solid #334155;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-500);
+    border: 1px solid var(--c-slate-700);
     border-radius: 10px;
     padding: 1px 6px;
     font-size: 0.65rem;
@@ -285,15 +285,15 @@
 }
 
 .sidebar-member-btn.active .member-count-badge {
-    background-color: #4338ca;
-    color: #c7d2fe;
-    border-color: #4f46e5;
+    background-color: var(--c-indigo-700);
+    color: var(--c-indigo-200);
+    border-color: var(--c-indigo-600);
 }
 
 /* ── SIDEBAR BOTTOM ACTIONS ── */
 .sidebar-bottom-actions {
     padding: 10px 10px 14px;
-    border-top: 1px solid #1e293b;
+    border-top: 1px solid var(--c-slate-800);
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -310,8 +310,8 @@
     border-radius: 9px;
     font-size: 0.8rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--c-indigo-600) 0%, var(--c-indigo-700) 100%);
+    color: var(--c-white);
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -320,10 +320,10 @@
 }
 
 .sidebar-cta-btn:hover {
-    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+    background: linear-gradient(135deg, var(--c-indigo-700) 0%, var(--c-indigo-800) 100%);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
-    color: #ffffff;
+    color: var(--c-white);
 }
 
 .sidebar-secondary-btn {
@@ -337,17 +337,17 @@
     font-size: 0.75rem;
     font-weight: 600;
     background: transparent;
-    color: #64748b;
-    border: 1px solid #334155;
+    color: var(--c-aa-slate-500);
+    border: 1px solid var(--c-slate-700);
     cursor: pointer;
     transition: all 0.15s ease;
     white-space: nowrap;
 }
 
 .sidebar-secondary-btn:hover {
-    background-color: #1e293b;
-    color: #e2e8f0;
-    border-color: #475569;
+    background-color: var(--c-slate-800);
+    color: var(--c-slate-200);
+    border-color: var(--c-slate-600);
 }
 
 /* Sidebar collapsed — chỉ icon giữa, ẩn text */
@@ -387,8 +387,8 @@
 
 /* ── COMPACT PROJECT HEADER (1 dòng, thay thế 2 dòng cũ) ── */
 .project-topbar {
-    background-color: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border-bottom: 1px solid var(--c-slate-200);
     padding: 10px 20px;
     display: flex;
     align-items: center;
@@ -409,7 +409,7 @@
 .project-topbar-title {
     font-size: 0.9rem;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--c-slate-900);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -428,13 +428,13 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-slate-50);
+    border: 1px solid var(--c-slate-200);
     border-radius: 20px;
     padding: 3px 10px;
     font-size: 0.73rem;
     font-weight: 600;
-    color: #475569;
+    color: var(--c-slate-600);
     white-space: nowrap;
 }
 
@@ -449,7 +449,7 @@
 /* ── SIDEBAR DIVIDER ── */
 .sidebar-divider {
     height: 1px;
-    background-color: #1e293b;
+    background-color: var(--c-slate-800);
     margin: 4px 0;
     flex-shrink: 0;
 }
@@ -529,8 +529,8 @@
     }
 
     body {
-        background-color: #ffffff !important;
-        color: #0f172a !important;
+        background-color: var(--c-white) !important;
+        color: var(--c-slate-900) !important;
         padding: 0 !important;
         margin: 0 !important;
     }

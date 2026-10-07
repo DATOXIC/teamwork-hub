@@ -59,6 +59,9 @@
     <%-- Bootstrap Icons --%>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+    <%-- Design token (màu, font, bo góc...) — PHẢI nạp trước mọi CSS khác --%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/styles/tokens.css?v=<%= System.currentTimeMillis() %>">
+
     <%-- CSS riêng của trang Login — đặt trong <head>, tải trước body --%>
     <link rel="stylesheet"
           href="${pageContext.request.contextPath}/styles/login.css?v=<%= System.currentTimeMillis() %>">

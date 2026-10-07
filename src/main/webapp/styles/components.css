@@ -34,29 +34,29 @@
 }
 
 .toast-item.toast-success {
-    background-color: #f0fdf4;
-    color: #166534;
-    border-color: #bbf7d0;
+    background-color: var(--c-green-50);
+    color: var(--c-green-800);
+    border-color: var(--c-green-200);
 }
 
 .toast-item.toast-error {
-    background-color: #fef2f2;
-    color: #991b1b;
-    border-color: #fecaca;
+    background-color: var(--c-red-50);
+    color: var(--c-red-800);
+    border-color: var(--c-red-200);
 }
 
 /* Cổng Chất Lượng — dùng đúng sắc tím của badge "Gate" trên thẻ công việc,
    để thông báo và badge cùng trỏ về một khái niệm người dùng đã quen mặt. */
 .toast-item.toast-gate {
-    background-color: #f3e8ff;
-    color: #6b21a8;
-    border-color: #e9d5ff;
+    background-color: var(--c-purple-100);
+    color: var(--c-purple-800);
+    border-color: var(--c-purple-200);
 }
 
 .toast-item.toast-warning {
-    background-color: #fffbeb;
-    color: #92400e;
-    border-color: #fde68a;
+    background-color: var(--c-amber-50);
+    color: var(--c-amber-800);
+    border-color: var(--c-amber-200);
 }
 
 .toast-item.toast-dismissing {
@@ -120,7 +120,7 @@
     justify-content: center;
     text-align: center;
     padding: 3rem 1.5rem;
-    color: #94a3b8;
+    color: var(--c-aa-slate-400);
 }
 
 .empty-state-icon {
@@ -134,13 +134,13 @@
 .empty-state-title {
     font-size: 0.9rem;
     font-weight: 700;
-    color: #64748b;
+    color: var(--c-aa-slate-500);
     margin-bottom: 4px;
 }
 
 .empty-state-hint {
     font-size: 0.8rem;
-    color: #94a3b8;
+    color: var(--c-aa-slate-400);
     margin: 0;
     max-width: 220px;
     line-height: 1.5;
@@ -152,8 +152,8 @@
 /* Thanh điều hướng trên cùng: nền gradient navy, viền dưới màu nhấn để tách khỏi nền trang,
    các nút điều khiển là ô trắng mờ nên nổi rõ trên nền tối */
 .navbar.app-navbar.bg-dark-navy {
-    background-image: linear-gradient(180deg, #2A3D58 0%, #1B2A3F 100%);
-    border-bottom: 2px solid #638ECB !important;
+    background-image: linear-gradient(180deg, var(--c-x-blue-700-4) 0%, var(--c-x-blue-800-2) 100%);
+    border-bottom: 2px solid var(--c-ocean-500) !important;
     box-shadow: 0 6px 18px rgba(15, 23, 38, 0.28);
 }
 
@@ -167,24 +167,24 @@ body:has(.hero-scrolltelling) .app-navbar {
     padding: 0.4rem 0.95rem;
     border: 1px solid transparent;
     border-radius: 9999px;
-    color: #e2e8f0;
+    color: var(--c-slate-200);
     font-weight: 500;
     transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
 .app-navbar .app-nav-link i {
-    color: #7dd3fc;
+    color: var(--c-sky-300);
 }
 
 .app-navbar .app-nav-link:hover {
     background-color: rgba(255, 255, 255, 0.14);
-    color: #ffffff;
+    color: var(--c-white);
 }
 
 .app-navbar .app-nav-link.active {
     background-color: rgba(99, 142, 203, 0.38);
     border-color: rgba(177, 201, 239, 0.6);
-    color: #ffffff;
+    color: var(--c-white);
     font-weight: 700;
 }
 
@@ -192,7 +192,7 @@ body:has(.hero-scrolltelling) .app-navbar {
     background-color: rgba(255, 255, 255, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 9999px;
-    color: #f1f5f9;
+    color: var(--c-slate-100);
     padding: 0.3rem 0.75rem;
     transition: background-color 0.15s ease, border-color 0.15s ease;
 }
@@ -202,7 +202,7 @@ body:has(.hero-scrolltelling) .app-navbar {
 .navbar-ctl.show {
     background-color: rgba(255, 255, 255, 0.22);
     border-color: rgba(255, 255, 255, 0.5);
-    color: #ffffff;
+    color: var(--c-white);
 }
 
 .navbar-bell-btn {

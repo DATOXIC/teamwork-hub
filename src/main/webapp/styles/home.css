@@ -7,20 +7,20 @@
 /* -------------------- 1. DESIGN TOKENS & RESET CHO TRANG CHỦ -------------------- */
 /* LIGHT MODE (DEFAULT / SÁNG) */
 :root {
-    --home-bg: #f8fafc;
-    --home-bg-card: #ffffff;
-    --home-bg-card-hover: #ffffff;
+    --home-bg: var(--c-slate-50);
+    --home-bg-card: var(--c-white);
+    --home-bg-card-hover: var(--c-white);
     --home-border: rgba(0, 0, 0, 0.08);
     --home-border-hover: rgba(99, 142, 203, 0.5);
-    --home-text-title: #0f172a;
-    --home-text-body: #475569;
-    --home-text-muted: #64748b;
-    --home-accent-indigo: #4f46e5;
-    --home-accent-cyan: #0284c7;
-    --home-accent-sky: #3b82f6;
-    --home-accent-emerald: #059669;
-    --home-accent-amber: #d97706;
-    --home-metric-gradient: linear-gradient(135deg, #0f172a 30%, #2563eb 100%);
+    --home-text-title: var(--c-slate-900);
+    --home-text-body: var(--c-slate-600);
+    --home-text-muted: var(--c-slate-500);
+    --home-accent-indigo: var(--c-indigo-600);
+    --home-accent-cyan: var(--c-sky-600);
+    --home-accent-sky: var(--c-blue-500);
+    --home-accent-emerald: var(--c-emerald-600);
+    --home-accent-amber: var(--c-amber-600);
+    --home-metric-gradient: linear-gradient(135deg, var(--c-slate-900) 30%, var(--c-blue-600) 100%);
 }
 
 /* DARK MODE (DEEP OBSIDIAN / TỐI) */
@@ -29,20 +29,20 @@
    khiến biến --home-* bị đổi sang tông tối ngay bên trong navbar dù trang đang ở light mode. */
 html[data-theme="dark"],
 html[data-bs-theme="dark"] {
-    --home-bg: #070a13;
+    --home-bg: var(--c-night-950);
     --home-bg-card: rgba(15, 23, 42, 0.65);
     --home-bg-card-hover: rgba(22, 34, 60, 0.85);
     --home-border: rgba(255, 255, 255, 0.08);
     --home-border-hover: rgba(99, 142, 203, 0.45);
-    --home-text-title: #f8fafc;
-    --home-text-body: #94a3b8;
-    --home-text-muted: #64748b;
-    --home-accent-indigo: #6366f1;
-    --home-accent-cyan: #38bdf8;
-    --home-accent-sky: #8aaee0;
-    --home-accent-emerald: #10b981;
-    --home-accent-amber: #f59e0b;
-    --home-metric-gradient: linear-gradient(135deg, #ffffff 30%, #8aaee0 100%);
+    --home-text-title: var(--c-slate-50);
+    --home-text-body: var(--c-slate-400);
+    --home-text-muted: var(--c-slate-500);
+    --home-accent-indigo: var(--c-indigo-500);
+    --home-accent-cyan: var(--c-sky-400);
+    --home-accent-sky: var(--c-ocean-400);
+    --home-accent-emerald: var(--c-emerald-500);
+    --home-accent-amber: var(--c-amber-500);
+    --home-metric-gradient: linear-gradient(135deg, var(--c-white) 30%, var(--c-ocean-400) 100%);
 }
 
 body:has(.homepage-shell) {
@@ -206,7 +206,7 @@ body:has(.homepage-shell) .navbar {
 }
 
 .text-gradient-aurora {
-    background: linear-gradient(135deg, #ffffff 15%, #93c5fd 50%, #818cf8 100%);
+    background: linear-gradient(135deg, var(--c-white) 15%, var(--c-blue-300) 50%, var(--c-indigo-400) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
@@ -232,9 +232,9 @@ body:has(.homepage-shell) .navbar {
 }
 
 .btn-cta-primary {
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #38bdf8 100%);
+    background: linear-gradient(135deg, var(--c-indigo-600) 0%, var(--c-indigo-500) 50%, var(--c-sky-400) 100%);
     border: 1px solid rgba(255, 255, 255, 0.25);
-    color: #ffffff !important;
+    color: var(--c-white) !important;
     padding: 0.9rem 2.25rem;
     border-radius: 9999px;
     font-weight: 700;
@@ -251,7 +251,7 @@ body:has(.homepage-shell) .navbar {
 .btn-cta-primary:hover {
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 14px 40px rgba(99, 102, 241, 0.65), 0 0 25px rgba(56, 189, 248, 0.45);
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 .btn-cta-secondary {
@@ -274,7 +274,7 @@ body:has(.homepage-shell) .navbar {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 /* -------------------- 4. STUDIO DISPLAY MOCKUP & LIVE TAB SWITCHER -------------------- */
@@ -301,7 +301,7 @@ body:has(.homepage-shell) .navbar {
 .showcase-tab-btn {
     border: none;
     background: transparent;
-    color: #94a3b8;
+    color: var(--c-slate-400);
     padding: 0.55rem 1.25rem;
     border-radius: 9999px;
     font-size: 0.88rem;
@@ -314,12 +314,12 @@ body:has(.homepage-shell) .navbar {
 }
 
 .showcase-tab-btn:hover {
-    color: #ffffff;
+    color: var(--c-white);
 }
 
 .showcase-tab-btn.active {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(56, 189, 248, 0.2));
-    color: #ffffff;
+    color: var(--c-white);
     border: 1px solid rgba(99, 142, 203, 0.4);
     box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
 }
@@ -327,7 +327,7 @@ body:has(.homepage-shell) .navbar {
 /* Khung Mac Studio Window */
 .studio-display-window {
     position: relative;
-    background: #0d1322;
+    background: var(--c-night-800);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 20px;
     box-shadow: 0 25px 80px -15px rgba(0, 0, 0, 0.8),
@@ -363,9 +363,9 @@ body:has(.homepage-shell) .navbar {
     height: 11px;
     border-radius: 50%;
 }
-.window-dot--red { background-color: #ff5f56; }
-.window-dot--yellow { background-color: #ffbd2e; }
-.window-dot--green { background-color: #27c93f; }
+.window-dot--red { background-color: var(--c-x-red-300); }
+.window-dot--yellow { background-color: var(--c-x-yellow-400); }
+.window-dot--green { background-color: var(--c-x-green-500); }
 
 .window-url-bar {
     background: rgba(255, 255, 255, 0.05);
@@ -381,7 +381,7 @@ body:has(.homepage-shell) .navbar {
 
 .window-viewport {
     position: relative;
-    background-color: #070a13;
+    background-color: var(--c-night-950);
     overflow: hidden;
     min-height: 480px;
     display: flex;
@@ -457,12 +457,12 @@ body:has(.homepage-shell) .navbar {
 }
 .widget-icon-box--emerald {
     background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    color: var(--c-emerald-400);
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 .widget-icon-box--indigo {
     background: rgba(99, 102, 241, 0.15);
-    color: #818cf8;
+    color: var(--c-indigo-400);
     border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
@@ -650,10 +650,10 @@ body:has(.homepage-shell) .navbar {
     font-size: 1.4rem;
     margin-bottom: 1.25rem;
 }
-.bento-icon--kanban { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-.bento-icon--wiki { background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); }
-.bento-icon--chat { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
-.bento-icon--stats { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.bento-icon--kanban { background: rgba(245, 158, 11, 0.15); color: var(--c-amber-400); border: 1px solid rgba(245, 158, 11, 0.3); }
+.bento-icon--wiki { background: rgba(99, 102, 241, 0.15); color: var(--c-indigo-400); border: 1px solid rgba(99, 102, 241, 0.3); }
+.bento-icon--chat { background: rgba(56, 189, 248, 0.15); color: var(--c-sky-400); border: 1px solid rgba(56, 189, 248, 0.3); }
+.bento-icon--stats { background: rgba(16, 185, 129, 0.15); color: var(--c-emerald-400); border: 1px solid rgba(16, 185, 129, 0.3); }
 
 .bento-card-title {
     font-size: 1.45rem;
@@ -698,7 +698,7 @@ body:has(.homepage-shell) .navbar {
 .mini-kanban-col-title {
     font-size: 0.72rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--c-slate-400);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.65rem;
@@ -732,9 +732,9 @@ body:has(.homepage-shell) .navbar {
     font-weight: 700;
     margin-top: 0.35rem;
 }
-.mini-tag--high { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-.mini-tag--medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-.mini-tag--done { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.mini-tag--high { background: rgba(239, 68, 68, 0.2); color: var(--c-red-400); }
+.mini-tag--medium { background: rgba(245, 158, 11, 0.2); color: var(--c-amber-400); }
+.mini-tag--done { background: rgba(16, 185, 129, 0.2); color: var(--c-emerald-400); }
 
 /* Mini Chat UI Preview */
 .mini-chat-thread {
@@ -759,14 +759,14 @@ body:has(.homepage-shell) .navbar {
 }
 
 .mini-chat-bubble--me {
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--c-indigo-600), var(--c-indigo-500));
+    color: var(--c-white);
     align-self: flex-end;
 }
 
 .mini-mention-pill {
     background: rgba(56, 189, 248, 0.25);
-    color: #38bdf8;
+    color: var(--c-sky-400);
     padding: 0.1rem 0.4rem;
     border-radius: 6px;
     font-weight: 600;
@@ -788,7 +788,7 @@ body:has(.homepage-shell) .navbar {
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 8px;
     font-size: 0.8rem;
-    color: #cbd5e1;
+    color: var(--c-slate-300);
     transition: background 0.2s ease;
 }
 
@@ -806,7 +806,7 @@ body:has(.homepage-shell) .navbar {
     justify-content: space-between;
     font-size: 0.78rem;
     margin-bottom: 0.35rem;
-    color: #cbd5e1;
+    color: var(--c-slate-300);
 }
 
 .mini-progress-track {
@@ -867,7 +867,7 @@ body:has(.homepage-shell) .navbar {
     border-radius: 50%;
     background: rgba(99, 102, 241, 0.15);
     border: 1px solid rgba(99, 102, 241, 0.4);
-    color: #818cf8;
+    color: var(--c-indigo-400);
     font-weight: 800;
     font-size: 0.9rem;
     display: inline-flex;
@@ -926,7 +926,7 @@ body:has(.homepage-shell) .navbar {
 .cta-title {
     font-size: clamp(2.2rem, 5vw, 3.4rem);
     font-weight: 800;
-    color: #ffffff;
+    color: var(--c-white);
     letter-spacing: -0.03em;
     margin-bottom: 1.25rem;
     line-height: 1.15;
@@ -936,7 +936,7 @@ body:has(.homepage-shell) .navbar {
 
 .cta-subtitle {
     font-size: 1.12rem;
-    color: #94a3b8;
+    color: var(--c-slate-400);
     max-width: 600px;
     margin: 0 auto 2.5rem;
     line-height: 1.7;
@@ -971,8 +971,8 @@ body:has(.homepage-shell) .navbar {
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) body:has(.homepage-shell),
 [data-theme="light"] body:has(.homepage-shell),
 [data-bs-theme="light"] body:has(.homepage-shell) {
-    background-color: #f8fafc !important;
-    color: #475569 !important;
+    background-color: var(--c-slate-50) !important;
+    color: var(--c-slate-600) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) body:has(.homepage-shell) .navbar,
@@ -993,13 +993,13 @@ body:has(.homepage-shell) .navbar .text-white {
 /* Logo icon bên trong khối brand-icon giữ màu trắng sáng tương phản với nền xanh gradient */
 body:has(.homepage-shell) .navbar .brand-icon i,
 body:has(.homepage-shell) .navbar .brand-icon .text-white {
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 /* Avatar và badge chức vụ trong user-pill giữ chữ trắng tương phản với nền xanh/tím */
 body:has(.homepage-shell) .navbar .navbar-user-pill .avatar-sm i,
 body:has(.homepage-shell) .navbar .navbar-user-pill .badge {
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 body:has(.homepage-shell) .navbar .app-nav-link {
@@ -1050,7 +1050,7 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) body:has(.homepage-she
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .homepage-shell,
 [data-theme="light"] .homepage-shell,
 [data-bs-theme="light"] .homepage-shell {
-    background-color: #f8fafc !important;
+    background-color: var(--c-slate-50) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .aurora-orb,
@@ -1064,21 +1064,21 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .hero-badge-pill,
 [data-bs-theme="light"] .hero-badge-pill {
     background: rgba(99, 142, 203, 0.1) !important;
     border: 1px solid rgba(99, 142, 203, 0.25) !important;
-    color: #1e293b !important;
+    color: var(--c-slate-800) !important;
     box-shadow: 0 4px 14px rgba(99, 142, 203, 0.1) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .hero-title-main,
 [data-theme="light"] .hero-title-main,
 [data-bs-theme="light"] .hero-title-main {
-    color: #0f172a !important;
+    color: var(--c-slate-900) !important;
     text-shadow: none !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .text-gradient-aurora,
 [data-theme="light"] .text-gradient-aurora,
 [data-bs-theme="light"] .text-gradient-aurora {
-    background: linear-gradient(135deg, #0f172a 15%, #2563eb 55%, #4f46e5 100%) !important;
+    background: linear-gradient(135deg, var(--c-slate-900) 15%, var(--c-blue-600) 55%, var(--c-indigo-600) 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
 }
@@ -1086,24 +1086,24 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .text-gradient-aurora,
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .hero-subtitle-lead,
 [data-theme="light"] .hero-subtitle-lead,
 [data-bs-theme="light"] .hero-subtitle-lead {
-    color: #475569 !important;
+    color: var(--c-slate-600) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .btn-cta-secondary,
 [data-theme="light"] .btn-cta-secondary,
 [data-bs-theme="light"] .btn-cta-secondary {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    color: #1e293b !important;
+    background: var(--c-white) !important;
+    border: 1px solid var(--c-slate-300) !important;
+    color: var(--c-slate-800) !important;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .btn-cta-secondary:hover,
 [data-theme="light"] .btn-cta-secondary:hover,
 [data-bs-theme="light"] .btn-cta-secondary:hover {
-    background: #f1f5f9 !important;
-    border-color: #94a3b8 !important;
-    color: #0f172a !important;
+    background: var(--c-slate-100) !important;
+    border-color: var(--c-slate-400) !important;
+    color: var(--c-slate-900) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .showcase-tabs-nav,
@@ -1117,20 +1117,20 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .showcase-tabs-nav,
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .showcase-tab-btn,
 [data-theme="light"] .showcase-tab-btn,
 [data-bs-theme="light"] .showcase-tab-btn {
-    color: #64748b !important;
+    color: var(--c-slate-500) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .showcase-tab-btn:hover,
 [data-theme="light"] .showcase-tab-btn:hover,
 [data-bs-theme="light"] .showcase-tab-btn:hover {
-    color: #0f172a !important;
+    color: var(--c-slate-900) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .showcase-tab-btn.active,
 [data-theme="light"] .showcase-tab-btn.active,
 [data-bs-theme="light"] .showcase-tab-btn.active {
-    background: #ffffff !important;
-    color: #0f172a !important;
+    background: var(--c-white) !important;
+    color: var(--c-slate-900) !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
@@ -1146,19 +1146,19 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .floating-widget,
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .widget-text-title,
 [data-theme="light"] .widget-text-title,
 [data-bs-theme="light"] .widget-text-title {
-    color: #0f172a !important;
+    color: var(--c-slate-900) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .widget-text-desc,
 [data-theme="light"] .widget-text-desc,
 [data-bs-theme="light"] .widget-text-desc {
-    color: #64748b !important;
+    color: var(--c-slate-500) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .studio-display-window,
 [data-theme="light"] .studio-display-window,
 [data-bs-theme="light"] .studio-display-window {
-    background: #ffffff !important;
+    background: var(--c-white) !important;
     border: 1px solid rgba(0, 0, 0, 0.1) !important;
     box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.12) !important;
 }
@@ -1166,19 +1166,19 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .studio-display-window
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .section-title,
 [data-theme="light"] .section-title,
 [data-bs-theme="light"] .section-title {
-    color: #0f172a !important;
+    color: var(--c-slate-900) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .section-subtitle,
 [data-theme="light"] .section-subtitle,
 [data-bs-theme="light"] .section-subtitle {
-    color: #475569 !important;
+    color: var(--c-slate-600) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .bento-card,
 [data-theme="light"] .bento-card,
 [data-bs-theme="light"] .bento-card {
-    background: #ffffff !important;
+    background: var(--c-white) !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
 }
@@ -1193,76 +1193,76 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .bento-card:hover,
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .bento-card-title,
 [data-theme="light"] .bento-card-title,
 [data-bs-theme="light"] .bento-card-title {
-    color: #0f172a !important;
+    color: var(--c-slate-900) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .bento-card-desc,
 [data-theme="light"] .bento-card-desc,
 [data-bs-theme="light"] .bento-card-desc {
-    color: #475569 !important;
+    color: var(--c-slate-600) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .bento-preview-box,
 [data-theme="light"] .bento-preview-box,
 [data-bs-theme="light"] .bento-preview-box {
-    background: #f8fafc !important;
+    background: var(--c-slate-50) !important;
     border: 1px solid rgba(0, 0, 0, 0.06) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .mini-kanban-col,
 [data-theme="light"] .mini-kanban-col,
 [data-bs-theme="light"] .mini-kanban-col {
-    background: #f1f5f9 !important;
+    background: var(--c-slate-100) !important;
     border: 1px solid rgba(0, 0, 0, 0.06) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .mini-kanban-col-title,
 [data-theme="light"] .mini-kanban-col-title,
 [data-bs-theme="light"] .mini-kanban-col-title {
-    color: #64748b !important;
+    color: var(--c-slate-500) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .mini-kanban-card,
 [data-theme="light"] .mini-kanban-card,
 [data-bs-theme="light"] .mini-kanban-card {
-    background: #ffffff !important;
+    background: var(--c-white) !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    color: #1e293b !important;
+    color: var(--c-slate-800) !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .mini-chat-bubble--other,
 [data-theme="light"] .mini-chat-bubble--other,
 [data-bs-theme="light"] .mini-chat-bubble--other {
-    background: #f1f5f9 !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #1e293b !important;
+    background: var(--c-slate-100) !important;
+    border: 1px solid var(--c-slate-200) !important;
+    color: var(--c-slate-800) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .mini-wiki-item,
 [data-theme="light"] .mini-wiki-item,
 [data-bs-theme="light"] .mini-wiki-item {
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #334155 !important;
+    background: var(--c-white) !important;
+    border: 1px solid var(--c-slate-200) !important;
+    color: var(--c-slate-700) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .mini-progress-header,
 [data-theme="light"] .mini-progress-header,
 [data-bs-theme="light"] .mini-progress-header {
-    color: #475569 !important;
+    color: var(--c-slate-600) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .mini-progress-track,
 [data-theme="light"] .mini-progress-track,
 [data-bs-theme="light"] .mini-progress-track {
-    background: #e2e8f0 !important;
+    background: var(--c-slate-200) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .workflow-step-card,
 [data-theme="light"] .workflow-step-card,
 [data-bs-theme="light"] .workflow-step-card {
-    background: #ffffff !important;
+    background: var(--c-white) !important;
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
 }
@@ -1270,64 +1270,64 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .workflow-step-card,
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .step-card-title,
 [data-theme="light"] .step-card-title,
 [data-bs-theme="light"] .step-card-title {
-    color: #0f172a !important;
+    color: var(--c-slate-900) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .step-card-desc,
 [data-theme="light"] .step-card-desc,
 [data-bs-theme="light"] .step-card-desc {
-    color: #64748b !important;
+    color: var(--c-slate-500) !important;
 }
 
 /* 11.2 Bổ sung: các thành phần còn màu neon/trắng chỉ hợp nền tối */
 html:not([data-theme="dark"]) .metric-label,
 html:not([data-theme="dark"]) .widget-text-desc,
 html:not([data-theme="dark"]) .hero-subtitle-lead {
-    color: #475569 !important;
+    color: var(--c-slate-600) !important;
 }
 
 html:not([data-theme="dark"]) .window-topbar {
-    background: #f1f5f9 !important;
+    background: var(--c-slate-100) !important;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
 html:not([data-theme="dark"]) .window-url-bar {
-    background: #ffffff !important;
+    background: var(--c-white) !important;
     border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    color: #475569 !important;
+    color: var(--c-slate-600) !important;
 }
 
 html:not([data-theme="dark"]) .window-viewport {
-    background-color: #f8fafc !important;
+    background-color: var(--c-slate-50) !important;
 }
 
-html:not([data-theme="dark"]) .mini-tag--high   { background: #fee2e2 !important; color: #b91c1c !important; }
-html:not([data-theme="dark"]) .mini-tag--medium { background: #fef3c7 !important; color: #b45309 !important; }
-html:not([data-theme="dark"]) .mini-tag--done   { background: #d1fae5 !important; color: #047857 !important; }
+html:not([data-theme="dark"]) .mini-tag--high   { background: var(--c-red-100) !important; color: var(--c-red-700) !important; }
+html:not([data-theme="dark"]) .mini-tag--medium { background: var(--c-amber-100) !important; color: var(--c-amber-700) !important; }
+html:not([data-theme="dark"]) .mini-tag--done   { background: var(--c-emerald-100) !important; color: var(--c-emerald-700) !important; }
 
 html:not([data-theme="dark"]) .mini-mention-pill {
-    background: #e0f2fe !important;
-    color: #0369a1 !important;
+    background: var(--c-sky-100) !important;
+    color: var(--c-sky-700) !important;
 }
 
-html:not([data-theme="dark"]) .bento-icon--kanban { background: #fef3c7 !important; color: #b45309 !important; border-color: #fde68a !important; }
-html:not([data-theme="dark"]) .bento-icon--wiki   { background: #e0e7ff !important; color: #4338ca !important; border-color: #c7d2fe !important; }
-html:not([data-theme="dark"]) .bento-icon--chat   { background: #e0f2fe !important; color: #0369a1 !important; border-color: #bae6fd !important; }
-html:not([data-theme="dark"]) .bento-icon--stats  { background: #d1fae5 !important; color: #047857 !important; border-color: #a7f3d0 !important; }
+html:not([data-theme="dark"]) .bento-icon--kanban { background: var(--c-amber-100) !important; color: var(--c-amber-700) !important; border-color: var(--c-amber-200) !important; }
+html:not([data-theme="dark"]) .bento-icon--wiki   { background: var(--c-indigo-100) !important; color: var(--c-indigo-700) !important; border-color: var(--c-indigo-200) !important; }
+html:not([data-theme="dark"]) .bento-icon--chat   { background: var(--c-sky-100) !important; color: var(--c-sky-700) !important; border-color: var(--c-sky-200) !important; }
+html:not([data-theme="dark"]) .bento-icon--stats  { background: var(--c-emerald-100) !important; color: var(--c-emerald-700) !important; border-color: var(--c-emerald-200) !important; }
 
-html:not([data-theme="dark"]) .widget-icon-box--emerald { background: #d1fae5 !important; color: #047857 !important; border-color: #a7f3d0 !important; }
-html:not([data-theme="dark"]) .widget-icon-box--indigo  { background: #e0e7ff !important; color: #4338ca !important; border-color: #c7d2fe !important; }
+html:not([data-theme="dark"]) .widget-icon-box--emerald { background: var(--c-emerald-100) !important; color: var(--c-emerald-700) !important; border-color: var(--c-emerald-200) !important; }
+html:not([data-theme="dark"]) .widget-icon-box--indigo  { background: var(--c-indigo-100) !important; color: var(--c-indigo-700) !important; border-color: var(--c-indigo-200) !important; }
 
 html:not([data-theme="dark"]) .step-number-badge {
-    background: #e0e7ff !important;
-    border-color: #c7d2fe !important;
-    color: #4338ca !important;
+    background: var(--c-indigo-100) !important;
+    border-color: var(--c-indigo-200) !important;
+    color: var(--c-indigo-700) !important;
 }
 
 html:not([data-theme="dark"]) .mini-progress-header {
-    color: #334155 !important;
+    color: var(--c-slate-700) !important;
 }
 
 /* Thẻ CTA cuối trang giữ nền tối ở cả 2 chế độ → chữ trắng vẫn đủ tương phản */
-html:not([data-theme="dark"]) .cta-title { color: #ffffff !important; }
-html:not([data-theme="dark"]) .cta-subtitle { color: #cbd5e1 !important; }
+html:not([data-theme="dark"]) .cta-title { color: var(--c-white) !important; }
+html:not([data-theme="dark"]) .cta-subtitle { color: var(--c-slate-300) !important; }

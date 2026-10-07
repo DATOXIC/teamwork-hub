@@ -8,15 +8,15 @@
 .kanban-col-todo,
 .kanban-col-in-progress,
 .kanban-col-done {
-    background-color: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
+    background-color: var(--c-slate-50) !important;
+    border: 1px solid var(--c-slate-200) !important;
 }
 
 /* 2. Thanh tiêu đề (Header Strip) phong cách Ảnh 1 — Tinh gọn, tích hợp nút + nhanh */
 .kanban-header-strip {
     padding: 0.75rem 1rem;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border-bottom: 1px solid var(--c-slate-200);
     border-radius: calc(1rem - 1px) calc(1rem - 1px) 0 0;
 }
 
@@ -32,18 +32,18 @@
 }
 
 .kanban-header-pill.pill-todo {
-    background-color: #f1f5f9;
-    color: #475569;
+    background-color: var(--c-slate-100);
+    color: var(--c-slate-600);
 }
 
 .kanban-header-pill.pill-in-progress {
-    background-color: #eff6ff;
-    color: #2563eb;
+    background-color: var(--c-blue-50);
+    color: var(--c-blue-600);
 }
 
 .kanban-header-pill.pill-done {
-    background-color: #ecfdf5;
-    color: #059669;
+    background-color: var(--c-emerald-50);
+    color: var(--c-aa-emerald-600);
 }
 
 .kanban-header-pill .pill-count {
@@ -59,19 +59,19 @@
 }
 
 .pill-todo .pill-count {
-    background-color: #ffffff;
-    color: #475569;
+    background-color: var(--c-white);
+    color: var(--c-slate-600);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .pill-in-progress .pill-count {
-    background-color: #2563eb;
-    color: #ffffff;
+    background-color: var(--c-blue-600);
+    color: var(--c-white);
 }
 
 .pill-done .pill-count {
-    background-color: #059669;
-    color: #ffffff;
+    background-color: var(--c-emerald-600);
+    color: var(--c-white);
 }
 
 /* Nút thêm nhanh trên header cột (Ảnh 1) */
@@ -82,7 +82,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: var(--c-aa-slate-500);
     background: transparent;
     border: none;
     transition: all 0.15s ease;
@@ -90,8 +90,8 @@
 }
 
 .btn-column-add:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
+    background-color: var(--c-slate-100);
+    color: var(--c-slate-900);
     transform: scale(1.08);
 }
 
@@ -102,8 +102,8 @@
 
 /* Base Kanban Card — Phẳng, bóng mềm, bo góc thanh thoát */
 .kanban-card {
-    border: 1px solid #e2e8f0 !important;
-    background-color: #ffffff;
+    border: 1px solid var(--c-slate-200) !important;
+    background-color: var(--c-white);
     border-radius: 12px !important;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
     transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.18s ease, border-color 0.18s ease;
@@ -120,7 +120,7 @@
 .kanban-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04) !important;
-    border-color: #cbd5e1 !important;
+    border-color: var(--c-slate-300) !important;
 }
 
 /* 4. Thẻ bốc nổi khi kéo (Ảnh 2: Royal Blue Gradient Floating Card) */
@@ -128,8 +128,8 @@
     position: fixed !important;
     pointer-events: none !important;
     z-index: 99999 !important;
-    background: linear-gradient(135deg, #3730a3 0%, #4338ca 50%, #4f46e5 100%) !important;
-    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--c-indigo-800) 0%, var(--c-indigo-700) 50%, var(--c-indigo-600) 100%) !important;
+    color: var(--c-white) !important;
     border: 1px solid rgba(255, 255, 255, 0.25) !important;
     box-shadow: 0 24px 48px -10px rgba(55, 48, 163, 0.48), 0 12px 24px -6px rgba(0, 0, 0, 0.18) !important;
     opacity: 0.98 !important;
@@ -143,7 +143,7 @@
 .kanban-card.is-floating-drag .text-secondary,
 .kanban-card.is-floating-drag .text-muted,
 .kanban-card.is-floating-drag .kanban-meta-item {
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 .kanban-card.is-floating-drag .border-top {
@@ -155,13 +155,13 @@
 }
 
 .kanban-card.is-floating-drag .task-progress-bar {
-    background-color: #38bdf8 !important;
+    background-color: var(--c-sky-400) !important;
 }
 
 /* Rãnh giữ chỗ (Placeholder) */
 .kanban-placeholder {
-    background-color: #f1f5f9 !important;
-    border: 2px dashed #818cf8 !important;
+    background-color: var(--c-slate-100) !important;
+    border: 2px dashed var(--c-indigo-400) !important;
     border-radius: 12px !important;
     opacity: 0.85 !important;
     margin-bottom: 0.75rem !important;
@@ -177,19 +177,19 @@
 }
 
 .kanban-task-list.drag-over {
-    background-color: #f1f5f9 !important;
-    border-color: #818cf8 !important;
+    background-color: var(--c-slate-100) !important;
+    border-color: var(--c-indigo-400) !important;
     box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.1);
 }
 
 /* Thẻ In Progress & Done tinh tế */
 .kanban-card-inprogress {
-    border-left: 3px solid #3b82f6 !important;
+    border-left: 3px solid var(--c-blue-500) !important;
 }
 
 .kanban-card-done {
-    background-color: #fbfcfd !important;
-    border-left: 3px solid #10b981 !important;
+    background-color: var(--c-slate-50) !important;
+    border-left: 3px solid var(--c-emerald-500) !important;
     opacity: 0.92;
 }
 
@@ -207,17 +207,17 @@
 }
 
 .priority-dot-high {
-    background-color: #ef4444;
+    background-color: var(--c-red-500);
     box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
 
 .priority-dot-medium {
-    background-color: #f59e0b;
+    background-color: var(--c-amber-500);
     box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
 }
 
 .priority-dot-low {
-    background-color: #3b82f6;
+    background-color: var(--c-blue-500);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
@@ -228,7 +228,7 @@
 }
 
 .avatar-group .avatar-circle-sm {
-    border: 2px solid #ffffff;
+    border: 2px solid var(--c-white);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     transition: transform 0.15s ease, z-index 0.15s ease;
     cursor: default;
@@ -249,7 +249,7 @@
     align-items: center;
     gap: 4px;
     font-size: 0.725rem;
-    color: #64748b;
+    color: var(--c-aa-slate-500);
     font-weight: 500;
 }
 
@@ -259,11 +259,11 @@
 
 /* 8. Nút tạo task dạng nét đứt (Dashed Add Card - Ảnh 2) */
 .add-task-dashed-card {
-    border: 1.5px dashed #cbd5e1;
+    border: 1.5px dashed var(--c-slate-300);
     background-color: transparent;
     border-radius: 12px;
     padding: 10px 14px;
-    color: #64748b;
+    color: var(--c-aa-slate-500);
     font-size: 0.775rem;
     font-weight: 600;
     display: flex;
@@ -277,9 +277,9 @@
 }
 
 .add-task-dashed-card:hover {
-    background-color: #ffffff;
-    border-color: #4f46e5;
-    color: #4f46e5;
+    background-color: var(--c-white);
+    border-color: var(--c-indigo-600);
+    color: var(--c-indigo-600);
     box-shadow: 0 2px 8px rgba(79, 70, 229, 0.08);
     transform: translateY(-1px);
 }

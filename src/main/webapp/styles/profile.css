@@ -6,7 +6,7 @@
 /* -------------------- 1. PROFILE COVER & IDENTITY CARD -------------------- */
 .profile-cover-banner {
     height: 160px;
-    background: linear-gradient(135deg, #1e293b 0%, #334155 40%, #1e3a8a 100%);
+    background: linear-gradient(135deg, var(--c-slate-800) 0%, var(--c-slate-700) 40%, var(--c-blue-900) 100%);
     position: relative;
     border-radius: 18px 18px 0 0;
     overflow: hidden;
@@ -25,18 +25,18 @@
 .profile-cover-glow--1 {
     top: -100px;
     right: -40px;
-    background: radial-gradient(circle, #38bdf8 0%, #6366f1 100%);
+    background: radial-gradient(circle, var(--c-sky-400) 0%, var(--c-indigo-500) 100%);
 }
 
 .profile-cover-glow--2 {
     bottom: -120px;
     left: 20%;
-    background: radial-gradient(circle, #818cf8 0%, transparent 70%);
+    background: radial-gradient(circle, var(--c-indigo-400) 0%, transparent 70%);
 }
 
 .profile-identity-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 18px;
     box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
     overflow: hidden;
@@ -67,15 +67,15 @@
     width: 104px;
     height: 104px;
     font-size: 2.6rem;
-    background: linear-gradient(135deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
+    background: linear-gradient(135deg, var(--c-ocean-700) 0%, var(--c-ocean-500) 50%, var(--c-ocean-400) 100%);
     border-radius: 28px;
-    color: #ffffff;
+    color: var(--c-white);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 800;
     box-shadow: 0 10px 25px -5px rgba(57, 88, 134, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.25);
-    border: 4px solid #ffffff;
+    border: 4px solid var(--c-white);
     flex-shrink: 0;
     user-select: none;
     transition: transform 0.2s ease;
@@ -91,8 +91,8 @@
     right: 2px;
     width: 18px;
     height: 18px;
-    background-color: #10b981;
-    border: 3px solid #ffffff;
+    background-color: var(--c-emerald-500);
+    border: 3px solid var(--c-white);
     border-radius: 50%;
     box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
 }
@@ -100,16 +100,16 @@
 /* -------------------- 3. BIO & SKILLS & SOCIAL CHIPS -------------------- */
 .profile-bio-text {
     max-width: 680px;
-    color: #475569;
+    color: var(--c-slate-600);
     font-size: 0.92rem;
     line-height: 1.65;
     margin-bottom: 1.25rem;
 }
 
 .profile-skill-badge {
-    background-color: #f1f5f9;
-    color: #334155;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-slate-100);
+    color: var(--c-slate-700);
+    border: 1px solid var(--c-slate-200);
     border-radius: 9999px;
     padding: 0.35rem 0.85rem;
     font-size: 0.78rem;
@@ -121,16 +121,16 @@
 }
 
 .profile-skill-badge:hover {
-    background-color: #e2e8f0;
-    color: #0f172a;
+    background-color: var(--c-slate-200);
+    color: var(--c-slate-900);
     transform: translateY(-1px);
 }
 
 .profile-skill-chip-interactive {
     cursor: pointer;
-    background-color: #f1f5f9;
-    color: #1e293b;
-    border: 1px solid #cbd5e1;
+    background-color: var(--c-slate-100);
+    color: var(--c-slate-800);
+    border: 1px solid var(--c-slate-300);
     border-radius: 8px;
     padding: 4px 10px;
     font-size: 0.78rem;
@@ -143,9 +143,9 @@
 }
 
 .profile-skill-chip-interactive:hover {
-    background-color: #395886;
-    color: #ffffff;
-    border-color: #395886;
+    background-color: var(--c-ocean-700);
+    color: var(--c-white);
+    border-color: var(--c-ocean-700);
     transform: translateY(-1px);
 }
 
@@ -162,36 +162,36 @@
 }
 
 .profile-social-btn--github {
-    background-color: #0f172a;
-    color: #ffffff;
-    border: 1px solid #0f172a;
+    background-color: var(--c-slate-900);
+    color: var(--c-white);
+    border: 1px solid var(--c-slate-900);
 }
 
 .profile-social-btn--github:hover {
-    background-color: #1e293b;
-    color: #ffffff;
+    background-color: var(--c-slate-800);
+    color: var(--c-white);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
 .profile-social-btn--linkedin {
-    background-color: #eff6ff;
-    color: #0284c7;
-    border: 1px solid #bae6fd;
+    background-color: var(--c-blue-50);
+    color: var(--c-aa-sky-600);
+    border: 1px solid var(--c-sky-200);
 }
 
 .profile-social-btn--linkedin:hover {
-    background-color: #0284c7;
-    color: #ffffff;
-    border-color: #0284c7;
+    background-color: var(--c-sky-600);
+    color: var(--c-white);
+    border-color: var(--c-sky-600);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
 }
 
 /* -------------------- 4. BENTO PRODUCTIVITY STAT CARDS -------------------- */
 .profile-page-shell .stat-card-modern {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 16px;
     padding: 1.25rem 1.15rem;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -203,7 +203,7 @@
 .profile-page-shell .stat-card-modern:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08);
-    border-color: #cbd5e1;
+    border-color: var(--c-slate-300);
 }
 
 .stat-icon-wrapper {
@@ -218,27 +218,27 @@
 }
 
 .stat-icon-wrapper--primary {
-    background: #eef2ff;
-    color: #4f46e5;
-    border: 1px solid #c7d2fe;
+    background: var(--c-indigo-50);
+    color: var(--c-indigo-600);
+    border: 1px solid var(--c-indigo-200);
 }
 
 .stat-icon-wrapper--warning {
-    background: #fffbeb;
-    color: #d97706;
-    border: 1px solid #fde68a;
+    background: var(--c-amber-50);
+    color: var(--c-aa-amber-600);
+    border: 1px solid var(--c-amber-200);
 }
 
 .stat-icon-wrapper--success {
-    background: #ecfdf5;
-    color: #059669;
-    border: 1px solid #a7f3d0;
+    background: var(--c-emerald-50);
+    color: var(--c-aa-emerald-600);
+    border: 1px solid var(--c-emerald-200);
 }
 
 .stat-icon-wrapper--info {
-    background: #f0f9ff;
-    color: #0284c7;
-    border: 1px solid #bae6fd;
+    background: var(--c-sky-50);
+    color: var(--c-aa-sky-600);
+    border: 1px solid var(--c-sky-200);
 }
 
 .stat-number-display {
@@ -263,8 +263,8 @@
 
 /* -------------------- 5. PROJECT CARDS IN PROFILE -------------------- */
 .profile-project-card {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 16px;
     padding: 1.25rem;
     transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
@@ -274,12 +274,12 @@
 .profile-project-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08);
-    border-color: #93c5fd;
+    border-color: var(--c-blue-300);
 }
 
 .profile-progress-track {
     height: 7px;
-    background-color: #f1f5f9;
+    background-color: var(--c-slate-100);
     border-radius: 9999px;
     overflow: hidden;
     position: relative;
@@ -288,77 +288,77 @@
 .profile-progress-fill {
     height: 100%;
     border-radius: 9999px;
-    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(90deg, var(--c-blue-500) 0%, var(--c-blue-600) 100%);
     transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .profile-progress-fill.is-done {
-    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(90deg, var(--c-emerald-500) 0%, var(--c-emerald-600) 100%);
 }
 
 /* -------------------- 6. DARK MODE OVERRIDES (DEEP OBSIDIAN) -------------------- */
 [data-theme="dark"] .profile-cover-banner,
 [data-bs-theme="dark"] .profile-cover-banner {
-    background: linear-gradient(135deg, #070a13 0%, #0f172a 50%, #1e1b4b 100%);
+    background: linear-gradient(135deg, var(--c-night-950) 0%, var(--c-slate-900) 50%, var(--c-indigo-950) 100%);
 }
 
 [data-theme="dark"] .profile-identity-card,
 [data-bs-theme="dark"] .profile-identity-card {
-    background-color: #0E1322 !important;
+    background-color: var(--c-night-800) !important;
     border: 1px solid rgba(255, 255, 255, 0.09) !important;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
-    color: #F1F5F9 !important;
+    color: var(--c-slate-100) !important;
 }
 
 [data-theme="dark"] .profile-avatar-banner,
 [data-bs-theme="dark"] .profile-avatar-banner {
-    border-color: #0E1322 !important;
+    border-color: var(--c-night-800) !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
 }
 
 [data-theme="dark"] .profile-online-dot,
 [data-bs-theme="dark"] .profile-online-dot {
-    border-color: #0E1322 !important;
+    border-color: var(--c-night-800) !important;
 }
 
 [data-theme="dark"] .profile-bio-text,
 [data-bs-theme="dark"] .profile-bio-text {
-    color: #CBD5E1 !important;
+    color: var(--c-slate-300) !important;
 }
 
 [data-theme="dark"] .profile-skill-badge,
 [data-bs-theme="dark"] .profile-skill-badge {
-    background-color: #151D30 !important;
+    background-color: var(--c-night-700) !important;
     border-color: rgba(255, 255, 255, 0.1) !important;
-    color: #93c5fd !important;
+    color: var(--c-blue-300) !important;
 }
 
 [data-theme="dark"] .profile-skill-badge:hover,
 [data-bs-theme="dark"] .profile-skill-badge:hover {
-    background-color: #1e293b !important;
-    color: #bfdbfe !important;
+    background-color: var(--c-slate-800) !important;
+    color: var(--c-blue-200) !important;
 }
 
 [data-theme="dark"] .profile-skill-chip-interactive,
 [data-bs-theme="dark"] .profile-skill-chip-interactive {
-    background-color: #151D30 !important;
+    background-color: var(--c-night-700) !important;
     border-color: rgba(255, 255, 255, 0.12) !important;
-    color: #CBD5E1 !important;
+    color: var(--c-slate-300) !important;
 }
 
 [data-theme="dark"] .profile-skill-chip-interactive:hover,
 [data-bs-theme="dark"] .profile-skill-chip-interactive:hover {
-    background-color: #3b82f6 !important;
-    color: #ffffff !important;
-    border-color: #3b82f6 !important;
+    background-color: var(--c-blue-500) !important;
+    color: var(--c-white) !important;
+    border-color: var(--c-blue-500) !important;
 }
 
 [data-theme="dark"] .profile-page-shell .stat-card-modern,
 [data-bs-theme="dark"] .profile-page-shell .stat-card-modern {
-    background-color: #0E1322 !important;
+    background-color: var(--c-night-800) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-    color: #F1F5F9 !important;
+    color: var(--c-slate-100) !important;
 }
 
 [data-theme="dark"] .profile-page-shell .stat-card-modern:hover,
@@ -369,9 +369,9 @@
 
 [data-theme="dark"] .profile-project-card,
 [data-bs-theme="dark"] .profile-project-card {
-    background-color: #0E1322 !important;
+    background-color: var(--c-night-800) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: #F1F5F9 !important;
+    color: var(--c-slate-100) !important;
 }
 
 [data-theme="dark"] .profile-project-card:hover,
@@ -382,12 +382,12 @@
 
 [data-theme="dark"] .profile-progress-track,
 [data-bs-theme="dark"] .profile-progress-track {
-    background-color: #151D30 !important;
+    background-color: var(--c-night-700) !important;
 }
 
 [data-theme="dark"] .profile-social-btn--linkedin,
 [data-bs-theme="dark"] .profile-social-btn--linkedin {
     background-color: rgba(2, 132, 199, 0.15) !important;
-    color: #38bdf8 !important;
+    color: var(--c-sky-400) !important;
     border-color: rgba(2, 132, 199, 0.3) !important;
 }

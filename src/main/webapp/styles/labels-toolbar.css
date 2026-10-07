@@ -4,27 +4,27 @@
    Task Labels & Tags (Trello / Linear style)
    ========================================================================== */
 .bg-purple-subtle {
-    background-color: #f3e8ff !important;
+    background-color: var(--c-purple-100) !important;
 }
 
 .text-purple {
-    color: #7e22ce !important;
+    color: var(--c-purple-700) !important;
 }
 
 .border-purple-subtle {
-    border-color: #e9d5ff !important;
+    border-color: var(--c-purple-200) !important;
 }
 
 .btn-outline-purple {
-    color: #7e22ce;
-    border-color: #d8b4fe;
+    color: var(--c-purple-700);
+    border-color: var(--c-purple-300);
 }
 
 .btn-outline-purple:hover,
 .btn-outline-purple.active {
-    background-color: #7e22ce;
-    border-color: #7e22ce;
-    color: #ffffff;
+    background-color: var(--c-purple-700);
+    border-color: var(--c-purple-700);
+    color: var(--c-white);
 }
 
 .label-toggle-btn {
@@ -39,8 +39,8 @@
    ClickUp 3.0 Toolbar Avatars & Assignee Filter
    ========================================================================== */
 .clickup-assignee-toolbar {
-    background-color: #ffffff;
-    border: 1px solid #f1f5f9;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-100);
     border-radius: 10px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
@@ -67,15 +67,15 @@
     transition: box-shadow 0.15s ease;
 }
 .assignee-avatar-btn.active .avatar-circle-sm {
-    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #2563eb !important;
+    box-shadow: 0 0 0 2px var(--c-white), 0 0 0 4px var(--c-blue-600) !important;
 }
 .assignee-avatar-btn-more {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background-color: #f1f5f9;
-    border: 1px dashed #cbd5e1;
-    color: #64748b;
+    background-color: var(--c-slate-100);
+    border: 1px dashed var(--c-slate-300);
+    color: var(--c-aa-slate-500);
     font-size: 0.68rem;
     font-weight: 700;
     display: inline-flex;
@@ -85,14 +85,14 @@
     transition: all 0.15s ease;
 }
 .assignee-avatar-btn-more:hover {
-    background-color: #e2e8f0;
-    color: #0f172a;
-    border-color: #94a3b8;
+    background-color: var(--c-slate-200);
+    color: var(--c-slate-900);
+    border-color: var(--c-slate-400);
 }
 .assignee-filter-btn {
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #475569;
+    border: 1px solid var(--c-slate-200);
+    background: var(--c-white);
+    color: var(--c-slate-600);
     font-size: 0.78rem;
     font-weight: 600;
     padding: 3px 12px;
@@ -104,20 +104,20 @@
     gap: 4px;
 }
 .assignee-filter-btn:hover {
-    background-color: #f8fafc;
-    color: #0f172a;
-    border-color: #cbd5e1;
+    background-color: var(--c-slate-50);
+    color: var(--c-slate-900);
+    border-color: var(--c-slate-300);
 }
 .assignee-filter-btn.active {
-    background-color: #2563eb !important;
-    color: #ffffff !important;
-    border-color: #2563eb !important;
+    background-color: var(--c-blue-600) !important;
+    color: var(--c-white) !important;
+    border-color: var(--c-blue-600) !important;
     box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
 }
 .status-filter-btn {
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #475569;
+    border: 1px solid var(--c-slate-200);
+    background: var(--c-white);
+    color: var(--c-slate-600);
     font-size: 0.78rem;
     font-weight: 600;
     padding: 3px 10px;
@@ -129,39 +129,39 @@
     gap: 6px;
 }
 .status-filter-btn:hover {
-    border-color: #cbd5e1;
-    background: #f8fafc;
-    color: #0f172a;
+    border-color: var(--c-slate-300);
+    background: var(--c-slate-50);
+    color: var(--c-slate-900);
 }
 .status-filter-btn.active, .status-btn-submitted.active {
-    background-color: #8b5cf6 !important;
-    color: #ffffff !important;
-    border-color: #8b5cf6 !important;
+    background-color: var(--c-violet-500) !important;
+    color: var(--c-white) !important;
+    border-color: var(--c-violet-500) !important;
     box-shadow: 0 1px 3px rgba(139, 92, 246, 0.35);
 }
 .status-btn-submitted {
-    border-color: #ddd6fe;
-    background: #fdf4ff;
-    color: #7c3aed;
+    border-color: var(--c-violet-200);
+    background: var(--c-fuchsia-50);
+    color: var(--c-violet-600);
 }
 .status-btn-submitted:hover {
-    background: #fae8ff;
-    border-color: #c084fc;
-    color: #6b21a8;
+    background: var(--c-fuchsia-100);
+    border-color: var(--c-purple-400);
+    color: var(--c-purple-800);
 }
 .status-btn-submitted.active .status-count-pill {
-    background-color: #ffffff !important;
-    color: #7c3aed !important;
+    background-color: var(--c-white) !important;
+    color: var(--c-violet-600) !important;
 }
 .status-count-pill {
     font-size: 0.7rem;
     padding: 1px 6px;
     border-radius: 9999px;
-    background-color: #f3e8ff;
-    color: #7c3aed;
+    background-color: var(--c-purple-100);
+    color: var(--c-violet-600);
     font-weight: 700;
 }
 .kanban-card-submitted {
-    border-left: 4px solid #8b5cf6 !important;
-    background: linear-gradient(to right, rgba(139, 92, 246, 0.03), #ffffff 25%) !important;
+    border-left: 4px solid var(--c-violet-500) !important;
+    background: linear-gradient(to right, rgba(139, 92, 246, 0.03), var(--c-white) 25%) !important;
 }

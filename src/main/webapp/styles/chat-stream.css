@@ -24,8 +24,8 @@
 }
 
 .chat-bubble-me {
-    background-color: #4f46e5;
-    color: #ffffff;
+    background-color: var(--c-indigo-600);
+    color: var(--c-white);
     border-radius: 16px 16px 4px 16px;
     padding: 10px 16px;
     max-width: 82%;
@@ -34,19 +34,19 @@
 }
 
 .chat-bubble-me .message-body {
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 .chat-bubble-me a.badge,
 .chat-bubble-me span.badge {
     background-color: rgba(255, 255, 255, 0.22) !important;
-    color: #ffffff !important;
+    color: var(--c-white) !important;
     border-color: rgba(255, 255, 255, 0.35) !important;
 }
 
 .chat-bubble-other {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    background-color: var(--c-white);
+    border: 1px solid var(--c-slate-200);
     border-radius: 16px 16px 16px 4px;
     padding: 10px 16px;
     max-width: 82%;
@@ -55,7 +55,7 @@
 }
 
 .chat-bubble-other .message-body {
-    color: #0f172a !important;
+    color: var(--c-slate-900) !important;
 }
 
 /* Chuẩn WCAG AA: Đảm bảo tỷ lệ tương phản >= 4.5:1 */
@@ -66,7 +66,7 @@
 }
 
 .chat-time-other {
-    color: #64748b; /* Slate-500: Tương phản 4.6:1 trên nền trắng */
+    color: var(--c-aa-slate-500); /* Slate-500: Tương phản 4.6:1 trên nền trắng */
     font-size: 0.725rem;
     font-weight: 500;
 }
@@ -99,9 +99,9 @@
 }
 .btn-shortcut-item:hover,
 .btn-shortcut-item:focus-visible {
-    background-color: #f1f5f9;
-    color: #1e293b !important;
-    outline: 2px solid #4f46e5;
+    background-color: var(--c-slate-100);
+    color: var(--c-slate-800) !important;
+    outline: 2px solid var(--c-indigo-600);
     outline-offset: 1px;
 }
 

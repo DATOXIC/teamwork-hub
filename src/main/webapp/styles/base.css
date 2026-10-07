@@ -4,45 +4,7 @@
    ========================================================================== */
 
 
-:root {
-    /* UI-08: Hệ thống Typography chuẩn SaaS (Inter / ClickUp 3.0 / Linear) */
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
-
-    /* Bảng màu thiết kế mới (Ocean & Sky Blue Palette từ Twine) */
-    --brand-primary: #395886;
-    --brand-primary-hover: #2d456a;
-    --brand-accent: #638ECB;
-    --brand-accent-light: #8AAEE0;
-    --brand-accent-soft: #B1C9EF;
-    --brand-sky-light: #D5DEEF;
-    --brand-bg: #F0F3FA;
-    --brand-surface: #ffffff;
-    --brand-dark: #1E2D42;
-    --brand-navy: #1E2D42;
-    --brand-border: #D5DEEF;
-    --brand-text-main: #1E2D42;
-    --brand-text-body: #395886;
-    --brand-text-muted: #627D98;
-    --brand-text-subtle: #8AAEE0;
-
-    /* UI-06: Hệ thống Border-radius chuẩn hóa 4 cấp */
-    --radius-sm: 6px;
-    /* Badge, chip, btn-xs */
-    --radius-md: 10px;
-    /* Input, subtask item, doc item */
-    --radius-lg: 14px;
-    /* Card, modal, dropdown */
-    --radius-xl: 20px;
-    /* Card lớn (project, login card) */
-    --radius-full: 9999px;
-    /* Button pill, avatar */
-
-    /* UI-07: Shadow chuẩn hóa */
-    --shadow-card: 0 2px 6px rgba(15, 23, 42, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-card-hover: 0 10px 24px -6px rgba(15, 23, 42, 0.10), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
-    --shadow-modal: 0 20px 40px -12px rgba(15, 23, 42, 0.18);
-}
+/* Token (màu, font, bo góc, bóng) nằm ở styles/tokens.css — được nạp TRƯỚC file này. */
 
 body {
     font-family: var(--font-sans);
@@ -103,16 +65,16 @@ input, select, textarea, button {
 
 /* Navbar Styling - Tương phản mạnh */
 .bg-dark-navy {
-    background-color: #1E2D42 !important;
-    border-bottom: 1px solid #2B3E58 !important;
+    background-color: var(--c-ocean-900) !important;
+    border-bottom: 1px solid var(--c-x-blue-700) !important;
 }
 
 .brand-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, #395886 0%, #638ECB 50%, #8AAEE0 100%);
+    background: linear-gradient(135deg, var(--c-ocean-700) 0%, var(--c-ocean-500) 50%, var(--c-ocean-400) 100%);
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--c-white);
     font-size: 1.1rem;
 }
 
@@ -121,27 +83,27 @@ input, select, textarea, button {
 }
 
 .bg-navy-subtle {
-    background-color: #24344B !important;
-    border: 1px solid #364B68 !important;
+    background-color: var(--c-x-blue-800) !important;
+    border: 1px solid var(--c-x-blue-700-2) !important;
 }
 
 .hover-light:hover {
     background-color: rgba(255, 255, 255, 0.12) !important;
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 /* Buttons */
 .btn-primary-custom {
-    background: linear-gradient(135deg, #395886 0%, #4D71A3 100%);
-    border-color: #395886;
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--c-ocean-700) 0%, var(--c-ocean-600) 100%);
+    border-color: var(--c-ocean-700);
+    color: var(--c-white);
     transition: all 0.2s ease-in-out;
 }
 
 .btn-primary-custom:hover {
-    background: linear-gradient(135deg, #2d456a 0%, #395886 100%);
-    border-color: #2d456a;
-    color: #ffffff;
+    background: linear-gradient(135deg, var(--c-ocean-800) 0%, var(--c-ocean-700) 100%);
+    border-color: var(--c-ocean-800);
+    color: var(--c-white);
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(57, 88, 134, 0.35);
 }
@@ -172,7 +134,7 @@ input, select, textarea, button {
 
 .nav-pills .nav-link.active {
     background-color: var(--brand-primary);
-    color: #ffffff !important;
+    color: var(--c-white) !important;
 }
 
 .nav-pills .nav-link {
