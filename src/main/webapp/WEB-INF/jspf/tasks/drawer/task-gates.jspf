@@ -174,17 +174,19 @@
                                                     <div class="text-secondary fs-9 lh-base" style="white-space: pre-line;"><c:out value="${task.finalDeliverableNote}" /></div>
                                                     <c:if test="${not empty task.deliverableFile}">
                                                         <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
-                                                            <span class="fs-9 text-truncate fw-medium">${fn:escapeXml(task.deliverableFile)}</span>
-                                                            <%-- Link ngoài (http/https) → mở tab mới; tệp có thật trên server → nút Tải; còn lại chỉ hiện tên --%>
+                                                            <span class="fs-9 text-truncate fw-medium"><i class="bi bi-paperclip me-1" aria-hidden="true"></i>${fn:escapeXml(task.deliverableDisplayName)}</span>
+                                                            <%-- Tệp đã tải lên → nút Tải (qua TaskFileServlet, chỉ thành viên dự án); link http/https (dữ liệu cũ) → Mở; còn lại chỉ hiện tên --%>
                                                             <c:choose>
+                                                                <c:when test="${task.deliverableUploaded}">
+                                                                    <c:url var="deliverableUrl" value="/task-file"><c:param name="taskId" value="${task.id}" /></c:url>
+                                                                    <a href="${deliverableUrl}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap"
+                                                                       aria-label="Tải tệp bàn giao ${fn:escapeXml(task.deliverableDisplayName)}">
+                                                                        <i class="bi bi-download" aria-hidden="true"></i> Tải
+                                                                    </a>
+                                                                </c:when>
                                                                 <c:when test="${fn:startsWith(task.deliverableFile, 'https://') || fn:startsWith(task.deliverableFile, 'http://')}">
                                                                     <a href="${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" target="_blank" rel="noopener noreferrer">
                                                                         <i class="bi bi-box-arrow-up-right"></i> Mở
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:when test="${downloadableDeliverables.contains(task.id)}">
-                                                                    <a href="${pageContext.request.contextPath}/uploads/deliverables/${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
-                                                                        <i class="bi bi-download"></i> Tải
                                                                     </a>
                                                                 </c:when>
                                                             </c:choose>
@@ -243,7 +245,8 @@
                                                 <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
                                                     <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-box-seam-fill text-warning me-1"></i> Báo Cáo Bàn Giao Cho Trưởng Dự Án</h6>
                                                     <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitParentTask" → TaskWorkflowHandler.handleSubmitParentTask() --%>
-                                                    <form action="${pageContext.request.contextPath}/task" method="post">
+                                                    <%-- multipart/form-data: form có ô chọn tệp (TaskServlet có @MultipartConfig) --%>
+                                                    <form action="${pageContext.request.contextPath}/task" method="post" enctype="multipart/form-data">
                                                         <input type="hidden" name="action" value="submitParentTask">
                                                         <input type="hidden" name="projectId" value="${project.id}">
                                                         <input type="hidden" name="taskId" value="${task.id}">
@@ -260,8 +263,18 @@
                                                             </div>
                                                         </div>
                                                         <div class="mb-2">
-                                                            <input aria-label="Tên tệp báo cáo (PDF, ZIP...)" type="text" class="form-control form-control-sm fs-9 rounded-2" id="deliverableFile-${task.id}" name="deliverableFile"
-                                                                placeholder="Tên tệp báo cáo (PDF, ZIP...)" value="${not empty task.deliverableFile ? fn:escapeXml(task.deliverableFile) : ''}">
+                                                            <label for="deliverableUpload-${task.id}" class="form-label fw-semibold fs-9 text-dark mb-1">
+                                                                Tệp báo cáo bàn giao <span class="text-muted fw-normal">(tùy chọn)</span>:
+                                                            </label>
+                                                            <input type="file" class="form-control form-control-sm fs-9 rounded-2" id="deliverableUpload-${task.id}" name="deliverableUpload"
+                                                                   accept=".pdf,.zip,.docx,.pptx,.xlsx,.png,.jpg,.jpeg,.txt" data-max-bytes="20971520"
+                                                                   aria-describedby="deliverableHint-${task.id}">
+                                                            <div class="form-text fs-9" id="deliverableHint-${task.id}">
+                                                                PDF, ZIP, DOCX, PPTX, XLSX, PNG, JPG, TXT — tối đa 20 MB.
+                                                                <c:if test="${task.deliverableUploaded}">
+                                                                    Để trống thì giữ tệp đã nộp: <strong>${fn:escapeXml(task.deliverableDisplayName)}</strong>.
+                                                                </c:if>
+                                                            </div>
                                                         </div>
                                                         <div class="d-flex align-items-center justify-content-end gap-1">
                                                             <button type="button" class="btn btn-light rounded-pill px-2 py-0-5 fs-9" data-bs-toggle="collapse" data-bs-target="#submitParentTaskPanel-${task.id}">Đóng</button>

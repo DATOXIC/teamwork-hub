@@ -301,7 +301,7 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 24 | [x] | Accessibility (button thật, label, focus) | 3.6 | Claude |
 | 25 | [-] | ~~Cập nhật tại chỗ thay vì reload trang~~ — **bỏ qua** theo quyết định của nhóm (08/10/2026). Có thể làm lại ở mục 29+ nếu còn thời gian | 3.2 | — |
 | 26 | [x] | Responsive mobile | 3.5 | Claude |
-| 27 | [ ] | Upload tệp bàn giao thật | 4.1 | Claude |
+| 27 | [x] | Upload tệp bàn giao thật | 4.1 | Claude |
 | 28 | [ ] | @mention gửi thông báo + email nhắc hạn | 4.2 | Claude |
 | 29+ | [ ] | Tùy thời gian: 2.4, 2.5, 3.2 (bước 25 đã bỏ qua), 3.3, 3.8, 4.3 – 4.8 | | |
 

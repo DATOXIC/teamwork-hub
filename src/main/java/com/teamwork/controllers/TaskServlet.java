@@ -16,6 +16,7 @@ import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -107,6 +108,8 @@ import static com.teamwork.controllers.task.TaskWorkflowHandler.*;
  * </ul>
  */
 @WebServlet("/task")
+// Nhận form có tệp (multipart): tệp bàn giao của "submitParentTask" (xem DeliverableStorage). Giới hạn 20 MB / tệp.
+@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 20L * 1024 * 1024, maxRequestSize = 25L * 1024 * 1024)
 public class TaskServlet extends BaseServlet {
 
     @Override

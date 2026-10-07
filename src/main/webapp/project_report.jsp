@@ -718,6 +718,11 @@
                                         <%-- Chỉ tạo link cho http/https: chặn "javascript:..." do người dùng tự nhập --%>
                                         <i class="bi bi-link-45deg"></i>
                                         <c:choose>
+                                            <c:when test="${t.deliverableUploaded}">
+                                                <%-- Tệp đã tải lên: tải qua TaskFileServlet (kiểm tra thành viên dự án) --%>
+                                                <c:url var="reportFileUrl" value="/task-file"><c:param name="taskId" value="${t.id}" /></c:url>
+                                                <a href="${reportFileUrl}" class="text-decoration-none">${fn:escapeXml(t.deliverableDisplayName)}</a>
+                                            </c:when>
                                             <c:when test="${fn:startsWith(t.deliverableFile, 'https://') || fn:startsWith(t.deliverableFile, 'http://')}">
                                                 <a href="${fn:escapeXml(t.deliverableFile)}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">${fn:escapeXml(t.deliverableFile)}</a>
                                             </c:when>

@@ -29,3 +29,7 @@ set "APP_NAME=teamwork-hub"
 :: Tạo nhanh trong PowerShell: [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 :: set "TEAMWORK_REMEMBER_SECRET=dan-chuoi-ngau-nhien-cua-ban-vao-day"
 
+:: [TÙY CHỌN] Thư mục lưu tệp bàn giao (upload). Mặc định: %USERPROFILE%\teamwork-hub-uploads
+:: Nằm NGOÀI webapp nên redeploy không mất tệp; tải về qua /task-file (chỉ thành viên dự án).
+:: set "TEAMWORK_UPLOAD_DIR=D:\teamwork-hub-uploads"
+

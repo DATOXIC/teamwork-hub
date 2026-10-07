@@ -346,6 +346,16 @@ public class Task implements Serializable {
         this.deliverableFile = (deliverableFile != null) ? deliverableFile.trim() : "";
     }
 
+    /** Tệp bàn giao được tải lên máy chủ (tải qua /task-file?taskId=...). JSP: ${task.deliverableUploaded} */
+    public boolean isDeliverableUploaded() {
+        return com.teamwork.util.DeliverableStorage.isStoredName(this.deliverableFile);
+    }
+
+    /** Tên tệp để hiển thị (tên gốc khi tải lên; dữ liệu cũ thì giữ nguyên). JSP: ${task.deliverableDisplayName} */
+    public String getDeliverableDisplayName() {
+        return com.teamwork.util.DeliverableStorage.displayName(this.deliverableFile);
+    }
+
     public int getQualityRating() {
         return this.qualityRating;
     }

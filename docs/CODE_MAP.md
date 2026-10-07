@@ -52,6 +52,8 @@
 
 **Responsive:** trang Công việc < 992px: thanh bên thành ngăn trượt (`.mobile-open`, nút ☰ `#btnExpandSidebar`, đóng bằng Esc / bấm nền) — CSS cuối `workspace-shell.css`, JS `setMobileSidebar()` trong `tasks-board.js`. < 768px: cột Kanban vuốt ngang theo từng cột; bảng List cuộn ngang trong khung; Gantt cột trái thu hẹp. Vùng cuộn ngang có chủ đích phải nằm trong khung riêng (`overflow-x: auto`), không để cả trang cuộn ngang.
 
+**Tệp bàn giao:** form "Nộp bàn giao" gửi multipart (`TaskServlet` có `@MultipartConfig`, 20 MB) → `TaskWorkflowHandler.handleSubmitParentTask` → `util/DeliverableStorage` (kiểm tra đuôi/kích thước, lưu ngoài webapp tại `TEAMWORK_UPLOAD_DIR/task-<id>/<uuid>__<tên gốc>`). Tải về: `TaskFileServlet` (`/task-file?taskId=`) — chỉ thành viên dự án (người ngoài 403), luôn là tệp đính kèm.
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

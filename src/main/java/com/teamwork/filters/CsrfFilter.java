@@ -57,6 +57,12 @@ public class CsrfFilter implements Filter {
                 provided = request.getParameter(PARAM_NAME);
             }
             if (!tokensMatch(expected, provided)) {
+                // Form có tệp quá lớn: Tomcat bỏ dở việc đọc form nên KHÔNG thấy _csrf → báo đúng lý do thay vì "hết phiên"
+                if (isOversizedUpload(request)) {
+                    reject(request, response, session,
+                            "Tệp đính kèm vượt quá giới hạn 20 MB. Vui lòng chọn tệp nhỏ hơn.");
+                    return;
+                }
                 LOGGER.warning("CSRF: chặn " + request.getMethod() + " " + path + " ip=" + request.getRemoteAddr());
                 reject(request, response, session);
                 return;
@@ -97,9 +103,28 @@ public class CsrfFilter implements Filter {
         return path.startsWith("/styles/") || path.startsWith("/js/") || path.startsWith("/images/");
     }
 
+    /** Request multipart mà Tomcat từ chối đọc vì vượt giới hạn @MultipartConfig của servlet đích. */
+    static boolean isOversizedUpload(HttpServletRequest request) {
+        String type = request.getContentType();
+        if (type == null || !type.toLowerCase().startsWith("multipart/")) return false;
+        try {
+            request.getParts();
+            return false;
+        } catch (IllegalStateException tooLarge) {
+            return true;
+        } catch (Exception other) {
+            return false;
+        }
+    }
+
     private void reject(HttpServletRequest request, HttpServletResponse response, HttpSession session)
             throws IOException {
-        String message = "Phiên làm việc đã hết hạn hoặc yêu cầu không hợp lệ. Vui lòng tải lại trang và thử lại!";
+        reject(request, response, session,
+                "Phiên làm việc đã hết hạn hoặc yêu cầu không hợp lệ. Vui lòng tải lại trang và thử lại!");
+    }
+
+    private void reject(HttpServletRequest request, HttpServletResponse response, HttpSession session, String message)
+            throws IOException {
         if (isAjax(request)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json;charset=UTF-8");

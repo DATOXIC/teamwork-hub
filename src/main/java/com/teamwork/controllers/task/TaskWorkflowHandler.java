@@ -18,6 +18,9 @@ import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Part;
+import com.teamwork.util.DeliverableStorage;
+import java.io.InputStream;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,6 +62,25 @@ public final class TaskWorkflowHandler {
     private TaskWorkflowHandler() {}
 
     /**
+     * Lấy tệp người dùng chọn trong form multipart; null nếu form không phải multipart hoặc không chọn tệp.
+     * Tệp vượt giới hạn @MultipartConfig của TaskServlet → Tomcat báo IllegalStateException → đổi thành lỗi dễ hiểu.
+     */
+    static Part uploadedPart(HttpServletRequest request, String name)
+            throws DeliverableStorage.InvalidFileException, IOException {
+        String type = request.getContentType();
+        if (type == null || !type.toLowerCase().startsWith("multipart/")) return null;
+        try {
+            Part part = request.getPart(name);
+            return (part != null && part.getSize() > 0 && part.getSubmittedFileName() != null
+                    && !part.getSubmittedFileName().isBlank()) ? part : null;
+        } catch (IllegalStateException tooLarge) {
+            throw new DeliverableStorage.InvalidFileException("Tệp vượt quá giới hạn 20 MB.");
+        } catch (ServletException notMultipart) {
+            return null;
+        }
+    }
+
+    /**
      * PM chỉ được duyệt / trả lại / từ chối công việc đang chờ nghiệm thu (SUBMITTED).
      * Nếu không đúng trạng thái: ghi toast lỗi vào session và trả về false.
      */
@@ -90,7 +112,6 @@ public final class TaskWorkflowHandler {
         String testResult = request.getParameter("testResult");
         String testingGuide = request.getParameter("testingGuide");
         String deliverableNote = request.getParameter("deliverableNote");
-        String deliverableFile = request.getParameter("deliverableFile");
 
         if (projectId <= 0 || taskId <= 0) 
         {
@@ -153,14 +174,36 @@ public final class TaskWorkflowHandler {
                         : "Đã hoàn thành toàn bộ công việc theo yêu cầu.";
                 }
 
-                // Không tự bịa tên tệp khi người nộp để trống: tệp không tồn tại thì link tải về sẽ 404
-                deliverableFile = (deliverableFile != null) ? deliverableFile.trim() : "";
-                String fileNote = deliverableFile.isEmpty() ? "" : " kèm tệp [" + deliverableFile + "]";
+                // TỆP BÀN GIAO (tùy chọn): form gửi dạng multipart, ô <input type="file" name="deliverableUpload">.
+                // Không chọn tệp mới → giữ tệp đã nộp lần trước (nộp lại sau khi PM trả sửa).
+                String previousFile = task.getDeliverableFile();
+                String deliverableFile = previousFile;
+                String newStoredFile = null;
+                try {
+                    Part upload = uploadedPart(request, "deliverableUpload");
+                    if (upload != null) {
+                        try (InputStream in = upload.getInputStream()) {
+                            newStoredFile = DeliverableStorage.store(taskId, upload.getSubmittedFileName(), upload.getSize(), in);
+                        }
+                        deliverableFile = newStoredFile;
+                    }
+                } catch (DeliverableStorage.InvalidFileException e) {
+                    if (session != null) session.setAttribute("toastError", "⚠️ Không nhận được tệp bàn giao: " + e.getMessage());
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+                String fileNote = DeliverableStorage.isStoredName(deliverableFile)
+                        ? " kèm tệp [" + DeliverableStorage.displayName(deliverableFile) + "]" : "";
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
-                TaskDB.submitTaskDeliverable(taskId, finalNote, deliverableFile, now);
+                boolean saved = TaskDB.submitTaskDeliverable(taskId, finalNote, deliverableFile, now);
+                if (newStoredFile != null) {
+                    // Lưu DB thất bại → bỏ tệp vừa ghi; thành công → bỏ tệp cũ đã bị thay thế
+                    if (!saved) DeliverableStorage.deleteQuietly(taskId, newStoredFile);
+                    else if (previousFile != null && !previousFile.equals(newStoredFile)) DeliverableStorage.deleteQuietly(taskId, previousFile);
+                }
 
                 // Ghi nhận Activity Log
                 ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu" + fileNote + " lên trưởng dự án");

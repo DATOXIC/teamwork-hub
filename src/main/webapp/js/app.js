@@ -603,6 +603,32 @@
         else enhance();
     }
 
+    // =========================================================================
+    // Ô CHỌN TỆP có data-max-bytes: báo ngay khi tệp quá lớn / sai loại, không phải chờ tải lên rồi mới bị từ chối.
+    // (Máy chủ vẫn kiểm tra lại — đây chỉ là cho người dùng biết sớm.)
+    // =========================================================================
+    if (!window.__fileLimitInstalled) {
+        window.__fileLimitInstalled = true;
+        document.addEventListener('change', function (e) {
+            var input = e.target;
+            if (!input || input.type !== 'file' || !input.files || !input.files.length) return;
+            var max = parseInt(input.getAttribute('data-max-bytes') || '0', 10);
+            var file = input.files[0];
+            var accept = (input.getAttribute('accept') || '').toLowerCase().split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            var ext = (file.name.lastIndexOf('.') >= 0) ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : '';
+            var msg = null;
+            if (max > 0 && file.size > max) {
+                msg = 'Tệp "' + file.name + '" nặng ' + (file.size / 1048576).toFixed(1) + ' MB, vượt giới hạn ' + Math.round(max / 1048576) + ' MB.';
+            } else if (accept.length && accept.indexOf(ext) === -1) {
+                msg = 'Không nhận loại tệp "' + (ext || file.name) + '". Chỉ nhận: ' + accept.join(', ') + '.';
+            }
+            if (msg) {
+                input.value = '';
+                if (window.showToast) window.showToast(msg, 'warning');
+            }
+        });
+    }
+
     // app.js có thể được nạp 2 lần trên một trang (trực tiếp + qua footer): chỉ gắn listener một lần
     if (!window.__postLinkHandlerInstalled) {
         window.__postLinkHandlerInstalled = true;
