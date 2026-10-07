@@ -187,60 +187,106 @@ public class Message implements Serializable {
         this.sentAt = sentAt;
     }
 
+    private static final java.time.ZoneId VN_ZONE = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
+
     /**
-     * Rút gọn chuỗi thời gian hiển thị tinh tế trên giao diện chat:
-     * - Nếu trong ngày hôm nay: "HH:mm" (ví dụ: "01:20")
-     * - Nếu là hôm qua: "Hôm qua HH:mm"
-     * - Nếu khác ngày: "dd/MM HH:mm" (ví dụ: "14/09 01:20", loại bỏ năm và giây dài dòng)
+     * Chuyển đổi chuỗi sentAt thành ZonedDateTime theo múi giờ Việt Nam (Asia/Ho_Chi_Minh, UTC+7).
+     * Tương thích với:
+     * - Định dạng TIMESTAMPTZ của PostgreSQL (VD: 2026-10-07 13:05:49.482369+00)
+     * - Định dạng ISO-8601 (VD: 2026-10-07T13:05:49Z)
+     * - Định dạng ngày giờ Việt Nam (VD: 07/10/2026 20:05 hoặc 2026-10-07 20:05:00)
      */
-    public String getShortSentAt() {
+    public java.time.ZonedDateTime getParsedSentAt() {
         if (this.sentAt == null || this.sentAt.trim().isEmpty()) {
-            return "";
+            return null;
         }
         String s = this.sentAt.trim();
         try {
-            int year = 0, month = 0, day = 0, hour = 0, minute = 0;
-            boolean parsed = false;
-
-            // Pattern 1: yyyy-MM-dd[ T]HH:mm... (VD: 2026-08-21 04:05:49.482369+00)
-            java.util.regex.Matcher mIso = java.util.regex.Pattern.compile("^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})").matcher(s);
+            // Pattern 1: ISO/Postgres: yyyy-MM-dd[ T]HH:mm[:ss]...(+00, Z, etc.)
+            java.util.regex.Matcher mIso = java.util.regex.Pattern.compile(
+                "^(\\d{4})-(\\d{2})-(\\d{2})[ T](\\d{2}):(\\d{2})(?::(\\d{2}))?(?:\\.\\d+)?([+-]\\d{2}(?::?\\d{2})?|Z)?"
+            ).matcher(s);
             if (mIso.find()) {
-                year = Integer.parseInt(mIso.group(1));
-                month = Integer.parseInt(mIso.group(2));
-                day = Integer.parseInt(mIso.group(3));
-                hour = Integer.parseInt(mIso.group(4));
-                minute = Integer.parseInt(mIso.group(5));
-                parsed = true;
-            }
+                int year = Integer.parseInt(mIso.group(1));
+                int month = Integer.parseInt(mIso.group(2));
+                int day = Integer.parseInt(mIso.group(3));
+                int hour = Integer.parseInt(mIso.group(4));
+                int minute = Integer.parseInt(mIso.group(5));
+                int second = mIso.group(6) != null ? Integer.parseInt(mIso.group(6)) : 0;
+                String tzStr = mIso.group(7);
 
-            // Pattern 2: dd/MM/yyyy HH:mm (VD: 14/09/2026 01:20)
-            if (!parsed) {
-                java.util.regex.Matcher mDmy = java.util.regex.Pattern.compile("^(\\d{2})/(\\d{2})/(\\d{4})\\s+(\\d{2}):(\\d{2})").matcher(s);
-                if (mDmy.find()) {
-                    day = Integer.parseInt(mDmy.group(1));
-                    month = Integer.parseInt(mDmy.group(2));
-                    year = Integer.parseInt(mDmy.group(3));
-                    hour = Integer.parseInt(mDmy.group(4));
-                    minute = Integer.parseInt(mDmy.group(5));
-                    parsed = true;
-                }
-            }
-
-            if (parsed) {
-                java.time.LocalDate msgDate = java.time.LocalDate.of(year, month, day);
-                java.time.LocalDate today = java.time.LocalDate.now();
-                String timeStr = String.format("%02d:%02d", hour, minute);
-
-                if (msgDate.isEqual(today)) {
-                    return timeStr;
-                } else if (msgDate.isEqual(today.minusDays(1))) {
-                    return "Hôm qua " + timeStr;
+                if (tzStr != null && !tzStr.isEmpty()) {
+                    java.time.ZoneOffset offset;
+                    if ("Z".equalsIgnoreCase(tzStr)) {
+                        offset = java.time.ZoneOffset.UTC;
+                    } else {
+                        String cleanTz = tzStr;
+                        if (!cleanTz.contains(":") && cleanTz.length() == 3) {
+                            cleanTz = cleanTz + ":00";
+                        }
+                        offset = java.time.ZoneOffset.of(cleanTz);
+                    }
+                    java.time.OffsetDateTime odt = java.time.OffsetDateTime.of(year, month, day, hour, minute, second, 0, offset);
+                    return odt.atZoneSameInstant(VN_ZONE);
                 } else {
-                    return String.format("%02d/%02d %s", day, month, timeStr);
+                    return java.time.LocalDateTime.of(year, month, day, hour, minute, second).atZone(VN_ZONE);
                 }
+            }
+
+            // Pattern 2: dd/MM/yyyy HH:mm[:ss]
+            java.util.regex.Matcher mDmy = java.util.regex.Pattern.compile(
+                "^(\\d{2})/(\\d{2})/(\\d{4})\\s+(\\d{2}):(\\d{2})(?::(\\d{2}))?"
+            ).matcher(s);
+            if (mDmy.find()) {
+                int day = Integer.parseInt(mDmy.group(1));
+                int month = Integer.parseInt(mDmy.group(2));
+                int year = Integer.parseInt(mDmy.group(3));
+                int hour = Integer.parseInt(mDmy.group(4));
+                int minute = Integer.parseInt(mDmy.group(5));
+                int second = mDmy.group(6) != null ? Integer.parseInt(mDmy.group(6)) : 0;
+                return java.time.LocalDateTime.of(year, month, day, hour, minute, second).atZone(VN_ZONE);
             }
         } catch (Exception ignored) {
         }
-        return s;
+        return null;
+    }
+
+    /**
+     * Rút gọn chuỗi thời gian hiển thị tinh tế trên giao diện chat (chuẩn giờ Việt Nam UTC+7):
+     * - Nếu trong ngày hôm nay: "HH:mm" (ví dụ: "20:05")
+     * - Nếu là hôm qua: "Hôm qua HH:mm"
+     * - Nếu khác ngày: "dd/MM HH:mm" (ví dụ: "07/10 20:05")
+     */
+    public String getShortSentAt() {
+        java.time.ZonedDateTime zdt = getParsedSentAt();
+        if (zdt != null) {
+            java.time.LocalDate msgDate = zdt.toLocalDate();
+            java.time.LocalDate today = java.time.LocalDate.now(VN_ZONE);
+            String timeStr = String.format("%02d:%02d", zdt.getHour(), zdt.getMinute());
+
+            if (msgDate.isEqual(today)) {
+                return timeStr;
+            } else if (msgDate.isEqual(today.minusDays(1))) {
+                return "Hôm qua " + timeStr;
+            } else {
+                return String.format("%02d/%02d %s", zdt.getDayOfMonth(), zdt.getMonthValue(), timeStr);
+            }
+        }
+        if (this.sentAt == null || this.sentAt.trim().isEmpty()) {
+            return "";
+        }
+        return this.sentAt.trim();
+    }
+
+    /**
+     * Chuỗi thời gian đầy đủ hiển thị cho tooltip / title (ví dụ: "20:05 - 07/10/2026")
+     */
+    public String getFormattedSentAt() {
+        java.time.ZonedDateTime zdt = getParsedSentAt();
+        if (zdt != null) {
+            return String.format("%02d:%02d - %02d/%02d/%04d",
+                zdt.getHour(), zdt.getMinute(), zdt.getDayOfMonth(), zdt.getMonthValue(), zdt.getYear());
+        }
+        return this.sentAt != null ? this.sentAt.trim() : "";
     }
 }

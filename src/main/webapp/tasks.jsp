@@ -2842,7 +2842,7 @@
                                                             <c:otherwise>${fn:escapeXml(comment.authorName)}</c:otherwise>
                                                         </c:choose>
                                                     </span>
-                                                    <span class="text-muted fs-9">${comment.sentAt}</span>
+                                                    <span class="text-muted fs-9" title="${comment.sentAt}">${comment.shortSentAt}</span>
                                                 </div>
                                                 <div class="fs-9 text-dark lh-base" style="word-break: break-word; white-space: pre-line;">
                                                     <c:out value="${comment.content}" />

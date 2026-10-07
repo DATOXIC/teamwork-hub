@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,15 @@ import java.util.List;
 @WebServlet("/chat")
 public class ChatServlet extends HttpServlet {
 
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    private boolean isAjaxRequest(HttpServletRequest request) {
+        String xrw = request.getHeader("X-Requested-With");
+        String accept = request.getHeader("Accept");
+        return "XMLHttpRequest".equalsIgnoreCase(xrw)
+                || (accept != null && accept.contains("application/json"));
+    }
 
     /**
      * Tiện ích parse số nguyên an toàn, chống NumberFormatException
@@ -280,12 +289,19 @@ public class ChatServlet extends HttpServlet {
 
         // Kiểm tra chống gửi tin nhắn rỗng / khoảng trắng
         if (content == null || content.trim().isEmpty()) {
+            if (isAjaxRequest(request)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.setContentType("application/json;charset=UTF-8");
+                response.setHeader("Cache-Control", "no-store");
+                response.getWriter().write("{\"success\":false,\"error\":\"Nội dung không được để trống\"}");
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
             return;
         }
 
-        // Lấy thời gian realtime hiện tại (Định dạng: dd/MM/yyyy HH:mm)
-        String now = LocalDateTime.now().format(DATE_FORMATTER);
+        // Lấy thời gian realtime hiện tại theo múi giờ Việt Nam (UTC+7)
+        String now = LocalDateTime.now(VN_ZONE).format(DATE_FORMATTER);
 
         // Tạo đối tượng Message mới với taskId = 0 (Kênh chat chung dự án)
         Message newMessage = new Message(
@@ -298,8 +314,16 @@ public class ChatServlet extends HttpServlet {
             now                         // Thời gian gửi
         );
 
-        // Lưu vào kho dữ liệu RAM
-        MessageDB.insert(newMessage);
+        // Lưu vào kho dữ liệu
+        int newId = MessageDB.insert(newMessage);
+
+        // Hỗ trợ AJAX: Trả về JSON để client cập nhật giao diện mà KHÔNG cần reload/F5 trang
+        if (isAjaxRequest(request)) {
+            response.setContentType("application/json;charset=UTF-8");
+            response.setHeader("Cache-Control", "no-store");
+            response.getWriter().write("{\"success\":true,\"messageId\":" + newId + "}");
+            return;
+        }
 
         // Áp dụng chuẩn PRG: Redirect về lại kênh chat (hoặc ClickUp Shell nếu gửi từ tab Chat của TaskServlet)
         String source = request.getParameter("source");
@@ -345,8 +369,8 @@ public class ChatServlet extends HttpServlet {
             return;
         }
 
-        // Lấy thời gian realtime hiện tại
-        String now = LocalDateTime.now().format(DATE_FORMATTER);
+        // Lấy thời gian realtime hiện tại theo múi giờ Việt Nam (UTC+7)
+        String now = LocalDateTime.now(VN_ZONE).format(DATE_FORMATTER);
 
         // Tạo đối tượng Message mới với taskId > 0 (Bình luận của Task)
         Message commentMessage = new Message(
@@ -414,9 +438,22 @@ public class ChatServlet extends HttpServlet {
                     // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                     session.setAttribute("toastSuccess", "Đã xóa tin nhắn thành công.");
                 }
+                if (isAjaxRequest(request)) {
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setHeader("Cache-Control", "no-store");
+                    response.getWriter().write("{\"success\":true}");
+                    return;
+                }
             } else {
                 if (session != null) {
                     session.setAttribute("toastError", "Bạn không có quyền xóa tin nhắn của người khác!");
+                }
+                if (isAjaxRequest(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setHeader("Cache-Control", "no-store");
+                    response.getWriter().write("{\"success\":false,\"error\":\"Bạn không có quyền xóa tin nhắn của người khác!\"}");
+                    return;
                 }
             }
         }
@@ -441,6 +478,13 @@ public class ChatServlet extends HttpServlet {
         String content = request.getParameter("content");
 
         if (messageId <= 0 || content == null || content.trim().isEmpty()) {
+            if (isAjaxRequest(request)) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.setContentType("application/json;charset=UTF-8");
+                response.setHeader("Cache-Control", "no-store");
+                response.getWriter().write("{\"success\":false,\"error\":\"Dữ liệu không hợp lệ\"}");
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
             return;
         }
@@ -454,16 +498,18 @@ public class ChatServlet extends HttpServlet {
                 if (session != null) {
                     session.setAttribute("toastError", "Cảnh báo bảo mật: Tin nhắn không thuộc dự án này!");
                 }
+                if (isAjaxRequest(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setHeader("Cache-Control", "no-store");
+                    response.getWriter().write("{\"success\":false,\"error\":\"Tin nhắn không thuộc dự án này\"}");
+                    return;
+                }
                 response.sendRedirect(request.getContextPath() + "/chat?action=view&projectId=" + projectId);
                 return;
             }
 
             // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả tin nhắn HOẶC PM của dự án)
-            //
-            // KHÔNG được dùng User.role để phân quyền: cột đó là "Chuyên môn / Chức danh"
-            // do chính người dùng tự nhập ở trang Hồ sơ (profile.jsp), nên bất kỳ ai cũng có
-            // thể gõ "ADMIN" vào đó để tự cấp quyền cho mình. Chỉ so sánh ID do server cung
-            // cấp (authorId, ownerId) mới là căn cứ phân quyền an toàn.
             boolean isAuthor = (currentUser.getId() == msg.getAuthorId());
             boolean isProjectOwner = (currentUser.getId() == project.getOwnerId());
 
@@ -476,9 +522,22 @@ public class ChatServlet extends HttpServlet {
                         session.setAttribute("toastError", "Không thể cập nhật tin nhắn. Vui lòng thử lại!");
                     }
                 }
+                if (isAjaxRequest(request)) {
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setHeader("Cache-Control", "no-store");
+                    response.getWriter().write("{\"success\":" + success + "}");
+                    return;
+                }
             } else {
                 if (session != null) {
                     session.setAttribute("toastError", "Bạn không có quyền chỉnh sửa tin nhắn của người khác!");
+                }
+                if (isAjaxRequest(request)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.setHeader("Cache-Control", "no-store");
+                    response.getWriter().write("{\"success\":false,\"error\":\"Không có quyền chỉnh sửa tin nhắn\"}");
+                    return;
                 }
             }
         }
