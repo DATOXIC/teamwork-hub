@@ -61,6 +61,22 @@ public final class TaskWorkflowHandler {
 
     private TaskWorkflowHandler() {}
 
+    /**
+     * PM chỉ được duyệt / trả lại / từ chối công việc đang chờ nghiệm thu (SUBMITTED).
+     * Nếu không đúng trạng thái: ghi toast lỗi vào session và trả về false.
+     */
+    static boolean isAwaitingPmReview(Task task, HttpSession session) {
+        if ("SUBMITTED".equalsIgnoreCase(task.getStatus())) {
+            return true;
+        }
+        if (session != null) {
+            session.setAttribute("toastError", "Công việc [" + task.getTitle()
+                    + "] không ở trạng thái chờ nghiệm thu (hiện tại: " + task.getStatus()
+                    + "). Trưởng nhóm công việc cần nộp bàn giao trước khi trưởng dự án duyệt.");
+        }
+        return false;
+    }
+
 
     /**
      * Nghiệp vụ 12: Task Lead Bàn Giao & Nộp Báo Cáo Task Lớn Lên Cho PM (Chuyển sang 🟡 SUBMITTED)
@@ -373,7 +389,9 @@ public final class TaskWorkflowHandler {
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
             // KIỂM SOÁT BẢO MẬT: Chỉ DUY NHẤT Trưởng Dự Án (PM) mới có quyền PHÊ DUYỆT TỐI CAO
-            if (isProjectOwner(currentUser, project)) {
+            if (!isAwaitingPmReview(task, session)) {
+                // đã báo lỗi trong isAwaitingPmReview: chỉ duyệt được công việc đang chờ nghiệm thu
+            } else if (isProjectOwner(currentUser, project)) {
                 // RÀNG BUỘC CHẤT LƯỢNG NGHIỆM THU: PM chỉ duyệt đạt khi toàn bộ việc con đã đạt 100%
                 List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                 int progress = SubTaskDB.calculateProgress(taskId);
@@ -440,7 +458,9 @@ public final class TaskWorkflowHandler {
         HttpSession session = request.getSession(false);
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
-            if (isProjectOwner(currentUser, project)) {
+            if (!isAwaitingPmReview(task, session)) {
+                // đã báo lỗi trong isAwaitingPmReview
+            } else if (isProjectOwner(currentUser, project)) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
@@ -490,7 +510,9 @@ public final class TaskWorkflowHandler {
         HttpSession session = request.getSession(false);
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
-            if (isProjectOwner(currentUser, project)) {
+            if (!isAwaitingPmReview(task, session)) {
+                // đã báo lỗi trong isAwaitingPmReview
+            } else if (isProjectOwner(currentUser, project)) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 

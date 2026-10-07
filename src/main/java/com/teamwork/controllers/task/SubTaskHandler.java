@@ -61,6 +61,21 @@ public final class SubTaskHandler {
 
     private SubTaskHandler() {}
 
+    /**
+     * Task Lead chỉ được duyệt / trả lại / từ chối nhiệm vụ đã nộp (SUBMITTED).
+     * Nếu không đúng trạng thái: ghi toast lỗi vào session và trả về false.
+     */
+    static boolean isAwaitingLeadReview(SubTask st, HttpSession session) {
+        if ("SUBMITTED".equalsIgnoreCase(st.getStatus())) {
+            return true;
+        }
+        if (session != null) {
+            session.setAttribute("toastError", "Nhiệm vụ [" + st.getTitle()
+                    + "] chưa được nộp (hiện tại: " + st.getStatus() + ") nên chưa thể nghiệm thu.");
+        }
+        return false;
+    }
+
     /** Công việc còn ở giai đoạn lập kế hoạch (TODO hoặc đang chờ PM duyệt kế hoạch), chưa được khóa phạm vi. */
     static boolean isBeforePlanLock(Task task) {
         return task != null
@@ -535,7 +550,9 @@ public final class SubTaskHandler {
                 // KIỂM SOÁT BẢO MẬT PHÂN TẦNG NGHIỆM THU:
                 // Thẩm quyền duyệt việc con (Tầng 1) thuộc về TRƯỞNG NHÓM TASK (Task Lead) của Task này.
                 // Nếu Task lớn chưa phân công (assigneeId == 0), PM mới được tạm quyền duyệt.
-                if (canReviewSubTask(currentUser, parentTask, project)) 
+                if (!isAwaitingLeadReview(st, session)) {
+                    // đã báo lỗi trong isAwaitingLeadReview: chỉ duyệt được nhiệm vụ đã nộp
+                } else if (canReviewSubTask(currentUser, parentTask, project))
                 {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                     String now = LocalDateTime.now().format(formatter);
@@ -614,7 +631,9 @@ public final class SubTaskHandler {
             Project project = ProjectDB.selectById(projectId);
 
             if (parentTask != null && project != null && parentTask.getProjectId() == projectId) {
-                if (canReviewSubTask(currentUser, parentTask, project)) {
+                if (!isAwaitingLeadReview(st, session)) {
+                    // đã báo lỗi trong isAwaitingLeadReview
+                } else if (canReviewSubTask(currentUser, parentTask, project)) {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                     String now = LocalDateTime.now().format(formatter);
 
@@ -665,7 +684,9 @@ public final class SubTaskHandler {
             Project project = ProjectDB.selectById(projectId);
 
             if (parentTask != null && project != null && parentTask.getProjectId() == projectId) {
-                if (canReviewSubTask(currentUser, parentTask, project)) {
+                if (!isAwaitingLeadReview(st, session)) {
+                    // đã báo lỗi trong isAwaitingLeadReview
+                } else if (canReviewSubTask(currentUser, parentTask, project)) {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                     String now = LocalDateTime.now().format(formatter);
 

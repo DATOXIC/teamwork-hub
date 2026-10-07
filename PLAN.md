@@ -280,7 +280,7 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 4 | [x] | Chống XSS ở các JSP còn lại + `includes/` + các chỗ `innerHTML` trong JS khác | 1.3, 1.4 | Claude |
 | 5 | [x] | Sửa lỗi mời lại thành viên (ràng buộc UNIQUE + kiểm tra kết quả insert); ẩn nút tải tệp bàn giao khi chưa có tệp | 1.14 | Claude (không cần migration) |
 | 6 | [x] | Phân quyền: chỉ PM tạo/giao task, chỉ PM bật/tắt cổng duyệt, đổi hạn chót chỉ PM/Lead | 1.7 | Claude |
-| 7 | [ ] | Kiểm tra trạng thái ở các bước duyệt (task & subtask phải `SUBMITTED`) | 1.8 | Claude |
+| 7 | [x] | Kiểm tra trạng thái ở các bước duyệt (task & subtask phải `SUBMITTED`) | 1.8 | Claude |
 | 8 | [ ] | Tách chức danh khỏi quyền (bỏ cờ `ADMIN` trong `role`) | 1.9 | Claude |
 | 9 | [ ] | Chuyển các thao tác xóa / chấp nhận / từ chối / đăng xuất từ GET sang POST | 1.6 | Claude |
 | 10 | [ ] | Thêm CSRF token cho mọi form và `fetch` | 1.5 | Claude |
