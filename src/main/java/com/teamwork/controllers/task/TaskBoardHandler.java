@@ -117,25 +117,25 @@ public final class TaskBoardHandler {
             t.setLabelLookup(labelLookup);
         }
 
-        // 3. Lấy thành viên dự án và nạp thông tin user từ danh sách hệ thống (Tối ưu Session Cache)
+        // 3. Lấy thành viên dự án và CHỈ nạp thông tin của các thành viên đó (1 câu truy vấn).
+        // Không nạp / cache toàn bộ user hệ thống vào session: lộ dữ liệu người ngoài dự án và dữ liệu cũ.
         List<ProjectMember> projectMemberList = ProjectMemberDB.selectByProjectId(projectId);
         HttpSession session = request.getSession(false);
-        @SuppressWarnings("unchecked")
-        List<User> allSystemUsers = (session != null) ? (List<User>) session.getAttribute("cached_system_users") : null;
-        if (allSystemUsers == null) {
-            allSystemUsers = UserDB.selectAll();
-            if (session != null) {
-                session.setAttribute("cached_system_users", allSystemUsers);
-            }
+        if (session != null) {
+            session.removeAttribute("cached_system_users"); // dọn cache cũ của các phiên trước bản sửa này
         }
-        Map<Integer, User> systemUserMap = new HashMap<>();
-        for (User u : allSystemUsers) {
-            systemUserMap.put(u.getId(), u);
+        List<Integer> memberIds = new ArrayList<>();
+        for (ProjectMember pm : projectMemberList) {
+            memberIds.add(pm.getUserId());
+        }
+        Map<Integer, User> memberUserMap = new HashMap<>();
+        for (User u : UserDB.selectByIds(memberIds)) {
+            memberUserMap.put(u.getId(), u);
         }
 
         List<User> userList = new ArrayList<>();
         for (ProjectMember pm : projectMemberList) {
-            User u = systemUserMap.get(pm.getUserId());
+            User u = memberUserMap.get(pm.getUserId());
             if (u != null) {
                 userList.add(u);
             }
@@ -189,6 +189,9 @@ public final class TaskBoardHandler {
         // ▶ JSP: risk_panel.jsp, tasks.jsp, health_badge.jsp đọc bằng ${taskHealthMap}
         request.setAttribute("taskHealthMap", taskHealthMap);
 
+        // Chỉ hiện nút "Tải về" khi tệp bàn giao thật sự có trong /uploads/deliverables (chưa có chức năng upload)
+        request.setAttribute("downloadableDeliverables", findDownloadableDeliverables(request, allProjectTasks));
+
         // 8.5. Tính toán khối lượng công việc của từng thành viên (UserWorkload DTO) cho Dải Avatar B.3
         List<Task> allTasks = new ArrayList<>(allProjectTasks);
         List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks, taskSubTasksMap);
@@ -197,18 +200,8 @@ public final class TaskBoardHandler {
         List<ProjectInvite> projectInviteList = ProjectInviteDB.selectByProjectId(projectId);
         int memberCount = ProjectMemberDB.countMembers(projectId);
 
-        // Danh sách ứng viên trong hệ thống chưa tham gia dự án (Tối ưu hóa trong RAM)
-        Set<Integer> memberUserIds = new HashSet<>();
-        for (ProjectMember pm : projectMemberList) {
-            memberUserIds.add(pm.getUserId());
-        }
-
-        List<User> inviteCandidates = new ArrayList<>();
-        for (User u : allSystemUsers) {
-            if (!memberUserIds.contains(u.getId())) {
-                inviteCandidates.add(u);
-            }
-        }
+        // Không còn danh sách "ứng viên" (toàn bộ user hệ thống): PM mời bằng cách nhập chính xác
+        // username hoặc email (ProjectInviteServlet đã tìm theo usernameOrEmail).
 
         // 8.7. Xử lý Flash Message (Toast)
         if (session != null) 
@@ -320,8 +313,6 @@ public final class TaskBoardHandler {
         request.setAttribute("projectInviteList", projectInviteList);
         // ▶ JSP: tasks.jsp, project_report.jsp đọc bằng ${memberCount}
         request.setAttribute("memberCount", memberCount);
-        // ▶ JSP: tasks.jsp đọc bằng ${inviteCandidates}
-        request.setAttribute("inviteCandidates", inviteCandidates);
         // ▶ JSP: profile.jsp, tasks.jsp đọc bằng ${userProjects}
         request.setAttribute("userProjects", userProjects);
         // ▶ JSP: navbar.jsp, tasks.jsp đọc bằng ${unreadNotifCount}
@@ -459,6 +450,28 @@ public final class TaskBoardHandler {
         }
 
         writer.flush();
+    }
+
+    /** Tên tệp hợp lệ: không chứa "/" hay "\" nên không thể trỏ ra ngoài thư mục deliverables. */
+    private static final java.util.regex.Pattern SAFE_FILE_NAME = java.util.regex.Pattern.compile("^[\\p{L}\\p{N} ._()-]{1,150}$");
+
+    /**
+     * Trả về ID các task có tệp bàn giao tồn tại thật trong thư mục /uploads/deliverables của webapp.
+     */
+    static Set<Integer> findDownloadableDeliverables(HttpServletRequest request, List<Task> tasks) {
+        Set<Integer> result = new HashSet<>();
+        String dir = request.getServletContext().getRealPath("/uploads/deliverables");
+        if (dir == null) {
+            return result;
+        }
+        for (Task t : tasks) {
+            String name = t.getDeliverableFile();
+            if (name != null && SAFE_FILE_NAME.matcher(name.trim()).matches() && !name.contains("..")
+                    && new java.io.File(dir, name.trim()).isFile()) {
+                result.add(t.getId());
+            }
+        }
+        return result;
     }
 
     public static String csvCell(String value) {

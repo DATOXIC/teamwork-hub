@@ -2,7 +2,9 @@ package com.teamwork.business;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -120,11 +122,23 @@ public class ProjectInvite implements Serializable {
         if (this.expiredAt == null || this.expiredAt.trim().isEmpty()) {
             return false;
         }
+        String raw = this.expiredAt.trim();
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-            LocalDateTime expireTime = LocalDateTime.parse(this.expiredAt.trim(), formatter);
+            // Định dạng thật từ cột TIMESTAMPTZ của PostgreSQL, ví dụ "2026-09-25 16:01:31.13931+00"
+            String iso = raw.replace(' ', 'T');
+            if (iso.matches(".*[+-]\\d{2}$")) {
+                iso = iso + ":00"; // "+00" → "+00:00" để khớp chuẩn ISO-8601
+            }
+            return OffsetDateTime.now().isAfter(OffsetDateTime.parse(iso));
+        } catch (DateTimeParseException ignored) {
+            // không có múi giờ (MySQL / SQL Server) hoặc định dạng cũ dd/MM/yyyy HH:mm → thử tiếp bên dưới
+        }
+        try {
+            LocalDateTime expireTime = raw.contains("/")
+                    ? LocalDateTime.parse(raw, DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                    : LocalDateTime.parse(raw.replace(' ', 'T'));
             return LocalDateTime.now().isAfter(expireTime);
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             return false;
         }
     }

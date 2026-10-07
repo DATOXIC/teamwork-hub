@@ -34,6 +34,8 @@
 
 <!-- 1. NẠP HEADER & THANH ĐIỀU HƯỚNG CHUNG -->
 <jsp:include page="/includes/header.jsp" />
+<%-- Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo / giao công việc và bật-tắt cổng duyệt (server cũng chặn) --%>
+<c:set var="isPm" value="${project.ownerId == sessionScope.currentUser.id}" />
 
         <style>
             /* Khóa cứng Viewport SaaS: Triệt tiêu hoàn toàn thanh cuộn cấp độ trang web */
@@ -73,8 +75,8 @@
                                     <span class="fw-bold text-dark text-truncate fs-8">TeamWork <span class="text-primary">Hub</span></span>
                                     <span class="fs-10 text-muted text-truncate fw-semibold">
                                         <c:choose>
-                                            <c:when test="${sessionScope.currentUser.role == 'ADMIN'}">Quản trị viên</c:when>
-                                            <c:when test="${sessionScope.currentUser.role == 'MANAGER'}">Trưởng nhóm</c:when>
+                                            <%-- Vai trò trong dự án lấy từ ownerId, không lấy từ chức danh tự nhập --%>
+                                            <c:when test="${isPm}">Trưởng dự án</c:when>
                                             <c:otherwise>Thành viên</c:otherwise>
                                         </c:choose>
                                     </span>
@@ -303,8 +305,8 @@
                                     <span class="fw-bold text-dark fs-8 text-truncate">${fn:escapeXml(sessionScope.currentUser.fullName)}</span>
                                     <span class="fs-10 text-muted text-truncate">
                                         <c:choose>
-                                            <c:when test="${sessionScope.currentUser.role == 'ADMIN'}">Quản trị viên</c:when>
-                                            <c:when test="${sessionScope.currentUser.role == 'MANAGER'}">Trưởng nhóm</c:when>
+                                            <%-- Vai trò trong dự án lấy từ ownerId, không lấy từ chức danh tự nhập --%>
+                                            <c:when test="${isPm}">Trưởng dự án</c:when>
                                             <c:otherwise>Thành viên</c:otherwise>
                                         </c:choose>
                                     </span>
@@ -318,7 +320,7 @@
                                 </li>
                                 <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
                                 <li><hr class="dropdown-divider my-1"></li>
-                                <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                                <li><a data-method="post" class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                             </ul>
                         </div>
                         <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-2xs flex-shrink-0 sidebar-help-btn" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" title="Phím tắt & Trợ giúp (?)" style="width: 28px; height: 28px;">
@@ -513,10 +515,12 @@
                             </div>
                         </div>
 
+                        <c:if test="${isPm}">
                         <button type="button" class="clickup-add-task-btn-dark" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Thêm công việc mới">
                             <i class="bi bi-plus-lg"></i>
                             <span>Thêm công việc</span>
                         </button>
+                        </c:if>
                     </div>
                 </div>
 
@@ -590,9 +594,11 @@
                                                     <i class="bi bi-chevron-down me-1" id="chevron-todo"></i>
                                                     <span class="clickup-group-badge bg-secondary text-white">CẦN LÀM</span>
                                                     <span class="clickup-group-count ms-1" id="group-count-todo">${todoTasks.size()}</span>
+                                                    <c:if test="${isPm}">
                                                     <button type="button" class="clickup-group-add-btn ms-2" onclick="event.stopPropagation(); showInlineCreateTask('todo');" title="Thêm công việc vào TO DO">
                                                         <i class="bi bi-plus-lg"></i>
                                                     </button>
+                                                    </c:if>
                                                 </div>
                                             </td>
                                         </tr>
@@ -736,6 +742,7 @@
                                                 </tr>
                                             </c:forEach>
                                         </c:forEach>
+                                        <c:if test="${isPm}">
                                         <tr class="group-todo-row">
                                             <td colspan="${project.soloProject ? 4 : 5}" class="py-1">
                                                 <a href="javascript:void(0)" onclick="showInlineCreateTask('todo')" class="d-inline-flex align-items-center gap-1 text-muted text-decoration-none fs-8 ps-3 py-1 hover-text-dark">
@@ -743,6 +750,7 @@
                                                 </a>
                                             </td>
                                         </tr>
+                                        </c:if>
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row group-header-inprog">
                                             <td colspan="${project.soloProject ? 4 : 5}">
@@ -1012,10 +1020,12 @@
                                 <span>Cần làm</span>
                                 <span class="pill-count">${todoTasks.size()}</span>
                             </div>
+                            <c:if test="${isPm}">
                             <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
                                 title="Thêm công việc vào Cần làm">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
+                            </c:if>
                         </div>
 
                         <!-- Khu vực chứa các thẻ Task (Drop Zone) -->
@@ -1140,10 +1150,12 @@
                             </c:if>
 
                             <!-- Nút tạo task nhanh phong cách nét đứt (Ảnh 2) -->
+                            <c:if test="${isPm}">
                             <button type="button" class="add-task-dashed-card mt-1" data-bs-toggle="modal" data-bs-target="#addTaskModal">
                                 <i class="bi bi-plus-lg"></i>
                                 <span>Tạo công việc mới</span>
                             </button>
+                            </c:if>
 
                         </div>
                     </div>
@@ -1162,10 +1174,12 @@
                                 <span>Đang làm</span>
                                 <span class="pill-count">${inProgressTasks.size()}</span>
                             </div>
+                            <c:if test="${isPm}">
                             <button type="button" class="btn-column-add" data-bs-toggle="modal" data-bs-target="#addTaskModal"
                                 title="Thêm công việc vào Đang làm">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
+                            </c:if>
                         </div>
 
                         <div class="kanban-task-area kanban-task-list d-flex flex-column gap-2-5 flex-grow-1"
@@ -1989,7 +2003,7 @@
         </div>
         <div class="d-flex align-items-center gap-2">
             <c:if test="${unreadNotifCount > 0}">
-                <a href="${pageContext.request.contextPath}/notification?action=readAll" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-1 fs-9" title="Đánh dấu tất cả là đã đọc">
+                <a data-method="post" href="${pageContext.request.contextPath}/notification?action=readAll" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-1 fs-9" title="Đánh dấu tất cả là đã đọc">
                     <i class="bi bi-check2-all me-1"></i> Đọc hết
                 </a>
             </c:if>
@@ -2128,7 +2142,7 @@
                                             <h6 class="fw-bold text-primary fs-8 mb-3"><i class="bi bi-pencil-fill me-1"></i> Chỉnh sửa thông tin công việc</h6>
                                             <div class="mb-2">
                                                 <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề:</label>
-                                                <input type="text" name="title" value="${task.title}" class="form-control form-control-sm" required>
+                                                <input type="text" name="title" value="${fn:escapeXml(task.title)}" class="form-control form-control-sm" required>
                                             </div>
                                             <div class="mb-2">
                                                 <label class="form-label fs-9 fw-bold text-dark mb-1">Mô tả chi tiết:</label>
@@ -2159,7 +2173,7 @@
                                             <div class="row g-2 mb-3">
                                                 <div class="col-6">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
-                                                    <input type="date" name="dueDate" value="${task.dueDate}" class="form-control form-control-sm">
+                                                    <input type="date" name="dueDate" value="${fn:escapeXml(task.dueDate)}" class="form-control form-control-sm">
                                                 </div>
                                                 <c:choose>
                                                     <c:when test="${project.teamProject}">
@@ -2175,7 +2189,7 @@
                                                                 </c:when>
                                                                 <c:otherwise>
                                                                     <input type="hidden" name="assigneeId" value="${task.assigneeId}">
-                                                                    <input type="text" class="form-control form-control-sm bg-light" value="${task.assigneeName}" readonly>
+                                                                    <input type="text" class="form-control form-control-sm bg-light" value="${fn:escapeXml(task.assigneeName)}" readonly>
                                                                 </c:otherwise>
                                                             </c:choose>
                                                         </div>
@@ -2185,7 +2199,7 @@
                                                     </c:otherwise>
                                                 </c:choose>
                                             </div>
-                                            <c:if test="${project.teamProject}">
+                                            <c:if test="${project.teamProject && isPm}">
                                                 <input type="hidden" name="hasRequiresGateControl" value="true">
                                                 <div class="p-2-5 bg-light rounded-2 border mb-3">
                                                     <div class="form-check form-switch mb-1">
@@ -2599,9 +2613,19 @@
                                                     <c:if test="${not empty task.deliverableFile}">
                                                         <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
                                                             <span class="fs-9 text-truncate fw-medium">${fn:escapeXml(task.deliverableFile)}</span>
-                                                            <a href="${pageContext.request.contextPath}/uploads/deliverables/${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
-                                                                <i class="bi bi-download"></i> Tải
-                                                            </a>
+                                                            <%-- Link ngoài (http/https) → mở tab mới; tệp có thật trên server → nút Tải; còn lại chỉ hiện tên --%>
+                                                            <c:choose>
+                                                                <c:when test="${fn:startsWith(task.deliverableFile, 'https://') || fn:startsWith(task.deliverableFile, 'http://')}">
+                                                                    <a href="${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" target="_blank" rel="noopener noreferrer">
+                                                                        <i class="bi bi-box-arrow-up-right"></i> Mở
+                                                                    </a>
+                                                                </c:when>
+                                                                <c:when test="${downloadableDeliverables.contains(task.id)}">
+                                                                    <a href="${pageContext.request.contextPath}/uploads/deliverables/${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" download target="_blank">
+                                                                        <i class="bi bi-download"></i> Tải
+                                                                    </a>
+                                                                </c:when>
+                                                            </c:choose>
                                                         </div>
                                                     </c:if>
                                                 </div>
@@ -2842,7 +2866,7 @@
                                                             <c:otherwise>${fn:escapeXml(comment.authorName)}</c:otherwise>
                                                         </c:choose>
                                                     </span>
-                                                    <span class="text-muted fs-9">${comment.sentAt}</span>
+                                                    <span class="text-muted fs-9" title="${comment.sentAt}">${comment.shortSentAt}</span>
                                                 </div>
                                                 <div class="fs-9 text-dark lh-base" style="word-break: break-word; white-space: pre-line;">
                                                     <c:out value="${comment.content}" />
@@ -2876,7 +2900,7 @@
                                 <!-- FOOTER: XÓA TASK NẾU CÓ QUYỀN -->
                                 <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                     <div class="pt-2 mt-2 border-top text-end">
-                                        <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
+                                        <a data-method="post" href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
                                             class="text-danger fs-9 text-decoration-none d-inline-flex align-items-center gap-1 opacity-75 hover-opacity-100"
                                             onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn công việc này không?');">
                                             <i class="bi bi-trash3"></i> Xóa thẻ này
@@ -2927,7 +2951,7 @@
                                                 <input type="hidden" name="subTaskId" value="${st.id}">
                                                 <div class="mb-2">
                                                     <label class="form-label fs-9 fw-bold text-dark mb-1">Tiêu đề nhiệm vụ:</label>
-                                                    <input type="text" name="title" value="${st.title}" class="form-control form-control-sm" required>
+                                                    <input type="text" name="title" value="${fn:escapeXml(st.title)}" class="form-control form-control-sm" required>
                                                 </div>
                                                 <div class="row g-2 mb-2">
                                                     <div class="col-6">
@@ -2940,7 +2964,7 @@
                                                     </div>
                                                     <div class="col-6">
                                                         <label class="form-label fs-9 fw-bold text-dark mb-1">Hạn chót:</label>
-                                                        <input type="date" name="dueDate" value="${st.dueDate}" class="form-control form-control-sm"
+                                                        <input type="date" name="dueDate" value="${fn:escapeXml(st.dueDate)}" class="form-control form-control-sm"
                                                             <c:if test="${not empty task.dueDate}">max="${fn:escapeXml(task.dueDate)}"</c:if>>
                                                     </div>
                                                 </div>
@@ -3906,28 +3930,16 @@
 
                                 <div class="mb-3">
                                     <label for="inputUsernameOrEmail" class="form-label fw-semibold fs-7 text-dark">
-                                        Chọn tài khoản hoặc nhập Username / Email <span class="text-danger">*</span>
+                                        Username hoặc Email <span class="text-danger">*</span>
                                     </label>
-                                    <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("inviteCandidates") --%>
-                                    <c:if test="${not empty inviteCandidates}">
-                                        <div class="mb-2">
-                                            <select class="form-select fs-7 rounded-3"
-                                                onchange="if(this.value) document.getElementById('inputUsernameOrEmail').value = this.value;">
-                                                <option value="">-- Chọn nhanh tài khoản trong hệ thống --</option>
-                                                <c:forEach items="${inviteCandidates}" var="cand">
-                                                    <option value="${cand.username}">${fn:escapeXml(cand.fullName)} (@${fn:escapeXml(cand.username)}
-                                                        - ${fn:escapeXml(cand.role)})</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                    </c:if>
+                                    <%-- Không liệt kê toàn bộ tài khoản hệ thống: PM nhập chính xác username/email người cần mời --%>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-end-0 fs-7 text-muted">
                                             <i class="bi bi-person-badge"></i>
                                         </span>
                                         <input type="text" class="form-control fs-7 rounded-end-3"
                                             id="inputUsernameOrEmail" name="usernameOrEmail"
-                                            placeholder="Hoặc tự gõ: chi hoặc chi@teamwork.com" required autofocus>
+                                            placeholder="Ví dụ: chi hoặc chi@teamwork.com" required autofocus>
                                     </div>
                                 </div>
 
@@ -3979,7 +3991,7 @@
                             <div class="modal-body p-4">
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold fs-7 text-dark">Tên dự án <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control rounded-3 fs-7" name="name" value="${project.name}" required>
+                                    <input type="text" class="form-control rounded-3 fs-7" name="name" value="${fn:escapeXml(project.name)}" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold fs-7 text-dark">Mô tả dự án</label>

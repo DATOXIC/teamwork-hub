@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- 
     =============================================================================
@@ -30,12 +31,12 @@
                 <%-- ◀ SERVLET: ChatServlet, DocServlet, MeetingServlet … → setAttribute("project") --%>
                 <c:if test="${not empty project.projectCode}">
                     <span class="badge rounded-pill px-2-5 py-1 fs-9 fw-semibold subnav-code-badge">
-                        #${project.projectCode}
+                        #${fn:escapeXml(project.projectCode)}
                     </span>
                 </c:if>
                 <div>
-                    <h1 class="h6 fw-bold mb-0 text-truncate subnav-project-title" style="max-width: 260px;" title="${project.name}">
-                        ${project.name}
+                    <h1 class="h6 fw-bold mb-0 text-truncate subnav-project-title" style="max-width: 260px;" title="${fn:escapeXml(project.name)}">
+                        ${fn:escapeXml(project.name)}
                     </h1>
                 </div>
             </div>

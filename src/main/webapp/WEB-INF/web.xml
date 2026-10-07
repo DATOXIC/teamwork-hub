@@ -22,6 +22,16 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- CHỐNG CSRF: mọi POST phải kèm token của session (chạy SAU AuthFilter theo thứ tự khai báo) -->
+    <filter>
+        <filter-name>CsrfFilter</filter-name>
+        <filter-class>com.teamwork.filters.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- 
         LƯU Ý: Toàn bộ Servlets (/auth, /project, /task, /doc, /chat, /invite, /profile, /notification) 
         được tự động ánh xạ bằng annotation @WebServlet trên từng Controller class (chuẩn Jakarta Servlet 6.0).

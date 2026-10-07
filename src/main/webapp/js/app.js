@@ -354,6 +354,43 @@
     window.toggleGlobalTheme = toggleGlobalTheme;
     window.toggleReportTheme = toggleGlobalTheme; // Alias tương thích 100% cho trang Báo cáo
 
+    // =========================================================================
+    // GỬI THAO TÁC THAY ĐỔI DỮ LIỆU BẰNG POST (xóa, đăng xuất, đánh dấu đã đọc...)
+    // Server chỉ nhận các thao tác này qua POST: link GET có thể bị kích hoạt từ trang khác
+    // chỉ bằng một <img src> hay một đường link (CSRF). Dùng chung:
+    //   - <a href="/doc?action=delete&docId=1" data-method="post">…</a>
+    //   - window.postTo(url) trong JS
+    // =========================================================================
+    window.postTo = function (url) {
+        var parsed = new URL(url, window.location.href);
+        var form = document.createElement('form');
+        form.method = 'post';
+        form.action = parsed.pathname;
+        form.style.display = 'none';
+        parsed.searchParams.forEach(function (value, name) {
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        });
+        if (typeof window.addCsrfInput === 'function') window.addCsrfInput(form); // form.submit() không phát sự kiện submit
+        document.body.appendChild(form);
+        form.submit();
+    };
+
+    // app.js có thể được nạp 2 lần trên một trang (trực tiếp + qua footer): chỉ gắn listener một lần
+    if (!window.__postLinkHandlerInstalled) {
+        window.__postLinkHandlerInstalled = true;
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest && e.target.closest('a[data-method="post"]');
+            // onclick="return confirm(...)" bị hủy → defaultPrevented → không gửi
+            if (!link || e.defaultPrevented || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            e.preventDefault();
+            window.postTo(link.href);
+        });
+    }
+
 })();
 
 

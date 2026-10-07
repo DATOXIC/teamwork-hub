@@ -243,4 +243,24 @@ public class UserDB {
             JPAUtil.closeEntityManager(em);
         }
     }
+
+    /**
+     * Lấy các User theo danh sách ID bằng 1 câu truy vấn (dùng cho thành viên dự án, thay vì nạp cả hệ thống).
+     */
+    public static List<User> selectByIds(java.util.Collection<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery("SELECT u FROM User u WHERE u.id IN :ids ORDER BY u.id ASC", User.class)
+                    .setParameter("ids", ids)
+                    .getResultList();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi lấy danh sách User theo ID qua JPA", e);
+            return new ArrayList<>();
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
 }

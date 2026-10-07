@@ -113,9 +113,7 @@ public class DocServlet extends HttpServlet {
                 handleShowDocs(request, response, projectId);
                 break;
 
-            case "delete":
-                handleDeleteDoc(request, response, currentUser, projectId);
-                break;
+            // "delete" chỉ nhận qua POST (doPost): link GET có thể bị kích hoạt từ trang khác (CSRF)
 
             default:
                 handleShowDocs(request, response, projectId);

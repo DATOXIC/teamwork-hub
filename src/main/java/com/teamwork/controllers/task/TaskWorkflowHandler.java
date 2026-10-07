@@ -61,6 +61,22 @@ public final class TaskWorkflowHandler {
 
     private TaskWorkflowHandler() {}
 
+    /**
+     * PM chỉ được duyệt / trả lại / từ chối công việc đang chờ nghiệm thu (SUBMITTED).
+     * Nếu không đúng trạng thái: ghi toast lỗi vào session và trả về false.
+     */
+    static boolean isAwaitingPmReview(Task task, HttpSession session) {
+        if ("SUBMITTED".equalsIgnoreCase(task.getStatus())) {
+            return true;
+        }
+        if (session != null) {
+            session.setAttribute("toastError", "Công việc [" + task.getTitle()
+                    + "] không ở trạng thái chờ nghiệm thu (hiện tại: " + task.getStatus()
+                    + "). Trưởng nhóm công việc cần nộp bàn giao trước khi trưởng dự án duyệt.");
+        }
+        return false;
+    }
+
 
     /**
      * Nghiệp vụ 12: Task Lead Bàn Giao & Nộp Báo Cáo Task Lớn Lên Cho PM (Chuyển sang 🟡 SUBMITTED)
@@ -140,31 +156,31 @@ public final class TaskWorkflowHandler {
                         : "Đã hoàn thành toàn bộ công việc theo yêu cầu.";
                 }
 
-                if (deliverableFile == null || deliverableFile.trim().isEmpty()) {
-                    deliverableFile = "Bao_Cao_Nghiem_Thu_Task_" + task.getId() + ".pdf";
-                }
+                // Không tự bịa tên tệp khi người nộp để trống: tệp không tồn tại thì link tải về sẽ 404
+                deliverableFile = (deliverableFile != null) ? deliverableFile.trim() : "";
+                String fileNote = deliverableFile.isEmpty() ? "" : " kèm tệp [" + deliverableFile + "]";
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
-                TaskDB.submitTaskDeliverable(taskId, finalNote, deliverableFile.trim(), now);
+                TaskDB.submitTaskDeliverable(taskId, finalNote, deliverableFile, now);
 
                 // Ghi nhận Activity Log
-                ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu kèm tệp [" + deliverableFile.trim() + "] lên trưởng dự án");
+                ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu" + fileNote + " lên trưởng dự án");
 
                 // Bắn thông báo thời gian thực 🔔 cho Trưởng Dự Án (PM)
                 if (project.getOwnerId() > 0 && project.getOwnerId() != currentUser.getId()) {
                     NotificationDB.send(
                         project.getOwnerId(),
                         "🟡 Bàn giao công việc lớn",
-                        currentUser.getFullName() + " vừa nộp báo cáo bàn giao công việc [" + task.getTitle() + "] kèm tệp đính kèm, kính mời trưởng dự án nghiệm thu!",
+                        currentUser.getFullName() + " vừa nộp báo cáo bàn giao công việc [" + task.getTitle() + "]" + fileNote + ", kính mời trưởng dự án nghiệm thu!",
                         "/task?action=list&projectId=" + projectId,
                         "bi-box-seam-fill text-warning"
                     );
                 }
 
                 // Thông báo lên Luồng Thảo luận
-                String msgContent = "📦 [BÀN GIAO CÔNG VIỆC]: " + currentUser.getFullName() + " đã nộp hồ sơ bàn giao công việc [" + task.getTitle() + "] kèm tệp [" + deliverableFile.trim() + "] lên trưởng dự án!";
+                String msgContent = "📦 [BÀN GIAO CÔNG VIỆC]: " + currentUser.getFullName() + " đã nộp hồ sơ bàn giao công việc [" + task.getTitle() + "]" + fileNote + " lên trưởng dự án!";
                 MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
 
                 if (session != null) session.setAttribute("toastSuccess", "Đã nộp báo cáo bàn giao công việc lớn thành công! Đang chờ trưởng dự án phê duyệt.");
@@ -373,7 +389,9 @@ public final class TaskWorkflowHandler {
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
             // KIỂM SOÁT BẢO MẬT: Chỉ DUY NHẤT Trưởng Dự Án (PM) mới có quyền PHÊ DUYỆT TỐI CAO
-            if (isProjectOwner(currentUser, project)) {
+            if (!isAwaitingPmReview(task, session)) {
+                // đã báo lỗi trong isAwaitingPmReview: chỉ duyệt được công việc đang chờ nghiệm thu
+            } else if (isProjectOwner(currentUser, project)) {
                 // RÀNG BUỘC CHẤT LƯỢNG NGHIỆM THU: PM chỉ duyệt đạt khi toàn bộ việc con đã đạt 100%
                 List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                 int progress = SubTaskDB.calculateProgress(taskId);
@@ -440,7 +458,9 @@ public final class TaskWorkflowHandler {
         HttpSession session = request.getSession(false);
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
-            if (isProjectOwner(currentUser, project)) {
+            if (!isAwaitingPmReview(task, session)) {
+                // đã báo lỗi trong isAwaitingPmReview
+            } else if (isProjectOwner(currentUser, project)) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
@@ -490,7 +510,9 @@ public final class TaskWorkflowHandler {
         HttpSession session = request.getSession(false);
 
         if (task != null && project != null && task.getProjectId() == projectId && currentUser != null) {
-            if (isProjectOwner(currentUser, project)) {
+            if (!isAwaitingPmReview(task, session)) {
+                // đã báo lỗi trong isAwaitingPmReview
+            } else if (isProjectOwner(currentUser, project)) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 

@@ -89,6 +89,15 @@ public final class TaskCrudHandler {
 
         HttpSession session = request.getSession(false);
 
+        // Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo và giao công việc
+        if (!isProjectOwner(getCurrentUser(request), ProjectDB.selectById(projectId))) {
+            if (session != null) {
+                session.setAttribute("toastError", "Chỉ Trưởng dự án mới được tạo và giao công việc!");
+            }
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            return;
+        }
+
         if (title == null || title.trim().isEmpty()) {
             if (session != null) {
                 // ▶ JSP: docs.jsp đọc bằng ${toastError}
@@ -195,7 +204,8 @@ public final class TaskCrudHandler {
                 int docId = safeParseInt(docIdStr, 0);
                 if (docId > 0) {
                     Doc doc = DocDB.selectById(docId);
-                    if (doc != null) {
+                    // Chỉ gắn tài liệu của CHÍNH dự án này (không cho gắn — và làm lộ tên — tài liệu dự án khác)
+                    if (doc != null && doc.getProjectId() == projectId) {
                         TaskDocDB.insert(newTaskId, docId, doc.getTitle());
                     }
                 }
@@ -474,8 +484,9 @@ public final class TaskCrudHandler {
             }
 
             // Cập nhật chế độ Quality Gate nếu form có gửi cờ điều khiển
+            // Chỉ PM được bật/tắt cổng duyệt; Task Lead không được tự bỏ qua bước duyệt của PM
             String hasControl = request.getParameter("hasRequiresGateControl");
-            if (hasControl != null && !hasControl.trim().isEmpty()) {
+            if (isPm && hasControl != null && !hasControl.trim().isEmpty()) {
                 String reqGateParam = request.getParameter("requiresGate");
                 task.setRequiresGate("true".equalsIgnoreCase(reqGateParam) || "on".equalsIgnoreCase(reqGateParam) || "1".equals(reqGateParam));
             }
@@ -554,6 +565,11 @@ public final class TaskCrudHandler {
         User currentUser = getCurrentUser(request);
         if (currentUser == null || !ProjectMemberDB.isMember(projectId, currentUser.getId())) {
             sendJsonResponse(response, false, "Bạn không có quyền thao tác trong dự án này!", null);
+            return;
+        }
+        // Quy tắc dự án: chỉ Trưởng dự án (PM) được tạo và giao công việc
+        if (!isProjectOwner(currentUser, ProjectDB.selectById(projectId))) {
+            sendJsonResponse(response, false, "Chỉ Trưởng dự án mới được tạo và giao công việc!", null);
             return;
         }
 

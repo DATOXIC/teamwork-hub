@@ -241,7 +241,9 @@
 
         close();
 
-        if (action === 'navigate' && url) {
+        if (action === 'post' && url && typeof window.postTo === 'function') {
+            window.postTo(url); // thao tác thay đổi dữ liệu (vd. đăng xuất) phải gửi bằng POST
+        } else if (action === 'navigate' && url) {
             window.location.href = url;
         } else if (action === 'theme') {
             if (typeof window.toggleGlobalTheme === 'function') {

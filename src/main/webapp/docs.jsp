@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- =========================================================================
      MVC SKELETON & CONTRACT NOTE — docs.jsp
@@ -10,7 +11,7 @@
         - ${docs}          : List<Doc> (id, title, snippet, authorName, updatedAt)
         - ${selectedDoc}   : Doc entity (id, title, content, authorName, createdAt, updatedAt)
         - ${relatedTasks}  : List<Task> liên kết với bài viết hiện tại
-        - ${toastSuccess} / ${toastError} : Flash notifications từ Session
+        - ${fn:escapeXml(toastSuccess)} / ${fn:escapeXml(toastError)} : Flash notifications từ Session
      
      2. Luồng thao tác (Outbound Form Actions & Deep Links):
         - GET  /doc?action=list&projectId=${project.id}   -> Danh mục tài liệu
@@ -79,20 +80,20 @@
                         <%-- ◀ SERVLET: DocServlet → setAttribute("project") --%>
                         <a href="${pageContext.request.contextPath}/doc?action=view&projectId=${project.id}&docId=${d.id}" 
                            class="wiki-doc-item ${selectedDoc.id == d.id ? 'active' : ''}"
-                           data-doc-title="${d.title.toLowerCase()}">
+                           data-doc-title="${fn:escapeXml(d.title.toLowerCase())}">
                             
                             <div class="d-flex align-items-start gap-2 mb-1">
                                 <%-- ◀ SERVLET: DocServlet → setAttribute("selectedDoc") --%>
                                 <i class="bi bi-file-earmark-text ${selectedDoc.id == d.id ? 'text-primary' : 'text-secondary'} mt-0-5 fs-7"></i>
-                                <span class="fw-bold fs-8 wiki-doc-title ${selectedDoc.id == d.id ? 'text-primary' : 'text-dark'} text-truncate d-block flex-grow-1">${d.title}</span>
+                                <span class="fw-bold fs-8 wiki-doc-title ${selectedDoc.id == d.id ? 'text-primary' : 'text-dark'} text-truncate d-block flex-grow-1">${fn:escapeXml(d.title)}</span>
                             </div>
 
                             <!-- Đoạn trích dẫn tóm tắt -->
-                            <p class="text-muted fs-9 mb-2 ms-3 text-truncate wiki-doc-snippet">${d.snippet}</p>
+                            <p class="text-muted fs-9 mb-2 ms-3 text-truncate wiki-doc-snippet">${fn:escapeXml(d.snippet)}</p>
 
                             <!-- Tác giả & Ngày cập nhật -->
                             <div class="d-flex align-items-center justify-content-between ms-3 fs-9 text-secondary border-top pt-1-5 mt-1">
-                                <span class="text-truncate wiki-doc-author"><i class="bi bi-person me-1"></i>${d.authorName}</span>
+                                <span class="text-truncate wiki-doc-author"><i class="bi bi-person me-1"></i>${fn:escapeXml(d.authorName)}</span>
                                 <span><i class="bi bi-clock me-1"></i>${d.updatedAt}</span>
                             </div>
                         </a>
@@ -126,11 +127,11 @@
                         <!-- Đầu bài viết: Tiêu đề + Nút Sửa/Xóa -->
                         <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 pb-3 mb-4 border-bottom">
                             <div>
-                                <h3 class="fw-bold text-dark tracking-tight mb-2">${selectedDoc.title}</h3>
+                                <h3 class="fw-bold text-dark tracking-tight mb-2">${fn:escapeXml(selectedDoc.title)}</h3>
                                 <div class="d-flex flex-wrap align-items-center gap-3 text-secondary fs-8">
                                     <div class="d-flex align-items-center gap-1">
                                         <i class="bi bi-person-circle text-primary"></i>
-                                        <span class="fw-semibold text-dark">${selectedDoc.authorName}</span>
+                                        <span class="fw-semibold text-dark">${fn:escapeXml(selectedDoc.authorName)}</span>
                                     </div>
                                     <span>&bull;</span>
                                     <div>
@@ -150,7 +151,7 @@
                                     <i class="bi bi-pencil me-1"></i> Sửa bài
                                 </button>
                                 
-                                <a href="${pageContext.request.contextPath}/doc?action=delete&docId=${selectedDoc.id}&projectId=${project.id}" 
+                                <a data-method="post" href="${pageContext.request.contextPath}/doc?action=delete&docId=${selectedDoc.id}&projectId=${project.id}" 
                                    class="btn btn-outline-danger btn-sm rounded-pill px-3 fs-8"
                                    onclick="return confirm('Bạn có chắc chắn muốn xóa bài viết tài liệu này không?');">
                                     <i class="bi bi-trash3 me-1"></i> Xóa
@@ -189,10 +190,10 @@
                                                 <span class="badge ${rt.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9">
                                                     ${rt.statusLabel}
                                                 </span>
-                                                <span class="fw-semibold text-dark fs-8 text-truncate">${rt.title}</span>
+                                                <span class="fw-semibold text-dark fs-8 text-truncate">${fn:escapeXml(rt.title)}</span>
                                             </div>
                                             <div class="d-flex align-items-center gap-3 fs-8 text-secondary flex-shrink-0">
-                                                <span><i class="bi bi-person-fill text-primary me-1"></i>${rt.assigneeName}</span>
+                                                <span><i class="bi bi-person-fill text-primary me-1"></i>${fn:escapeXml(rt.assigneeName)}</span>
                                                 <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
                                                    class="btn btn-outline-primary btn-xs rounded-pill px-3 py-1 fs-9">
                                                     Xem trên Kanban <i class="bi bi-arrow-right ms-1"></i>
@@ -320,7 +321,7 @@
                                    class="form-control rounded-3 py-2 px-3 fs-7" 
                                    id="editDocTitle" 
                                    name="title" 
-                                   value="${selectedDoc.title}" 
+                                   value="${fn:escapeXml(selectedDoc.title)}" 
                                    required>
                         </div>
 

@@ -277,14 +277,14 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 1c | [ ] | Xóa mật khẩu cũ khỏi lịch sử git (`git filter-repo`) + force-push, báo nhóm clone lại | 1.2 | **Bạn** (Claude hướng dẫn) |
 | 2 | [x] | Chống XSS ở chat: `chat.js` escape trước khi tạo mention, bỏ gán `innerHTML` thô | 1.4 | Claude |
 | 3 | [x] | Chống XSS ở `tasks.jsp` (màn hình demo chính) | 1.3 | Claude |
-| 4 | [ ] | Chống XSS ở các JSP còn lại + `includes/` + các chỗ `innerHTML` trong JS khác | 1.3, 1.4 | Claude |
-| 5 | [ ] | Sửa lỗi mời lại thành viên (ràng buộc UNIQUE + kiểm tra kết quả insert); ẩn nút tải tệp bàn giao khi chưa có tệp | 1.14 | Claude (+ bạn chạy migration SQL) |
-| 6 | [ ] | Phân quyền: chỉ PM tạo/giao task, chỉ PM bật/tắt cổng duyệt, đổi hạn chót chỉ PM/Lead | 1.7 | Claude |
-| 7 | [ ] | Kiểm tra trạng thái ở các bước duyệt (task & subtask phải `SUBMITTED`) | 1.8 | Claude |
-| 8 | [ ] | Tách chức danh khỏi quyền (bỏ cờ `ADMIN` trong `role`) | 1.9 | Claude |
-| 9 | [ ] | Chuyển các thao tác xóa / chấp nhận / từ chối / đăng xuất từ GET sang POST | 1.6 | Claude |
-| 10 | [ ] | Thêm CSRF token cho mọi form và `fetch` | 1.5 | Claude |
-| 11 | [ ] | Ẩn dữ liệu ngoài phạm vi (chỉ hiện dự án của tôi, bỏ danh sách mọi user, kiểm `docIds`) | 1.13 | Claude |
+| 4 | [x] | Chống XSS ở các JSP còn lại + `includes/` + các chỗ `innerHTML` trong JS khác | 1.3, 1.4 | Claude |
+| 5 | [x] | Sửa lỗi mời lại thành viên (ràng buộc UNIQUE + kiểm tra kết quả insert); ẩn nút tải tệp bàn giao khi chưa có tệp | 1.14 | Claude (không cần migration) |
+| 6 | [x] | Phân quyền: chỉ PM tạo/giao task, chỉ PM bật/tắt cổng duyệt, đổi hạn chót chỉ PM/Lead | 1.7 | Claude |
+| 7 | [x] | Kiểm tra trạng thái ở các bước duyệt (task & subtask phải `SUBMITTED`) | 1.8 | Claude |
+| 8 | [x] | Tách chức danh khỏi quyền (bỏ cờ `ADMIN` trong `role`) | 1.9 | Claude |
+| 9 | [x] | Chuyển các thao tác xóa / chấp nhận / từ chối / đăng xuất từ GET sang POST | 1.6 | Claude |
+| 10 | [x] | Thêm CSRF token cho mọi form và `fetch` | 1.5 | Claude |
+| 11 | [x] | Ẩn dữ liệu ngoài phạm vi (chỉ hiện dự án của tôi, bỏ danh sách mọi user, kiểm `docIds`) | 1.13 | Claude |
 | 12 | [ ] | Chặn open redirect | 1.12 | Claude |
 | 13 | [ ] | Băm mật khẩu PBKDF2 + tự nâng cấp hash cũ; secret remember-me bắt buộc từ env, cookie `SameSite` | 1.10, 1.11 | Claude |
 | 14 | [ ] | Giới hạn gửi OTP theo IP; thêm header bảo mật | 1.15, 1.16 | Claude |

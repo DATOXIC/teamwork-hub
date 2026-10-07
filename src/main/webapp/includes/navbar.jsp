@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%@ page import="com.teamwork.data.NotificationDB" %>
 <%@ page import="com.teamwork.business.Notification" %>
 <%@ page import="java.util.List" %>
@@ -112,7 +113,7 @@
                                 </c:if>
                             </div>
                             <c:if test="${unreadNotifCount > 0}">
-                                <a href="${pageContext.request.contextPath}/notification?action=readAll" 
+                                <a data-method="post" href="${pageContext.request.contextPath}/notification?action=readAll" 
                                    class="text-white-50 text-decoration-none fs-9" title="Đánh dấu tất cả là đã đọc">
                                     <i class="bi bi-check2-all me-1"></i> Đã đọc tất cả
                                 </a>
@@ -124,18 +125,24 @@
                             <c:choose>
                                 <c:when test="${not empty notifList}">
                                     <c:forEach items="${notifList}" var="n">
-                                        <a href="${pageContext.request.contextPath}/notification?action=read&id=${n.id}&redirect=${n.link}" 
+                                        <%-- c:param mã hóa URL cho link đích (link có dấu & sẽ không bị cắt mất tham số) --%>
+                                        <c:url var="notifReadUrl" value="/notification">
+                                            <c:param name="action" value="read" />
+                                            <c:param name="id" value="${n.id}" />
+                                            <c:param name="redirect" value="${n.link}" />
+                                        </c:url>
+                                        <a href="${fn:escapeXml(notifReadUrl)}"
                                            class="d-flex align-items-start gap-3 p-3 border-bottom text-decoration-none transition-all ${n.read ? 'bg-white text-muted opacity-75' : 'bg-light-subtle text-dark fw-medium'} hover-bg-light">
                                             <div class="p-2 rounded-circle bg-white shadow-sm border mt-1 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                                                 <i class="bi ${n.iconClass} fs-6"></i>
                                             </div>
                                             <div class="flex-grow-1 overflow-hidden">
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                                    <span class="fs-8 fw-bold ${n.read ? 'text-secondary' : 'text-dark'}">${n.title}</span>
+                                                    <span class="fs-8 fw-bold ${n.read ? 'text-secondary' : 'text-dark'}">${fn:escapeXml(n.title)}</span>
                                                     <span class="fs-9 text-muted">${n.createdAt}</span>
                                                 </div>
                                                 <p class="fs-8 mb-0 text-secondary" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                                    ${n.content}
+                                                    ${fn:escapeXml(n.content)}
                                                 </p>
                                             </div>
                                             <c:if test="${!n.read}">
@@ -170,16 +177,16 @@
                             <i class="bi bi-person-fill"></i>
                         </div>
                         <span class="d-none d-md-inline text-white fw-bold fs-7">
-                            ${sessionScope.currentUser.fullName}
+                            ${fn:escapeXml(sessionScope.currentUser.fullName)}
                         </span>
                         <span class="badge rounded-pill fs-9 px-2 py-1 text-white" style="background-color: #638ECB;">
-                            ${sessionScope.currentUser.role}
+                            ${fn:escapeXml(sessionScope.currentUser.role)}
                         </span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border border-secondary mt-2 rounded-3" data-bs-theme="light" style="background-color: #ffffff; color: #0f172a;">
                         <li class="px-3 py-2 border-bottom">
-                            <div class="fw-bold text-dark fs-7">${sessionScope.currentUser.fullName}</div>
-                            <div class="text-muted fs-8">@${sessionScope.currentUser.username} &bull; ${sessionScope.currentUser.email}</div>
+                            <div class="fw-bold text-dark fs-7">${fn:escapeXml(sessionScope.currentUser.fullName)}</div>
+                            <div class="text-muted fs-8">@${fn:escapeXml(sessionScope.currentUser.username)} &bull; ${fn:escapeXml(sessionScope.currentUser.email)}</div>
                         </li>
                         <li>
                             <a class="dropdown-item py-2 d-flex align-items-center gap-2 fw-medium text-dark" 
@@ -189,7 +196,7 @@
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
-                            <a class="dropdown-item py-2 text-danger d-flex align-items-center gap-2 fw-medium" 
+                            <a data-method="post" class="dropdown-item py-2 text-danger d-flex align-items-center gap-2 fw-medium"
                                href="${pageContext.request.contextPath}/auth?action=logout">
                                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
                             </a>

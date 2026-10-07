@@ -269,8 +269,8 @@
                                         <div class="message-body fs-8 lh-base text-white" 
                                              id="msg-content-${msg.id}"
                                              data-raw-content="<c:out value='${msg.content}' />"><c:out value="${msg.content}" /></div>
-                                        <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
-                                            <span class="chat-time-meta text-white-50" data-raw-time="<c:out value='${msg.sentAt}' />" title="<c:out value='${msg.sentAt}' />"><i class="bi bi-clock me-1" aria-hidden="true"></i><span class="time-text">${msg.shortSentAt}</span></span>
+                                        <div class="d-flex justify-content-end align-items-center gap-1 mt-1 text-nowrap">
+                                            <span class="chat-time-meta text-white-50 text-nowrap" data-raw-time="<c:out value='${msg.sentAt}' />" title="<c:out value='${msg.sentAt}' />"><i class="bi bi-clock me-1" aria-hidden="true"></i><span class="time-text">${msg.shortSentAt}</span></span>
                                         </div>
                                     </div>
                                 </div>
@@ -323,8 +323,8 @@
                                         <div class="message-body fs-8 lh-base" 
                                              id="msg-content-${msg.id}"
                                              data-raw-content="<c:out value='${msg.content}' />"><c:out value="${msg.content}" /></div>
-                                        <div class="d-flex justify-content-end align-items-center gap-1 mt-1">
-                                            <span class="chat-time-meta text-muted" data-raw-time="<c:out value='${msg.sentAt}' />" title="<c:out value='${msg.sentAt}' />"><i class="bi bi-clock me-1" aria-hidden="true"></i><span class="time-text">${msg.shortSentAt}</span></span>
+                                        <div class="d-flex justify-content-end align-items-center gap-1 mt-1 text-nowrap">
+                                            <span class="chat-time-meta text-muted text-nowrap" data-raw-time="<c:out value='${msg.sentAt}' />" title="<c:out value='${msg.sentAt}' />"><i class="bi bi-clock me-1" aria-hidden="true"></i><span class="time-text">${msg.shortSentAt}</span></span>
                                         </div>
                                     </div>
                                 </div>

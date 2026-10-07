@@ -89,9 +89,7 @@ public class AuthServlet extends HttpServlet {
         }
 
         switch (action) {
-            case "logout":
-                processLogout(request, response);
-                break;
+            // "logout" chỉ nhận qua POST (doPost): link GET có thể bị trang khác kích hoạt để đăng xuất người dùng
 
             case "forgot":
                 clearResetState(request.getSession());
@@ -121,6 +119,12 @@ public class AuthServlet extends HttpServlet {
                         // ▶ JSP: login.jsp đọc bằng ${username}
                         request.setAttribute("username", registeredUser);
                         session.removeAttribute("registeredUsername");
+                    }
+                    // Lỗi flash (vd. CsrfFilter chặn form đăng nhập để quá lâu) → hiện như lỗi đăng nhập
+                    String toastError = (String) session.getAttribute("toastError");
+                    if (toastError != null) {
+                        request.setAttribute("errorMessage", toastError);
+                        session.removeAttribute("toastError");
                     }
                 }
 
@@ -173,6 +177,9 @@ public class AuthServlet extends HttpServlet {
         switch (action) {
             case "login":
                 processLogin(request, response);
+                break;
+            case "logout":
+                processLogout(request, response);
                 break;
             case "register":
                 processRegister(request, response);
@@ -385,7 +392,7 @@ public class AuthServlet extends HttpServlet {
             PasswordUtil.hashPassword(password.trim()), // Hash mật khẩu trước khi lưu
             fullName.trim(),
             (email != null ? email.trim() : ""),
-            "MEMBER",                                   // Mặc định vai trò mới là MEMBER
+            "",                                         // Chức danh (không phải quyền): để trống → UserDB gán "Lập trình viên"
             "images/default_avatar.png"
         );
         UserDB.insert(newUser);

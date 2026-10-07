@@ -107,6 +107,23 @@ public class ProfileServlet extends HttpServlet {
         // 3. Lấy danh sách các Dự án mà người này đang tham gia
         List<Project> userProjects = ProjectMemberDB.selectProjectsByUserId(profileUser.getId());
 
+        // 3b. Xem hồ sơ người khác: chỉ khi làm chung ít nhất 1 dự án, và chỉ hiện các dự án chung
+        //     (không để người ngoài dò email / danh sách dự án của bất kỳ tài khoản nào qua ?userId=...)
+        if (profileUser.getId() != currentUser.getId()) {
+            List<Project> sharedProjects = new ArrayList<>();
+            for (Project p : userProjects) {
+                if (ProjectMemberDB.isMember(p.getId(), currentUser.getId())) {
+                    sharedProjects.add(p);
+                }
+            }
+            if (sharedProjects.isEmpty()) {
+                session.setAttribute("toastError", "Bạn chỉ xem được hồ sơ của thành viên cùng dự án!");
+                response.sendRedirect(request.getContextPath() + "/project?action=list");
+                return;
+            }
+            userProjects = sharedProjects;
+        }
+
         // 4. THUẬT TOÁN TÍNH CHỈ SỐ NĂNG SUẤT REAL-TIME (DỮ LIỆU KHÁCH QUAN)
         int leadTaskCount = 0;
         int totalSubTasks = 0;
