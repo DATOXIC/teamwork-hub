@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- =========================================================================
      MVC SKELETON & CONTRACT NOTE — chat.jsp
@@ -84,19 +85,19 @@
                                     <div class="chat-member-item d-flex align-items-center justify-content-between" role="listitem">
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="chat-avatar-ring" aria-hidden="true">
-                                                ${u.fullName.substring(0, 1).toUpperCase()}
+                                                ${fn:escapeXml(u.fullName.substring(0, 1).toUpperCase())}
                                                 <span class="chat-avatar-status" title="Đang hoạt động"></span>
                                             </div>
                                             <div>
-                                                <span class="chat-member-name d-block text-truncate chat-member-truncate">${u.fullName}</span>
-                                                <span class="chat-member-role">${u.role}</span>
+                                                <span class="chat-member-name d-block text-truncate chat-member-truncate">${fn:escapeXml(u.fullName)}</span>
+                                                <span class="chat-member-role">${fn:escapeXml(u.role)}</span>
                                             </div>
                                         </div>
                                         <button type="button" 
                                                 class="btn btn-sm p-1 text-muted border-0 shadow-none chat-hover-btn" 
-                                                onclick="insertShortcut('@${u.fullName}')" 
-                                                title="Nhắc tên @${u.fullName}"
-                                                aria-label="Nhắc tên ${u.fullName}">
+                                                data-mention="${fn:escapeXml(u.fullName)}" onclick="insertShortcut('@' + this.dataset.mention)" 
+                                                title="Nhắc tên @${fn:escapeXml(u.fullName)}"
+                                                aria-label="Nhắc tên ${fn:escapeXml(u.fullName)}">
                                             <i class="bi bi-at fs-7"></i>
                                         </button>
                                     </div>
@@ -151,9 +152,9 @@
                                             class="chat-resource-chip" 
                                             onclick="insertShortcut('#doc-${d.id}')" 
                                             title="Bấm để chèn #doc-${d.id} vào ô chat"
-                                            aria-label="Chèn mã tài liệu số ${d.id}: ${d.title}">
+                                            aria-label="Chèn mã tài liệu số ${d.id}: ${fn:escapeXml(d.title)}">
                                         <span class="chat-chip-tag chat-chip-tag-doc">#doc-${d.id}</span>
-                                        <span class="text-truncate">${d.title}</span>
+                                        <span class="text-truncate">${fn:escapeXml(d.title)}</span>
                                     </button>
                                 </c:forEach>
                             </c:when>
@@ -172,9 +173,9 @@
                                             class="chat-resource-chip" 
                                             onclick="insertShortcut('#task-${t.id}')" 
                                             title="Bấm để chèn #task-${t.id} vào ô chat"
-                                            aria-label="Chèn mã công việc số ${t.id}: ${t.title}">
+                                            aria-label="Chèn mã công việc số ${t.id}: ${fn:escapeXml(t.title)}">
                                         <span class="chat-chip-tag chat-chip-tag-task">#task-${t.id}</span>
-                                        <span class="text-truncate">${t.title}</span>
+                                        <span class="text-truncate">${fn:escapeXml(t.title)}</span>
                                     </button>
                                 </c:forEach>
                             </c:when>
@@ -240,7 +241,7 @@
                                         </button>
                                         <button type="button" 
                                                 class="chat-hover-btn" 
-                                                onclick="quoteMessage('${msg.authorName}', '${msg.id}')" 
+                                                data-author="${fn:escapeXml(msg.authorName)}" onclick="quoteMessage(this.dataset.author, '${msg.id}')" 
                                                 title="Trích dẫn tin nhắn"
                                                 aria-label="Trích dẫn tin nhắn">
                                             <i class="bi bi-reply-fill" aria-hidden="true"></i>
@@ -279,7 +280,7 @@
                             <c:otherwise>
                                 <div class="chat-row-other" id="msg-${msg.id}">
                                     <div class="chat-avatar-ring flex-shrink-0 mt-1" aria-hidden="true">
-                                        ${msg.authorInitial}
+                                        ${fn:escapeXml(msg.authorInitial)}
                                     </div>
                                     <div class="chat-bubble-other">
                                         <!-- Micro Action Bar khi rê chuột -->
@@ -293,7 +294,7 @@
                                             </button>
                                             <button type="button" 
                                                     class="chat-hover-btn" 
-                                                    onclick="quoteMessage('${msg.authorName}', '${msg.id}')" 
+                                                    data-author="${fn:escapeXml(msg.authorName)}" onclick="quoteMessage(this.dataset.author, '${msg.id}')" 
                                                     title="Trích dẫn tin nhắn"
                                                     aria-label="Trích dẫn tin nhắn">
                                                 <i class="bi bi-reply-fill" aria-hidden="true"></i>
@@ -317,7 +318,7 @@
                                         </div>
 
                                         <div class="d-flex align-items-center justify-content-between gap-3 mb-1">
-                                            <span class="chat-author-name">${msg.authorName}</span>
+                                            <span class="chat-author-name">${fn:escapeXml(msg.authorName)}</span>
                                         </div>
                                         <div class="message-body fs-8 lh-base" 
                                              id="msg-content-${msg.id}"
@@ -455,19 +456,19 @@
                             <div class="chat-member-item d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="chat-avatar-ring" aria-hidden="true">
-                                        ${u.fullName.substring(0, 1).toUpperCase()}
+                                        ${fn:escapeXml(u.fullName.substring(0, 1).toUpperCase())}
                                         <span class="chat-avatar-status"></span>
                                     </div>
                                     <div>
-                                        <span class="chat-member-name d-block text-truncate chat-member-truncate-md">${u.fullName}</span>
-                                        <span class="chat-member-role">${u.role}</span>
+                                        <span class="chat-member-name d-block text-truncate chat-member-truncate-md">${fn:escapeXml(u.fullName)}</span>
+                                        <span class="chat-member-role">${fn:escapeXml(u.role)}</span>
                                     </div>
                                 </div>
                                 <button type="button" 
                                         class="btn btn-sm p-1 text-muted border-0 chat-hover-btn" 
                                         data-bs-dismiss="offcanvas"
-                                        onclick="insertShortcut('@${u.fullName}')" 
-                                        title="Nhắc tên @${u.fullName}">
+                                        data-mention="${fn:escapeXml(u.fullName)}" onclick="insertShortcut('@' + this.dataset.mention)" 
+                                        title="Nhắc tên @${fn:escapeXml(u.fullName)}">
                                      <i class="bi bi-at fs-7"></i>
                                 </button>
                             </div>
@@ -492,9 +493,9 @@
                             class="chat-resource-chip" 
                             data-bs-dismiss="offcanvas"
                             onclick="insertShortcut('#doc-${d.id}')"
-                            aria-label="Chèn mã tài liệu ${d.title}">
+                            aria-label="Chèn mã tài liệu ${fn:escapeXml(d.title)}">
                         <span class="chat-chip-tag chat-chip-tag-doc">#doc-${d.id}</span>
-                        <span class="text-truncate">${d.title}</span>
+                        <span class="text-truncate">${fn:escapeXml(d.title)}</span>
                     </button>
                 </c:forEach>
 
@@ -504,9 +505,9 @@
                             class="chat-resource-chip" 
                             data-bs-dismiss="offcanvas"
                             onclick="insertShortcut('#task-${t.id}')"
-                            aria-label="Chèn mã công việc ${t.title}">
+                            aria-label="Chèn mã công việc ${fn:escapeXml(t.title)}">
                         <span class="chat-chip-tag chat-chip-tag-task">#task-${t.id}</span>
-                        <span class="text-truncate">${t.title}</span>
+                        <span class="text-truncate">${fn:escapeXml(t.title)}</span>
                     </button>
                 </c:forEach>
             </div>

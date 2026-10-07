@@ -21,6 +21,16 @@ function scrollToBottom() {
     }
 }
 
+// Escape ký tự HTML đặc biệt: nội dung tin nhắn là văn bản người dùng nhập, không bao giờ được coi là HTML
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 // =========================================================================
 // HÀM 2: CHUYỂN ĐỔI CÚ PHÁP #MENTION THÀNH SMART GLASS BADGES BẤM ĐƯỢC
 // =========================================================================
@@ -29,7 +39,8 @@ function convertRawTextToMentionHtml(rawText, projectId, ctxPath) {
         return "";
     }
 
-    var resultHtml = rawText;
+    // Escape TRƯỚC, sau đó mới chèn thẻ mention (các regex bên dưới chỉ bắt số / chữ nên không tạo lại HTML từ dữ liệu người dùng)
+    var resultHtml = escapeHtml(rawText);
 
     // 1. Chuyển đổi cú pháp #doc-X thành Link mở bài viết Wiki dạng Glass Badge
     var docRegex = /#doc-(\d+)/g;
