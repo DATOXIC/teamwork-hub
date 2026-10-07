@@ -218,7 +218,8 @@ function confirmDeleteMessage(projectId, messageId) {
     var modalElem = document.getElementById('deleteMessageModal');
     var confirmBtn = document.getElementById('btnConfirmDeleteMessage');
     if (modalElem && confirmBtn) {
-        confirmBtn.href = contextPath + "/chat?action=delete&projectId=" + projectId + "&messageId=" + messageId;
+        confirmBtn.href = contextPath + "/chat?action=delete&projectId=" + encodeURIComponent(projectId) + "&messageId=" + encodeURIComponent(messageId);
+        confirmBtn.setAttribute("data-method", "post"); // app.js gửi bằng POST thay vì GET
         var modalInstance = bootstrap.Modal.getInstance(modalElem);
         if (!modalInstance) {
             modalInstance = new bootstrap.Modal(modalElem);
@@ -226,7 +227,7 @@ function confirmDeleteMessage(projectId, messageId) {
         modalInstance.show();
     } else {
         if (confirm("Bạn có chắc chắn muốn xóa tin nhắn này không?")) {
-            window.location.href = contextPath + "/chat?action=delete&projectId=" + projectId + "&messageId=" + messageId;
+            window.postTo(contextPath + "/chat?action=delete&projectId=" + encodeURIComponent(projectId) + "&messageId=" + encodeURIComponent(messageId));
         }
     }
 }

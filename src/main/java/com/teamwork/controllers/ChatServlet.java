@@ -121,9 +121,7 @@ public class ChatServlet extends HttpServlet {
                 handleShowChat(request, response, projectId);
                 break;
 
-            case "delete":
-                handleDeleteMessage(request, response, currentUser, projectId);
-                break;
+            // "delete" chỉ nhận qua POST (doPost): link GET có thể bị kích hoạt từ trang khác (CSRF)
 
             case "poll":
                 handlePoll(response, projectId);

@@ -189,9 +189,7 @@ public class TaskServlet extends HttpServlet {
                 handleShowKanban(request, response, projectId);
                 break;
 
-            case "delete":
-                handleDeleteTask(request, response, projectId);
-                break;
+            // "delete" chỉ nhận qua POST (doPost): link GET có thể bị kích hoạt từ trang khác (CSRF)
 
             case "exportCsv":
                 handleExportCsv(request, response, projectId);
@@ -327,6 +325,11 @@ public class TaskServlet extends HttpServlet {
 
             case "editSubTask":
                 handleEditSubTask(request, response);
+                break;
+
+            case "delete":
+                // handleDeleteTask tự kiểm tra task thuộc projectId và người xóa là PM / Task Lead
+                handleDeleteTask(request, response, safeParseInt(request.getParameter("projectId"), 0));
                 break;
 
             default:

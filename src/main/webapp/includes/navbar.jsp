@@ -113,7 +113,7 @@
                                 </c:if>
                             </div>
                             <c:if test="${unreadNotifCount > 0}">
-                                <a href="${pageContext.request.contextPath}/notification?action=readAll" 
+                                <a data-method="post" href="${pageContext.request.contextPath}/notification?action=readAll" 
                                    class="text-white-50 text-decoration-none fs-9" title="Đánh dấu tất cả là đã đọc">
                                     <i class="bi bi-check2-all me-1"></i> Đã đọc tất cả
                                 </a>
@@ -196,7 +196,7 @@
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
-                            <a class="dropdown-item py-2 text-danger d-flex align-items-center gap-2 fw-medium" 
+                            <a data-method="post" class="dropdown-item py-2 text-danger d-flex align-items-center gap-2 fw-medium"
                                href="${pageContext.request.contextPath}/auth?action=logout">
                                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
                             </a>

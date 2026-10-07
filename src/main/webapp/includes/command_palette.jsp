@@ -170,7 +170,7 @@
                         <span class="cp-item-action-key"><kbd class="cp-kbd">↵</kbd></span>
                     </li>
 
-                    <li class="cp-item" data-action="navigate" data-url="${pageContext.request.contextPath}/auth?action=logout" data-search="dang xuat thoat logout sign out">
+                    <li class="cp-item" data-action="post" data-url="${pageContext.request.contextPath}/auth?action=logout" data-search="dang xuat thoat logout sign out">
                         <div class="cp-item-icon text-danger"><i class="bi bi-box-arrow-right"></i></div>
                         <div class="cp-item-content">
                             <div class="cp-item-title text-danger">Đăng Xuất Khỏi TeamWork Hub</div>

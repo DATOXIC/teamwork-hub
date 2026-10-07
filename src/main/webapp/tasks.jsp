@@ -320,7 +320,7 @@
                                 </li>
                                 <li><a class="dropdown-item rounded-2 py-1-5" href="${pageContext.request.contextPath}/profile"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
                                 <li><hr class="dropdown-divider my-1"></li>
-                                <li><a class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                                <li><a data-method="post" class="dropdown-item rounded-2 py-1-5 text-danger" href="${pageContext.request.contextPath}/auth?action=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                             </ul>
                         </div>
                         <button type="button" class="btn btn-sm btn-light border rounded-circle p-0 d-inline-flex align-items-center justify-content-center shadow-2xs flex-shrink-0 sidebar-help-btn" data-bs-toggle="modal" data-bs-target="#shortcutsHelpModal" title="Phím tắt & Trợ giúp (?)" style="width: 28px; height: 28px;">
@@ -2003,7 +2003,7 @@
         </div>
         <div class="d-flex align-items-center gap-2">
             <c:if test="${unreadNotifCount > 0}">
-                <a href="${pageContext.request.contextPath}/notification?action=readAll" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-1 fs-9" title="Đánh dấu tất cả là đã đọc">
+                <a data-method="post" href="${pageContext.request.contextPath}/notification?action=readAll" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-1 fs-9" title="Đánh dấu tất cả là đã đọc">
                     <i class="bi bi-check2-all me-1"></i> Đọc hết
                 </a>
             </c:if>
@@ -2900,7 +2900,7 @@
                                 <!-- FOOTER: XÓA TASK NẾU CÓ QUYỀN -->
                                 <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                     <div class="pt-2 mt-2 border-top text-end">
-                                        <a href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
+                                        <a data-method="post" href="${pageContext.request.contextPath}/task?action=delete&taskId=${task.id}&projectId=${project.id}"
                                             class="text-danger fs-9 text-decoration-none d-inline-flex align-items-center gap-1 opacity-75 hover-opacity-100"
                                             onclick="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn công việc này không?');">
                                             <i class="bi bi-trash3"></i> Xóa thẻ này

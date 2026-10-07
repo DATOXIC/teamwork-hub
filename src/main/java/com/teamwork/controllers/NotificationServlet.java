@@ -37,6 +37,19 @@ public class NotificationServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // GET chỉ cho "read" (bấm vào 1 thông báo để mở link đích). readAll / delete phải qua POST:
+        // link GET có thể bị kích hoạt từ trang khác chỉ bằng <img src> (CSRF).
+        dispatch(request, response, false);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        dispatch(request, response, true);
+    }
+
+    private void dispatch(HttpServletRequest request, HttpServletResponse response, boolean isPost)
+            throws IOException {
 
         HttpSession session = request.getSession(false);
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
@@ -56,21 +69,23 @@ public class NotificationServlet extends HttpServlet {
                 handleMarkAsReadAndRedirect(request, response, currentUser);
                 break;
             case "readAll":
-                handleMarkAllAsRead(request, response, currentUser);
+                if (isPost) {
+                    handleMarkAllAsRead(request, response, currentUser);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/project?action=list");
+                }
                 break;
             case "delete":
-                handleDelete(request, response, currentUser);
+                if (isPost) {
+                    handleDelete(request, response, currentUser);
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/project?action=list");
+                }
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/project?action=list");
                 break;
         }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        doGet(request, response);
     }
 
     /**

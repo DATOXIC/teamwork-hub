@@ -63,20 +63,8 @@ public class ProjectInviteServlet extends HttpServlet {
             return;
         }
 
-        switch (action) {
-            case "accept":
-                handleAccept(request, response, currentUser);
-                break;
-            case "reject":
-                handleReject(request, response, currentUser);
-                break;
-            case "revoke":
-                handleRevoke(request, response, currentUser);
-                break;
-            default:
-                response.sendRedirect(request.getContextPath() + "/project?action=list");
-                break;
-        }
+        // accept / reject / revoke chỉ nhận qua POST (doPost): link GET có thể bị kích hoạt từ trang khác (CSRF)
+        response.sendRedirect(request.getContextPath() + "/project?action=list");
     }
 
     @Override

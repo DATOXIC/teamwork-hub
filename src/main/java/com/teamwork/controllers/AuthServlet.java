@@ -89,9 +89,7 @@ public class AuthServlet extends HttpServlet {
         }
 
         switch (action) {
-            case "logout":
-                processLogout(request, response);
-                break;
+            // "logout" chỉ nhận qua POST (doPost): link GET có thể bị trang khác kích hoạt để đăng xuất người dùng
 
             case "forgot":
                 clearResetState(request.getSession());
@@ -173,6 +171,9 @@ public class AuthServlet extends HttpServlet {
         switch (action) {
             case "login":
                 processLogin(request, response);
+                break;
+            case "logout":
+                processLogout(request, response);
                 break;
             case "register":
                 processRegister(request, response);
