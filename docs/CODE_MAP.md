@@ -40,6 +40,8 @@
 
 **Dùng chung cho mọi servlet:** `BaseServlet` (lớp cha: `currentUser`, `intParam`, `flash`, `requireMember`, `writeJson`) và `ProjectAccess` (nơi duy nhất trả lời "có phải thành viên / PM / tác giả không"). Đổi luật phân quyền thì sửa `ProjectAccess`.
 
+**Trạng thái:** `business/TaskStatus` và `SubTaskStatus` (enum + bảng chuyển trạng thái hợp lệ; `TaskDB`/`SubTaskDB` từ chối cạnh không có trong bảng). **Transaction nhiều bước:** `JPAUtil.inTransaction` — dùng ở `TaskDB.deleteWithChildren`, `ProjectMemberDB.removeFromProject`, `DocDB.deleteWithLinks`, `ProjectDB.insert` (tạo dự án + OWNER).
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

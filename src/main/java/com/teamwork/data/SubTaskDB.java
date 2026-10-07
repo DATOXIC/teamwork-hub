@@ -1,6 +1,7 @@
 package com.teamwork.data;
 
 import com.teamwork.business.SubTask;
+import com.teamwork.business.SubTaskStatus;
 import com.teamwork.business.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -125,7 +126,7 @@ public class SubTaskDB {
         try {
             tx.begin();
             SubTask st = em.find(SubTask.class, subTaskId);
-            if (st != null) {
+            if (st != null && SubTaskStatus.canMove(st.getStatus(), "SUBMITTED")) {
                 st.setStatus("SUBMITTED");
                 st.setSubmissionNote(submissionNote != null ? submissionNote.trim() : "");
                 em.merge(st);
@@ -154,7 +155,7 @@ public class SubTaskDB {
         try {
             tx.begin();
             SubTask st = em.find(SubTask.class, subTaskId);
-            if (st != null) {
+            if (st != null && SubTaskStatus.canMove(st.getStatus(), "APPROVED")) {
                 st.setStatus("APPROVED");
                 st.setCompleted(true);
                 em.merge(st);
@@ -183,7 +184,7 @@ public class SubTaskDB {
         try {
             tx.begin();
             SubTask st = em.find(SubTask.class, subTaskId);
-            if (st != null) {
+            if (st != null && SubTaskStatus.canMove(st.getStatus(), "REVISE")) {
                 st.setStatus("REVISE");
                 st.setFeedbackNote(feedbackNote != null ? feedbackNote.trim() : "");
                 em.merge(st);
@@ -212,7 +213,7 @@ public class SubTaskDB {
         try {
             tx.begin();
             SubTask st = em.find(SubTask.class, subTaskId);
-            if (st != null) {
+            if (st != null && SubTaskStatus.canMove(st.getStatus(), "REJECTED")) {
                 st.setStatus("REJECTED");
                 st.setFeedbackNote(feedbackNote != null ? feedbackNote.trim() : "");
                 em.merge(st);
@@ -246,6 +247,12 @@ public class SubTaskDB {
             tx.begin();
             SubTask st = em.find(SubTask.class, id);
             if (st != null) {
+                if (!SubTaskStatus.canMove(st.getStatus(), targetStatus)) {
+                    // Chốt cuối: mọi đường đổi trạng thái đều phải theo bảng SubTaskStatus
+                    tx.rollback();
+                    LOGGER.warning("Chặn chuyển trạng thái không hợp lệ cho SubTask " + id + ": " + st.getStatus() + " -> " + targetStatus);
+                    return false;
+                }
                 st.setStatus(targetStatus);
                 em.merge(st);
                 tx.commit();

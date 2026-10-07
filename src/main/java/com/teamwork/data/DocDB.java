@@ -164,6 +164,21 @@ public class DocDB {
     /**
      * HÀM 6: Xóa một bài viết theo ID
      */
+    /**
+     * Xóa tài liệu CÙNG các liên kết task–tài liệu trong MỘT transaction
+     * (tránh trường hợp đã gỡ liên kết nhưng xóa tài liệu thất bại, hoặc ngược lại).
+     */
+    public static boolean deleteWithLinks(int docId) {
+        if (docId <= 0) return false;
+        return JPAUtil.inTransaction("xóa Doc " + docId + " kèm liên kết", false, em -> {
+            Doc doc = em.find(Doc.class, docId);
+            if (doc == null) return false;
+            em.createQuery("DELETE FROM TaskDoc td WHERE td.docId = :id").setParameter("id", docId).executeUpdate();
+            em.remove(doc);
+            return true;
+        });
+    }
+
     public static boolean delete(int id) {
         if (id <= 0) return false;
 

@@ -647,7 +647,7 @@
                                                     <i class="bi bi-clock-history me-1"></i> Trễ hạn
                                                 </span>
                                             </c:when>
-                                            <c:when test="${t.status == 'DONE' || t.status == 'APPROVED'}">
+                                            <c:when test="${t.done}">
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fs-9 mt-1">
                                                     <i class="bi bi-check me-1"></i> Xong
                                                 </span>
@@ -665,7 +665,7 @@
                             <td class="text-center">
                                 <!-- Linear-Style Status Dot Indicator -->
                                 <c:choose>
-                                    <c:when test="${t.status == 'DONE' || t.status == 'APPROVED'}">
+                                    <c:when test="${t.done}">
                                         <span class="status-dot-indicator status-dot-done">
                                             <span class="status-dot"></span>
                                             <span>${t.statusLabel}</span>
@@ -699,7 +699,7 @@
                             </td>
                             <td class="text-center">
                                 <c:choose>
-                                    <c:when test="${t.status == 'DONE' || t.status == 'APPROVED'}">
+                                    <c:when test="${t.done}">
                                         <span class="text-warning fw-bold fs-8">
                                             <i class="bi bi-star-fill"></i> ${t.qualityRating}/5
                                         </span>

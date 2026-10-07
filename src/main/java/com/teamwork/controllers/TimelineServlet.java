@@ -1,5 +1,7 @@
 package com.teamwork.controllers;
 
+import com.teamwork.business.SubTaskStatus;
+import com.teamwork.business.TaskStatus;
 import com.teamwork.business.ActivityLog;
 import com.teamwork.business.Project;
 import com.teamwork.business.ProjectMember;
@@ -107,7 +109,7 @@ public class TimelineServlet extends BaseServlet {
 
             int compSt = 0;
             for (SubTask st : stList) {
-                if (st.isCompleted() || "DONE".equalsIgnoreCase(st.getStatus()) || "APPROVED".equalsIgnoreCase(st.getStatus())) {
+                if (st.isCompleted() || SubTaskStatus.isFinished(st.getStatus())) {
                     compSt++;
                 }
             }
@@ -117,7 +119,7 @@ public class TimelineServlet extends BaseServlet {
             if (totalSt > 0) {
                 progressPct = (compSt * 100) / totalSt;
             } else {
-                progressPct = "DONE".equalsIgnoreCase(t.getStatus()) ? 100 : 0;
+                progressPct = TaskStatus.DONE.is(t.getStatus()) ? 100 : 0;
             }
             taskProgressMap.put(taskId, progressPct);
 
@@ -281,7 +283,7 @@ public class TimelineServlet extends BaseServlet {
                     "Chỉ Trưởng dự án hoặc người phụ trách công việc mới được đổi hạn chót!", projectId);
             return;
         }
-        if ("DONE".equalsIgnoreCase(task.getStatus()) || "APPROVED".equalsIgnoreCase(task.getStatus())) {
+        if (TaskStatus.isDone(task.getStatus())) {
             respondJsonOrRedirect(request, response, false,
                     "Công việc đã hoàn thành và được khóa, không thể đổi hạn chót!", projectId);
             return;

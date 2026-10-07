@@ -1,5 +1,7 @@
 package com.teamwork.controllers.task;
 
+import com.teamwork.business.SubTaskStatus;
+import com.teamwork.business.TaskStatus;
 import com.teamwork.business.Doc;
 import com.teamwork.business.Label;
 import com.teamwork.business.Message;
@@ -15,7 +17,6 @@ import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
-import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.teamwork.business.ProjectInvite;
-import com.teamwork.business.ProjectMember;
 import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.controllers.ProjectAccess;
@@ -66,7 +66,7 @@ public final class SubTaskHandler {
      * Nếu không đúng trạng thái: ghi toast lỗi vào session và trả về false.
      */
     static boolean isAwaitingLeadReview(SubTask st, HttpSession session) {
-        if ("SUBMITTED".equalsIgnoreCase(st.getStatus())) {
+        if (SubTaskStatus.SUBMITTED.is(st.getStatus())) {
             return true;
         }
         if (session != null) {
@@ -78,8 +78,7 @@ public final class SubTaskHandler {
 
     /** Công việc còn ở giai đoạn lập kế hoạch (TODO hoặc đang chờ PM duyệt kế hoạch), chưa được khóa phạm vi. */
     static boolean isBeforePlanLock(Task task) {
-        return task != null
-                && ("TODO".equalsIgnoreCase(task.getStatus()) || "PLANNING".equalsIgnoreCase(task.getStatus()));
+        return task != null && TaskStatus.isBeforePlanLock(task.getStatus());
     }
 
     /**
@@ -132,7 +131,7 @@ public final class SubTaskHandler {
         if (isTaskLead(currentUser, parentTask) || isProjectOwner(currentUser, project)) {
             // Cho phép thêm việc con khi Task đang ở TODO hoặc IN_PROGRESS (phục vụ phát sinh việc con)
             // Khóa lại khi Task đã nộp nghiệm thu (SUBMITTED, REVISE, REJECTED, DONE)
-            if (!"TODO".equalsIgnoreCase(parentTask.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(parentTask.getStatus())) {
+            if (!TaskStatus.allowsNewSubTasks(parentTask.getStatus())) {
                 if (session != null) {
                     // ▶ JSP: docs.jsp đọc bằng ${toastError}
                     session.setAttribute("toastError", 
@@ -215,7 +214,7 @@ public final class SubTaskHandler {
             Task parentTask = TaskDB.selectById(st.getTaskId());
             Project project = ProjectDB.selectById(projectId);
 
-            if (parentTask != null && "DONE".equalsIgnoreCase(parentTask.getStatus())) {
+            if (parentTask != null && TaskStatus.DONE.is(parentTask.getStatus())) {
                 String errMsg = "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành và được khóa, không thể thay đổi nhiệm vụ!";
                 if (isAjax) {
                     sendJsonResponse(response, false, errMsg, null);
@@ -251,6 +250,26 @@ public final class SubTaskHandler {
                 //    - Fast-track / Solo   : tick = XONG HẲN -> "DONE", không ai phải duyệt.
                 //    Người làm KHÔNG bao giờ tự ghi được "APPROVED" — đó là đặc quyền của Task Lead.
                 String targetStatus = isCompleted ? (isGateEnforced ? "SUBMITTED" : "DONE") : "TODO";
+
+                // Bảng chuyển trạng thái (SubTaskStatus): nhiệm vụ Task Lead ĐÃ NGHIỆM THU (APPROVED) bị khóa —
+                // bỏ tick không được xóa kết quả duyệt.
+                if (!SubTaskStatus.canMove(st.getStatus(), targetStatus)) {
+                    SubTaskStatus from = SubTaskStatus.of(st.getStatus());
+                    String errMsg = SubTaskStatus.APPROVED == from
+                            ? "🔒 Nhiệm vụ [" + st.getTitle() + "] đã được nghiệm thu, không thể bỏ hoàn thành!"
+                            : "Không thể chuyển nhiệm vụ [" + st.getTitle() + "] từ \""
+                                + (from != null ? from.getLabel() : st.getStatus()) + "\" sang \""
+                                + SubTaskStatus.of(targetStatus).getLabel() + "\".";
+                    if (isAjax) {
+                        sendJsonResponse(response, false, errMsg, null);
+                        return;
+                    }
+                    HttpSession lockSession = request.getSession(false);
+                    if (lockSession != null) lockSession.setAttribute("toastError", errMsg);
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+
                 SubTaskDB.updateStatus(subTaskId, targetStatus);
 
                 int newProgress = SubTaskDB.calculateProgress(st.getTaskId());
@@ -260,19 +279,19 @@ public final class SubTaskHandler {
                 // 2. CƠ CHẾ TỰ ĐỘNG CHUYỂN CỘT KANBAN CHO TASK LỚN:
                 if (!isGateEnforced) {
                     // Chế độ Fast-track (Tự do / Solo): Hoàn tất 100% subtask thì tự động hoàn thành Task
-                    if (newProgress == 100 && !"DONE".equals(parentTask.getStatus())) 
+                    if (newProgress == 100 && !TaskStatus.DONE.is(parentTask.getStatus())) 
                     {
                         TaskDB.updateStatus(parentTask.getId(), "DONE");
                         String celebrationText = "🏆 CHÚC MỪNG: Tất cả nhiệm vụ đã hoàn tất (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
                     } 
-                    else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) 
+                    else if (newProgress > 0 && newProgress < 100 && TaskStatus.TODO.is(parentTask.getStatus())) 
                     {
                         TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
                         String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã hoàn thành " + newProgress + "% nhiệm vụ. Công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang ĐANG LÀM!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
                     } 
-                    else if (newProgress < 100 && "DONE".equals(parentTask.getStatus())) 
+                    else if (newProgress < 100 && TaskStatus.DONE.is(parentTask.getStatus())) 
                     {
                         TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
                         String reopenText = "⚠️ CẬP NHẬT: Còn nhiệm vụ chưa xong (" + newProgress + "%). Công việc [" + parentTask.getTitle() + "] đã được mở lại sang ĐANG LÀM!";
@@ -349,7 +368,7 @@ public final class SubTaskHandler {
 
             if (parentTask != null && project != null && parentTask.getProjectId() == projectId) {
                 // RÀNG BUỘC KHÓA PHẠM VI: Không được xóa khi đã trình PM hoặc đã khóa
-                if (!"TODO".equalsIgnoreCase(parentTask.getStatus())) {
+                if (!TaskStatus.TODO.is(parentTask.getStatus())) {
                     if (session != null) {
                         session.setAttribute("toastError", 
                             "⚠️ Kế hoạch phân rã đã được trình trưởng dự án hoặc đã khóa. Không thể xóa nhiệm vụ!");
@@ -408,7 +427,7 @@ public final class SubTaskHandler {
         }
 
         // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG THỂ SỬA VIỆC CON KHI TASK CHA ĐÃ DONE
-        if ("DONE".equalsIgnoreCase(parentTask.getStatus())) {
+        if (TaskStatus.DONE.is(parentTask.getStatus())) {
             if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + parentTask.getTitle() + "] đã hoàn thành và được khóa, không thể sửa nhiệm vụ!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
@@ -568,18 +587,18 @@ public final class SubTaskHandler {
                     if (gateEnforced) {
                         // Công việc có duyệt: Task Lead duyệt xong nhiệm vụ cuối KHÔNG được tự đóng công việc cha.
                         // Task Lead phải "Bàn giao" và Trưởng Dự Án nghiệm thu (chấm sao) mới sang DONE.
-                        if (allApproved && "IN_PROGRESS".equals(parentTask.getStatus())) {
+                        if (allApproved && TaskStatus.IN_PROGRESS.is(parentTask.getStatus())) {
                             String readyText = "✅ Tất cả nhiệm vụ của công việc [" + parentTask.getTitle()
                                     + "] đã được duyệt (100%). Trưởng nhóm công việc có thể bấm 'Bàn Giao Cho Trưởng Dự Án' để nghiệm thu.";
                             MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", readyText, now));
                         }
                     }
-                    else if (allApproved && !"DONE".equals(parentTask.getStatus())) {
+                    else if (allApproved && !TaskStatus.DONE.is(parentTask.getStatus())) {
                         TaskDB.updateStatus(parentTask.getId(), "DONE");
                         String celebrationText = "🏆 CHÚC MỪNG TOÀN ĐỘI: Tất cả nhiệm vụ đã được duyệt nghiệm thu ĐẠT (100%)! Thẻ công việc [" + parentTask.getTitle() + "] đã tự động chuyển sang trạng thái ĐÃ XONG!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", celebrationText, now));
                     } 
-                    else if (newProgress > 0 && newProgress < 100 && "TODO".equals(parentTask.getStatus())) {
+                    else if (newProgress > 0 && newProgress < 100 && TaskStatus.TODO.is(parentTask.getStatus())) {
                         TaskDB.updateStatus(parentTask.getId(), "IN_PROGRESS");
                         String progressText = "🚀 BẮT ĐẦU THỰC HIỆN: Đã nghiệm thu " + newProgress + "% nhiệm vụ. Công việc [" + parentTask.getTitle() + "] chuyển sang ĐANG LÀM!";
                         MessageDB.insert(new Message(0, projectId, parentTask.getId(), 0, "Hệ Thống", progressText, now));
@@ -748,7 +767,7 @@ public final class SubTaskHandler {
             return;
         }
 
-        if (!"TODO".equalsIgnoreCase(parentTask.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(parentTask.getStatus())) {
+        if (!TaskStatus.allowsNewSubTasks(parentTask.getStatus())) {
             sendJsonResponse(response, false, "Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm nhiệm vụ mới!", null);
             return;
         }

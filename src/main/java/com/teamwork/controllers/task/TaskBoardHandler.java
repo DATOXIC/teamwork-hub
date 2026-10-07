@@ -1,5 +1,7 @@
 package com.teamwork.controllers.task;
 
+import com.teamwork.business.SubTaskStatus;
+import com.teamwork.business.TaskStatus;
 import com.teamwork.business.Doc;
 import com.teamwork.business.Label;
 import com.teamwork.business.Message;
@@ -93,7 +95,7 @@ public final class TaskBoardHandler {
 
         for (Task t : allProjectTasks) {
             String st = t.getStatus() != null ? t.getStatus().toUpperCase() : "TODO";
-            if ("DONE".equals(st) || "APPROVED".equals(st)) {
+            if (TaskStatus.isDone(st)) {
                 doneTasks.add(t);
             } else if ("IN_PROGRESS".equals(st) || "SUBMITTED".equals(st) || "REVISE".equals(st) || "REJECTED".equals(st)) {
                 inProgressTasks.add(t);
@@ -168,11 +170,11 @@ public final class TaskBoardHandler {
         for (Task t : allProjectTasks) {
             List<SubTask> subList = taskSubTasksMap.get(t.getId());
             if (subList == null || subList.isEmpty()) {
-                boolean isDone = "DONE".equalsIgnoreCase(t.getStatus()) || "APPROVED".equalsIgnoreCase(t.getStatus());
+                boolean isDone = TaskStatus.isDone(t.getStatus());
                 taskProgressMap.put(t.getId(), isDone ? 100 : 0);
             } else {
                 long doneCount = subList.stream()
-                        .filter(s -> "APPROVED".equalsIgnoreCase(s.getStatus()) || "DONE".equalsIgnoreCase(s.getStatus()))
+                        .filter(s -> SubTaskStatus.isFinished(s.getStatus()))
                         .count();
                 int pct = (int) Math.round(((double) doneCount / subList.size()) * 100);
                 taskProgressMap.put(t.getId(), pct);
@@ -350,7 +352,7 @@ public final class TaskBoardHandler {
             if (task != null && task.getProjectId() == projectId && (isTaskLead(currentUser, task) || isProjectOwner(currentUser, project)))
             {
                 // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG ĐƯỢC XÓA TASK ĐÃ DONE ĐỂ BẢO VỆ DỮ LIỆU & AUDIT LOG
-                if ("DONE".equalsIgnoreCase(task.getStatus())) {
+                if (TaskStatus.DONE.is(task.getStatus())) {
                     HttpSession session = request.getSession(false);
                     if (session != null) {
                         // ▶ JSP: docs.jsp đọc bằng ${toastError}
@@ -360,17 +362,8 @@ public final class TaskBoardHandler {
                     return;
                 }
 
-                // 1. Dọn dẹp các liên kết Task-Doc trên RAM
-                TaskDocDB.deleteByTaskId(taskId);
-
-                // 2. Dọn dẹp các việc con thuộc Task này trên RAM
-                SubTaskDB.deleteByTaskId(taskId);
-
-                // 3. Dọn dẹp các bình luận của Task này trên RAM
-                MessageDB.deleteByTaskId(taskId);
-
-                // 4. Xóa Task trong TaskDB
-                TaskDB.delete(taskId);
+                // Xóa task cùng liên kết tài liệu, việc con, bình luận trong MỘT transaction (TaskDB.deleteWithChildren)
+                TaskDB.deleteWithChildren(taskId);
             }
         }
 
@@ -411,12 +404,12 @@ public final class TaskBoardHandler {
             int doneSubs = 0;
             if (subs != null) {
                 for (SubTask st : subs) {
-                    if ("DONE".equalsIgnoreCase(st.getStatus()) || "APPROVED".equalsIgnoreCase(st.getStatus())) {
+                    if (SubTaskStatus.isFinished(st.getStatus())) {
                         doneSubs++;
                     }
                 }
             }
-            int progress = subCount > 0 ? (int) Math.round(((double) doneSubs / subCount) * 100) : ("DONE".equalsIgnoreCase(t.getStatus()) || "APPROVED".equalsIgnoreCase(t.getStatus()) ? 100 : 0);
+            int progress = subCount > 0 ? (int) Math.round(((double) doneSubs / subCount) * 100) : (TaskStatus.isDone(t.getStatus()) ? 100 : 0);
 
             String statusLabel = t.getStatus();
             if ("TODO".equalsIgnoreCase(statusLabel)) statusLabel = "Cần làm";
@@ -425,7 +418,7 @@ public final class TaskBoardHandler {
             else if ("SUBMITTED".equalsIgnoreCase(statusLabel)) statusLabel = "Chờ duyệt";
             else if ("REVISE".equalsIgnoreCase(statusLabel)) statusLabel = "Cần chỉnh sửa";
             else if ("REJECTED".equalsIgnoreCase(statusLabel)) statusLabel = "Bị từ chối";
-            else if ("DONE".equalsIgnoreCase(statusLabel) || "APPROVED".equalsIgnoreCase(statusLabel)) statusLabel = "Hoàn thành";
+            else if (TaskStatus.isDone(statusLabel)) statusLabel = "Hoàn thành";
 
             String priorityLabel = t.getPriority();
             if ("HIGH".equalsIgnoreCase(priorityLabel)) priorityLabel = "Cao";
@@ -511,7 +504,7 @@ public final class TaskBoardHandler {
                     }
 
                     String st = t.getStatus() != null ? t.getStatus().toUpperCase() : "TODO";
-                    if ("DONE".equals(st) || "APPROVED".equals(st)) {
+                    if (TaskStatus.isDone(st)) {
                         doneCount++;
                     } else if ("SUBMITTED".equals(st)) {
                         submittedCount++;

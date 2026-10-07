@@ -1,6 +1,7 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Task;
+import com.teamwork.business.TaskStatus;
 import com.teamwork.business.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -148,6 +149,12 @@ public class TaskDB {
             tx.begin();
             Task t = em.find(Task.class, id);
             if (t != null) {
+                if (!TaskStatus.canMove(t.getStatus(), newStatus)) {
+                    // Chốt cuối: mọi đường đổi trạng thái đều phải theo bảng TaskStatus
+                    tx.rollback();
+                    LOGGER.warning("Chặn chuyển trạng thái không hợp lệ cho Task " + id + ": " + t.getStatus() + " -> " + newStatus);
+                    return false;
+                }
                 t.setStatus(newStatus.trim().toUpperCase());
                 em.merge(t);
                 tx.commit();
@@ -175,7 +182,7 @@ public class TaskDB {
         try {
             tx.begin();
             Task t = em.find(Task.class, taskId);
-            if (t != null) {
+            if (t != null && TaskStatus.canMove(t.getStatus(), "SUBMITTED")) {
                 t.setStatus("SUBMITTED");
                 t.setFinalDeliverableNote(note != null ? note.trim() : "");
                 t.setDeliverableFile(deliverableFile != null ? deliverableFile.trim() : "");
@@ -209,7 +216,7 @@ public class TaskDB {
         try {
             tx.begin();
             Task t = em.find(Task.class, taskId);
-            if (t != null) {
+            if (t != null && TaskStatus.canMove(t.getStatus(), "DONE")) {
                 t.setStatus("DONE");
                 t.setPmFeedback(feedback != null ? feedback.trim() : "Trưởng dự án đã phê duyệt nghiệm thu xuất sắc!");
                 t.setQualityRating(qualityRating > 0 ? qualityRating : 5);
@@ -243,7 +250,7 @@ public class TaskDB {
         try {
             tx.begin();
             Task t = em.find(Task.class, taskId);
-            if (t != null) {
+            if (t != null && TaskStatus.canMove(t.getStatus(), "REVISE")) {
                 t.setStatus("REVISE");
                 t.setPmFeedback(feedback != null ? feedback.trim() : "");
                 em.merge(t);
@@ -272,8 +279,7 @@ public class TaskDB {
         try {
             tx.begin();
             Task t = em.find(Task.class, taskId);
-            if (t != null) {
-                t.setStatus("REVISE");
+            if (t != null && TaskStatus.canMove(t.getStatus(), "REJECTED")) {
                 t.setStatus("REJECTED");
                 t.setPmFeedback(feedback != null ? feedback.trim() : "");
                 em.merge(t);
@@ -302,7 +308,7 @@ public class TaskDB {
         try {
             tx.begin();
             Task t = em.find(Task.class, taskId);
-            if (t != null) {
+            if (t != null && TaskStatus.canMove(t.getStatus(), "PLANNING")) {
                 t.setStatus("PLANNING");
                 t.setPlanningNote(planningNote != null ? planningNote.trim() : "");
                 em.merge(t);
@@ -331,7 +337,7 @@ public class TaskDB {
         try {
             tx.begin();
             Task t = em.find(Task.class, taskId);
-            if (t != null) {
+            if (t != null && TaskStatus.canMove(t.getStatus(), "IN_PROGRESS")) {
                 t.setStatus("IN_PROGRESS");
                 t.setPmFeedback(pmFeedback != null ? pmFeedback.trim() : "");
                 em.merge(t);
@@ -360,7 +366,7 @@ public class TaskDB {
         try {
             tx.begin();
             Task t = em.find(Task.class, taskId);
-            if (t != null) {
+            if (t != null && TaskStatus.canMove(t.getStatus(), "TODO")) {
                 t.setStatus("TODO");
                 t.setPmFeedback(pmFeedback != null ? pmFeedback.trim() : "");
                 em.merge(t);
@@ -438,6 +444,23 @@ public class TaskDB {
         } finally {
             JPAUtil.closeEntityManager(em);
         }
+    }
+
+    /**
+     * HÀM 15b: Xóa task CÙNG dữ liệu con (liên kết tài liệu, việc con, bình luận) trong MỘT transaction.
+     * Lỗi giữa chừng → rollback hết, không còn việc con / bình luận mồ côi trỏ tới task đã mất.
+     */
+    public static boolean deleteWithChildren(int taskId) {
+        if (taskId <= 0) return false;
+        return JPAUtil.inTransaction("xóa Task " + taskId + " kèm dữ liệu con", false, em -> {
+            Task t = em.find(Task.class, taskId);
+            if (t == null) return false;
+            em.createQuery("DELETE FROM TaskDoc td WHERE td.taskId = :id").setParameter("id", taskId).executeUpdate();
+            em.createQuery("DELETE FROM SubTask st WHERE st.taskId = :id").setParameter("id", taskId).executeUpdate();
+            em.createQuery("DELETE FROM Message m WHERE m.taskId = :id").setParameter("id", taskId).executeUpdate();
+            em.remove(t);
+            return true;
+        });
     }
 
     /**

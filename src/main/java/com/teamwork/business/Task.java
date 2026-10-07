@@ -220,7 +220,7 @@ public class Task implements Serializable {
         if ("SUBMITTED".equalsIgnoreCase(status)) return "bg-warning text-dark"; // 🟡 Vàng Cam: Chờ PM duyệt nghiệm thu
         if ("REVISE".equalsIgnoreCase(status)) return "bg-primary text-white";   // 🔵 Xanh Dương: PM cần cân chỉnh
         if ("REJECTED".equalsIgnoreCase(status)) return "bg-danger text-white";   // 🔴 Màu Đỏ: Chưa đạt yêu cầu
-        if ("DONE".equalsIgnoreCase(status) || "APPROVED".equalsIgnoreCase(status)) return "bg-success text-white"; // 🟢 Xanh Lá: Đã nghiệm thu
+        if (TaskStatus.isDone(status)) return "bg-success text-white"; // 🟢 Xanh Lá: Đã nghiệm thu
         if ("IN_PROGRESS".equalsIgnoreCase(status)) return "bg-info-subtle text-info-emphasis border border-info-subtle"; // 🚀 Đang làm (Đã khóa kế hoạch)
         return "bg-light text-secondary border"; // ⚪ TODO: Cần làm (Đang lập kế hoạch)
     }
@@ -233,7 +233,7 @@ public class Task implements Serializable {
         if ("SUBMITTED".equalsIgnoreCase(status)) return "🟡 Chờ trưởng dự án duyệt nghiệm thu";
         if ("REVISE".equalsIgnoreCase(status)) return "🔵 Cần cân chỉnh";
         if ("REJECTED".equalsIgnoreCase(status)) return "🔴 Chưa đạt yêu cầu";
-        if ("DONE".equalsIgnoreCase(status) || "APPROVED".equalsIgnoreCase(status)) return "🟢 Đã nghiệm thu";
+        if (TaskStatus.isDone(status)) return "🟢 Đã nghiệm thu";
         if ("IN_PROGRESS".equalsIgnoreCase(status)) return "🚀 Đang làm (Đã khóa)";
         return "⚪ Cần làm";
     }
@@ -270,6 +270,11 @@ public class Task implements Serializable {
 
     public String getStatus() {
         return this.status;
+    }
+
+    /** Đã hoàn thành (kể cả dữ liệu cũ "APPROVED"). JSP dùng {@code ${t.done}}. */
+    public boolean isDone() {
+        return TaskStatus.isDone(this.status);
     }
     public void setStatus(String status) {
         this.status = (status != null && !status.trim().isEmpty()) ? status.trim().toUpperCase() : "TODO";

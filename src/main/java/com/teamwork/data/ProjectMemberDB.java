@@ -192,6 +192,32 @@ public class ProjectMemberDB {
     }
 
     /**
+     * Hàm 6b: Đưa một người ra khỏi dự án (tự rời hoặc bị kick) trong MỘT transaction:
+     * xóa tư cách thành viên + gỡ phân công ở Task lớn và Việc con.
+     * Lỗi giữa chừng → rollback, không có cảnh "đã rời nhóm nhưng vẫn đứng tên phụ trách task".
+     *
+     * @return true nếu người đó là thành viên và đã được gỡ.
+     */
+    public static boolean removeFromProject(int projectId, int userId) {
+        if (projectId <= 0 || userId <= 0) return false;
+        return JPAUtil.inTransaction("gỡ user " + userId + " khỏi dự án " + projectId, false, em -> {
+            ProjectMember pm = em.find(ProjectMember.class, new ProjectMemberId(projectId, userId));
+            if (pm == null) return false;
+            em.remove(pm);
+            em.createQuery("UPDATE Task t SET t.assigneeId = 0 WHERE t.projectId = :pid AND t.assigneeId = :uid")
+                .setParameter("pid", projectId)
+                .setParameter("uid", userId)
+                .executeUpdate();
+            em.createQuery("UPDATE SubTask st SET st.assigneeId = NULL "
+                    + "WHERE st.assigneeId = :uid AND st.taskId IN (SELECT t.id FROM Task t WHERE t.projectId = :pid)")
+                .setParameter("pid", projectId)
+                .setParameter("uid", userId)
+                .executeUpdate();
+            return true;
+        });
+    }
+
+    /**
      * Hàm 7: Đồng bộ tên thành viên mới
      */
     public static void syncUserName(int userId, String newFullName) {

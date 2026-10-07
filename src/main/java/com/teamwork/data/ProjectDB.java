@@ -1,6 +1,7 @@
 package com.teamwork.data;
 
 import com.teamwork.business.Project;
+import com.teamwork.business.ProjectMember;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import java.util.ArrayList;
@@ -131,18 +132,17 @@ public class ProjectDB {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            em.persist(project);
+            em.persist(project); // IDENTITY: id được cấp ngay tại đây
 
-            // Thêm Owner vào project_members
-            try {
-                em.createNativeQuery("INSERT INTO project_members (project_id, user_id, project_role, joined_at) " +
-                                     "VALUES (:pid, :uid, 'OWNER', CURRENT_TIMESTAMP)")
-                    .setParameter("pid", project.getId())
-                    .setParameter("uid", project.getOwnerId())
-                    .executeUpdate();
-            } catch (Exception memberEx) {
-                LOGGER.warning("Lưu ý khi thêm Owner vào project_members: " + memberEx.getMessage());
-            }
+            // Người tạo trở thành Trưởng dự án (OWNER) — CÙNG transaction với việc tạo dự án:
+            // không bao giờ có dự án "vô chủ" (đã tạo nhưng chưa có thành viên OWNER).
+            // (Trước đây lệnh này nằm trong try/catch riêng: trên PostgreSQL, một câu lỗi làm hỏng cả
+            //  transaction nên commit sau đó cũng thất bại; và servlet còn chèn OWNER lần thứ hai.)
+            ProjectMember owner = new ProjectMember();
+            owner.setProjectId(project.getId());
+            owner.setUserId(project.getOwnerId());
+            owner.setProjectRole("OWNER");
+            em.persist(owner);
 
             tx.commit();
             return project.getId();

@@ -8,8 +8,6 @@ import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
-import com.teamwork.data.SubTaskDB;
-import com.teamwork.data.TaskDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -491,12 +489,8 @@ public class ProjectInviteServlet extends BaseServlet {
             return;
         }
 
-        // 1. Thực hiện xóa khỏi danh sách thành viên
-        ProjectMemberDB.delete(projectId, currentUser.getId());
-
-        // 2. Dọn dẹp phân công công việc (Hủy phụ trách Task lớn và Việc con để tránh bị mồ côi)
-        TaskDB.unassignUserFromProject(projectId, currentUser.getId());
-        SubTaskDB.unassignUserFromProject(projectId, currentUser.getId());
+        // 1–2. Xóa khỏi danh sách thành viên + gỡ phân công Task / Việc con — trong MỘT transaction
+        ProjectMemberDB.removeFromProject(projectId, currentUser.getId());
 
         // 3. Bắn thông báo tới Trưởng Dự Án
         NotificationDB.send(
@@ -554,12 +548,8 @@ public class ProjectInviteServlet extends BaseServlet {
             return;
         }
 
-        // 1. Thực hiện xóa khỏi danh sách thành viên
-        ProjectMemberDB.delete(projectId, targetUserId);
-
-        // 2. Dọn dẹp phân công công việc (Hủy phụ trách Task lớn và Việc con để tránh bị mồ côi)
-        TaskDB.unassignUserFromProject(projectId, targetUserId);
-        SubTaskDB.unassignUserFromProject(projectId, targetUserId);
+        // 1–2. Xóa khỏi danh sách thành viên + gỡ phân công Task / Việc con — trong MỘT transaction
+        ProjectMemberDB.removeFromProject(projectId, targetUserId);
 
         // 3. Bắn thông báo tới thành viên bị kick
         NotificationDB.send(

@@ -1845,7 +1845,7 @@
                                                                      onclick="openClickUpTask(${t.id})" style="cursor: pointer;" title="Nhấn để xem chi tiết công việc">
                                                                     <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
                                                                         <c:choose>
-                                                                            <c:when test="${t.status == 'DONE' || t.status == 'APPROVED'}">
+                                                                            <c:when test="${t.done}">
                                                                                 <i class="bi bi-check-circle-fill text-success fs-8 flex-shrink-0"></i>
                                                                             </c:when>
                                                                             <c:when test="${t.status == 'IN_PROGRESS'}">

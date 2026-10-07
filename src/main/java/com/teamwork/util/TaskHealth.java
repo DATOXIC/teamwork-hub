@@ -1,5 +1,6 @@
 package com.teamwork.util;
 
+import com.teamwork.business.TaskStatus;
 import com.teamwork.business.Task;
 
 /**
@@ -23,7 +24,7 @@ public class TaskHealth {
 
     public static TaskHealth of(Task t, int progressPct) {
         String st = t.getStatus() == null ? "" : t.getStatus().toUpperCase();
-        if (st.equals("DONE") || st.equals("APPROVED")) return new TaskHealth(100, "none", "Đã hoàn thành");
+        if (TaskStatus.isDone(st)) return new TaskHealth(100, "none", "Đã hoàn thành");
         long days = t.getDaysRemaining();
         if (days == Long.MAX_VALUE) return new TaskHealth(100, "none", "Chưa đặt hạn chót");
         if (days < 0) return new TaskHealth(0, "risk", "Trễ " + (-days) + " ngày");

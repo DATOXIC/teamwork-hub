@@ -132,6 +132,36 @@ public class JPAUtil {
         }
     }
 
+    /** Một khối công việc chạy trong transaction (xem {@link #inTransaction}). */
+    @FunctionalInterface
+    public interface TxWork<T> {
+        T run(EntityManager em) throws Exception;
+    }
+
+    /**
+     * Chạy nhiều câu lệnh trong MỘT transaction: tất cả cùng thành công, hoặc lỗi ở bất kỳ bước nào
+     * thì rollback toàn bộ (không để lại dữ liệu dở dang như task đã mất việc con nhưng vẫn còn task).
+     *
+     * @param what mô tả ngắn để ghi log khi lỗi
+     * @param fallback giá trị trả về khi lỗi (ví dụ false / 0)
+     */
+    public static <T> T inTransaction(String what, T fallback, TxWork<T> work) {
+        EntityManager em = getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            T result = work.run(em);
+            tx.commit();
+            return result;
+        } catch (Exception e) {
+            rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Transaction thất bại, đã rollback: " + what, e);
+            return fallback;
+        } finally {
+            closeEntityManager(em);
+        }
+    }
+
     /**
      * Helper rollback an toàn khi xảy ra lỗi trong Transaction
      */

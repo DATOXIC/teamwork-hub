@@ -1,5 +1,6 @@
 package com.teamwork.controllers;
 
+import com.teamwork.business.TaskStatus;
 import com.teamwork.business.Doc;
 import com.teamwork.business.Project;
 import com.teamwork.business.ProjectInvite;
@@ -253,20 +254,15 @@ public class ProjectServlet extends BaseServlet {
                 0,
                 0);
 
+        // ProjectDB.insert tạo dự án VÀ ghi người tạo làm OWNER trong cùng một transaction
         int newProjectId = ProjectDB.insert(newProject);
 
-        // TỰ ĐỘNG ĐĂNG KÝ NGƯỜI TẠO LÀM OWNER TRONG PROJECTMEMBERDB
-        ProjectMember ownerMember = new ProjectMember(
-                newProjectId,
-                currentUser.getId(),
-                currentUser.getFullName(),
-                currentUser.getEmail(),
-                currentUser.getRole(),
-                "OWNER",
-                createdAt);
-        ProjectMemberDB.insert(ownerMember);
-
         HttpSession session = request.getSession();
+        if (newProjectId <= 0) {
+            session.setAttribute("toastError", "Không tạo được dự án, vui lòng thử lại!");
+            response.sendRedirect(request.getContextPath() + "/project?action=list");
+            return;
+        }
         // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
         session.setAttribute("toastSuccess",
                 "Đã khởi tạo dự án [" + newProject.getName() + " (" + newProject.getProjectCode() + ")] thành công!");
@@ -426,7 +422,7 @@ public class ProjectServlet extends BaseServlet {
 
         for (Task t : tasks) {
             String st = t.getStatus();
-            if ("DONE".equalsIgnoreCase(st) || "APPROVED".equalsIgnoreCase(st)) {
+            if (TaskStatus.isDone(st)) {
                 doneCount++;
             } else if ("IN_PROGRESS".equalsIgnoreCase(st)) {
                 inProgressCount++;
@@ -475,7 +471,7 @@ public class ProjectServlet extends BaseServlet {
                 if (t.getAssigneeId() == m.getUserId()) {
                     assignedCount++;
                     String st = t.getStatus();
-                    if ("DONE".equalsIgnoreCase(st) || "APPROVED".equalsIgnoreCase(st)) {
+                    if (TaskStatus.isDone(st)) {
                         memberDone++;
                         if (t.getQualityRating() > 0) {
                             totalRating += t.getQualityRating();
@@ -510,8 +506,8 @@ public class ProjectServlet extends BaseServlet {
         List<Task> criticalBlockers = new ArrayList<>();
         for (Task t : tasks) {
             boolean isOverdue = t.isOverdue();
-            boolean isProblematic = "REJECTED".equalsIgnoreCase(t.getStatus())
-                    || "REVISE".equalsIgnoreCase(t.getStatus());
+            boolean isProblematic = TaskStatus.REJECTED.is(t.getStatus())
+                    || TaskStatus.REVISE.is(t.getStatus());
             if (isOverdue || isProblematic) {
                 criticalBlockers.add(t);
             }

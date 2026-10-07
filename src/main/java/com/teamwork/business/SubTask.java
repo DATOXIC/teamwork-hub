@@ -100,7 +100,7 @@ public class SubTask implements Serializable {
         this.assigneeId = assigneeId;
         this.assigneeName = assigneeName;
         this.status = (status != null && !status.trim().isEmpty()) ? status.trim().toUpperCase() : "TODO";
-        this.completed = "APPROVED".equalsIgnoreCase(this.status) || "DONE".equalsIgnoreCase(this.status);
+        this.completed = SubTaskStatus.isFinished(this.status);
         this.dueDate = (dueDate != null) ? dueDate.trim() : "";
         this.submissionNote = (submissionNote != null) ? submissionNote.trim() : "";
         this.feedbackNote = (feedbackNote != null) ? feedbackNote.trim() : "";
@@ -126,7 +126,7 @@ public class SubTask implements Serializable {
      * Kiểm tra xem việc con đã hoàn thành (DONE hoặc APPROVED) hay chưa
      */
     public boolean isCompleted() {
-        return "APPROVED".equalsIgnoreCase(this.status) || "DONE".equalsIgnoreCase(this.status) || this.completed;
+        return SubTaskStatus.isFinished(this.status) || this.completed;
     }
 
     /**
@@ -364,7 +364,7 @@ public class SubTask implements Serializable {
     }
     public void setStatus(String status) {
         this.status = (status != null) ? status.trim().toUpperCase() : "TODO";
-        this.completed = "APPROVED".equalsIgnoreCase(this.status) || "DONE".equalsIgnoreCase(this.status);
+        this.completed = SubTaskStatus.isFinished(this.status);
     }
 
     public String getDueDate() {

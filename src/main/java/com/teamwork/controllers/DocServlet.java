@@ -2,7 +2,6 @@ package com.teamwork.controllers;
 
 import com.teamwork.business.Doc;
 import com.teamwork.business.Project;
-import com.teamwork.business.ProjectMember;
 import com.teamwork.business.Task;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
@@ -238,8 +237,7 @@ public class DocServlet extends BaseServlet {
 
             // RÀO BẢO MẬT 2: Phân quyền (Chính tác giả bài viết HOẶC PM dự án)
             if (ProjectAccess.isAuthorOrOwner(currentUser, doc.getAuthorId(), project)) {
-                TaskDocDB.deleteByDocId(docId);
-                DocDB.delete(docId);
+                DocDB.deleteWithLinks(docId); // gỡ liên kết task + xóa tài liệu trong MỘT transaction
                 if (session != null) {
                     // ▶ JSP: docs.jsp, tasks.jsp đọc bằng ${toastSuccess}
                     session.setAttribute("toastSuccess", "Đã xóa tài liệu thành công!");

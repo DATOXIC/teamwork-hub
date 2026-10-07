@@ -1,5 +1,6 @@
 package com.teamwork.controllers.task;
 
+import com.teamwork.business.TaskStatus;
 import com.teamwork.business.Doc;
 import com.teamwork.business.Label;
 import com.teamwork.business.Message;
@@ -11,9 +12,7 @@ import com.teamwork.business.TaskDoc;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.LabelDB;
-import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
-import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
 import com.teamwork.data.UserDB;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.teamwork.business.ProjectInvite;
-import com.teamwork.business.ProjectMember;
 import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.controllers.ProjectAccess;
@@ -66,7 +64,7 @@ public final class TaskCrudHandler {
      * Các trạng thái thuộc quy trình nghiệm thu (PLANNING, SUBMITTED, REVISE, REJECTED, APPROVED)
      * chỉ được đặt bởi handler chuyên trách của chúng, không nhận từ tham số request.
      */
-    public static final Set<String> BOARD_STATUS = Set.of("TODO", "IN_PROGRESS", "DONE");
+    public static final Set<String> BOARD_STATUS = Set.of(TaskStatus.TODO.name(), TaskStatus.IN_PROGRESS.name(), TaskStatus.DONE.name());
 
     /**
      * Nghiệp vụ 3: Tiếp nhận form thêm task mới và lưu liên kết tài liệu đính kèm vào TaskDocDB
@@ -273,10 +271,25 @@ public final class TaskCrudHandler {
                 }
 
                 // RÀNG BUỘC KHÓA BẤT BIẾN: TASK ĐÃ HOÀN TẤT THÌ KHÔNG ĐỔI TRẠNG THÁI ĐƯỢC NỮA.
-                // Xét cả "APPROVED" vì handleShowKanban coi nó tương đương DONE, và dữ liệu cũ
-                // có thể đã mang giá trị này từ trước khi có CHỐT 0.
-                if ("DONE".equalsIgnoreCase(task.getStatus()) || "APPROVED".equalsIgnoreCase(task.getStatus())) {
+                // TaskStatus.isDone() coi cả giá trị cũ "APPROVED" là DONE.
+                if (TaskStatus.isDone(task.getStatus())) {
                     String errMsg = "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành và được khóa vĩnh viễn, không thể thay đổi trạng thái!";
+                    if (isAjax) {
+                        sendJsonResponse(response, false, errMsg, null);
+                        return;
+                    }
+                    if (session != null) session.setAttribute("toastError", errMsg);
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
+
+                // BẢNG CHUYỂN TRẠNG THÁI (TaskStatus): ví dụ task đang chờ PM nghiệm thu (SUBMITTED)
+                // không được kéo về Cần làm / Đang làm để né bước duyệt — PM phải duyệt hoặc trả sửa.
+                if (!TaskStatus.canMove(task.getStatus(), status)) {
+                    TaskStatus from = TaskStatus.of(task.getStatus());
+                    String errMsg = "Không thể chuyển công việc [" + task.getTitle() + "] từ \""
+                            + (from != null ? from.getLabel() : task.getStatus()) + "\" sang \""
+                            + TaskStatus.of(status).getLabel() + "\".";
                     if (isAjax) {
                         sendJsonResponse(response, false, errMsg, null);
                         return;
@@ -292,14 +305,14 @@ public final class TaskCrudHandler {
                 // RÀNG BUỘC GIAI ĐOẠN 1: CHUYỂN TỪ TODO SANG IN_PROGRESS (ĐANG LÀM)
                 // =========================================================================
                 if ("IN_PROGRESS".equalsIgnoreCase(status)
-                        && ("TODO".equalsIgnoreCase(task.getStatus()) || "PLANNING".equalsIgnoreCase(task.getStatus()))) {
+                        && TaskStatus.isBeforePlanLock(task.getStatus())) {
                     String taskTitle = task.getTitle();
 
                     // Ràng buộc Quality Gate: Chặn kéo thả trực tiếp từ TODO / PLANNING sang IN_PROGRESS.
                     // Bắt buộc phải nộp Kế hoạch WBS và được PM phê duyệt (Gate 1): chỉ PM mới chuyển sang Đang làm
                     // thông qua nút 'Phê Duyệt & Khóa' (handlePmApprovePlanning).
                     if (isGateEnforced) {
-                        String errMsg = "PLANNING".equalsIgnoreCase(task.getStatus())
+                        String errMsg = TaskStatus.PLANNING.is(task.getStatus())
                                 ? "🛡️ [Đang chờ duyệt kế hoạch] Kế hoạch của công việc này đã gửi và đang chờ trưởng dự án phê duyệt. Công việc sẽ tự chuyển sang Đang làm khi được duyệt."
                                 : "🛡️ [Cần duyệt kế hoạch] Công việc này bắt buộc kiểm duyệt! Vui lòng mở chi tiết công việc, phân rã nhiệm vụ và bấm 'Gửi duyệt kế hoạch' để trưởng dự án phê duyệt trước khi bắt đầu.";
                         if (isAjax) {
@@ -425,7 +438,7 @@ public final class TaskCrudHandler {
         }
 
         // RÀNG BUỘC KHÓA BẤT BIẾN: KHÔNG THỂ CHỈNH SỬA THÔNG TIN TASK ĐÃ DONE
-        if ("DONE".equalsIgnoreCase(task.getStatus())) {
+        if (TaskStatus.DONE.is(task.getStatus())) {
             if (session != null) session.setAttribute("toastError", "🔒 Công việc [" + task.getTitle() + "] đã hoàn thành và được khóa vĩnh viễn, không thể chỉnh sửa!");
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
