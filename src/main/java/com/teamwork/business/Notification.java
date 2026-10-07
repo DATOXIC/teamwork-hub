@@ -13,8 +13,6 @@ import jakarta.persistence.Table;
 
 /**
  * JavaBean & JPA Entity: Đại diện cho một Bản Tin Thông Báo (Notification).
- * - Phục vụ hiển thị trên Quả Chuông 🔔 Header và Trung Tâm Thông Báo
- * - Hỗ trợ Deep-linking: Bấm vào thông báo là chuyển hướng thẳng tới Task/Dự án tương ứng
  */
 @Entity
 @Table(name = "notifications")
