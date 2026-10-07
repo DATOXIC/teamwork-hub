@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +26,12 @@ import java.util.logging.Logger;
 public class ActivityLogDB {
 
     private static final Logger LOGGER = Logger.getLogger(ActivityLogDB.class.getName());
-    private static final ExecutorService ASYNC_POOL = Executors.newFixedThreadPool(2);
+    /** Luồng nền ghi log. Là daemon + có tên để dễ nhận ra; được tắt trong AppLifecycleListener khi app dừng. */
+    private static final ExecutorService ASYNC_POOL = Executors.newFixedThreadPool(2, r -> {
+        Thread t = new Thread(r, "activity-log");
+        t.setDaemon(true);
+        return t;
+    });
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     /**
@@ -73,6 +79,22 @@ public class ActivityLogDB {
                 LOGGER.log(Level.WARNING, "Lỗi khi ghi async activity log qua JPA", e);
             }
         });
+    }
+
+    /**
+     * Dừng luồng nền khi app tắt: chờ tối đa vài giây cho các log đang chờ ghi xong,
+     * tránh Tomcat cảnh báo rò rỉ thread khi redeploy.
+     */
+    public static void shutdown() {
+        ASYNC_POOL.shutdown();
+        try {
+            if (!ASYNC_POOL.awaitTermination(5, TimeUnit.SECONDS)) {
+                ASYNC_POOL.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            ASYNC_POOL.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**

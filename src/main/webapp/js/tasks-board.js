@@ -453,7 +453,7 @@
 
             // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "toggleSubTask" → SubTaskHandler.handleToggleSubTask()
             //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
-            fetch(basePath + '/task', {
+            window.apiFetch(basePath + '/task', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -461,7 +461,6 @@
                 },
                 body: params.toString()
             })
-            .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.success) {
                     if (window.showToast) window.showToast(data.message, 'success');
@@ -492,6 +491,7 @@
                 }
             })
             .catch(function(err) {
+                if (err && err.handled) return; // apiFetch đã báo mất kết nối
                 console.error(err);
                 if (window.showToast) window.showToast('Lỗi khi cập nhật trạng thái nhiệm vụ!', 'error');
             });
@@ -504,7 +504,7 @@
 
             // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "updateStatus" → TaskCrudHandler.handleUpdateTaskStatus()
             //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
-            fetch(basePath + '/task', {
+            window.apiFetch(basePath + '/task', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -512,7 +512,6 @@
                 },
                 body: params.toString()
             })
-            .then(function(res) { return res.json(); })
             .then(function(data) {
                 if (data.success) {
                     if (window.showToast) window.showToast(data.message, 'success');
@@ -526,6 +525,7 @@
                 }
             })
             .catch(function(err) {
+                if (err && err.handled) return; // apiFetch đã báo mất kết nối
                 console.error(err);
                 if (window.showToast) window.showToast('Lỗi khi cập nhật trạng thái công việc!', 'error');
             });
@@ -605,7 +605,7 @@
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
         // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "quickAddParentTask" → TaskCrudHandler.handleQuickAddParentTask()
         //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
-        fetch(basePath + '/task', {
+        window.apiFetch(basePath + '/task', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -613,7 +613,6 @@
             },
             body: params.toString()
         })
-        .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success) {
                 if (window.showToast) window.showToast(data.message, 'success');
@@ -625,6 +624,7 @@
             }
         })
         .catch(function(err) {
+            if (err && err.handled) return; // apiFetch đã báo mất kết nối
             console.error(err);
             if (window.showToast) window.showToast('Đã có lỗi xảy ra trong quá trình gửi yêu cầu!', 'error');
         });
@@ -756,7 +756,7 @@
         var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
         // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "quickAddSubTask" → SubTaskHandler.handleQuickAddSubTask()
         //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
-        fetch(basePath + '/task', {
+        window.apiFetch(basePath + '/task', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -764,7 +764,6 @@
             },
             body: params.toString()
         })
-        .then(function(res) { return res.json(); })
         .then(function(data) {
             if (data.success) {
                 if (window.showToast) window.showToast(data.message, 'success');
@@ -776,6 +775,7 @@
             }
         })
         .catch(function(err) {
+            if (err && err.handled) return; // apiFetch đã báo mất kết nối
             console.error(err);
             if (window.showToast) window.showToast('Đã có lỗi xảy ra trong quá trình gửi yêu cầu!', 'error');
         });

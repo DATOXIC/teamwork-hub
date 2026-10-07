@@ -379,6 +379,66 @@
         form.submit();
     };
 
+    // =========================================================================
+    // apiFetch(url, options): gọi AJAX tới servlet, xử lý lỗi mạng ở MỘT chỗ.
+    //   - Luôn gửi cookie phiên + header X-Requested-With (servlet biết đây là AJAX, trả JSON).
+    //   - Hết thời gian chờ (mặc định 15 giây) hoặc mất mạng → toast "Mất kết nối", GET tự thử lại 1 lần.
+    //   - Phiên đăng nhập hết hạn (server chuyển hướng sang trang HTML) → trả { success:false, message }.
+    //   - Lỗi 500 → JSON từ ErrorServlet có mã lỗi (errorId) để người dùng báo lại.
+    // Kết quả: Promise trả về object JSON của servlet (kể cả khi HTTP 4xx/5xx).
+    // Chỉ reject khi mất kết nối; lúc đó toast ĐÃ hiện, lỗi có err.handled = true để .catch() khỏi báo lặp.
+    // =========================================================================
+    var API_TIMEOUT_MS = 15000;
+
+    function failure(message) {
+        return { success: false, ok: false, message: message };
+    }
+
+    window.apiFetch = function (url, options) {
+        var opts = Object.assign({ credentials: 'same-origin' }, options || {});
+        opts.headers = Object.assign({ 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }, opts.headers || {});
+        var method = (opts.method || 'GET').toUpperCase();
+        var timeoutMs = opts.timeout || API_TIMEOUT_MS;
+        delete opts.timeout;
+
+        function attempt(retriesLeft) {
+            var controller = window.AbortController ? new AbortController() : null;
+            var timer = controller ? setTimeout(function () { controller.abort(); }, timeoutMs) : null;
+            if (controller) opts.signal = controller.signal;
+
+            return fetch(url, opts).then(function (res) {
+                if (timer) clearTimeout(timer);
+                var type = res.headers.get('Content-Type') || '';
+                if (type.indexOf('application/json') !== -1) {
+                    return res.json().catch(function () { return failure('Phản hồi từ máy chủ không hợp lệ.'); });
+                }
+                // AuthFilter chuyển hướng sang trang đăng nhập (HTML) khi phiên đã hết
+                if (res.redirected && res.url.indexOf('/auth') !== -1) {
+                    return failure('Phiên đăng nhập đã hết hạn, vui lòng tải lại trang và đăng nhập lại.');
+                }
+                if (!res.ok) {
+                    return failure('Máy chủ trả về lỗi ' + res.status + ', vui lòng thử lại.');
+                }
+                return res.text().then(function (text) { return { success: true, ok: true, text: text }; });
+            }, function (err) {
+                if (timer) clearTimeout(timer);
+                // Chỉ tự thử lại GET (đọc dữ liệu): POST thử lại có thể tạo bản ghi trùng
+                if (retriesLeft > 0 && method === 'GET') {
+                    return attempt(retriesLeft - 1);
+                }
+                var timedOut = err && err.name === 'AbortError';
+                var msg = timedOut
+                    ? 'Máy chủ phản hồi quá lâu. Vui lòng kiểm tra kết nối và thử lại.'
+                    : 'Mất kết nối tới máy chủ. Vui lòng kiểm tra mạng và thử lại.';
+                if (window.showToast) window.showToast(msg, 'error');
+                var networkError = new Error(msg);
+                networkError.handled = true;
+                throw networkError;
+            });
+        }
+        return attempt(1);
+    };
+
     // app.js có thể được nạp 2 lần trên một trang (trực tiếp + qua footer): chỉ gắn listener một lần
     if (!window.__postLinkHandlerInstalled) {
         window.__postLinkHandlerInstalled = true;

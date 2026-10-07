@@ -528,16 +528,11 @@ window.handleQuickCreateLabel = function() {
 
     // ▶ SERVLET: POST /task → TaskServlet.doPost() → case "createLabel" → TaskCrudHandler.handleCreateLabel()
     //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
-    fetch(form.getAttribute('action'), {
+    window.apiFetch(form.getAttribute('action'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
         credentials: 'same-origin',
         body: body.toString()
-    })
-    .then(function(res) {
-        return res.json().catch(function() {
-            return { ok: false, message: 'Không thể lưu nhãn, vui lòng thử lại!' };
-        });
     })
     .then(function(data) {
         if (!data.ok) {
@@ -557,7 +552,8 @@ window.handleQuickCreateLabel = function() {
         }
         finishSelect(data.key, false);
     })
-    .catch(function() {
+    .catch(function(err) {
+        if (err && err.handled) return; // apiFetch đã báo mất kết nối
         notifyError('Không thể kết nối máy chủ để lưu nhãn!');
     });
 };

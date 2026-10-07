@@ -1,4 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isErrorPage="true" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
 
@@ -14,6 +16,13 @@
                 <p class="text-secondary fs-7 mb-4">
                     Máy chủ gặp sự cố trong quá trình xử lý yêu cầu của bạn. Đội ngũ kỹ thuật đã ghi nhận thông tin này.
                 </p>
+                <%-- errorId do ErrorServlet tạo; chỉ gồm chữ in hoa, số và dấu "-" nhưng vẫn escape cho chắc --%>
+                <c:if test="${not empty errorId}">
+                    <p class="fs-7 mb-4">
+                        Mã lỗi: <code class="fw-bold user-select-all">${fn:escapeXml(errorId)}</code>
+                        <br><span class="text-secondary">Khi báo lỗi cho nhóm, vui lòng gửi kèm mã này.</span>
+                    </p>
+                </c:if>
                 <div class="d-flex justify-content-center gap-3">
                     <a href="${pageContext.request.contextPath}/project?action=list" class="btn btn-primary-custom rounded-pill px-4 py-2 fs-7 fw-semibold shadow-sm">
                         <i class="bi bi-folder2-open me-2"></i> Về Danh Sách Dự Án

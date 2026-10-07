@@ -42,6 +42,8 @@
 
 **Trạng thái:** `business/TaskStatus` và `SubTaskStatus` (enum + bảng chuyển trạng thái hợp lệ; `TaskDB`/`SubTaskDB` từ chối cạnh không có trong bảng). **Transaction nhiều bước:** `JPAUtil.inTransaction` — dùng ở `TaskDB.deleteWithChildren`, `ProjectMemberDB.removeFromProject`, `DocDB.deleteWithLinks`, `ProjectDB.insert` (tạo dự án + OWNER).
 
+**Lỗi & vòng đời:** `ErrorServlet` (/error, khai báo trong `web.xml`) cấp mã lỗi `E-XXXXXX` cho mọi lỗi 500 — ghi log + hiện ở `500.jsp` hoặc trả JSON cho AJAX. `listeners/AppLifecycleListener` dọn luồng ghi log, đóng kết nối DB, gỡ JDBC driver khi tắt app. Phía JS: gọi servlet bằng `window.apiFetch()` (`js/app.js`) — timeout, báo mất kết nối, GET tự thử lại 1 lần.
+
 ## 2. `/task` — servlet lớn nhất, đã chia nhỏ
 
 `TaskServlet.java` **chỉ điều phối** (`doGet`/`doPost` + `switch(action)`); logic nằm trong `controllers/task/`.

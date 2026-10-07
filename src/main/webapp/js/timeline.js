@@ -611,7 +611,7 @@
 
         // ▶ SERVLET: POST /timeline → TimelineServlet.doPost() → case "updateDueDate" → TimelineServlet.handleUpdateDueDate()
         //   Servlet trả JSON (không forward JSP) → .then(res => res.json()) cập nhật giao diện, trang không reload
-        fetch(state.contextPath + '/timeline', {
+        window.apiFetch(state.contextPath + '/timeline', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
@@ -619,7 +619,6 @@
             },
             body: body.toString()
         })
-        .then(res => res.json())
         .then(data => {
             if (data.ok) {
                 // Cập nhật state cục bộ
@@ -650,6 +649,7 @@
             }
         })
         .catch(err => {
+            if (err && err.handled) return; // apiFetch đã báo mất kết nối
             console.error('Lỗi kết nối máy chủ:', err);
             alert('Không thể kết nối máy chủ để lưu hạn chót!');
         });
