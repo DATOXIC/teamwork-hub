@@ -75,8 +75,8 @@
                                     <span class="fw-bold text-dark text-truncate fs-8">TeamWork <span class="text-primary">Hub</span></span>
                                     <span class="fs-10 text-muted text-truncate fw-semibold">
                                         <c:choose>
-                                            <c:when test="${sessionScope.currentUser.role == 'ADMIN'}">Quản trị viên</c:when>
-                                            <c:when test="${sessionScope.currentUser.role == 'MANAGER'}">Trưởng nhóm</c:when>
+                                            <%-- Vai trò trong dự án lấy từ ownerId, không lấy từ chức danh tự nhập --%>
+                                            <c:when test="${isPm}">Trưởng dự án</c:when>
                                             <c:otherwise>Thành viên</c:otherwise>
                                         </c:choose>
                                     </span>
@@ -305,8 +305,8 @@
                                     <span class="fw-bold text-dark fs-8 text-truncate">${fn:escapeXml(sessionScope.currentUser.fullName)}</span>
                                     <span class="fs-10 text-muted text-truncate">
                                         <c:choose>
-                                            <c:when test="${sessionScope.currentUser.role == 'ADMIN'}">Quản trị viên</c:when>
-                                            <c:when test="${sessionScope.currentUser.role == 'MANAGER'}">Trưởng nhóm</c:when>
+                                            <%-- Vai trò trong dự án lấy từ ownerId, không lấy từ chức danh tự nhập --%>
+                                            <c:when test="${isPm}">Trưởng dự án</c:when>
                                             <c:otherwise>Thành viên</c:otherwise>
                                         </c:choose>
                                     </span>

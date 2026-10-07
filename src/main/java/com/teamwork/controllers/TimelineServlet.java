@@ -208,7 +208,9 @@ public class TimelineServlet extends HttpServlet {
         // ▶ JSP: timeline.jsp đọc bằng ${tasksJson}
         request.setAttribute("tasksJson", tasksJson);
 
-        boolean isOwner = (project.getOwnerId() == currentUser.getId()) || "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        // Quyền chỉ dựa vào ID chủ dự án do server lưu. KHÔNG dùng User.role: đó là chức danh người dùng tự nhập
+        // trong hồ sơ (ai cũng gõ được "ADMIN").
+        boolean isOwner = project.getOwnerId() == currentUser.getId();
         // ▶ JSP: profile.jsp, tasks.jsp đọc bằng ${isOwner}
         request.setAttribute("isOwner", isOwner);
         // ▶ JSP: navbar.jsp đọc bằng ${activeNav}

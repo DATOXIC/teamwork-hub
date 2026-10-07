@@ -385,7 +385,7 @@ public class AuthServlet extends HttpServlet {
             PasswordUtil.hashPassword(password.trim()), // Hash mật khẩu trước khi lưu
             fullName.trim(),
             (email != null ? email.trim() : ""),
-            "MEMBER",                                   // Mặc định vai trò mới là MEMBER
+            "",                                         // Chức danh (không phải quyền): để trống → UserDB gán "Lập trình viên"
             "images/default_avatar.png"
         );
         UserDB.insert(newUser);
