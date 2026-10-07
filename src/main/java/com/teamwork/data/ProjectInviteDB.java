@@ -65,6 +65,18 @@ public class ProjectInviteDB {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
+            // Ràng buộc uq_pi_no_duplicate chỉ cho 1 dòng / (project, sender, receiver, type).
+            // Lời mời cũ đã kết thúc (từ chối / thu hồi / đã nhận / PENDING nhưng quá hạn) phải được xóa trước,
+            // nếu không thì không thể mời lại người từng từ chối hoặc từng bị mời rời dự án.
+            // Lời mời PENDING còn hạn không bị xóa: khi đó insert lỗi đúng như mong muốn (không gửi trùng).
+            em.createNativeQuery("DELETE FROM project_invites WHERE project_id = ?1 AND sender_id = ?2 "
+                            + "AND receiver_id = ?3 AND type = ?4 "
+                            + "AND (status <> 'PENDING' OR expired_at <= CURRENT_TIMESTAMP)")
+                    .setParameter(1, invite.getProjectId())
+                    .setParameter(2, invite.getSenderId())
+                    .setParameter(3, invite.getReceiverId())
+                    .setParameter(4, invite.getType())
+                    .executeUpdate();
             em.persist(invite);
             tx.commit();
             return invite.getId();
@@ -158,18 +170,18 @@ public class ProjectInviteDB {
 
         EntityManager em = JPAUtil.getEntityManager();
         try {
-            Long count = em.createQuery(
-                "SELECT COUNT(pi) FROM ProjectInvite pi " +
-                "WHERE pi.projectId = :projectId AND pi.status = 'PENDING' " +
-                "  AND ((pi.senderId = :u1 AND pi.receiverId = :u2) OR (pi.senderId = :u2 AND pi.receiverId = :u1))",
-                Long.class
+            // Chỉ tính lời mời PENDING còn hạn: lời mời đã quá 7 ngày không được chặn việc mời lại
+            Number count = (Number) em.createNativeQuery(
+                "SELECT COUNT(*) FROM project_invites " +
+                "WHERE project_id = ?1 AND status = 'PENDING' AND expired_at > CURRENT_TIMESTAMP " +
+                "  AND ((sender_id = ?2 AND receiver_id = ?3) OR (sender_id = ?3 AND receiver_id = ?2))"
             )
-            .setParameter("projectId", projectId)
-            .setParameter("u1", user1Id)
-            .setParameter("u2", user2Id)
+            .setParameter(1, projectId)
+            .setParameter(2, user1Id)
+            .setParameter(3, user2Id)
             .getSingleResult();
 
-            return count != null && count > 0;
+            return count != null && count.longValue() > 0;
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Lỗi khi kiểm tra pending invite qua JPA", e);
             return false;

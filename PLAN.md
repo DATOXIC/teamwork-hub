@@ -277,8 +277,8 @@ Làm **từng bước một**, theo đúng thứ tự. Xong bước nào thì đ
 | 1c | [ ] | Xóa mật khẩu cũ khỏi lịch sử git (`git filter-repo`) + force-push, báo nhóm clone lại | 1.2 | **Bạn** (Claude hướng dẫn) |
 | 2 | [x] | Chống XSS ở chat: `chat.js` escape trước khi tạo mention, bỏ gán `innerHTML` thô | 1.4 | Claude |
 | 3 | [x] | Chống XSS ở `tasks.jsp` (màn hình demo chính) | 1.3 | Claude |
-| 4 | [ ] | Chống XSS ở các JSP còn lại + `includes/` + các chỗ `innerHTML` trong JS khác | 1.3, 1.4 | Claude |
-| 5 | [ ] | Sửa lỗi mời lại thành viên (ràng buộc UNIQUE + kiểm tra kết quả insert); ẩn nút tải tệp bàn giao khi chưa có tệp | 1.14 | Claude (+ bạn chạy migration SQL) |
+| 4 | [x] | Chống XSS ở các JSP còn lại + `includes/` + các chỗ `innerHTML` trong JS khác | 1.3, 1.4 | Claude |
+| 5 | [x] | Sửa lỗi mời lại thành viên (ràng buộc UNIQUE + kiểm tra kết quả insert); ẩn nút tải tệp bàn giao khi chưa có tệp | 1.14 | Claude (không cần migration) |
 | 6 | [ ] | Phân quyền: chỉ PM tạo/giao task, chỉ PM bật/tắt cổng duyệt, đổi hạn chót chỉ PM/Lead | 1.7 | Claude |
 | 7 | [ ] | Kiểm tra trạng thái ở các bước duyệt (task & subtask phải `SUBMITTED`) | 1.8 | Claude |
 | 8 | [ ] | Tách chức danh khỏi quyền (bỏ cờ `ADMIN` trong `role`) | 1.9 | Claude |

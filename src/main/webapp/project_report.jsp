@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- =========================================================================
      [MVC VIEW SKELETON: EXECUTIVE PROJECT HEALTH & AUDIT REPORT]
@@ -22,7 +23,7 @@
      ========================================================================= --%>
 
 <%-- ◀ SERVLET: ProjectServlet → setAttribute("project") --%>
-<c:set var="pageTitle" value="Báo Cáo Tiến Độ Dự Án — ${project.name}" scope="request" />
+<c:set var="pageTitle" value="Báo Cáo Tiến Độ Dự Án — ${fn:escapeXml(project.name)}" scope="request" />
 <c:set var="extraCss" value="styles/report.css" scope="request" />
 
 <!-- Khởi tạo Theme tức thời để tránh nhấp nháy FOUC -->
@@ -106,23 +107,23 @@
                             </c:otherwise>
                         </c:choose>
                         <%-- ◀ SERVLET: ProjectServlet → setAttribute("healthLabel") --%>
-                        <span class="fw-semibold">${healthLabel}</span>
+                        <span class="fw-semibold">${fn:escapeXml(healthLabel)}</span>
                     </span>
                     <span class="badge rounded-pill px-2-5 py-1 fs-9 report-banner-meta-badge">
-                        #${project.projectCode}
+                        #${fn:escapeXml(project.projectCode)}
                     </span>
                     <span class="badge rounded-pill px-2-5 py-1 fs-9 report-banner-date-badge">
                         <i class="bi bi-calendar3 me-1"></i> Khởi tạo: ${project.createdAt}
                     </span>
                 </div>
-                <h2 class="fw-extrabold mb-1 text-white tracking-tight">${project.name}</h2>
+                <h2 class="fw-extrabold mb-1 text-white tracking-tight">${fn:escapeXml(project.name)}</h2>
                 <p class="fs-8 mb-2 report-project-desc">
                     ${not empty project.description ? project.description : 'Dự án chưa cập nhật mô tả chi tiết.'}
                 </p>
                 <div class="d-flex align-items-center gap-2 text-white-50 fs-9">
                     <i class="bi bi-info-circle report-health-info-icon"></i>
                     <%-- ◀ SERVLET: ProjectServlet → setAttribute("healthDescription") --%>
-                    <span class="report-health-desc-text">${healthDescription}</span>
+                    <span class="report-health-desc-text">${fn:escapeXml(healthDescription)}</span>
                 </div>
             </div>
 
@@ -130,7 +131,7 @@
             <div class="text-md-end text-white-50 fs-8">
                 <%-- ◀ SERVLET: ProjectServlet → setAttribute("generatedAt") --%>
                 <div><strong>Thời điểm xuất báo cáo:</strong> <span class="text-white">${generatedAt}</span></div>
-                <div class="mt-1"><strong>Người xuất báo cáo:</strong> <span class="text-white">${sessionScope.currentUser.fullName} (${sessionScope.currentUser.role})</span></div>
+                <div class="mt-1"><strong>Người xuất báo cáo:</strong> <span class="text-white">${fn:escapeXml(sessionScope.currentUser.fullName)} (${fn:escapeXml(sessionScope.currentUser.role)})</span></div>
             </div>
         </div>
     </div>
@@ -168,9 +169,9 @@
                                             <span class="badge bg-dark-navy text-white fs-9 rounded-pill">#${b.id}</span>
                                             <span class="badge ${b.priorityBadgeClass} fs-9">${b.priorityLabel}</span>
                                         </div>
-                                        <div class="fw-bold text-dark fs-8 text-truncate mb-1" title="${b.title}">${b.title}</div>
+                                        <div class="fw-bold text-dark fs-8 text-truncate mb-1" title="${fn:escapeXml(b.title)}">${fn:escapeXml(b.title)}</div>
                                         <div class="fs-9 text-muted mb-2">
-                                            <i class="bi bi-person text-secondary"></i> ${b.assigneeName}
+                                            <i class="bi bi-person text-secondary"></i> ${fn:escapeXml(b.assigneeName)}
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top fs-9">
@@ -186,7 +187,7 @@
                                         </span>
                                         <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}"
                                             class="text-decoration-none fw-bold fs-9 text-primary no-print"
-                                            aria-label="Xem chi tiết công việc #${b.id}: ${b.title}">
+                                            aria-label="Xem chi tiết công việc #${b.id}: ${fn:escapeXml(b.title)}">
                                             Xem công việc &rarr;
                                         </a>
                                     </div>
@@ -462,13 +463,13 @@
                                         ${not empty stat.member.userName ? stat.member.userName.substring(0, 1).toUpperCase() : 'U'}
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-dark">${stat.member.userName}</div>
-                                        <div class="text-muted fs-9">${stat.member.userEmail}</div>
+                                        <div class="fw-bold text-dark">${fn:escapeXml(stat.member.userName)}</div>
+                                        <div class="text-muted fs-9">${fn:escapeXml(stat.member.userEmail)}</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <div><span class="badge bg-light text-dark border fs-9">${stat.member.userRole}</span></div>
+                                <div><span class="badge bg-light text-dark border fs-9">${fn:escapeXml(stat.member.userRole)}</span></div>
                                 <c:choose>
                                     <c:when test="${stat.member.projectRole == 'OWNER'}">
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill fs-9 mt-1">
@@ -499,7 +500,7 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="progress flex-grow-1 progress-mini" role="progressbar"
                                         aria-valuenow="${stat.completionRate}" aria-valuemin="0" aria-valuemax="100"
-                                        aria-label="Tiến độ của ${stat.member.userName}: ${stat.completionRate}%">
+                                        aria-label="Tiến độ của ${fn:escapeXml(stat.member.userName)}: ${stat.completionRate}%">
                                         <div class="progress-bar bg-success" style="width: ${stat.completionRate}%;"></div>
                                     </div>
                                     <span class="fw-bold fs-9 min-w-rate">${stat.completionRate}%</span>
@@ -615,13 +616,13 @@
                 <tbody>
                     <c:forEach items="${tasks}" var="t">
                         <tr class="task-inventory-row" data-status="${t.status}" data-overdue="${t.isOverdue()}"
-                            data-search="#${t.id} ${t.title.toLowerCase()} ${not empty t.assigneeName ? t.assigneeName.toLowerCase() : ''} ${t.priority.toLowerCase()}">
+                            data-search="#${t.id} ${fn:escapeXml(t.title.toLowerCase())} ${not empty t.assigneeName ? t.assigneeName.toLowerCase() : ''} ${t.priority.toLowerCase()}">
                             <td class="text-muted fw-bold">#${t.id}</td>
                             <td>
-                                <div class="fw-bold text-dark">${t.title}</div>
+                                <div class="fw-bold text-dark">${fn:escapeXml(t.title)}</div>
                                 <c:if test="${not empty t.description}">
-                                    <div class="text-muted fs-9 text-truncate report-desc-truncate" title="${t.description}">
-                                        ${t.description}
+                                    <div class="text-muted fs-9 text-truncate report-desc-truncate" title="${fn:escapeXml(t.description)}">
+                                        ${fn:escapeXml(t.description)}
                                     </div>
                                 </c:if>
                             </td>
@@ -639,7 +640,7 @@
                             <td class="text-center">
                                 <c:choose>
                                     <c:when test="${not empty t.dueDate}">
-                                        <div class="fs-9 fw-semibold">${t.dueDate}</div>
+                                        <div class="fs-9 fw-semibold">${fn:escapeXml(t.dueDate)}</div>
                                         <c:choose>
                                             <c:when test="${t.isOverdue()}">
                                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fs-9 mt-1">
@@ -710,15 +711,22 @@
                             </td>
                             <td>
                                 <c:if test="${not empty t.finalDeliverableNote}">
-                                    <div class="fs-9 text-dark"><strong>Nộp:</strong> ${t.finalDeliverableNote}</div>
+                                    <div class="fs-9 text-dark"><strong>Nộp:</strong> ${fn:escapeXml(t.finalDeliverableNote)}</div>
                                 </c:if>
                                 <c:if test="${not empty t.deliverableFile}">
                                     <div class="fs-9 text-primary mt-1">
-                                        <i class="bi bi-link-45deg"></i> <a href="${t.deliverableFile}" target="_blank" class="text-decoration-none">${t.deliverableFile}</a>
+                                        <%-- Chỉ tạo link cho http/https: chặn "javascript:..." do người dùng tự nhập --%>
+                                        <i class="bi bi-link-45deg"></i>
+                                        <c:choose>
+                                            <c:when test="${fn:startsWith(t.deliverableFile, 'https://') || fn:startsWith(t.deliverableFile, 'http://')}">
+                                                <a href="${fn:escapeXml(t.deliverableFile)}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">${fn:escapeXml(t.deliverableFile)}</a>
+                                            </c:when>
+                                            <c:otherwise>${fn:escapeXml(t.deliverableFile)}</c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </c:if>
                                 <c:if test="${not empty t.pmFeedback}">
-                                    <div class="fs-9 text-muted mt-1"><em>Trưởng dự án: "${t.pmFeedback}"</em></div>
+                                    <div class="fs-9 text-muted mt-1"><em>Trưởng dự án: "${fn:escapeXml(t.pmFeedback)}"</em></div>
                                 </c:if>
                                 <c:if test="${empty t.finalDeliverableNote && empty t.deliverableFile && empty t.pmFeedback}">
                                     <span class="text-muted fs-9">—</span>
@@ -777,9 +785,9 @@
                                 <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center gap-2">
                                         <i class="bi bi-file-earmark-text text-muted"></i>
-                                        <span class="fw-semibold text-dark">${d.title}</span>
+                                        <span class="fw-semibold text-dark">${fn:escapeXml(d.title)}</span>
                                     </div>
-                                    <span class="fs-9 text-muted">${d.authorName} &bull; ${d.updatedAt}</span>
+                                    <span class="fs-9 text-muted">${fn:escapeXml(d.authorName)} &bull; ${d.updatedAt}</span>
                                 </li>
                             </c:forEach>
                         </ul>
@@ -857,13 +865,13 @@
                 <div class="fw-bold fs-7 report-signoff-name">
                     <c:choose>
                         <c:when test="${not empty projectOwnerName}">
-                            ${projectOwnerName}
+                            ${fn:escapeXml(projectOwnerName)}
                         </c:when>
                         <c:when test="${project.ownerId == sessionScope.currentUser.id}">
-                            ${sessionScope.currentUser.fullName}
+                            ${fn:escapeXml(sessionScope.currentUser.fullName)}
                         </c:when>
                         <c:otherwise>
-                            ${sessionScope.currentUser.fullName}
+                            ${fn:escapeXml(sessionScope.currentUser.fullName)}
                         </c:otherwise>
                     </c:choose>
                 </div>

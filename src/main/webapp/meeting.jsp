@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- meeting.jsp — Họp video nhóm (Jitsi Meet nhúng). Controller: MeetingServlet (/meeting)
      Model: ${project}, ${roomName}, ${sessionScope.currentUser} --%>
@@ -36,7 +37,8 @@
     window.MEET_CONFIG = {
         <%-- ◀ SERVLET: MeetingServlet → setAttribute("roomName") --%>
         room: '<c:out value="${roomName}" />',
-        displayName: '<c:out value="${sessionScope.currentUser.fullName}" />'
+        <%-- Chuỗi trong JS: escapeXml chặn đóng nháy/thẻ, replace thêm dấu \ để không phá chuỗi JS --%>
+        displayName: '${fn:replace(fn:escapeXml(sessionScope.currentUser.fullName), '\\', '\\\\')}'
     };
 </script>
 <script src="${pageContext.request.contextPath}/js/meeting.js"></script>

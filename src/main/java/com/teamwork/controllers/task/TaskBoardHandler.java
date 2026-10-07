@@ -189,6 +189,9 @@ public final class TaskBoardHandler {
         // ▶ JSP: risk_panel.jsp, tasks.jsp, health_badge.jsp đọc bằng ${taskHealthMap}
         request.setAttribute("taskHealthMap", taskHealthMap);
 
+        // Chỉ hiện nút "Tải về" khi tệp bàn giao thật sự có trong /uploads/deliverables (chưa có chức năng upload)
+        request.setAttribute("downloadableDeliverables", findDownloadableDeliverables(request, allProjectTasks));
+
         // 8.5. Tính toán khối lượng công việc của từng thành viên (UserWorkload DTO) cho Dải Avatar B.3
         List<Task> allTasks = new ArrayList<>(allProjectTasks);
         List<UserWorkload> userWorkloadList = computeUserWorkloads(userList, allTasks, taskSubTasksMap);
@@ -459,6 +462,28 @@ public final class TaskBoardHandler {
         }
 
         writer.flush();
+    }
+
+    /** Tên tệp hợp lệ: không chứa "/" hay "\" nên không thể trỏ ra ngoài thư mục deliverables. */
+    private static final java.util.regex.Pattern SAFE_FILE_NAME = java.util.regex.Pattern.compile("^[\\p{L}\\p{N} ._()-]{1,150}$");
+
+    /**
+     * Trả về ID các task có tệp bàn giao tồn tại thật trong thư mục /uploads/deliverables của webapp.
+     */
+    static Set<Integer> findDownloadableDeliverables(HttpServletRequest request, List<Task> tasks) {
+        Set<Integer> result = new HashSet<>();
+        String dir = request.getServletContext().getRealPath("/uploads/deliverables");
+        if (dir == null) {
+            return result;
+        }
+        for (Task t : tasks) {
+            String name = t.getDeliverableFile();
+            if (name != null && SAFE_FILE_NAME.matcher(name.trim()).matches() && !name.contains("..")
+                    && new java.io.File(dir, name.trim()).isFile()) {
+                result.add(t.getId());
+            }
+        }
+        return result;
     }
 
     public static String csvCell(String value) {

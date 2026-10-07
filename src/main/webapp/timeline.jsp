@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 
 <%-- =========================================================================
      [MVC VIEW SKELETON: INTERACTIVE GANTT TIMELINE & PROJECT ROADMAP]
@@ -16,7 +17,7 @@
      ========================================================================= --%>
 
 <%-- ◀ SERVLET: TimelineServlet → setAttribute("project") --%>
-<c:set var="pageTitle" value="Lộ Trình & Sơ Đồ Gantt &bull; ${project.name}" scope="request" />
+<c:set var="pageTitle" value="Lộ Trình & Sơ Đồ Gantt &bull; ${fn:escapeXml(project.name)}" scope="request" />
 <c:set var="extraCss" value="styles/timeline.css" scope="request" />
 
 <jsp:include page="/includes/header.jsp" />
@@ -148,7 +149,7 @@
                 <option value="ALL">Tất cả thành viên</option>
                 <%-- ◀ SERVLET: TimelineServlet → setAttribute("members") --%>
                 <c:forEach items="${members}" var="m">
-                    <option value="${m.userId}">${m.userName}</option>
+                    <option value="${m.userId}">${fn:escapeXml(m.userName)}</option>
                 </c:forEach>
             </select>
 
@@ -232,10 +233,14 @@
                 <c:forEach items="${allTasks}" var="ut">
                     <c:if test="${empty ut.dueDate}">
                         <%-- ◀ SERVLET: TimelineServlet → setAttribute("todayDate") --%>
-                        <div class="unscheduled-task-badge" onclick="document.getElementById('modalTaskId').value='${ut.id}'; document.getElementById('modalTaskTitle').textContent='${ut.title}'; document.getElementById('modalTaskAssignee').textContent='${ut.assigneeName}'; document.getElementById('modalTaskStatus').textContent='${ut.status}'; document.getElementById('modalTaskDueDate').value='${todayDate}'; new bootstrap.Modal(document.getElementById('quickEditTimelineModal')).show();">
+                        <%-- Dữ liệu người dùng đi qua data-* (escapeXml) rồi JS đọc ra, không nhúng thẳng vào chuỗi JS trong onclick --%>
+                        <div class="unscheduled-task-badge"
+                             data-task-id="${ut.id}" data-title="${fn:escapeXml(ut.title)}"
+                             data-assignee="${fn:escapeXml(ut.assigneeName)}" data-status="${fn:escapeXml(ut.status)}"
+                             onclick="document.getElementById('modalTaskId').value=this.dataset.taskId; document.getElementById('modalTaskTitle').textContent=this.dataset.title; document.getElementById('modalTaskAssignee').textContent=this.dataset.assignee; document.getElementById('modalTaskStatus').textContent=this.dataset.status; document.getElementById('modalTaskDueDate').value='${todayDate}'; new bootstrap.Modal(document.getElementById('quickEditTimelineModal')).show();">
                             <span class="gantt-priority-dot ${ut.priority.toLowerCase()}"></span>
-                            <span class="fw-medium text-dark text-truncate" style="max-width: 220px;" title="${ut.title}">${ut.title}</span>
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0 fs-10">${ut.assigneeName}</span>
+                            <span class="fw-medium text-dark text-truncate" style="max-width: 220px;" title="${fn:escapeXml(ut.title)}">${fn:escapeXml(ut.title)}</span>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0 fs-10">${fn:escapeXml(ut.assigneeName)}</span>
                             <i class="bi bi-calendar-plus text-primary fs-8"></i>
                         </div>
                     </c:if>
@@ -361,7 +366,7 @@
                         <select id="newAssignee" name="assigneeId" class="form-select form-select-sm shadow-none fs-8">
                             <option value="0">-- Chưa phân công --</option>
                             <c:forEach items="${members}" var="m">
-                                <option value="${m.userId}">${m.userName} (${m.userRole})</option>
+                                <option value="${m.userId}">${fn:escapeXml(m.userName)} (${fn:escapeXml(m.userRole)})</option>
                             </c:forEach>
                         </select>
                     </div>
