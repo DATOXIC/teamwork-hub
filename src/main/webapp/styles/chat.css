@@ -470,13 +470,15 @@
     border: 1px solid var(--chat-bubble-me-border);
     box-shadow: var(--chat-bubble-me-shadow);
     color: var(--chat-text-me);
-    padding: 12px 18px;
+    padding: 10px 16px;
     border-radius: 18px 18px 4px 18px;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     position: relative;
     word-break: break-word;
-    min-width: 110px;
+    min-width: 140px;
+    width: fit-content;
+    box-sizing: border-box;
 }
 
 .chat-bubble-me .message-body {
@@ -488,13 +490,15 @@
     border: 1px solid var(--chat-bubble-other-border);
     box-shadow: var(--chat-bubble-other-shadow);
     color: var(--chat-text-primary);
-    padding: 12px 18px;
+    padding: 10px 16px;
     border-radius: 18px 18px 18px 4px;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     position: relative;
     word-break: break-word;
-    min-width: 110px;
+    min-width: 140px;
+    width: fit-content;
+    box-sizing: border-box;
 }
 
 .chat-bubble-other .message-body {
@@ -507,27 +511,38 @@
     color: var(--chat-text-primary);
 }
 
+.chat-time-row {
+    width: 100%;
+    min-width: max-content;
+}
+
 .chat-time-meta {
-    font-size: 0.68rem;
-    opacity: 0.75;
+    font-size: 0.7rem;
+    opacity: 0.8;
     display: inline-flex;
     align-items: center;
     gap: 4px;
     margin-top: 4px;
     white-space: nowrap;
     flex-shrink: 0;
-    line-height: 1.2;
+    line-height: 1;
     user-select: none;
 }
 
 .chat-time-meta .time-text {
     white-space: nowrap;
     display: inline-block;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-left: 0 !important;
 }
 
 .chat-time-meta i {
-    font-size: 0.65rem;
+    font-size: 0.72rem;
     flex-shrink: 0;
+    display: inline-block;
+    line-height: 1;
+    margin-right: 0 !important;
 }
 
 /* Hover Action Bar (Micro-dock on message cards) */

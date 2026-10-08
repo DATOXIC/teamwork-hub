@@ -577,7 +577,7 @@ function renderAllTimestamps() {
                 el.appendChild(icon);
             }
             var span = document.createElement("span");
-            span.className = "time-text ms-1 text-nowrap";
+            span.className = "time-text text-nowrap";
             span.textContent = shortTime;
             el.appendChild(span);
         }

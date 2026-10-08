@@ -31,7 +31,10 @@ public class JPAUtil {
     private static final Map<String, String> CONNECTION_OVERRIDES = new HashMap<>();
 
     static {
-        // 1. File db.properties cục bộ (nằm trong .gitignore, xem db.properties.example)
+        loadOverrides();
+    }
+
+    private static synchronized void loadOverrides() {
         Properties props = new Properties();
         try (InputStream in = JPAUtil.class.getClassLoader().getResourceAsStream("db.properties")) {
             if (in != null) {
@@ -85,6 +88,8 @@ public class JPAUtil {
             if (emf != null && emf.isOpen()) {
                 return emf;
             }
+
+            loadOverrides();
 
             RuntimeException lastError = null;
             for (int attempt = 1; attempt <= MAX_INIT_ATTEMPTS; attempt++) {
