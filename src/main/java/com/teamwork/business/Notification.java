@@ -1,6 +1,8 @@
 package com.teamwork.business;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -46,7 +48,10 @@ public class Notification implements Serializable {
     private boolean isRead;           // Trạng thái đã đọc (true) hay chưa đọc (false)
 
     @Column(name = "created_at", insertable = false, updatable = false)
-    private String createdAt;         // Thời điểm phát thông báo (dd/MM/yyyy HH:mm)
+    private LocalDateTime createdAt;  // Thời điểm phát thông báo
+
+    private static final DateTimeFormatter DISPLAY_FMT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
     public Notification() {
@@ -57,11 +62,11 @@ public class Notification implements Serializable {
         this.link = "#";
         this.type = "GENERAL";
         this.isRead = false;
-        this.createdAt = "";
+        this.createdAt = null;
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
-    public Notification(int id, int recipientId, String title, String content, String link, String type, boolean isRead, String createdAt) {
+    public Notification(int id, int recipientId, String title, String content, String link, String type, boolean isRead, LocalDateTime createdAt) {
         this.id = id;
         this.recipientId = recipientId;
         this.title = title;
@@ -143,9 +148,12 @@ public class Notification implements Serializable {
     }
 
     public String getCreatedAt() {
+        return createdAt != null ? createdAt.format(DISPLAY_FMT) : "";
+    }
+    public LocalDateTime getRawCreatedAt() {
         return createdAt;
     }
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }
