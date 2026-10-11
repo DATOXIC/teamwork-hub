@@ -367,6 +367,7 @@ public final class TaskCrudHandler {
                     }
                 }
 
+                String oldStatus = task.getStatus();
                 TaskDB.updateStatus(taskId, status);
 
                 // Ghi nhận Activity Log
@@ -383,7 +384,7 @@ public final class TaskCrudHandler {
                         : "Đã chuyển công việc về danh mục Cần làm.");
 
                 if (isAjax) {
-                    sendJsonResponse(response, true, toastSuccessMsg, "{\"taskId\":" + taskId + ",\"newStatus\":\"" + escapeJson(status) + "\"}");
+                    sendJsonResponse(response, true, toastSuccessMsg, "{\"taskId\":" + taskId + ",\"oldStatus\":\"" + escapeJson(oldStatus) + "\",\"newStatus\":\"" + escapeJson(status) + "\"}");
                     return;
                 }
 

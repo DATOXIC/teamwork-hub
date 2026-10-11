@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function()
 
                     if (subtaskCount > 0 && progress < 100) {
                         revertCard();
-                        const proceed = function () { sendDataToServer(taskId, newStatus); };
+                        const proceed = function () { sendDataToServer(taskId, newStatus, droppedCard, homeColumn, homeNextSibling); };
 
                         if (window.confirmAction) {
                             window.confirmAction({
@@ -227,11 +227,11 @@ document.addEventListener('DOMContentLoaded', function()
                             proceed();
                         }
                     } else {
-                        sendDataToServer(taskId, newStatus);
+                        sendDataToServer(taskId, newStatus, droppedCard, homeColumn, homeNextSibling);
                     }
                 }
                 else {
-                    sendDataToServer(taskId, newStatus);
+                    sendDataToServer(taskId, newStatus, droppedCard, homeColumn, homeNextSibling);
                 }
             }
 
@@ -262,11 +262,77 @@ document.addEventListener('DOMContentLoaded', function()
 
     document.addEventListener('mousedown', onMouseDown);
 
-    function sendDataToServer(taskId, newStatus) 
+    function updateKanbanColumnCounters() {
+        ['TODO', 'IN_PROGRESS', 'DONE'].forEach(function(st) {
+            var col = document.getElementById('column-' + st);
+            if (col) {
+                var count = col.querySelectorAll('.kanban-card').length;
+                var colParent = col.closest('.kanban-column');
+                if (colParent) {
+                    var pillCount = colParent.querySelector('.pill-count');
+                    if (pillCount) pillCount.textContent = count;
+                }
+            }
+        });
+        var totalEl = document.getElementById('boardVisibleTotalCount');
+        if (totalEl) {
+            totalEl.textContent = document.querySelectorAll('.kanban-card').length;
+        }
+    }
+
+    function sendDataToServer(taskId, newStatus, droppedCard, homeColumn, homeNextSibling) 
     {
         const urlParams = new URLSearchParams(window.location.search);
         const projectId = urlParams.get('projectId') || '1';
-        
+        const basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+
+        const params = new URLSearchParams();
+        params.append('action', 'updateStatus');
+        params.append('projectId', String(projectId));
+        params.append('taskId', String(taskId));
+        params.append('newStatus', String(newStatus));
+        params.append('ajax', 'true');
+
+        if (typeof window.apiFetch === 'function') {
+            window.apiFetch(basePath + '/task', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: params.toString()
+            })
+            .then(function(res) {
+                if (res.success) {
+                    if (window.showToast) window.showToast(res.message, 'success');
+                    if (droppedCard) {
+                        droppedCard.setAttribute('data-task-status', newStatus);
+                    }
+                    updateKanbanColumnCounters();
+                    if (newStatus === 'DONE' && typeof window.fireConfettiCelebration === 'function') {
+                        window.fireConfettiCelebration();
+                    }
+                } else {
+                    if (homeColumn && droppedCard) {
+                        homeColumn.insertBefore(droppedCard, homeNextSibling);
+                        updateKanbanColumnCounters();
+                    }
+                    if (window.showToast) window.showToast(res.message || 'Không thể đổi trạng thái!', 'error');
+                }
+            })
+            .catch(function(err) {
+                if (homeColumn && droppedCard) {
+                    homeColumn.insertBefore(droppedCard, homeNextSibling);
+                    updateKanbanColumnCounters();
+                }
+                if (err && err.handled) return;
+                console.error(err);
+                if (window.showToast) window.showToast('Lỗi kết nối, đã hoàn tác vị trí thẻ!', 'error');
+            });
+            return;
+        }
+
+        // Fallback: nếu apiFetch không khả dụng
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = window.location.pathname;
@@ -295,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function()
         form.appendChild(inputProject);
         form.appendChild(inputTask);
         form.appendChild(inputStatus);
-        if (typeof window.addCsrfInput === 'function') window.addCsrfInput(form); // form.submit() không phát sự kiện submit
+        if (typeof window.addCsrfInput === 'function') window.addCsrfInput(form);
 
         document.body.appendChild(form);
         form.submit();

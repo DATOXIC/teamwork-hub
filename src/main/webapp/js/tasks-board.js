@@ -818,8 +818,46 @@
         .then(function(data) {
             if (data.success) {
                 if (window.showToast) window.showToast(data.message, 'success');
+                var inlineRow = document.getElementById('inline-subtask-row-' + parentTaskId);
+                var subData = (typeof data.data === 'string') ? JSON.parse(data.data) : (data.data || {});
+                var subId = subData.id || ('st-' + Date.now());
+                var subTitle = subData.title || title;
+                var subAssignee = subData.assigneeName || 'Chưa gán';
+                var subDue = subData.dueDate || '—';
+
+                if (inlineRow && inlineRow.parentNode) {
+                    var groupClass = inlineRow.className.replace('clickup-inline-subtask-row', '').replace('clickup-inline-create-row', '').trim();
+                    var newSubTr = document.createElement('tr');
+                    newSubTr.tabIndex = 0;
+                    newSubTr.className = 'clickup-subtask-row ' + groupClass;
+                    newSubTr.setAttribute('data-parent-id', String(parentTaskId));
+                    newSubTr.setAttribute('data-subtask-id', String(subId));
+                    newSubTr.setAttribute('data-assignee-id', String(assigneeId));
+                    newSubTr.setAttribute('data-subtask-title', subTitle);
+                    newSubTr.onclick = function(e) {
+                        e.stopPropagation();
+                        window.openClickUpTask(parentTaskId, subId);
+                    };
+
+                    var assigneeCell = TASK_PAGE.teamProject ? (
+                        '<td><span class="fs-9 text-muted text-truncate" style="max-width: 130px;">' + (window.escapeHtml ? window.escapeHtml(subAssignee) : subAssignee) + '</span></td>'
+                    ) : '';
+
+                    newSubTr.innerHTML = 
+                        '<td class="ps-3">' +
+                            '<div class="d-flex align-items-center gap-2" style="padding-left: 28px;">' +
+                                '<span role="button" tabindex="0" aria-label="Đổi trạng thái" class="clickup-status-dot dot-todo" id="subtask-status-dot-' + subId + '" onclick="event.stopPropagation(); openStatusDropdown(event, ' + subId + ', true, \'TODO\', ' + parentTaskId + ');" title="Nhiệm vụ: ⚪ Đang làm (Bấm để đổi)"></span>' +
+                                '<span class="text-dark text-truncate fs-8 fw-medium" id="subtask-title-text-' + subId + '" style="max-width: 320px;">' + (window.escapeHtml ? window.escapeHtml(subTitle) : subTitle) + '</span>' +
+                            '</div>' +
+                        '</td>' +
+                        assigneeCell +
+                        '<td><span class="fs-9 text-muted">Nhiệm vụ</span></td>' +
+                        '<td><span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5 fs-9" id="subtask-badge-' + subId + '">⚪ Đang làm</span></td>' +
+                        '<td class="pe-3" style="text-align: right;"><span class="fs-9 text-muted font-monospace">' + (window.escapeHtml ? window.escapeHtml(subDue) : subDue) + '</span></td>';
+
+                    inlineRow.parentNode.insertBefore(newSubTr, inlineRow);
+                }
                 window.cancelInlineCreateSubtask(parentTaskId);
-                setTimeout(function() { window.location.reload(); }, 400);
             } else {
                 if (window.showToast) window.showToast(data.message || 'Lỗi khi tạo nhiệm vụ', 'error');
                 else alert(data.message);
@@ -1617,4 +1655,335 @@
                 }, 400);
             }
         }
+    });
+
+    // =========================================================================
+    // 12. IN-PLACE AJAX UX IMPROVEMENTS (DRAWER COMMENTS & SUBTASKS)
+    // =========================================================================
+
+    // A. Tick hoàn thành / Đổi trạng thái Subtask trực tiếp trong Drawer (Không reload trang)
+    window.toggleDrawerSubtask = function(parentTaskId, subTaskId, targetCompleted) {
+        var isCompleted = (targetCompleted === true || targetCompleted === 'true');
+        var iconEl = document.getElementById('drawerSubtaskCheckIcon-' + subTaskId);
+        var titleEl = document.getElementById('drawerSubtaskTitle-' + subTaskId);
+        var badgeEl = document.getElementById('drawerSubtaskBadge-' + subTaskId);
+        var progressText = document.getElementById('drawerProgressText-' + parentTaskId);
+        var progressBar = document.getElementById('drawerProgressBar-' + parentTaskId);
+
+        // Lưu class cũ để rollback nếu gặp lỗi hoặc bị Gate chặn
+        var oldIconClass = iconEl ? iconEl.className : '';
+        var oldTitleClass = titleEl ? titleEl.className : '';
+
+        // Optimistic UI: đổi icon tạm thời
+        if (iconEl) {
+            iconEl.className = 'bi bi-arrow-repeat text-primary spinner-border-sm fs-7';
+        }
+
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        var params = new URLSearchParams();
+        params.append('action', 'toggleSubTask');
+        params.append('projectId', String(TASK_PAGE.projectId));
+        params.append('subTaskId', String(subTaskId));
+        params.append('completed', isCompleted ? 'true' : 'false');
+        params.append('ajax', 'true');
+
+        window.apiFetch(basePath + '/task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+        })
+        .then(function(res) {
+            if (res.success) {
+                var data = (typeof res.data === 'string') ? JSON.parse(res.data) : (res.data || {});
+                if (window.showToast) window.showToast(res.message, 'success');
+
+                // Cập nhật icon check
+                if (iconEl) {
+                    if (isCompleted) {
+                        iconEl.className = 'bi bi-check-circle-fill text-success fs-7';
+                    } else {
+                        iconEl.className = 'bi bi-circle text-muted fs-7';
+                    }
+                }
+                // Cập nhật gạch ngang tiêu đề
+                if (titleEl) {
+                    if (isCompleted) {
+                        titleEl.classList.add('text-decoration-line-through', 'text-muted');
+                        titleEl.classList.remove('fw-medium');
+                    } else {
+                        titleEl.classList.remove('text-decoration-line-through', 'text-muted');
+                        titleEl.classList.add('fw-medium');
+                    }
+                }
+                // Cập nhật nhãn trạng thái
+                if (badgeEl && data.statusLabel) {
+                    badgeEl.textContent = data.statusLabel;
+                    if (data.statusBadgeClass) {
+                        badgeEl.className = 'badge ' + data.statusBadgeClass + ' rounded-pill px-2 py-0 fs-9';
+                    }
+                }
+                // Cập nhật tiến độ %
+                if (data.newProgress !== undefined) {
+                    if (progressText) progressText.textContent = data.newProgress + '%';
+                    if (progressBar) {
+                        progressBar.style.width = data.newProgress + '%';
+                        progressBar.setAttribute('aria-valuenow', data.newProgress);
+                    }
+                    if (data.newProgress === 100 && window.fireConfettiCelebration) {
+                        window.fireConfettiCelebration();
+                    }
+                }
+                // Đồng bộ status dot ở List View nếu đang mở
+                var listDot = document.getElementById('subtask-status-dot-' + subTaskId);
+                if (listDot) {
+                    listDot.className = 'clickup-status-dot ' + (isCompleted ? 'dot-done' : 'dot-todo');
+                    listDot.innerHTML = isCompleted ? '<i class="bi bi-check text-white"></i>' : '';
+                }
+                var listTitle = document.getElementById('subtask-title-text-' + subTaskId);
+                if (listTitle) {
+                    if (isCompleted) listTitle.classList.add('text-decoration-line-through', 'text-muted');
+                    else listTitle.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+            } else {
+                // Rollback về trạng thái cũ
+                if (iconEl) iconEl.className = oldIconClass;
+                if (titleEl) titleEl.className = oldTitleClass;
+                if (window.showToast) window.showToast(res.message, 'error');
+            }
+        })
+        .catch(function(err) {
+            if (iconEl) iconEl.className = oldIconClass;
+            if (titleEl) titleEl.className = oldTitleClass;
+            if (err && err.handled) return;
+            console.error(err);
+            if (window.showToast) window.showToast('Không thể cập nhật trạng thái nhiệm vụ!', 'error');
+        });
+    };
+
+    // B. Gửi bình luận trong Task Drawer qua AJAX (Không reload trang, giữ nguyên drawer)
+    document.addEventListener('submit', function(e) {
+        var form = e.target.closest('.task-comment-ajax-form');
+        if (!form) return;
+        e.preventDefault();
+
+        var contentInput = form.querySelector('.task-comment-input');
+        var submitBtn = form.querySelector('.task-comment-submit-btn');
+        if (!contentInput) return;
+        var content = contentInput.value.trim();
+        if (!content) return;
+
+        var taskId = form.getAttribute('data-task-id') || form.taskId.value;
+        var projectId = form.getAttribute('data-project-id') || form.projectId.value;
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        var params = new URLSearchParams();
+        params.append('action', 'sendTaskComment');
+        params.append('projectId', String(projectId));
+        params.append('taskId', String(taskId));
+        params.append('content', content);
+        params.append('ajax', 'true');
+
+        window.apiFetch(basePath + '/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+        })
+        .then(function(res) {
+            if (submitBtn) submitBtn.disabled = false;
+            if (res.success) {
+                contentInput.value = '';
+
+                // Ẩn placeholder rỗng
+                var emptyEl = document.getElementById('taskCommentEmpty-' + taskId);
+                if (emptyEl) emptyEl.classList.add('d-none');
+
+                // Thêm thẻ comment mới vào container
+                var container = document.getElementById('taskCommentsContainer-' + taskId);
+                if (container) {
+                    var commentData = (typeof res.data === 'string') ? JSON.parse(res.data) : (res.data || {});
+                    var card = document.createElement('div');
+                    card.className = 'p-2 px-2.5 rounded-2 border shadow-2xs bg-white';
+
+                    var head = document.createElement('div');
+                    head.className = 'd-flex align-items-center justify-content-between mb-1';
+                    var authorSpan = document.createElement('span');
+                    authorSpan.className = 'fw-bold fs-9 text-dark';
+                    authorSpan.textContent = commentData.authorName || 'Bạn';
+                    var timeSpan = document.createElement('span');
+                    timeSpan.className = 'text-muted fs-9';
+                    timeSpan.textContent = commentData.shortSentAt || 'Vừa xong';
+                    head.appendChild(authorSpan);
+                    head.appendChild(timeSpan);
+
+                    var body = document.createElement('div');
+                    body.className = 'fs-9 text-dark lh-base';
+                    body.style.cssText = 'word-break: break-word; white-space: pre-line;';
+                    body.textContent = commentData.content || content;
+
+                    card.appendChild(head);
+                    card.appendChild(body);
+                    container.appendChild(card);
+                    container.scrollTop = container.scrollHeight;
+                }
+
+                // Cập nhật số đếm
+                var countEl = document.getElementById('taskCommentCount-' + taskId);
+                if (countEl) {
+                    var curCount = parseInt(countEl.textContent, 10) || 0;
+                    countEl.textContent = curCount + 1;
+                }
+                if (window.showToast) window.showToast('Đã gửi bình luận!', 'success');
+            } else {
+                if (window.showToast) window.showToast(res.message || 'Lỗi gửi bình luận', 'error');
+            }
+        })
+        .catch(function(err) {
+            if (submitBtn) submitBtn.disabled = false;
+            if (err && err.handled) return;
+            console.error(err);
+            if (window.showToast) window.showToast('Không thể gửi bình luận, vui lòng thử lại!', 'error');
+        });
+    });
+
+    // C. Thêm nhanh Subtask trong Task Drawer qua AJAX (Không reload trang, giữ nguyên drawer)
+    document.addEventListener('submit', function(e) {
+        var form = e.target.closest('.drawer-quick-add-subtask-form');
+        if (!form) return;
+        e.preventDefault();
+
+        var titleInput = form.title;
+        if (!titleInput || !titleInput.value.trim()) return;
+
+        var taskId = form.getAttribute('data-task-id') || form.taskId.value;
+        var projectId = form.getAttribute('data-project-id') || form.projectId.value;
+        var assigneeId = form.assigneeId ? form.assigneeId.value : '0';
+        var dueDate = form.dueDate ? form.dueDate.value : '';
+
+        var submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        var basePath = window.location.pathname.startsWith('/teamwork-hub') ? '/teamwork-hub' : '';
+        var params = new URLSearchParams();
+        params.append('action', 'addSubTask');
+        params.append('projectId', String(projectId));
+        params.append('taskId', String(taskId));
+        params.append('title', titleInput.value.trim());
+        params.append('assigneeId', String(assigneeId));
+        params.append('dueDate', dueDate);
+        params.append('ajax', 'true');
+
+        window.apiFetch(basePath + '/task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+        })
+        .then(function(res) {
+            if (submitBtn) submitBtn.disabled = false;
+            if (res.success) {
+                var data = (typeof res.data === 'string') ? JSON.parse(res.data) : (res.data || {});
+                if (window.showToast) window.showToast(res.message, 'success');
+                titleInput.value = '';
+
+                // Ẩn empty placeholder và hiện progress card
+                var emptyEl = document.getElementById('drawerSubtaskEmpty-' + taskId);
+                if (emptyEl) emptyEl.classList.add('d-none');
+                var progressCard = document.getElementById('drawerProgressCard-' + taskId);
+                if (progressCard) progressCard.classList.remove('d-none');
+
+                // Thêm checklist item mới vào danh sách
+                var list = document.getElementById('drawerSubtaskList-' + taskId);
+                if (list) {
+                    var item = document.createElement('div');
+                    item.tabIndex = 0;
+                    item.id = 'drawerSubtaskItem-' + data.id;
+                    item.className = 'subtask-checklist-item d-flex align-items-center justify-content-between gap-2';
+                    item.setAttribute('onclick', 'openClickUpTask(' + taskId + ', ' + data.id + ')');
+
+                    var left = document.createElement('div');
+                    left.className = 'd-flex align-items-center gap-2 flex-grow-1 text-truncate';
+
+                    var checkBtn = document.createElement('span');
+                    checkBtn.role = 'button';
+                    checkBtn.tabIndex = 0;
+                    checkBtn.className = 'drawer-subtask-check-circle';
+                    checkBtn.setAttribute('onclick', 'event.stopPropagation(); window.toggleDrawerSubtask(' + taskId + ', ' + data.id + ', true);');
+                    checkBtn.title = 'Bấm để đánh dấu hoàn thành';
+                    checkBtn.innerHTML = '<i id="drawerSubtaskCheckIcon-' + data.id + '" class="bi bi-circle text-muted fs-7"></i>';
+
+                    var titleSpan = document.createElement('span');
+                    titleSpan.id = 'drawerSubtaskTitle-' + data.id;
+                    titleSpan.className = 'fs-8 text-dark text-truncate fw-medium';
+                    titleSpan.textContent = data.title;
+
+                    left.appendChild(checkBtn);
+                    left.appendChild(titleSpan);
+
+                    var right = document.createElement('div');
+                    right.className = 'd-flex align-items-center gap-1-5 flex-shrink-0';
+                    var badge = document.createElement('span');
+                    badge.id = 'drawerSubtaskBadge-' + data.id;
+                    badge.className = 'badge ' + (data.statusBadgeClass || 'bg-light text-secondary border') + ' rounded-pill px-2 py-0 fs-9';
+                    badge.textContent = data.statusLabel || '⚪ Đang làm';
+                    right.appendChild(badge);
+
+                    if (data.dueDate) {
+                        var dateBadge = document.createElement('span');
+                        dateBadge.className = 'badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9';
+                        dateBadge.innerHTML = '<i class="bi bi-calendar-event me-1"></i>';
+                        dateBadge.appendChild(document.createTextNode(data.dueDate));
+                        right.appendChild(dateBadge);
+                    }
+
+                    if (data.assigneeName && data.assigneeName !== 'Chưa phân công') {
+                        var personBadge = document.createElement('span');
+                        personBadge.className = 'badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9';
+                        personBadge.innerHTML = '<i class="bi bi-person-fill text-primary me-1"></i>';
+                        personBadge.appendChild(document.createTextNode(data.assigneeName));
+                        right.appendChild(personBadge);
+                    }
+
+                    var arrow = document.createElement('i');
+                    arrow.className = 'bi bi-chevron-right fs-9 text-muted ms-1';
+                    right.appendChild(arrow);
+
+                    item.appendChild(left);
+                    item.appendChild(right);
+                    list.appendChild(item);
+                }
+
+                // Cập nhật số đếm & tiến độ
+                var countBadge = document.getElementById('drawerSubtaskCount-' + taskId);
+                if (countBadge && data.totalSubTasks !== undefined) {
+                    countBadge.textContent = data.totalSubTasks + ' việc';
+                }
+                if (data.newProgress !== undefined) {
+                    var progressText = document.getElementById('drawerProgressText-' + taskId);
+                    var progressBar = document.getElementById('drawerProgressBar-' + taskId);
+                    if (progressText) progressText.textContent = data.newProgress + '%';
+                    if (progressBar) {
+                        progressBar.style.width = data.newProgress + '%';
+                        progressBar.setAttribute('aria-valuenow', data.newProgress);
+                    }
+                }
+            } else {
+                if (window.showToast) window.showToast(res.message || 'Lỗi thêm nhiệm vụ', 'error');
+            }
+        })
+        .catch(function(err) {
+            if (submitBtn) submitBtn.disabled = false;
+            if (err && err.handled) return;
+            console.error(err);
+            if (window.showToast) window.showToast('Không thể thêm nhiệm vụ, vui lòng thử lại!', 'error');
+        });
     });

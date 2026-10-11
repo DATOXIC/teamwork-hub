@@ -6,6 +6,7 @@ import com.teamwork.business.Project;
 import com.teamwork.business.ProjectMember;
 import com.teamwork.business.Task;
 import com.teamwork.business.User;
+import com.teamwork.controllers.task.TaskJson;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
@@ -312,8 +313,13 @@ public class ChatServlet extends BaseServlet {
         HttpSession session = request.getSession();
         int taskId = intParam(request, "taskId", 0);
         String content = request.getParameter("content");
+        boolean isAjax = TaskJson.isAjaxRequest(request);
 
         if (taskId <= 0) {
+            if (isAjax) {
+                TaskJson.sendJsonResponse(response, false, "Mã công việc không hợp lệ!", null);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
@@ -321,6 +327,10 @@ public class ChatServlet extends BaseServlet {
         // BẢO VỆ CHỐNG IDOR: Đảm bảo Task tồn tại và thuộc đúng Project hiện tại
         Task task = TaskDB.selectById(taskId);
         if (task == null || task.getProjectId() != projectId) {
+            if (isAjax) {
+                TaskJson.sendJsonResponse(response, false, "Công việc không tồn tại hoặc không thuộc dự án này!", null);
+                return;
+            }
             if (session != null) {
                 session.setAttribute("toastError", "Công việc không tồn tại hoặc không thuộc dự án này!");
             }
@@ -330,6 +340,10 @@ public class ChatServlet extends BaseServlet {
 
         // Kiểm tra nội dung bình luận
         if (content == null || content.trim().isEmpty()) {
+            if (isAjax) {
+                TaskJson.sendJsonResponse(response, false, "Nội dung bình luận không được để trống!", null);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
             return;
         }
@@ -353,6 +367,21 @@ public class ChatServlet extends BaseServlet {
 
         // @nhắc tên trong bình luận → thông báo 🔔 cho người được nhắc
         if (commentId > 0) MentionNotifier.notifyMentions(projectId, currentUser, content.trim(), taskId, task.getTitle());
+
+        if (isAjax) {
+            if (commentId > 0) {
+                String commentJson = "{\"id\":" + commentId
+                    + ",\"taskId\":" + taskId
+                    + ",\"authorName\":\"" + TaskJson.escapeJson(currentUser.getFullName()) + "\""
+                    + ",\"content\":\"" + TaskJson.escapeJson(content.trim()) + "\""
+                    + ",\"shortSentAt\":\"Vừa xong\""
+                    + ",\"sentAt\":\"" + TaskJson.escapeJson(now) + "\"}";
+                TaskJson.sendJsonResponse(response, true, "Đã gửi bình luận thành công!", commentJson);
+            } else {
+                TaskJson.sendJsonResponse(response, false, "Không thể lưu bình luận vào cơ sở dữ liệu!", null);
+            }
+            return;
+        }
 
         // Áp dụng PRG: Redirect về lại bảng Kanban của dự án
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
