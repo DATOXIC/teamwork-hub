@@ -423,11 +423,14 @@ function initDeleteMessageButton() {
         var targetUrl = confirmBtn.getAttribute("href");
         if (!targetUrl || targetUrl === "#") return;
 
+        // Server chỉ nhận xóa qua POST (chống CSRF); tham số nằm trong query string
         fetch(targetUrl, {
-            method: "GET",
+            method: "POST",
+            credentials: "same-origin",
             headers: { "X-Requested-With": "XMLHttpRequest" }
         })
-        .then(function() {
+        .then(function(res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
             var modalElem = document.getElementById('deleteMessageModal');
             if (modalElem) {
                 var modalInstance = bootstrap.Modal.getInstance(modalElem);
@@ -437,7 +440,7 @@ function initDeleteMessageButton() {
         })
         .catch(function(err) {
             console.error("Lỗi khi xóa tin nhắn:", err);
-            window.location.href = targetUrl;
+            window.postTo(targetUrl);
         });
     });
 }
