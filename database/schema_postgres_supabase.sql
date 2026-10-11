@@ -788,3 +788,46 @@ CREATE TABLE IF NOT EXISTS whiteboards (
     CONSTRAINT fk_whiteboards_project
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
+
+-- =============================================================================
+-- LỊCH SỬ BÀN GIAO & NGHIỆM THU ĐA PHIÊN BẢN (Task Submissions)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS task_submissions (
+    id               SERIAL       PRIMARY KEY,
+    task_id          INT          NOT NULL,
+    revision_number  INT          NOT NULL DEFAULT 1,
+    submitted_by     INT,
+    submission_note  TEXT         NOT NULL DEFAULT '',
+    summary          TEXT         NOT NULL DEFAULT '',
+    demo_url         VARCHAR(500) NOT NULL DEFAULT '',
+    code_url         VARCHAR(500) NOT NULL DEFAULT '',
+    test_result      TEXT         NOT NULL DEFAULT '',
+    testing_guide    TEXT         NOT NULL DEFAULT '',
+    file_path        VARCHAR(255) NOT NULL DEFAULT '',
+    status           VARCHAR(20)  NOT NULL DEFAULT 'SUBMITTED',
+    pm_feedback      TEXT         NOT NULL DEFAULT '',
+    quality_rating   INT          NOT NULL DEFAULT 0,
+    reviewed_by      INT,
+    submitted_at     VARCHAR(50)  NOT NULL DEFAULT '',
+    reviewed_at      VARCHAR(50)  NOT NULL DEFAULT '',
+    created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_task_submissions_task
+        FOREIGN KEY (task_id) REFERENCES tasks (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT fk_task_submissions_submitted_by
+        FOREIGN KEY (submitted_by) REFERENCES users (id)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT fk_task_submissions_reviewed_by
+        FOREIGN KEY (reviewed_by) REFERENCES users (id)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT uq_task_submissions_task_revision
+        UNIQUE (task_id, revision_number)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_submissions_task_id ON task_submissions (task_id);
+CREATE INDEX IF NOT EXISTS idx_task_submissions_status  ON task_submissions (status);
+

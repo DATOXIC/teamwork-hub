@@ -100,6 +100,14 @@
                     <i class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i>
                     <span>Báo cáo</span>
                 </a>
+
+                <!-- 8. Phân tích (Analytics) -->
+                <a href="${pageContext.request.contextPath}/project-analytics?projectId=${project.id}" 
+                   class="subnav-tab-item ${currentNav == 'analytics' ? 'active' : ''}"
+                   title="Trung tâm phân tích động lực, Burndown & Chất lượng">
+                    <i class="bi bi-graph-up-arrow me-1" aria-hidden="true"></i>
+                    <span>Phân tích</span>
+                </a>
             </div>
         </nav>
 

@@ -9,6 +9,7 @@ import com.teamwork.business.Project;
 import com.teamwork.business.SubTask;
 import com.teamwork.business.Task;
 import com.teamwork.business.TaskDoc;
+import com.teamwork.business.TaskSubmission;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.LabelDB;
@@ -16,6 +17,10 @@ import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
+import com.teamwork.data.TaskSubmissionDB;
+import com.teamwork.business.ProjectAutomation;
+import com.teamwork.business.automation.AutomationEngine;
+import com.teamwork.data.ProjectAutomationDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Part;
@@ -198,32 +203,47 @@ public final class TaskWorkflowHandler {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
+                // Tự động tính số phiên bản nộp kế tiếp (Revision #1, #2, #3...)
+                int nextRevision = TaskSubmissionDB.getNextRevisionNumber(taskId);
+
+                // Tạo đối tượng TaskSubmission lưu trữ vĩnh viễn đợt nộp này
+                TaskSubmission submission = new TaskSubmission(taskId, nextRevision, currentUser.getId(), finalNote, deliverableFile, now);
+                submission.setSummary(summary != null ? summary.trim() : "");
+                submission.setDemoUrl(demoUrl != null ? demoUrl.trim() : "");
+                submission.setCodeUrl(codeUrl != null ? codeUrl.trim() : "");
+                submission.setTestResult(testResult != null ? testResult.trim() : "");
+                submission.setTestingGuide(testingGuide != null ? testingGuide.trim() : "");
+                submission.setStatus("SUBMITTED");
+                TaskSubmissionDB.insert(submission);
+
+                // Cập nhật Thẻ công việc chính (để Kanban, tiến độ và các truy vấn hiện hữu hoạt động trơn tru)
                 boolean saved = TaskDB.submitTaskDeliverable(taskId, finalNote, deliverableFile, now);
-                if (newStoredFile != null) {
-                    // Lưu DB thất bại → bỏ tệp vừa ghi; thành công → bỏ tệp cũ đã bị thay thế
-                    if (!saved) DeliverableStorage.deleteQuietly(taskId, newStoredFile);
-                    else if (previousFile != null && !previousFile.equals(newStoredFile)) DeliverableStorage.deleteQuietly(taskId, previousFile);
+                if (newStoredFile != null && !saved) {
+                    // Lưu DB thất bại → dọn dẹp tệp vừa ghi; KHÔNG xóa tệp cũ của các đợt nộp trước
+                    DeliverableStorage.deleteQuietly(taskId, newStoredFile);
                 }
 
+                String revNote = " (Đợt #" + nextRevision + ")";
+
                 // Ghi nhận Activity Log
-                ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu" + fileNote + " lên trưởng dự án");
+                ActivityLogDB.logAsync(projectId, currentUser.getId(), "TASK_SUBMIT", "TASK", taskId, task.getTitle(), "Đã nộp hồ sơ bàn giao nghiệm thu" + revNote + fileNote + " lên trưởng dự án");
 
                 // Bắn thông báo thời gian thực 🔔 cho Trưởng Dự Án (PM)
                 if (project.getOwnerId() > 0 && project.getOwnerId() != currentUser.getId()) {
                     NotificationDB.send(
                         project.getOwnerId(),
-                        "🟡 Bàn giao công việc lớn",
-                        currentUser.getFullName() + " vừa nộp báo cáo bàn giao công việc [" + task.getTitle() + "]" + fileNote + ", kính mời trưởng dự án nghiệm thu!",
+                        "🟡 Bàn giao công việc lớn" + revNote,
+                        currentUser.getFullName() + " vừa nộp báo cáo bàn giao công việc [" + task.getTitle() + "]" + revNote + fileNote + ", kính mời trưởng dự án nghiệm thu!",
                         "/task?action=list&projectId=" + projectId,
                         "bi-box-seam-fill text-warning"
                     );
                 }
 
                 // Thông báo lên Luồng Thảo luận
-                String msgContent = "📦 [BÀN GIAO CÔNG VIỆC]: " + currentUser.getFullName() + " đã nộp hồ sơ bàn giao công việc [" + task.getTitle() + "]" + fileNote + " lên trưởng dự án!";
+                String msgContent = "📦 [BÀN GIAO CÔNG VIỆC]: " + currentUser.getFullName() + " đã nộp hồ sơ bàn giao" + revNote + " công việc [" + task.getTitle() + "]" + fileNote + " lên trưởng dự án!";
                 MessageDB.insert(new Message(0, projectId, task.getId(), 0, "Hệ Thống", msgContent, now));
 
-                if (session != null) session.setAttribute("toastSuccess", "Đã nộp báo cáo bàn giao công việc lớn thành công! Đang chờ trưởng dự án phê duyệt.");
+                if (session != null) session.setAttribute("toastSuccess", "Đã nộp báo cáo bàn giao đợt #" + nextRevision + " thành công! Đang chờ trưởng dự án phê duyệt.");
             } else {
                 if (session != null) session.setAttribute("toastError", "Bạn không phải là trưởng nhóm công việc của thẻ công việc này!");
             }
@@ -433,9 +453,11 @@ public final class TaskWorkflowHandler {
                 // đã báo lỗi trong isAwaitingPmReview: chỉ duyệt được công việc đang chờ nghiệm thu
             } else if (canPmReview(currentUser, project)) {
                 // RÀNG BUỘC CHẤT LƯỢNG NGHIỆM THU: PM chỉ duyệt đạt khi toàn bộ việc con đã đạt 100%
+                // (Trừ khi quy tắc tự động hóa AUTO_CLOSE_SUBTASKS đang được BẬT cho dự án)
+                boolean autoCloseEnabled = ProjectAutomationDB.isRecipeEnabled(projectId, ProjectAutomation.AUTO_CLOSE_SUBTASKS);
                 List<SubTask> subTasks = SubTaskDB.selectByTaskId(taskId);
                 int progress = SubTaskDB.calculateProgress(taskId);
-                if (subTasks != null && !subTasks.isEmpty() && progress < 100) {
+                if (!autoCloseEnabled && subTasks != null && !subTasks.isEmpty() && progress < 100) {
                     if (session != null) {
                         session.setAttribute("toastError", 
                             "⚠️ Không thể duyệt đạt công việc [" + task.getTitle() + "]! Vẫn còn " + (100 - progress) + "% nhiệm vụ chưa được hoàn tất nghiệm thu.");
@@ -447,7 +469,16 @@ public final class TaskWorkflowHandler {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
+                // Cập nhật kết quả thẩm định cho đợt nộp mới nhất của Task
+                TaskSubmission latestSub = TaskSubmissionDB.selectLatestByTaskId(taskId);
+                if (latestSub != null) {
+                    TaskSubmissionDB.updateReview(latestSub.getId(), "APPROVED", feedback, qualityRating, currentUser.getId(), now);
+                }
+
                 TaskDB.pmApproveTask(taskId, feedback, qualityRating, now);
+
+                // Kích hoạt Động cơ Tự động hóa: Tự động đóng và nghiệm thu các việc con còn lại (Recipe 2)
+                AutomationEngine.onTaskApproved(taskId, projectId);
 
                 // Ghi nhận Activity Log
                 String approveDesc = "Trưởng dự án đã phê duyệt nghiệm thu (" + qualityRating + " ⭐): " + (feedback != null && !feedback.trim().isEmpty() ? feedback : "Đạt chất lượng xuất sắc!");
@@ -504,6 +535,12 @@ public final class TaskWorkflowHandler {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
 
+                // Cập nhật yêu cầu chỉnh sửa cho đợt nộp mới nhất của Task
+                TaskSubmission latestSub = TaskSubmissionDB.selectLatestByTaskId(taskId);
+                if (latestSub != null) {
+                    TaskSubmissionDB.updateReview(latestSub.getId(), "REVISE", feedback, 0, currentUser.getId(), now);
+                }
+
                 TaskDB.pmReviseTask(taskId, feedback, now);
 
                 // Ghi nhận Activity Log
@@ -555,6 +592,12 @@ public final class TaskWorkflowHandler {
             } else if (canPmReview(currentUser, project)) {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 String now = LocalDateTime.now().format(formatter);
+
+                // Cập nhật từ chối cho đợt nộp mới nhất của Task
+                TaskSubmission latestSub = TaskSubmissionDB.selectLatestByTaskId(taskId);
+                if (latestSub != null) {
+                    TaskSubmissionDB.updateReview(latestSub.getId(), "REJECTED", feedback, 0, currentUser.getId(), now);
+                }
 
                 TaskDB.pmRejectTask(taskId, feedback, now);
 

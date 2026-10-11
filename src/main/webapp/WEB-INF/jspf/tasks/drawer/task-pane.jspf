@@ -154,82 +154,84 @@
                                             <i class="bi bi-list-check text-primary"></i>
                                             <span>Danh sách nhiệm vụ</span>
                                         </h6>
-                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                        <span id="drawerSubtaskCount-${task.id}" class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9 fw-semibold">
                                             ${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0} việc
                                         </span>
                                     </div>
 
-                                    <c:if test="${not empty taskSubTasksMap[task.id]}">
-                                        <!-- Micro Progress Bar -->
-                                        <div class="subtask-progress-card mb-2">
-                                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                                <span class="fs-9 text-muted fw-semibold">Tiến độ hoàn thành nhiệm vụ</span>
-                                                <span class="fs-9 fw-bold text-success">${taskProgressMap[task.id]}%</span>
-                                            </div>
-                                            <div class="progress" style="height: 5px; background-color: #e2e8f0;">
-                                                <div class="progress-bar bg-success rounded-pill" role="progressbar"
-                                                    style="width: ${taskProgressMap[task.id]}%;"
-                                                    aria-valuenow="${taskProgressMap[task.id]}" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
+                                    <!-- Micro Progress Bar -->
+                                    <div id="drawerProgressCard-${task.id}" class="subtask-progress-card mb-2 ${empty taskSubTasksMap[task.id] ? 'd-none' : ''}">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="fs-9 text-muted fw-semibold">Tiến độ hoàn thành nhiệm vụ</span>
+                                            <span id="drawerProgressText-${task.id}" class="fs-9 fw-bold text-success">${taskProgressMap[task.id]}%</span>
                                         </div>
+                                        <div class="progress" style="height: 5px; background-color: #e2e8f0;">
+                                            <div id="drawerProgressBar-${task.id}" class="progress-bar bg-success rounded-pill" role="progressbar"
+                                                style="width: ${taskProgressMap[task.id]}%;"
+                                                aria-valuenow="${taskProgressMap[task.id]}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
 
-                                        <!-- Danh sách từng dòng Subtask -->
-                                        <div class="d-flex flex-column gap-1 mb-2">
-                                            <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
-                                                <div tabindex="0" class="subtask-checklist-item d-flex align-items-center justify-content-between gap-2"
-                                                    onclick="openClickUpTask(${task.id}, ${st.id})">
-                                                    <div class="d-flex align-items-center gap-2 flex-grow-1 text-truncate">
+                                    <!-- Danh sách từng dòng Subtask -->
+                                    <div id="drawerSubtaskList-${task.id}" class="drawer-subtask-list d-flex flex-column gap-1 mb-2">
+                                        <c:forEach items="${taskSubTasksMap[task.id]}" var="st">
+                                            <div tabindex="0" class="subtask-checklist-item d-flex align-items-center justify-content-between gap-2"
+                                                id="drawerSubtaskItem-${st.id}"
+                                                onclick="openClickUpTask(${task.id}, ${st.id})">
+                                                <div class="d-flex align-items-center gap-2 flex-grow-1 text-truncate">
+                                                    <span role="button" tabindex="0" class="drawer-subtask-check-circle"
+                                                        onclick="event.stopPropagation(); window.toggleDrawerSubtask(${task.id}, ${st.id}, ${st.status == 'APPROVED' ? 'false' : 'true'});"
+                                                        title="${st.status == 'APPROVED' ? 'Đã hoàn thành (bấm để đổi)' : 'Bấm để đánh dấu hoàn thành'}">
                                                         <c:choose>
                                                             <c:when test="${st.status == 'APPROVED'}">
-                                                                <i class="bi bi-check-circle-fill text-success fs-7" title="Đã duyệt hoàn thành"></i>
+                                                                <i id="drawerSubtaskCheckIcon-${st.id}" class="bi bi-check-circle-fill text-success fs-7"></i>
                                                             </c:when>
                                                             <c:when test="${st.status == 'SUBMITTED'}">
-                                                                <i class="bi bi-hourglass-split text-warning fs-7" title="Đang chờ duyệt"></i>
+                                                                <i id="drawerSubtaskCheckIcon-${st.id}" class="bi bi-hourglass-split text-warning fs-7" title="Đang chờ duyệt"></i>
                                                             </c:when>
                                                             <c:when test="${st.status == 'REVISE'}">
-                                                                <i class="bi bi-arrow-repeat text-info fs-7" title="Cần cân chỉnh"></i>
+                                                                <i id="drawerSubtaskCheckIcon-${st.id}" class="bi bi-arrow-repeat text-info fs-7" title="Cần cân chỉnh"></i>
                                                             </c:when>
                                                             <c:when test="${st.status == 'REJECTED'}">
-                                                                <i class="bi bi-exclamation-circle-fill text-danger fs-7" title="Đã bị trả về"></i>
+                                                                <i id="drawerSubtaskCheckIcon-${st.id}" class="bi bi-exclamation-circle-fill text-danger fs-7" title="Đã bị trả về"></i>
                                                             </c:when>
                                                             <c:otherwise>
-                                                                <i class="bi bi-circle text-muted fs-7" title="Chưa hoàn thành"></i>
+                                                                <i id="drawerSubtaskCheckIcon-${st.id}" class="bi bi-circle text-muted fs-7"></i>
                                                             </c:otherwise>
                                                         </c:choose>
-                                                        <span class="fs-8 text-dark text-truncate ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : 'fw-medium'}">
-                                                            ${fn:escapeXml(st.title)}
-                                                        </span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center gap-1-5 flex-shrink-0">
-                                                        <span class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${st.statusLabel}</span>
-                                                        <c:if test="${not empty st.dueDate}">
-                                                            <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0 fs-9" title="${fn:escapeXml(st.dueDate)}">
-                                                                <i class="bi bi-calendar-event me-1"></i>${st.deadlineLabel}
-                                                            </span>
-                                                        </c:if>
-                                                        <c:if test="${project.teamProject}">
-                                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
-                                                                <i class="bi bi-person-fill text-primary me-1"></i>${fn:escapeXml(st.assigneeName)}
-                                                            </span>
-                                                        </c:if>
-                                                        <i class="bi bi-chevron-right fs-9 text-muted ms-1"></i>
-                                                    </div>
+                                                    </span>
+                                                    <span id="drawerSubtaskTitle-${st.id}" class="fs-8 text-dark text-truncate ${st.status == 'APPROVED' ? 'text-decoration-line-through text-muted' : 'fw-medium'}">
+                                                        ${fn:escapeXml(st.title)}
+                                                    </span>
                                                 </div>
-                                            </c:forEach>
-                                        </div>
-                                    </c:if>
+                                                <div class="d-flex align-items-center gap-1-5 flex-shrink-0">
+                                                    <span id="drawerSubtaskBadge-${st.id}" class="badge ${st.statusBadgeClass} rounded-pill px-2 py-0 fs-9">${st.statusLabel}</span>
+                                                    <c:if test="${not empty st.dueDate}">
+                                                        <span class="badge ${st.deadlineBadgeClass} rounded-pill px-2 py-0 fs-9" title="${fn:escapeXml(st.dueDate)}">
+                                                            <i class="bi bi-calendar-event me-1"></i>${st.deadlineLabel}
+                                                        </span>
+                                                    </c:if>
+                                                    <c:if test="${project.teamProject}">
+                                                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-0 fs-9">
+                                                            <i class="bi bi-person-fill text-primary me-1"></i>${fn:escapeXml(st.assigneeName)}
+                                                        </span>
+                                                    </c:if>
+                                                    <i class="bi bi-chevron-right fs-9 text-muted ms-1"></i>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </div>
 
-                                    <c:if test="${empty taskSubTasksMap[task.id]}">
-                                        <div class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center mb-2">
-                                            Chưa có nhiệm vụ nào được tạo.
-                                        </div>
-                                    </c:if>
+                                    <div id="drawerSubtaskEmpty-${task.id}" class="p-3 bg-light-subtle rounded-3 text-muted fs-8 border text-center mb-2 ${not empty taskSubTasksMap[task.id] ? 'd-none' : ''}">
+                                        Chưa có nhiệm vụ nào được tạo.
+                                    </div>
 
                                     <!-- INLINE QUICK ADD SUBTASK BOX (CLICKUP STYLE) -->
                                     <c:if test="${task.status != 'DONE' && (task.assigneeId == sessionScope.currentUser.id || project.ownerId == sessionScope.currentUser.id)}">
                                         <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "addSubTask" → SubTaskHandler.handleAddSubTask() --%>
                                         <form method="post" action="${pageContext.request.contextPath}/task"
-                                            class="quick-add-subtask-box d-flex align-items-center gap-2 mt-1"
+                                            class="quick-add-subtask-box drawer-quick-add-subtask-form d-flex align-items-center gap-2 mt-1"
+                                            data-task-id="${task.id}" data-project-id="${project.id}"
                                             onsubmit="if (!this.title.value.trim()) return false;">
                                             <input type="hidden" name="action" value="addSubTask">
                                             <input type="hidden" name="projectId" value="${project.id}">
@@ -359,10 +361,10 @@
                                         <div class="d-flex align-items-center gap-1">
                                             <i class="bi bi-chat-square-dots-fill text-primary fs-8"></i>
                                             <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskCommentsMap") --%>
-                                            <span class="fw-bold text-dark fs-8">Hội thoại (${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0})</span>
+                                            <span class="fw-bold text-dark fs-8">Hội thoại (<span id="taskCommentCount-${task.id}">${not empty taskCommentsMap[task.id] ? taskCommentsMap[task.id].size() : 0}</span>)</span>
                                         </div>
                                     </div>
-                                    <div class="flex-grow-1 overflow-y-auto d-flex flex-column gap-2 mb-3 pe-1" style="max-height: 220px;">
+                                    <div id="taskCommentsContainer-${task.id}" class="task-comments-container flex-grow-1 overflow-y-auto d-flex flex-column gap-2 mb-3 pe-1" style="max-height: 220px;">
                                         <c:forEach items="${taskCommentsMap[task.id]}" var="comment">
                                             <div class="p-2 px-2.5 rounded-2 border shadow-2xs ${comment.authorName == 'Hệ Thống' ? 'bg-success-subtle border-success-subtle' : 'bg-white'}">
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
@@ -380,7 +382,7 @@
                                             </div>
                                         </c:forEach>
                                         <c:if test="${empty taskCommentsMap[task.id]}">
-                                            <div class="text-center text-muted my-auto py-3">
+                                            <div id="taskCommentEmpty-${task.id}" class="text-center text-muted my-auto py-3">
                                                 <i class="bi bi-chat-left-dots fs-6 d-block mb-1 opacity-50"></i>
                                                 <span class="fs-9">Chưa có bình luận nào.</span>
                                             </div>
@@ -388,14 +390,14 @@
                                     </div>
                                     <div class="pt-2 border-top">
                                         <%-- ▶ SERVLET: /chat → ChatServlet.doPost() → case "sendTaskComment" → handleSendTaskComment() --%>
-                                        <form method="post" action="${pageContext.request.contextPath}/chat" class="d-flex flex-column gap-2">
+                                        <form method="post" action="${pageContext.request.contextPath}/chat" class="task-comment-ajax-form d-flex flex-column gap-2" data-task-id="${task.id}" data-project-id="${project.id}">
                                             <input type="hidden" name="action" value="sendTaskComment">
                                             <input type="hidden" name="projectId" value="${project.id}">
                                             <input type="hidden" name="taskId" value="${task.id}">
                                             <div class="input-group input-group-sm">
-                                                <input aria-label="Bình luận" type="text" class="form-control fs-9 rounded-start-pill ps-3 shadow-none border-secondary-subtle"
+                                                <input aria-label="Bình luận" type="text" class="form-control fs-9 rounded-start-pill ps-3 shadow-none border-secondary-subtle task-comment-input"
                                                     name="content" placeholder="Bình luận..." autocomplete="off" required>
-                                                <button type="submit" aria-label="Gửi bình luận" class="btn btn-primary-custom rounded-end-pill px-3 fs-9 fw-semibold shadow-sm">
+                                                <button type="submit" aria-label="Gửi bình luận" class="btn btn-primary-custom rounded-end-pill px-3 fs-9 fw-semibold shadow-sm task-comment-submit-btn">
                                                     <i class="bi bi-send-fill"></i>
                                                 </button>
                                             </div>

@@ -17,6 +17,7 @@ import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
+import com.teamwork.business.automation.AutomationEngine;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -92,8 +93,13 @@ public final class SubTaskHandler {
         String title = request.getParameter("title");
         String dueDateParam = request.getParameter("dueDate");
         String subDueDate = (dueDateParam != null) ? dueDateParam.trim() : "";
+        boolean isAjax = isAjaxRequest(request);
 
         if (projectId <= 0 || taskId <= 0) {
+            if (isAjax) {
+                sendJsonResponse(response, false, "Dữ liệu yêu cầu không hợp lệ!", null);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -103,6 +109,10 @@ public final class SubTaskHandler {
         Project project = ProjectDB.selectById(projectId);
         
         if (parentTask == null || project == null || parentTask.getProjectId() != projectId) {
+            if (isAjax) {
+                sendJsonResponse(response, false, "Không tìm thấy công việc hoặc dự án tương ứng!", null);
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/project?action=list");
             return;
         }
@@ -132,10 +142,14 @@ public final class SubTaskHandler {
             // Cho phép thêm việc con khi Task đang ở TODO hoặc IN_PROGRESS (phục vụ phát sinh việc con)
             // Khóa lại khi Task đã nộp nghiệm thu (SUBMITTED, REVISE, REJECTED, DONE)
             if (!TaskStatus.allowsNewSubTasks(parentTask.getStatus())) {
+                String errMsg = "⚠️ Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm nhiệm vụ mới!";
+                if (isAjax) {
+                    sendJsonResponse(response, false, errMsg, null);
+                    return;
+                }
                 if (session != null) {
                     // ▶ JSP: docs.jsp đọc bằng ${toastError}
-                    session.setAttribute("toastError", 
-                        "⚠️ Công việc này đã nộp hoặc hoàn tất nghiệm thu, không thể thêm nhiệm vụ mới!");
+                    session.setAttribute("toastError", errMsg);
                 }
                 response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                 return;
@@ -148,9 +162,13 @@ public final class SubTaskHandler {
                     LocalDate subDate = LocalDate.parse(subDueDate);
                     LocalDate parentDate = LocalDate.parse(parentTask.getDueDate().trim());
                     if (subDate.isAfter(parentDate)) {
+                        String errMsg = "Nhiệm vụ phải được hoàn thành trước hạn chót của công việc lớn (" + parentTask.getDueDate().trim() + ")!";
+                        if (isAjax) {
+                            sendJsonResponse(response, false, errMsg, null);
+                            return;
+                        }
                         if (session != null) {
-                            session.setAttribute("toastError", 
-                                "Nhiệm vụ phải được hoàn thành trước hạn chót của công việc lớn (" + parentTask.getDueDate().trim() + ")!");
+                            session.setAttribute("toastError", errMsg);
                         }
                         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
                         return;
@@ -160,7 +178,12 @@ public final class SubTaskHandler {
                 }
             }
 
-            if (title != null && !title.trim().isEmpty()) {
+            if (title == null || title.trim().isEmpty()) {
+                if (isAjax) {
+                    sendJsonResponse(response, false, "Tiêu đề nhiệm vụ không được để trống!", null);
+                    return;
+                }
+            } else {
                 SubTask newSubTask = new SubTask(
                     0, 
                     taskId, 
@@ -174,11 +197,44 @@ public final class SubTaskHandler {
                     "", 
                     ""
                 );
-                SubTaskDB.insert(newSubTask);
+                int subId = SubTaskDB.insert(newSubTask);
+                newSubTask.setId(subId);
+                
+                if (currentUser != null) {
+                    ActivityLogDB.logAsync(projectId, currentUser.getId(), "SUBTASK_CREATE", "SUBTASK", subId, newSubTask.getTitle(), "Thêm nhiệm vụ: " + newSubTask.getTitle() + " cho công việc #" + taskId);
+                }
+
+                if (isAjax) {
+                    int newProgress = SubTaskDB.calculateProgress(taskId);
+                    List<SubTask> allSubs = SubTaskDB.selectByTaskId(taskId);
+                    int totalCount = allSubs != null ? allSubs.size() : 1;
+                    String dataJson = String.format(
+                        "{\"id\":%d,\"taskId\":%d,\"title\":\"%s\",\"status\":\"%s\",\"statusLabel\":\"%s\",\"statusBadgeClass\":\"%s\",\"dueDate\":\"%s\",\"assigneeId\":%d,\"assigneeName\":\"%s\",\"newProgress\":%d,\"totalSubTasks\":%d}",
+                        newSubTask.getId(),
+                        newSubTask.getTaskId(),
+                        escapeJson(newSubTask.getTitle()),
+                        escapeJson(newSubTask.getStatus()),
+                        escapeJson(newSubTask.getStatusLabel()),
+                        escapeJson(newSubTask.getStatusBadgeClass()),
+                        escapeJson(newSubTask.getDueDate()),
+                        newSubTask.getAssigneeId(),
+                        escapeJson(newSubTask.getAssigneeName()),
+                        newProgress,
+                        totalCount
+                    );
+                    sendJsonResponse(response, true, "Đã thêm nhiệm vụ vào kế hoạch phân rã thành công!", dataJson);
+                    return;
+                }
+
                 if (session != null) session.setAttribute("toastSuccess", "Đã thêm nhiệm vụ vào kế hoạch phân rã thành công!");
             }
         } else {
-            if (session != null) session.setAttribute("toastError", "Bạn không có quyền phân rã nhiệm vụ cho công việc này!");
+            String errMsg = "Bạn không có quyền phân rã nhiệm vụ cho công việc này!";
+            if (isAjax) {
+                sendJsonResponse(response, false, errMsg, null);
+                return;
+            }
+            if (session != null) session.setAttribute("toastError", errMsg);
         }
 
         // Áp dụng PRG: Redirect về lại bảng Kanban
@@ -324,11 +380,23 @@ public final class SubTaskHandler {
                     }
                 }
 
+                // Kích hoạt Động cơ Tự động hóa (Automation Engine Hook)
+                AutomationEngine.onSubtasksProgressUpdated(st.getTaskId(), projectId);
+
                 if (isAjax) {
+                    st.setStatus(targetStatus);
                     String msg = isCompleted
                             ? (isGateEnforced ? "Đã nộp nhiệm vụ — chờ trưởng nhóm công việc duyệt nghiệm thu!" : "Đã đánh dấu hoàn thành nhiệm vụ!")
                             : "Đã chuyển nhiệm vụ về cần làm.";
-                    sendJsonResponse(response, true, msg, "{\"subTaskId\":" + subTaskId + ",\"parentTaskId\":" + st.getTaskId() + ",\"isCompleted\":" + isCompleted + ",\"newProgress\":" + newProgress + ",\"parentStatus\":\"" + escapeJson(parentTask.getStatus()) + "\"}");
+                    String json = "{\"subTaskId\":" + subTaskId 
+                            + ",\"parentTaskId\":" + st.getTaskId() 
+                            + ",\"isCompleted\":" + isCompleted 
+                            + ",\"newProgress\":" + newProgress 
+                            + ",\"parentStatus\":\"" + escapeJson(parentTask.getStatus()) + "\""
+                            + ",\"status\":\"" + escapeJson(st.getStatus()) + "\""
+                            + ",\"statusLabel\":\"" + escapeJson(st.getStatusLabel()) + "\""
+                            + ",\"statusBadgeClass\":\"" + escapeJson(st.getStatusBadgeClass()) + "\"}";
+                    sendJsonResponse(response, true, msg, json);
                     return;
                 }
             } else if (isAjax) {
@@ -611,6 +679,9 @@ public final class SubTaskHandler {
                             "bi-check-circle-fill text-success"
                         );
                     }
+
+                    // Kích hoạt Động cơ Tự động hóa (Automation Engine Hook - Recipe 1)
+                    AutomationEngine.onSubtasksProgressUpdated(st.getTaskId(), projectId);
 
                     if (session != null) session.setAttribute("toastSuccess", "Đã duyệt nghiệm thu ĐẠT cho nhiệm vụ!");
                 } else {

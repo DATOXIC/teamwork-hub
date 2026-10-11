@@ -125,7 +125,7 @@ public class ActivityLogDB {
                         a.setUserAvatar("");
                     }
                 } else {
-                    a.setUserName("Hệ thống");
+                    a.setUserName("HỆ THỐNG TỰ ĐỘNG");
                     a.setUserAvatar("");
                 }
 

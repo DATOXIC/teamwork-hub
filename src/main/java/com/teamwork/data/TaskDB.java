@@ -401,6 +401,7 @@ public class TaskDB {
                 managed.setStatus(updatedTask.getStatus() != null ? updatedTask.getStatus().trim().toUpperCase() : "TODO");
                 managed.setPriority(updatedTask.getPriority() != null ? updatedTask.getPriority().trim().toUpperCase() : "MEDIUM");
                 managed.setDueDate(updatedTask.getDueDate());
+                managed.setStartDate(updatedTask.getStartDate());
                 managed.setAssigneeId(updatedTask.getAssigneeId());
                 managed.setLabels(updatedTask.getLabels() != null ? updatedTask.getLabels().trim() : "");
                 managed.setRequiresGate(updatedTask.isRequiresGate());
@@ -413,6 +414,34 @@ public class TaskDB {
         } catch (Exception e) {
             JPAUtil.rollbackIfActive(tx);
             LOGGER.log(Level.SEVERE, "Lỗi khi update Task ID qua JPA: " + updatedTask.getId(), e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
+     * Cập nhật thời gian bắt đầu và kết thúc (Gantt Drag & Drop / Cascade Scheduling)
+     */
+    public static boolean updateDates(int taskId, String startDate, String dueDate) {
+        if (taskId <= 0) return false;
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task managed = em.find(Task.class, taskId);
+            if (managed != null) {
+                if (startDate != null) managed.setStartDate(startDate.trim());
+                if (dueDate != null) managed.setDueDate(dueDate.trim());
+                em.merge(managed);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật ngày cho Task ID: " + taskId, e);
             return false;
         } finally {
             JPAUtil.closeEntityManager(em);
@@ -480,6 +509,7 @@ public class TaskDB {
             em.createQuery("DELETE FROM TaskDoc td WHERE td.taskId = :id").setParameter("id", taskId).executeUpdate();
             em.createQuery("DELETE FROM SubTask st WHERE st.taskId = :id").setParameter("id", taskId).executeUpdate();
             em.createQuery("DELETE FROM Message m WHERE m.taskId = :id").setParameter("id", taskId).executeUpdate();
+            em.createQuery("DELETE FROM TaskDependency td WHERE td.taskId = :id OR td.dependsOnTaskId = :id").setParameter("id", taskId).executeUpdate();
             em.remove(t);
             return true;
         });

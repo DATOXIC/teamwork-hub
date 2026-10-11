@@ -1,8 +1,10 @@
 package com.teamwork.controllers;
 
 import com.teamwork.business.Task;
+import com.teamwork.business.TaskSubmission;
 import com.teamwork.business.User;
 import com.teamwork.data.TaskDB;
+import com.teamwork.data.TaskSubmissionDB;
 import com.teamwork.util.DeliverableStorage;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,10 +18,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Tải tệp bàn giao của công việc: GET /task-file?taskId=...
+ * Tải tệp bàn giao của công việc: GET /task-file?taskId=...[&submissionId=...]
  *
  * <p>Tệp nằm ngoài webapp (xem {@link DeliverableStorage}) nên chỉ lấy được qua servlet này,
  * và servlet chỉ trả tệp cho THÀNH VIÊN của dự án chứa công việc (người ngoài nhận 403).</p>
+ *
+ * <p>Hỗ trợ đa phiên bản: Nếu truyền {@code submissionId}, servlet tải đúng tệp đính kèm của đợt nộp đó;
+ * nếu không truyền, servlet mặc định tải tệp từ công việc (tương thích ngược hoàn toàn).</p>
  *
  * <p>Luôn trả dạng tệp đính kèm (Content-Disposition: attachment) + nosniff (SecurityHeadersFilter):
  * trình duyệt không mở / chạy nội dung tệp ngay trong trang của app.</p>
@@ -46,7 +51,25 @@ public class TaskFileServlet extends BaseServlet {
             return;
         }
 
-        String stored = task.getDeliverableFile();
+        int submissionId = intParam(request, "submissionId", 0);
+        String stored;
+
+        if (submissionId > 0) {
+            TaskSubmission sub = TaskSubmissionDB.selectById(submissionId);
+            if (sub == null || sub.getTaskId() != task.getId()) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy đợt nộp bàn giao tương ứng.");
+                return;
+            }
+            stored = sub.getFilePath();
+        } else {
+            stored = task.getDeliverableFile();
+        }
+
+        if (stored == null || stored.trim().isEmpty()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Đợt nộp này không có tệp đính kèm.");
+            return;
+        }
+
         Path file = DeliverableStorage.resolve(task.getId(), stored);
         if (file == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Tệp bàn giao không còn trên máy chủ.");

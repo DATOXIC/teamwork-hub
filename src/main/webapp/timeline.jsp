@@ -22,6 +22,7 @@
 
 <jsp:include page="/includes/header.jsp" />
 <jsp:include page="/includes/navbar.jsp" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/styles/timeline.css?v=<%= System.currentTimeMillis() %>">
 
 <div class="container-fluid px-3 px-lg-4 py-3 timeline-shell">
@@ -171,6 +172,12 @@
                 <option value="DONE">🟢 Đã xong</option>
             </select>
 
+            <!-- Nút Quản lý Quan hệ Phụ thuộc (Dependencies) -->
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1"
+                    data-bs-toggle="modal" data-bs-target="#dependencyManagerModal" title="Quản lý và thiết lập quan hệ phụ thuộc giữa các công việc">
+                <i class="bi bi-diagram-3-fill"></i> Phụ thuộc
+            </button>
+
             <!-- Nút Thêm công việc nhanh vào Lộ trình (chỉ Trưởng dự án, server cũng chặn) -->
             <c:if test="${isOwner}">
             <button type="button" class="btn btn-sm btn-primary-custom rounded-pill px-3 shadow-2xs d-inline-flex align-items-center gap-1 text-white"
@@ -200,17 +207,16 @@
                 </div>
             </div>
 
-            <!-- 4.2. KHUNG PHẢI: TRỤC THỜI GIAN & LƯỚI GANTT CANVAS -->
-            <div class="gantt-right-pane" id="ganttRightPane">
-                <!-- Header thời gian (Tháng & Ngày) -->
-                <div class="gantt-timeline-header" id="ganttTimelineHeader">
-                    <!-- JavaScript render -->
+            <!-- 4.2. KHUNG PHẢI: TRỤC THỜI GIAN & BIỂU ĐỒ FRAPPE GANTT -->
+            <div class="gantt-right-pane position-relative" id="ganttRightPane">
+                <!-- Vùng chứa Frappe Gantt SVG tương tác kèm mũi tên phụ thuộc -->
+                <div id="frappeGanttContainer" class="frappe-gantt-wrapper w-100 overflow-auto">
+                    <svg id="frappeGanttChart"></svg>
                 </div>
 
-                <!-- Lưới nền & Các thanh tiến độ Gantt Bar -->
-                <div class="gantt-grid-canvas" id="ganttGridCanvas">
-                    <!-- JavaScript render -->
-                </div>
+                <!-- Header và Canvas phụ trợ (tương thích backward) -->
+                <div class="gantt-timeline-header d-none" id="ganttTimelineHeader"></div>
+                <div class="gantt-grid-canvas d-none" id="ganttGridCanvas"></div>
             </div>
 
         </div>
@@ -292,16 +298,27 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="modalTaskDueDate" class="form-label fs-9 fw-semibold text-muted text-uppercase mb-1">
-                        Hạn chót hoàn thành (Due Date) <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
-                        <input type="date" id="modalTaskDueDate" class="form-control shadow-none fs-8" required>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label for="modalTaskStartDate" class="form-label fs-9 fw-semibold text-muted text-uppercase mb-1">
+                            Ngày bắt đầu (Start Date)
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light"><i class="bi bi-calendar-event"></i></span>
+                            <input type="date" id="modalTaskStartDate" class="form-control shadow-none fs-8">
+                        </div>
                     </div>
-                    <div class="form-text fs-10 text-muted">Thanh Gantt sẽ tự động co giãn và di chuyển theo ngày mới.</div>
+                    <div class="col-6">
+                        <label for="modalTaskDueDate" class="form-label fs-9 fw-semibold text-muted text-uppercase mb-1">
+                            Hạn chót hoàn thành (Due Date) <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light"><i class="bi bi-calendar-check"></i></span>
+                            <input type="date" id="modalTaskDueDate" class="form-control shadow-none fs-8" required>
+                        </div>
+                    </div>
                 </div>
+                <div class="form-text fs-10 text-muted mb-2">Thanh Gantt sẽ tự động dời lịch (cascade) các công việc phụ thuộc nếu bị trễ hạn.</div>
             </div>
             <div class="modal-footer border-top px-4 py-2-5 d-flex justify-content-between">
                 <a href="javascript:void(0)" id="modalJumpKanbanBtn" class="btn btn-sm btn-link text-decoration-none fs-8 p-0 text-secondary">
@@ -347,13 +364,23 @@
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">
+                            <label for="newStartDate" class="form-label fs-8 fw-semibold mb-1">
+                                Ngày bắt đầu
+                            </label>
+                            <input type="date" id="newStartDate" name="startDate" class="form-control form-control-sm shadow-none fs-8"
+                                   value="${todayDate}">
+                        </div>
+                        <div class="col-6">
                             <label for="newDueDate" class="form-label fs-8 fw-semibold mb-1">
                                 Hạn chót hoàn thành <span class="text-danger">*</span>
                             </label>
                             <input type="date" id="newDueDate" name="dueDate" class="form-control form-control-sm shadow-none fs-8"
                                    value="${todayDate}" required>
                         </div>
-                        <div class="col-6">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-12">
                             <label for="newPriority" class="form-label fs-8 fw-semibold mb-1">Mức ưu tiên</label>
                             <select id="newPriority" name="priority" class="form-select form-select-sm shadow-none fs-8">
                                 <option value="HIGH">🔴 Khẩn cấp (High)</option>
@@ -391,6 +418,88 @@
 </div>
 
 <!-- =========================================================================
+     7b. MODAL: QUẢN LÝ QUAN HỆ PHỤ THUỘC (TASK DEPENDENCIES)
+     ========================================================================= -->
+<div class="modal fade" id="dependencyManagerModal" tabindex="-1" aria-labelledby="depModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-bottom px-4 pt-3 pb-2">
+                <h5 class="modal-title fw-bold fs-7 d-flex align-items-center gap-2" id="depModalLabel">
+                    <i class="bi bi-diagram-3-fill text-primary"></i>
+                    <span>Quản Lý Quan Hệ Phụ Thuộc (Task Dependencies)</span>
+                </h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body px-4 py-3">
+                <div class="alert alert-info py-2 px-3 fs-8 mb-3 d-flex align-items-center gap-2 rounded-3 border-0">
+                    <i class="bi bi-info-circle-fill text-info fs-6"></i>
+                    <div>
+                        <strong>Quy tắc quan hệ (Finish-to-Start):</strong> Công việc sau chỉ được bắt đầu (IN_PROGRESS) khi công việc trước đã hoàn thành (DONE). Khi công việc trước bị dời hạn, hệ thống sẽ tự động dời lịch dây chuyền (Cascade auto-scheduling).
+                    </div>
+                </div>
+
+                <!-- Form tạo quan hệ mới -->
+                <div class="card bg-light border-0 rounded-3 p-3 mb-3">
+                    <h6 class="fs-8 fw-bold text-dark mb-2 d-flex align-items-center gap-1">
+                        <i class="bi bi-plus-circle-fill text-primary"></i> Thiết lập liên kết phụ thuộc mới
+                    </h6>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-5">
+                            <label for="depPredecessorSelect" class="form-label fs-9 fw-semibold text-muted mb-1">Công việc làm trước (Tiên quyết) <span class="text-danger">*</span></label>
+                            <select id="depPredecessorSelect" class="form-select form-select-sm shadow-none fs-8">
+                                <option value="0">-- Chọn công việc tiên quyết --</option>
+                                <c:forEach items="${allTasks}" var="t">
+                                    <option value="${t.id}">#${t.id} - ${fn:escapeXml(t.title)} (${fn:escapeXml(t.status)})</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="depSuccessorSelect" class="form-label fs-9 fw-semibold text-muted mb-1">Công việc làm sau (Chịu phụ thuộc) <span class="text-danger">*</span></label>
+                            <select id="depSuccessorSelect" class="form-select form-select-sm shadow-none fs-8">
+                                <option value="0">-- Chọn công việc chịu phụ thuộc --</option>
+                                <c:forEach items="${allTasks}" var="t">
+                                    <option value="${t.id}">#${t.id} - ${fn:escapeXml(t.title)} (${fn:escapeXml(t.status)})</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" id="btnAddDependencyBtn" class="btn btn-sm btn-primary-custom w-100 rounded-pill fs-8 text-white fw-semibold" onclick="submitAddDependency()">
+                                <i class="bi bi-link-45deg me-1"></i> Liên kết
+                            </button>
+                        </div>
+                    </div>
+                    <div id="depCycleWarning" class="alert alert-danger py-1 px-2 fs-9 mt-2 d-none mb-0"></div>
+                </div>
+
+                <!-- Bảng danh sách liên kết hiện tại -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fs-8 fw-bold text-muted text-uppercase mb-0">Danh sách liên kết hiện có (<span id="depListCount">0</span>)</h6>
+                </div>
+                <div class="table-responsive rounded-3 border bg-white" style="max-height: 250px;">
+                    <table class="table table-sm table-hover align-middle mb-0 fs-8">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Công việc làm trước</th>
+                                <th class="text-center" style="width: 40px;"><i class="bi bi-arrow-right"></i></th>
+                                <th>Công việc làm sau</th>
+                                <th style="width: 140px;">Loại quan hệ</th>
+                                <th class="text-end pe-3" style="width: 80px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dependenciesTableBody">
+                            <!-- JS render -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-top px-4 py-2">
+                <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 fs-8" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================================
      8. NẠP DỮ LIỆU JSON & KÍCH HOẠT ENGINE GANTT
      ========================================================================= -->
 <script>
@@ -401,11 +510,15 @@
         today: '${todayDate}'
     };
 
-    // Nạp dữ liệu Tasks JSON an toàn từ Controller
+    // Nạp dữ liệu Tasks & Dependencies JSON an toàn từ Controller
     <%-- ◀ SERVLET: TimelineServlet → setAttribute("tasksJson") --%>
     window.timelineTasksData = ${tasksJson};
+    <%-- ◀ SERVLET: TimelineServlet → setAttribute("dependenciesJson") --%>
+    window.timelineDependenciesData = ${dependenciesJson};
 </script>
 
+<!-- Thư viện Frappe Gantt 0.6.1 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
 <script src="${pageContext.request.contextPath}/js/timeline.js?v=<%= System.currentTimeMillis() %>"></script>
 
 <jsp:include page="/includes/footer.jsp" />

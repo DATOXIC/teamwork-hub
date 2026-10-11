@@ -77,6 +77,12 @@
                 aria-label="Xuất danh sách công việc ra tệp Excel CSV">
                 <i class="bi bi-file-earmark-spreadsheet-fill"></i> Xuất CSV
             </a>
+            <a href="${pageContext.request.contextPath}/project-analytics?projectId=${project.id}"
+                class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1-5 fw-semibold shadow-sm fs-8 d-flex align-items-center gap-2"
+                title="Xem trung tâm phân tích động lực & biểu đồ Burndown"
+                aria-label="Xem phân tích động lực dự án">
+                <i class="bi bi-graph-up-arrow"></i> Phân tích
+            </a>
         </div>
     </div>
 
