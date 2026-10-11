@@ -165,6 +165,8 @@ public class ActivityLog implements Serializable {
                 return "bg-purple-subtle text-primary border border-primary-subtle";
             case "SUBTASK_CREATE":
                 return "bg-info-subtle text-info border border-info-subtle";
+            case "AUTO_RULE_TRIGGER":
+                return "bg-warning-subtle text-warning border border-warning-subtle";
             default:
                 return "bg-secondary-subtle text-secondary border border-secondary-subtle";
         }
@@ -192,6 +194,8 @@ public class ActivityLog implements Serializable {
                 return "bi-file-earmark-text-fill text-primary";
             case "SUBTASK_CREATE":
                 return "bi-list-check text-info";
+            case "AUTO_RULE_TRIGGER":
+                return "bi-magic text-primary";
             default:
                 return "bi-clock-history text-secondary";
         }
@@ -219,6 +223,8 @@ public class ActivityLog implements Serializable {
                 return "T\u1EA3i t\u00E0i li\u1EC7u m\u1EDBi";
             case "SUBTASK_CREATE":
                 return "Th\u00EAm vi\u1EC7c con";
+            case "AUTO_RULE_TRIGGER":
+                return "T\u1EF1 \u0111\u1ED9ng h\u00F3a";
             default:
                 return "C\u1EADp nh\u1EADt";
         }

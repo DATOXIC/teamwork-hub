@@ -21,15 +21,19 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import com.teamwork.business.TaskDependency;
+import com.teamwork.data.TaskDependencyDB;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,6 +72,12 @@ public class TimelineServlet extends BaseServlet {
             return;
         }
 
+        String action = request.getParameter("action");
+        if ("ganttData".equalsIgnoreCase(action)) {
+            handleGanttData(request, response, currentUser, projectId);
+            return;
+        }
+
         // 4. Lấy thông tin dự án
         Project project = ProjectDB.selectById(projectId);
         if (project == null) {
@@ -81,8 +91,9 @@ public class TimelineServlet extends BaseServlet {
         // 5. Nạp danh sách thành viên dự án
         List<ProjectMember> members = ProjectMemberDB.selectByProjectId(projectId);
 
-        // 6. Nạp danh sách toàn bộ Task của dự án
+        // 6. Nạp danh sách toàn bộ Task & Dependency của dự án
         List<Task> allTasks = TaskDB.selectByProjectId(projectId);
+        List<TaskDependency> dependencies = TaskDependencyDB.selectByProjectId(projectId);
 
         // 7. Tính toán tiến độ subtask và gom dữ liệu cho từng Task
         Map<Integer, Integer> taskProgressMap = new HashMap<>();
@@ -198,6 +209,8 @@ public class TimelineServlet extends BaseServlet {
         request.setAttribute("horizonEndDate", maxHorizon.format(ISO_DATE));
         // ▶ JSP: timeline.jsp đọc bằng ${tasksJson}
         request.setAttribute("tasksJson", tasksJson);
+        request.setAttribute("dependencies", dependencies);
+        request.setAttribute("dependenciesJson", buildDependenciesJson(dependencies));
 
         // Quyền chỉ dựa vào ID chủ dự án do server lưu. KHÔNG dùng User.role: đó là chức danh người dùng tự nhập
         // trong hồ sơ (ai cũng gõ được "ADMIN").
@@ -246,6 +259,15 @@ public class TimelineServlet extends BaseServlet {
         switch (action) {
             case "updateDueDate":
                 handleUpdateDueDate(request, response, currentUser, project);
+                break;
+            case "updateDates":
+                handleUpdateDates(request, response, currentUser, project);
+                break;
+            case "addDependency":
+                handleAddDependency(request, response, currentUser, project);
+                break;
+            case "deleteDependency":
+                handleDeleteDependency(request, response, currentUser, project);
                 break;
             case "quickAddTask":
                 handleQuickAddTask(request, response, currentUser, project);
@@ -319,6 +341,234 @@ public class TimelineServlet extends BaseServlet {
     }
 
     /**
+     * Cập nhật thời gian bắt đầu và kết thúc (kèm dời lịch tự động Cascade Scheduling)
+     */
+    private void handleUpdateDates(HttpServletRequest request, HttpServletResponse response,
+                                   User currentUser, Project project) throws IOException {
+        int projectId = project.getId();
+        int taskId = intParam(request, "taskId", 0);
+        String startDateStr = request.getParameter("startDate");
+        String dueDateStr = request.getParameter("dueDate");
+
+        if (taskId <= 0) {
+            respondJsonOrRedirect(request, response, false, "Mã công việc không hợp lệ!", projectId);
+            return;
+        }
+
+        Task task = TaskDB.selectById(taskId);
+        if (task == null || task.getProjectId() != projectId) {
+            respondJsonOrRedirect(request, response, false, "Công việc không tồn tại trong dự án!", projectId);
+            return;
+        }
+
+        if (!TaskAccess.canManageTask(currentUser, task, project)) {
+            respondJsonOrRedirect(request, response, false,
+                    "Chỉ Trưởng dự án hoặc người phụ trách mới được cập nhật lịch trình!", projectId);
+            return;
+        }
+        if (TaskStatus.isDone(task.getStatus())) {
+            respondJsonOrRedirect(request, response, false,
+                    "Công việc đã hoàn thành và được khóa, không thể đổi ngày!", projectId);
+            return;
+        }
+
+        LocalDate parsedStart = null;
+        LocalDate parsedDue = null;
+        try {
+            if (startDateStr != null && !startDateStr.trim().isEmpty()) {
+                parsedStart = LocalDate.parse(startDateStr.trim());
+            }
+            if (dueDateStr != null && !dueDateStr.trim().isEmpty()) {
+                parsedDue = LocalDate.parse(dueDateStr.trim());
+            }
+        } catch (DateTimeParseException e) {
+            respondJsonOrRedirect(request, response, false, "Định dạng ngày không hợp lệ (YYYY-MM-DD)!", projectId);
+            return;
+        }
+
+        if (parsedStart != null && parsedDue != null && parsedDue.isBefore(parsedStart)) {
+            respondJsonOrRedirect(request, response, false, "Hạn chót không thể sớm hơn ngày bắt đầu!", projectId);
+            return;
+        }
+
+        List<Task> shifted = TaskDependencyDB.cascadeShiftDates(taskId, parsedStart, parsedDue);
+        if (shifted == null || shifted.isEmpty()) {
+            task.setStartDate(parsedStart != null ? parsedStart.toString() : task.getStartDate());
+            task.setDueDate(parsedDue != null ? parsedDue.toString() : task.getDueDate());
+            TaskDB.update(task);
+            shifted = List.of(task);
+        }
+
+        String desc = "Cập nhật tiến độ Task [" + task.getTitle() + "]: "
+                + (parsedStart != null ? "Bắt đầu " + parsedStart : "")
+                + (parsedDue != null ? " Hạn chót " + parsedDue : "");
+        if (shifted.size() > 1) {
+            desc += " (Tự động dời lịch " + (shifted.size() - 1) + " công việc phụ thuộc)";
+        }
+        ActivityLogDB.log(projectId, currentUser.getId(), "UPDATE_SCHEDULE", "TASK", taskId, task.getTitle(), desc);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("taskId", taskId);
+        data.put("shiftedCount", shifted.size());
+        respondJsonOrRedirect(request, response, true, "Đã cập nhật lịch trình thành công!", projectId, data);
+    }
+
+    /**
+     * Thêm mới liên kết phụ thuộc công việc (Task Dependency)
+     */
+    private void handleAddDependency(HttpServletRequest request, HttpServletResponse response,
+                                      User currentUser, Project project) throws IOException {
+        int projectId = project.getId();
+        int taskId = intParam(request, "taskId", 0);
+        int dependsOnTaskId = intParam(request, "dependsOnTaskId", 0);
+        int lagDays = intParam(request, "lagDays", 0);
+        String dependencyType = request.getParameter("dependencyType");
+
+        if (taskId <= 0 || dependsOnTaskId <= 0) {
+            respondJsonOrRedirect(request, response, false, "Mã công việc không hợp lệ!", projectId);
+            return;
+        }
+
+        if (taskId == dependsOnTaskId) {
+            respondJsonOrRedirect(request, response, false, "Một công việc không thể tự phụ thuộc chính nó!", projectId);
+            return;
+        }
+
+        Task taskA = TaskDB.selectById(dependsOnTaskId);
+        Task taskB = TaskDB.selectById(taskId);
+        if (taskA == null || taskB == null || taskA.getProjectId() != projectId || taskB.getProjectId() != projectId) {
+            respondJsonOrRedirect(request, response, false, "Công việc không thuộc dự án này!", projectId);
+            return;
+        }
+
+        if (!TaskAccess.canCreateTask(currentUser, project) && !TaskAccess.canManageTask(currentUser, taskB, project)) {
+            respondJsonOrRedirect(request, response, false, "Bạn không có quyền thiết lập quan hệ phụ thuộc cho công việc này!", projectId);
+            return;
+        }
+
+        if (TaskDependencyDB.wouldCreateCycle(projectId, taskId, dependsOnTaskId)) {
+            respondJsonOrRedirect(request, response, false, "Không thể thiết lập phụ thuộc: Phát hiện chu trình vòng lặp (Circular Dependency)!", projectId);
+            return;
+        }
+
+        TaskDependency dep = new TaskDependency(projectId, taskId, dependsOnTaskId, dependencyType, lagDays);
+        int newId = TaskDependencyDB.insert(dep);
+        if (newId > 0) {
+            ActivityLogDB.log(projectId, currentUser.getId(), "ADD_DEPENDENCY", "TASK", taskId, taskB.getTitle(),
+                    "Thiết lập phụ thuộc: [" + taskB.getTitle() + "] phụ thuộc vào [" + taskA.getTitle() + "]");
+            Map<String, Object> data = new HashMap<>();
+            data.put("dependencyId", newId);
+            respondJsonOrRedirect(request, response, true, "Đã thiết lập liên kết phụ thuộc thành công!", projectId, data);
+        } else {
+            respondJsonOrRedirect(request, response, false, "Không thể lưu liên kết phụ thuộc vào cơ sở dữ liệu!", projectId);
+        }
+    }
+
+    /**
+     * Xóa liên kết phụ thuộc công việc
+     */
+    private void handleDeleteDependency(HttpServletRequest request, HttpServletResponse response,
+                                         User currentUser, Project project) throws IOException {
+        int projectId = project.getId();
+        int dependencyId = intParam(request, "dependencyId", 0);
+        int taskId = intParam(request, "taskId", 0);
+        int dependsOnTaskId = intParam(request, "dependsOnTaskId", 0);
+
+        boolean ok = false;
+        if (dependencyId > 0) {
+            ok = TaskDependencyDB.delete(dependencyId);
+        } else if (taskId > 0 && dependsOnTaskId > 0) {
+            ok = TaskDependencyDB.deleteByPair(taskId, dependsOnTaskId);
+        }
+
+        if (ok) {
+            ActivityLogDB.log(projectId, currentUser.getId(), "DELETE_DEPENDENCY", "PROJECT", projectId, project.getName(),
+                    "Đã hủy bỏ liên kết phụ thuộc công việc");
+            respondJsonOrRedirect(request, response, true, "Đã xóa liên kết phụ thuộc thành công!", projectId);
+        } else {
+            respondJsonOrRedirect(request, response, false, "Không tìm thấy hoặc không thể xóa liên kết phụ thuộc!", projectId);
+        }
+    }
+
+    /**
+     * Xuất dữ liệu biểu đồ Frappe Gantt JSON (hỗ trợ AJAX reload)
+     */
+    private void handleGanttData(HttpServletRequest request, HttpServletResponse response,
+                                User currentUser, int projectId) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+
+        List<Task> tasks = TaskDB.selectByProjectId(projectId);
+        List<TaskDependency> dependencies = TaskDependencyDB.selectByProjectId(projectId);
+
+        Map<Integer, List<Integer>> predMap = new HashMap<>();
+        for (TaskDependency d : dependencies) {
+            predMap.computeIfAbsent(d.getTaskId(), k -> new ArrayList<>()).add(d.getDependsOnTaskId());
+        }
+
+        Map<Integer, Integer> progressMap = new HashMap<>();
+        for (Task t : tasks) {
+            int tid = t.getId();
+            List<SubTask> subs = SubTaskDB.selectByTaskId(tid);
+            if (subs != null && !subs.isEmpty()) {
+                long doneSubs = subs.stream().filter(s -> SubTaskStatus.DONE.is(s.getStatus()) || SubTaskStatus.APPROVED.is(s.getStatus())).count();
+                progressMap.put(tid, (int) Math.round((doneSubs * 100.0) / subs.size()));
+            } else {
+                progressMap.put(tid, TaskStatus.isDone(t.getStatus()) ? 100 : 0);
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"ok\":true,\"tasks\":[");
+        boolean first = true;
+        for (Task t : tasks) {
+            if (!first) sb.append(",");
+            first = false;
+
+            int tid = t.getId();
+            String start = t.getEffectiveStartDate();
+            String due = (t.getDueDate() != null && !t.getDueDate().trim().isEmpty())
+                    ? t.getDueDate().trim() : start;
+
+            try {
+                if (LocalDate.parse(due).isBefore(LocalDate.parse(start))) {
+                    due = start;
+                }
+            } catch (Exception ignored) {}
+
+            int progress = progressMap.getOrDefault(tid, 0);
+            List<Integer> preds = predMap.getOrDefault(tid, Collections.emptyList());
+            String depStr = preds.stream().map(String::valueOf).collect(Collectors.joining(", "));
+
+            boolean hasUnfinishedPrereqs = TaskDependencyDB.hasUnfinishedPrerequisites(tid);
+
+            String customClass = "gantt-bar-" + (t.getStatus() != null ? t.getStatus().toLowerCase() : "todo");
+            if (t.isOverdue()) customClass += " gantt-bar-overdue";
+            if (hasUnfinishedPrereqs) customClass += " gantt-bar-locked";
+
+            sb.append("{");
+            sb.append("\"id\":\"").append(tid).append("\",");
+            sb.append("\"name\":\"").append(escapeJson(t.getTitle())).append("\",");
+            sb.append("\"start\":\"").append(start).append("\",");
+            sb.append("\"end\":\"").append(due).append("\",");
+            sb.append("\"progress\":").append(progress).append(",");
+            sb.append("\"dependencies\":\"").append(depStr).append("\",");
+            sb.append("\"custom_class\":\"").append(customClass).append("\",");
+            sb.append("\"status\":\"").append(escapeJson(t.getStatus())).append("\",");
+            sb.append("\"priority\":\"").append(escapeJson(t.getPriority())).append("\",");
+            sb.append("\"assigneeName\":\"").append(escapeJson(t.getAssigneeName())).append("\",");
+            sb.append("\"isLocked\":").append(hasUnfinishedPrereqs);
+            sb.append("}");
+        }
+        sb.append("],\"dependencies\":");
+        sb.append(buildDependenciesJson(dependencies));
+        sb.append("}");
+
+        out.print(sb.toString());
+        out.flush();
+    }
+
+    /**
      * Thêm nhanh một công việc mới có gắn sẵn hạn chót trực tiếp trên giao diện Timeline
      */
     private void handleQuickAddTask(HttpServletRequest request, HttpServletResponse response,
@@ -356,12 +606,21 @@ public class TimelineServlet extends BaseServlet {
             }
         }
 
+        String startDate = request.getParameter("startDate");
+        String cleanStartDate = "";
+        if (startDate != null && !startDate.trim().isEmpty()) {
+            try {
+                cleanStartDate = LocalDate.parse(startDate.trim()).format(ISO_DATE);
+            } catch (DateTimeParseException ignored) {}
+        }
+
         Task newTask = new Task();
         newTask.setProjectId(projectId);
         newTask.setTitle(title.trim());
         newTask.setDescription(description != null ? description.trim() : "");
         newTask.setStatus("TODO");
         newTask.setPriority(cleanPriority);
+        newTask.setStartDate(cleanStartDate);
         newTask.setDueDate(cleanDueDate);
 
         if (project.isSoloProject()) {
@@ -475,6 +734,8 @@ public class TimelineServlet extends BaseServlet {
             sb.append("\"status\":\"").append(escapeJson(t.getStatus())).append("\",");
             sb.append("\"priority\":\"").append(escapeJson(t.getPriority())).append("\",");
             sb.append("\"dueDate\":\"").append(escapeJson(t.getDueDate())).append("\",");
+            sb.append("\"startDate\":\"").append(escapeJson(t.getStartDate())).append("\",");
+            sb.append("\"effectiveStartDate\":\"").append(escapeJson(t.getEffectiveStartDate())).append("\",");
             sb.append("\"assigneeId\":").append(t.getAssigneeId()).append(",");
             sb.append("\"assigneeName\":\"").append(escapeJson(t.getAssigneeName())).append("\",");
             sb.append("\"progress\":").append(progress).append(",");
@@ -483,6 +744,28 @@ public class TimelineServlet extends BaseServlet {
             sb.append("\"isOverdue\":").append(t.isOverdue()).append(",");
             sb.append("\"deadlineStatus\":\"").append(escapeJson(t.getDeadlineStatus())).append("\",");
             sb.append("\"deadlineBadgeClass\":\"").append(escapeJson(t.getDeadlineBadgeClass())).append("\"");
+            sb.append("}");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+    private String buildDependenciesJson(List<TaskDependency> deps) {
+        if (deps == null || deps.isEmpty()) return "[]";
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        boolean first = true;
+        for (TaskDependency d : deps) {
+            if (!first) sb.append(",");
+            first = false;
+            sb.append("{");
+            sb.append("\"id\":").append(d.getId()).append(",");
+            sb.append("\"taskId\":").append(d.getTaskId()).append(",");
+            sb.append("\"dependsOnTaskId\":").append(d.getDependsOnTaskId()).append(",");
+            sb.append("\"taskTitle\":\"").append(escapeJson(d.getTaskTitle())).append("\",");
+            sb.append("\"dependsOnTaskTitle\":\"").append(escapeJson(d.getDependsOnTaskTitle())).append("\",");
+            sb.append("\"dependencyType\":\"").append(escapeJson(d.getDependencyType())).append("\",");
+            sb.append("\"lagDays\":").append(d.getLagDays());
             sb.append("}");
         }
         sb.append("]");

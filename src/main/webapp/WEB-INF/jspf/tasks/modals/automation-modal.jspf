@@ -1,0 +1,166 @@
+<%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+
+<!-- =========================================================================
+     MODAL: CẤU HÌNH TỰ ĐỘNG HÓA QUY TRÌNH (NO-CODE AUTOMATION RECIPES)
+     ========================================================================= -->
+<div class="modal fade" id="automationModal" tabindex="-1" aria-labelledby="automationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark-navy text-white px-4 py-3 border-0">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="avatar-circle-sm bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="bi bi-magic fs-6"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="automationModalLabel">Tự Động Hóa Quy Trình (Automation Recipes)</h5>
+                        <span class="fs-9 text-white-50">Kịch bản tự động hóa thông minh giúp tối ưu tiến độ và vận hành nhóm</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+
+            <div class="modal-body p-4 bg-light-subtle">
+                <!-- Info Banner -->
+                <div class="alert bg-white border rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-2xs">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle-fill text-primary fs-6"></i>
+                        <span class="fs-8 text-secondary">
+                            Mọi hoạt động tự động đều được lưu vết minh bạch vào <strong>Nhật ký hoạt động</strong> dưới danh tính <em>HỆ THỐNG TỰ ĐỘNG</em>.
+                        </span>
+                    </div>
+                    <c:if test="${!isPm}">
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1 fs-9 d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-shield-lock"></i> Chỉ PM mới có quyền bật/tắt
+                        </span>
+                    </c:if>
+                </div>
+
+                <!-- Recipes List -->
+                <div class="d-flex flex-column gap-3" id="automationRecipesContainer">
+                    <c:forEach items="${projectAutomations}" var="recipe">
+                        <div class="card border rounded-3 shadow-2xs bg-white transition hover-shadow-xs overflow-hidden" id="recipeCard_${recipe.recipeId}">
+                            <div class="card-body p-3.5">
+                                <div class="d-flex align-items-start justify-content-between gap-3">
+                                    <div class="d-flex align-items-start gap-3 flex-grow-1">
+                                        <!-- Icon by recipeId -->
+                                        <div class="recipe-icon-wrapper rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 mt-0.5"
+                                             style="width: 40px; height: 40px; 
+                                             <c:choose>
+                                                 <c:when test="${recipe.recipeId == 'AUTO_PROMPT_GATE2'}">background: rgba(13, 110, 253, 0.1); color: #0d6efd;</c:when>
+                                                 <c:when test="${recipe.recipeId == 'AUTO_CLOSE_SUBTASKS'}">background: rgba(25, 135, 84, 0.1); color: #198754;</c:when>
+                                                 <c:otherwise>background: rgba(220, 53, 69, 0.1); color: #dc3545;</c:otherwise>
+                                             </c:choose>">
+                                            <c:choose>
+                                                <c:when test="${recipe.recipeId == 'AUTO_PROMPT_GATE2'}">
+                                                    <i class="bi bi-bell-fill fs-5"></i>
+                                                </c:when>
+                                                <c:when test="${recipe.recipeId == 'AUTO_CLOSE_SUBTASKS'}">
+                                                    <i class="bi bi-check2-all fs-5"></i>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <i class="bi bi-lightning-charge-fill fs-5"></i>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+
+                                        <!-- Details -->
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                <h6 class="fw-bold text-dark mb-0 fs-7">${fn:escapeXml(recipe.recipeName)}</h6>
+                                                <span class="badge ${recipe.enabled ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary'} rounded-pill px-2 py-0-5 fs-9 fw-semibold" id="badge_${recipe.recipeId}">
+                                                    ${recipe.enabled ? 'Đang hoạt động' : 'Đã tắt'}
+                                                </span>
+                                            </div>
+                                            <p class="fs-8 text-secondary mb-2 lh-base">${fn:escapeXml(recipe.description)}</p>
+
+                                            <!-- Execution stats -->
+                                            <div class="d-flex align-items-center flex-wrap gap-3 fs-9 text-muted">
+                                                <span class="d-inline-flex align-items-center gap-1">
+                                                    <i class="bi bi-play-circle text-primary"></i> Đã thực thi: <strong class="text-dark" id="count_${recipe.recipeId}">${recipe.triggerCount}</strong> lần
+                                                </span>
+                                                <span class="d-inline-flex align-items-center gap-1">
+                                                    <i class="bi bi-clock-history"></i> Lần cuối: 
+                                                    <span class="text-secondary" id="last_${recipe.recipeId}">
+                                                        ${not empty recipe.lastTriggeredAt ? fn:escapeXml(recipe.lastTriggeredAt) : 'Chưa chạy'}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Switch Toggle -->
+                                    <div class="form-check form-switch fs-5 ms-2 pt-1">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               id="switch_${recipe.recipeId}"
+                                               ${recipe.enabled ? 'checked' : ''}
+                                               ${!isPm ? 'disabled' : ''}
+                                               title="${isPm ? 'Bật / Tắt quy tắc' : 'Chỉ Quản lý dự án (PM) mới được thay đổi'}"
+                                               onchange="toggleAutomationRecipe(${project.id}, '${recipe.recipeId}', this.checked)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white px-4 py-2.5 border-top d-flex justify-content-between align-items-center">
+                <span class="fs-9 text-muted">
+                    <i class="bi bi-shield-check text-success me-1"></i>Bảo vệ an toàn với bộ lọc chống lặp đệ quy (Loop Guard).
+                </span>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fs-8" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAutomationRecipe(projectId, recipeId, enabled) {
+    var badge = document.getElementById('badge_' + recipeId);
+    var switchInput = document.getElementById('switch_' + recipeId);
+
+    var body = new URLSearchParams();
+    body.append('action', 'toggleAutomation');
+    body.append('projectId', projectId);
+    body.append('recipeId', recipeId);
+    body.append('enabled', enabled ? 'true' : 'false');
+    body.append('ajax', 'true');
+
+    fetch(window.TASK_PAGE.contextPath + '/task', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: body.toString()
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    })
+    .then(function(data) {
+        if (data.success) {
+            if (badge) {
+                if (enabled) {
+                    badge.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5 fs-9 fw-semibold';
+                    badge.textContent = 'Đang hoạt động';
+                } else {
+                    badge.className = 'badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0-5 fs-9 fw-semibold';
+                    badge.textContent = 'Đã tắt';
+                }
+            }
+            if (typeof window.showToast === 'function') {
+                window.showToast('success', 'Đã ' + (enabled ? 'bật' : 'tắt') + ' quy tắc tự động hóa thành công!');
+            }
+        } else {
+            throw new Error(data.message || 'Lỗi cập nhật');
+        }
+    })
+    .catch(function(err) {
+        if (switchInput) switchInput.checked = !enabled;
+        alert(err.message || 'Không thể cập nhật cấu hình tự động hóa. Vui lòng thử lại!');
+    });
+}
+</script>

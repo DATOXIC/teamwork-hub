@@ -55,6 +55,16 @@
         <url-pattern>/timeline</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>ProjectAnalyticsServlet</servlet-name>
+        <servlet-class>com.teamwork.controllers.ProjectAnalyticsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProjectAnalyticsServlet</servlet-name>
+        <url-pattern>/analytics</url-pattern>
+        <url-pattern>/project-analytics</url-pattern>
+    </servlet-mapping>
+
     <!-- CẤU HÌNH TRANG BÁO LỖI TÙY CHỈNH (CUSTOM ERROR PAGES) -->
     <error-page>
         <error-code>404</error-code>

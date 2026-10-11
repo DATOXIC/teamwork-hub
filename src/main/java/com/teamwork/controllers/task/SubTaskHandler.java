@@ -17,6 +17,7 @@ import com.teamwork.data.MessageDB;
 import com.teamwork.data.ProjectDB;
 import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
+import com.teamwork.business.automation.AutomationEngine;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -379,6 +380,9 @@ public final class SubTaskHandler {
                     }
                 }
 
+                // Kích hoạt Động cơ Tự động hóa (Automation Engine Hook)
+                AutomationEngine.onSubtasksProgressUpdated(st.getTaskId(), projectId);
+
                 if (isAjax) {
                     st.setStatus(targetStatus);
                     String msg = isCompleted
@@ -675,6 +679,9 @@ public final class SubTaskHandler {
                             "bi-check-circle-fill text-success"
                         );
                     }
+
+                    // Kích hoạt Động cơ Tự động hóa (Automation Engine Hook - Recipe 1)
+                    AutomationEngine.onSubtasksProgressUpdated(st.getTaskId(), projectId);
 
                     if (session != null) session.setAttribute("toastSuccess", "Đã duyệt nghiệm thu ĐẠT cho nhiệm vụ!");
                 } else {

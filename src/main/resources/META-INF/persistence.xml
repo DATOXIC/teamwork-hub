@@ -24,6 +24,9 @@
         <class>com.teamwork.business.ProjectInvite</class>
         <class>com.teamwork.business.TaskDoc</class>
         <class>com.teamwork.business.Whiteboard</class>
+        <class>com.teamwork.business.TaskSubmission</class>
+        <class>com.teamwork.business.TaskDependency</class>
+        <class>com.teamwork.business.ProjectAutomation</class>
 
         <properties>
             
@@ -66,6 +69,9 @@
         <class>com.teamwork.business.ProjectInvite</class>
         <class>com.teamwork.business.TaskDoc</class>
         <class>com.teamwork.business.Whiteboard</class>
+        <class>com.teamwork.business.TaskSubmission</class>
+        <class>com.teamwork.business.TaskDependency</class>
+        <class>com.teamwork.business.ProjectAutomation</class>
 
         <properties>
             <!-- Cấu hình JDBC Driver & URL cho Local MySQL -->
@@ -107,6 +113,9 @@
         <class>com.teamwork.business.ProjectInvite</class>
         <class>com.teamwork.business.TaskDoc</class>
         <class>com.teamwork.business.Whiteboard</class>
+        <class>com.teamwork.business.TaskSubmission</class>
+        <class>com.teamwork.business.TaskDependency</class>
+        <class>com.teamwork.business.ProjectAutomation</class>
 
         <properties>
             <!-- Cấu hình JDBC Driver & URL cho Microsoft SQL Server (SSMS) -->

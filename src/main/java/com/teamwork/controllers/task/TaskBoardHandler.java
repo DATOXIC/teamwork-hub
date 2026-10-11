@@ -10,6 +10,7 @@ import com.teamwork.business.Project;
 import com.teamwork.business.SubTask;
 import com.teamwork.business.Task;
 import com.teamwork.business.TaskDoc;
+import com.teamwork.business.TaskSubmission;
 import com.teamwork.business.User;
 import com.teamwork.data.DocDB;
 import com.teamwork.data.LabelDB;
@@ -18,6 +19,10 @@ import com.teamwork.data.ProjectDB;
 import com.teamwork.data.SubTaskDB;
 import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDocDB;
+import com.teamwork.data.TaskSubmissionDB;
+import com.teamwork.business.ProjectAutomation;
+import com.teamwork.business.automation.AutomationEngine;
+import com.teamwork.data.ProjectAutomationDB;
 import com.teamwork.data.UserDB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -165,6 +170,13 @@ public final class TaskBoardHandler {
             taskSubTasksMap.computeIfAbsent(st.getTaskId(), k -> new ArrayList<>()).add(st);
         }
 
+        // 7.5. BATCH LOAD: Lấy toàn bộ Lịch sử Bàn giao (Submissions) của các Task trong dự án (1 câu SQL)
+        List<TaskSubmission> allSubmissions = TaskSubmissionDB.selectByProjectId(projectId);
+        Map<Integer, List<TaskSubmission>> taskSubmissionsMap = new HashMap<>();
+        for (TaskSubmission sub : allSubmissions) {
+            taskSubmissionsMap.computeIfAbsent(sub.getTaskId(), k -> new ArrayList<>()).add(sub);
+        }
+
         // 8. TÍNH TOÁN % TIẾN ĐỘ TRÊN BỘ NHỚ RAM (CỰC NHANH, 0.001ms, KHÔNG GỌI DATABASE)
         Map<Integer, Integer> taskProgressMap = new HashMap<>();
         for (Task t : allProjectTasks) {
@@ -227,6 +239,12 @@ public final class TaskBoardHandler {
 
         // 8.9. Lấy tin nhắn chat dự án (cho tab # Chat tích hợp)
         List<Message> projectChatMessages = MessageDB.selectRecentByProjectId(projectId, 50);
+
+        // 8.9.b. Tự động hóa quy trình (Milestone 3 Automation Recipes)
+        List<ProjectAutomation> projectAutomations = ProjectAutomationDB.selectByProjectId(projectId);
+        request.setAttribute("projectAutomations", projectAutomations);
+        // Đánh giá tự động các công việc đến hạn chót (Recipe 3: Auto-Escalate Priority)
+        AutomationEngine.evaluateDueTasks(projectId);
 
         // 8.10. Xác định tab đang xem (view: tasks, chat, docs, metrics)
         String currentView = request.getParameter("view");
@@ -298,6 +316,8 @@ public final class TaskBoardHandler {
         request.setAttribute("taskCommentsMap", taskCommentsMap);
         // ▶ JSP: tasks.jsp đọc bằng ${taskSubTasksMap}
         request.setAttribute("taskSubTasksMap", taskSubTasksMap);
+        // ▶ JSP: tasks.jsp, task-gates.jspf đọc bằng ${taskSubmissionsMap}
+        request.setAttribute("taskSubmissionsMap", taskSubmissionsMap);
         // ▶ JSP: tasks.jsp đọc bằng ${taskProgressMap}
         request.setAttribute("taskProgressMap", taskProgressMap);
         // ▶ JSP: tasks.jsp đọc bằng ${userWorkloadList}

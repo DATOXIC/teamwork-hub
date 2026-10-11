@@ -34,6 +34,7 @@ import com.teamwork.business.ProjectInvite;
 import com.teamwork.data.NotificationDB;
 import com.teamwork.data.ProjectInviteDB;
 import com.teamwork.data.ProjectMemberDB;
+import com.teamwork.data.ProjectAutomationDB;
 import jakarta.servlet.http.HttpSession;
 import com.teamwork.business.UserWorkload;
 import com.teamwork.business.ActivityLog;
@@ -325,9 +326,71 @@ public class TaskServlet extends BaseServlet {
                 handleDeleteTask(request, response, intParam(request, "projectId", 0));
                 break;
 
+            case "toggleAutomation":
+                handleToggleAutomation(request, response);
+                break;
+
             default:
                 response.sendRedirect(request.getContextPath() + "/project?action=list");
                 break;
+        }
+    }
+
+    /**
+     * Bật hoặc tắt quy tắc tự động hóa quy trình (PM only).
+     */
+    private void handleToggleAutomation(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int projectId = intParam(request, "projectId", 0);
+        String recipeId = request.getParameter("recipeId");
+        boolean enabled = "true".equalsIgnoreCase(request.getParameter("enabled"));
+        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))
+                || (request.getHeader("Accept") != null && request.getHeader("Accept").contains("application/json"))
+                || "true".equalsIgnoreCase(request.getParameter("ajax"));
+
+        User user = currentUser(request);
+        if (user == null) {
+            if (isAjax) {
+                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, "{\"success\":false,\"message\":\"Chưa đăng nhập!\"}");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/auth?action=viewLogin");
+            }
+            return;
+        }
+
+        Project project = ProjectDB.selectById(projectId);
+        if (project == null) {
+            if (isAjax) {
+                writeJson(response, HttpServletResponse.SC_NOT_FOUND, "{\"success\":false,\"message\":\"Dự án không tồn tại!\"}");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/project?action=list");
+            }
+            return;
+        }
+
+        if (user.getId() != project.getOwnerId()) {
+            if (isAjax) {
+                writeJson(response, HttpServletResponse.SC_FORBIDDEN, "{\"success\":false,\"message\":\"Chỉ Quản lý dự án (PM) mới có quyền cấu hình Tự động hóa!\"}");
+            } else {
+                HttpSession session = request.getSession(false);
+                if (session != null) session.setAttribute("toastError", "Chỉ Quản lý dự án (PM) mới có quyền cấu hình Tự động hóa!");
+                response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+            }
+            return;
+        }
+
+        boolean ok = ProjectAutomationDB.toggleRecipe(projectId, recipeId, enabled);
+        if (isAjax) {
+            writeJson(response, HttpServletResponse.SC_OK,
+                    "{\"success\":" + ok + ",\"projectId\":" + projectId + ",\"recipeId\":\""
+                    + (recipeId != null ? recipeId : "") + "\",\"enabled\":" + enabled + "}");
+        } else {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                if (ok) session.setAttribute("toastSuccess", "Đã cập nhật quy tắc tự động hóa thành công!");
+                else session.setAttribute("toastError", "Không thể cập nhật quy tắc tự động hóa.");
+            }
+            response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
         }
     }
 }

@@ -629,3 +629,188 @@
         max-width: none !important;
     }
 }
+
+/* ==========================================================================
+   FRAPPE GANTT 0.6.1 OVERRIDES & BOOTSTRAP 5 THEME INTEGRATION
+   ========================================================================== */
+
+.frappe-gantt-wrapper {
+    min-height: 460px;
+    background: var(--bs-body-bg);
+}
+
+.gantt .grid-header {
+    fill: var(--gantt-header-bg);
+    stroke: var(--gantt-grid-border);
+    stroke-width: 1;
+}
+
+.gantt .grid-row {
+    fill: var(--bs-body-bg);
+    transition: fill 0.15s ease;
+}
+
+.gantt .grid-row:nth-child(even) {
+    fill: var(--c-slate-50, #f8fafc);
+}
+
+[data-bs-theme="dark"] .gantt .grid-row:nth-child(even) {
+    fill: rgba(255, 255, 255, 0.02);
+}
+
+.gantt .row-line {
+    stroke: var(--gantt-grid-border);
+    stroke-width: 1;
+}
+
+.gantt .tick {
+    stroke: var(--gantt-grid-border);
+    stroke-width: 1;
+}
+
+.gantt .tick text {
+    fill: var(--bs-secondary-color);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Thanh công việc Gantt Bar */
+.gantt .bar {
+    rx: 6px;
+    ry: 6px;
+    stroke-width: 1.5;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.gantt .bar:hover {
+    filter: brightness(1.08) drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+}
+
+.gantt .bar-progress {
+    rx: 6px;
+    ry: 6px;
+    transition: width 0.3s ease;
+}
+
+.gantt .bar-label {
+    fill: #ffffff;
+    font-weight: 600;
+    font-size: 11.5px;
+    letter-spacing: -0.01em;
+    pointer-events: none;
+}
+
+.gantt .bar-label.big {
+    fill: var(--bs-body-color);
+}
+
+/* Palette màu các trạng thái thanh Gantt */
+/* 1. Hoàn thành (DONE) */
+.gantt .bar.gantt-bar-done {
+    fill: #10b981;
+    stroke: #059669;
+}
+.gantt .gantt-bar-done .bar-progress {
+    fill: #047857;
+}
+
+/* 2. Đang làm (IN_PROGRESS) */
+.gantt .bar.gantt-bar-in_progress {
+    fill: #0ea5e9;
+    stroke: #0284c7;
+}
+.gantt .gantt-bar-in_progress .bar-progress {
+    fill: #0369a1;
+}
+
+/* 3. Chờ nghiệm thu (SUBMITTED) */
+.gantt .bar.gantt-bar-submitted {
+    fill: #f59e0b;
+    stroke: #d97706;
+}
+.gantt .gantt-bar-submitted .bar-progress {
+    fill: #b45309;
+}
+
+/* 4. Lập kế hoạch (PLANNING) */
+.gantt .bar.gantt-bar-planning {
+    fill: #8b5cf6;
+    stroke: #7c3aed;
+}
+.gantt .gantt-bar-planning .bar-progress {
+    fill: #6d28d9;
+}
+
+/* 5. Cần làm (TODO) */
+.gantt .bar.gantt-bar-todo {
+    fill: #94a3b8;
+    stroke: #64748b;
+}
+.gantt .gantt-bar-todo .bar-progress {
+    fill: #475569;
+}
+
+/* 6. Quá hạn (OVERDUE) */
+.gantt .bar.gantt-bar-overdue {
+    stroke: #ef4444 !important;
+    stroke-width: 2.5 !important;
+    filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.45));
+}
+
+/* 7. Bị khóa do công việc tiên quyết chưa hoàn thành (LOCKED) */
+.gantt .bar.gantt-bar-locked {
+    stroke: #dc2626 !important;
+    stroke-dasharray: 4, 3;
+    stroke-width: 2 !important;
+    opacity: 0.88;
+}
+
+/* Mũi tên quan hệ phụ thuộc (Dependency Arrows) */
+.gantt .arrow {
+    fill: none;
+    stroke: #6366f1;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+.gantt .arrow:hover {
+    stroke: #4f46e5;
+    stroke-width: 3;
+}
+
+/* Con trỏ kéo thả điều chỉnh kích thước */
+.gantt .handle {
+    fill: rgba(255, 255, 255, 0.85);
+    stroke: #475569;
+    stroke-width: 1.5;
+    cursor: ew-resize;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.gantt .bar-wrapper:hover .handle {
+    opacity: 1;
+}
+
+/* Tooltip Popup tuỳ biến */
+.gantt-container .popup-wrapper {
+    z-index: 1050;
+}
+
+.gantt-custom-popup {
+    animation: ganttPopupFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ganttPopupFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

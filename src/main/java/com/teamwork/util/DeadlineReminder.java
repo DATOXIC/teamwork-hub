@@ -115,6 +115,12 @@ public final class DeadlineReminder implements Runnable {
         try {
             int[] r = runFor(LocalDate.now(VN).plusDays(1));
             LOGGER.info("Nhắc hạn: " + r[0] + " lời nhắc mới, " + r[1] + " email đã gửi, " + r[2] + " đã nhắc từ trước.");
+
+            // Kích hoạt Động cơ Tự động hóa đánh giá công việc đến hạn chót (Recipe 3: AUTO_ESCALATE_PRIORITY)
+            int escalated = com.teamwork.business.automation.AutomationEngine.evaluateDueTasksForAllProjects();
+            if (escalated > 0) {
+                LOGGER.info("Tự động hóa: Đã tự động nâng mức ưu tiên cho " + escalated + " công việc.");
+            }
         } catch (Throwable e) {
             // Không ném lỗi ra ngoài: ScheduledExecutorService sẽ NGỪNG lịch chạy nếu một lần chạy bị lỗi
             LOGGER.log(Level.SEVERE, "Nhắc hạn: lỗi khi chạy", e);

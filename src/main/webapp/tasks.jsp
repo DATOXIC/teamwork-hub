@@ -154,6 +154,7 @@
         <%@ include file="/WEB-INF/jspf/tasks/modals/create-project.jspf" %>
         <%@ include file="/WEB-INF/jspf/tasks/modals/join-project.jspf" %>
         <%@ include file="/WEB-INF/jspf/tasks/modals/shortcuts.jspf" %>
+        <%@ include file="/WEB-INF/jspf/tasks/modals/automation-modal.jspf" %>
         <!-- 7. NẠP FILE JAVASCRIPT KÉO THẢ & LỌC TỨC THÌ (0.01 GIÂY) -->
         <script src="${pageContext.request.contextPath}/js/tasks.js?v=${assetStamp.time}"></script>
 

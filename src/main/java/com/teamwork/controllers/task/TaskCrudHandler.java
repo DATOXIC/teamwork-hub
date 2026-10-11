@@ -39,6 +39,7 @@ import jakarta.servlet.http.HttpSession;
 import com.teamwork.business.UserWorkload;
 import com.teamwork.business.ActivityLog;
 import com.teamwork.data.ActivityLogDB;
+import com.teamwork.data.TaskDependencyDB;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -297,6 +298,28 @@ public final class TaskCrudHandler {
                 }
 
                 boolean isGateEnforced = (currentPrj != null && currentPrj.isTeamProject() && task.isRequiresGate());
+
+                // =========================================================================
+                // RÀNG BUỘC CÔNG VIỆC TIÊN QUYẾT (TASK DEPENDENCY PREREQUISITE LOCK):
+                // Chặn bắt đầu công việc nếu có công việc tiên quyết chưa hoàn thành (chưa DONE).
+                // =========================================================================
+                if ("IN_PROGRESS".equalsIgnoreCase(status) && TaskDependencyDB.hasUnfinishedPrerequisites(taskId)) {
+                    List<Task> unfinished = TaskDependencyDB.getUnfinishedPrerequisites(taskId);
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < unfinished.size(); i++) {
+                        if (i > 0) sb.append(", ");
+                        sb.append("\"").append(unfinished.get(i).getTitle()).append("\"");
+                    }
+                    String errMsg = "🔒 Không thể bắt đầu công việc [" + task.getTitle()
+                            + "]! Các công việc tiên quyết chưa hoàn thành: " + sb.toString() + ".";
+                    if (isAjax) {
+                        sendJsonResponse(response, false, errMsg, null);
+                        return;
+                    }
+                    if (session != null) session.setAttribute("toastError", errMsg);
+                    response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+                    return;
+                }
 
                 // =========================================================================
                 // RÀNG BUỘC GIAI ĐOẠN 1: CHUYỂN TỪ TODO SANG IN_PROGRESS (ĐANG LÀM)

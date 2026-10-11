@@ -38,6 +38,15 @@
                                         <i class="bi bi-person-plus"></i> Mời bạn
                                     </button>
                                 </c:if>
+                                <!-- Nút Tự Động Hóa (Automation Recipes) -->
+                                <button type="button" 
+                                        class="btn btn-sm btn-light border text-primary fw-semibold d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill shadow-2xs text-nowrap"
+                                        data-bs-toggle="modal" data-bs-target="#automationModal"
+                                        title="Cấu hình quy tắc tự động hóa quy trình (Automation Recipes)">
+                                    <i class="bi bi-magic text-warning fs-8"></i>
+                                    <span class="fs-8">Tự động hóa</span>
+                                </button>
+
                                 <!-- Nút Xuất Excel (.csv UTF-8 BOM) -->
                                 <a href="${pageContext.request.contextPath}/task?action=exportCsv&projectId=${project.id}" 
                                    class="btn btn-sm btn-light border text-success fw-semibold d-inline-flex align-items-center gap-1 px-2.5 py-1 rounded-pill shadow-2xs text-nowrap"
@@ -96,6 +105,12 @@
                             <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-report" title="Xem báo cáo tiến độ toàn diện">
                                 <i class="bi bi-file-earmark-bar-graph text-info"></i> Báo cáo
                             </a>
+                            <a href="${pageContext.request.contextPath}/project-analytics?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-analytics" title="Xem phân tích động lực & biểu đồ Burndown">
+                                <i class="bi bi-graph-up-arrow text-primary"></i> Phân tích
+                            </a>
+                            <button type="button" class="clickup-view-btn text-decoration-none border-0 bg-transparent" id="btn-view-automation" data-bs-toggle="modal" data-bs-target="#automationModal" title="Mở trung tâm cấu hình tự động hóa">
+                                <i class="bi bi-magic text-warning"></i> Tự động hóa
+                            </button>
                         </div>
 
                         <!-- Nút Chuyển Đổi Subtasks -->

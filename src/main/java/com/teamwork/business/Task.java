@@ -51,6 +51,9 @@ public class Task implements Serializable {
     @Column(name = "due_date")
     private String dueDate;             // Hạn chót hoàn thành (định dạng: YYYY-MM-DD)
 
+    @Column(name = "start_date")
+    private String startDate;           // Ngày bắt đầu (định dạng: YYYY-MM-DD)
+
     @Column(name = "assignee_id")
     private Integer assigneeId;         // ID Task Lead được giao việc (hỗ trợ null khi chưa phân công)
 
@@ -104,6 +107,7 @@ public class Task implements Serializable {
         this.status = "TODO";
         this.priority = "MEDIUM";
         this.dueDate = "";
+        this.startDate = "";
         this.assigneeId = 0;
         this.assigneeName = "Chưa phân công";
         this.finalDeliverableNote = "";
@@ -292,6 +296,32 @@ public class Task implements Serializable {
     }
     public void setDueDate(String dueDate) {
         this.dueDate = (dueDate != null) ? dueDate.trim() : "";
+    }
+
+    public String getStartDate() {
+        return this.startDate != null ? this.startDate : "";
+    }
+    public void setStartDate(String startDate) {
+        this.startDate = (startDate != null) ? startDate.trim() : "";
+    }
+
+    /**
+     * Ngày bắt đầu có hiệu lực cho biểu đồ Gantt:
+     * Ưu tiên startDate nếu đã có, fallback về dueDate - 3 ngày (hoặc hôm nay nếu không có dueDate).
+     */
+    public String getEffectiveStartDate() {
+        if (this.startDate != null && !this.startDate.trim().isEmpty()) {
+            return this.startDate.trim();
+        }
+        if (this.dueDate != null && !this.dueDate.trim().isEmpty()) {
+            try {
+                LocalDate due = LocalDate.parse(this.dueDate.trim());
+                return due.minusDays(3).toString();
+            } catch (Exception ignored) {
+                return this.dueDate.trim();
+            }
+        }
+        return LocalDate.now().toString();
     }
 
     public int getAssigneeId() {

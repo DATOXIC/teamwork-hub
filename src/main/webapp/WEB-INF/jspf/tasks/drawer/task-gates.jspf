@@ -154,11 +154,20 @@
 
                                     <!-- CỔNG 2: BÀN GIAO & NGHIỆM THU TASK LỚN (TASK LEAD ➔ PM) -->
                                     <c:if test="${task.status == 'IN_PROGRESS' || task.status == 'SUBMITTED' || task.status == 'REVISE' || task.status == 'REJECTED' || task.status == 'DONE'}">
+                                        <c:set var="submissions" value="${taskSubmissionsMap[task.id]}" />
+                                        <c:set var="submissionCount" value="${not empty submissions ? submissions.size() : 0}" />
+                                        <c:set var="nextRevNum" value="${submissionCount + 1}" />
+
                                         <div class="gate-card gate-card-success mb-3">
                                             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                                 <div class="d-flex align-items-center gap-1.5">
                                                     <span class="p-1 bg-primary-subtle text-primary rounded-2 lh-1"><i class="bi bi-box-seam-fill fs-8"></i></span>
                                                     <h6 class="fw-bold text-dark fs-8 mb-0">Hồ Sơ Nghiệm Thu</h6>
+                                                    <c:if test="${submissionCount > 0}">
+                                                        <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0-5 fs-9 fw-normal">
+                                                            ${submissionCount} đợt nộp
+                                                        </span>
+                                                    </c:if>
                                                 </div>
                                                 <c:if test="${task.status == 'DONE' && task.qualityRating > 0}">
                                                     <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0-5 fs-9 fw-bold">
@@ -167,41 +176,126 @@
                                                 </c:if>
                                             </div>
 
-                                            <!-- Tóm tắt bàn giao nếu có -->
-                                            <c:if test="${not empty task.finalDeliverableNote}">
-                                                <div class="p-2 bg-white rounded-2 border fs-9 text-dark mb-2 shadow-2xs">
-                                                    <span class="fw-bold text-warning fs-9 d-block mb-1"><i class="bi bi-file-earmark-check-fill me-1"></i> Báo Cáo Bàn Giao:</span>
-                                                    <div class="text-secondary fs-9 lh-base" style="white-space: pre-line;"><c:out value="${task.finalDeliverableNote}" /></div>
-                                                    <c:if test="${not empty task.deliverableFile}">
-                                                        <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
-                                                            <span class="fs-9 text-truncate fw-medium"><i class="bi bi-paperclip me-1" aria-hidden="true"></i>${fn:escapeXml(task.deliverableDisplayName)}</span>
-                                                            <%-- Tệp đã tải lên → nút Tải (qua TaskFileServlet, chỉ thành viên dự án); link http/https (dữ liệu cũ) → Mở; còn lại chỉ hiện tên --%>
-                                                            <c:choose>
-                                                                <c:when test="${task.deliverableUploaded}">
-                                                                    <c:url var="deliverableUrl" value="/task-file"><c:param name="taskId" value="${task.id}" /></c:url>
-                                                                    <a href="${deliverableUrl}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap"
-                                                                       aria-label="Tải tệp bàn giao ${fn:escapeXml(task.deliverableDisplayName)}">
-                                                                        <i class="bi bi-download" aria-hidden="true"></i> Tải
-                                                                    </a>
-                                                                </c:when>
-                                                                <c:when test="${fn:startsWith(task.deliverableFile, 'https://') || fn:startsWith(task.deliverableFile, 'http://')}">
-                                                                    <a href="${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" target="_blank" rel="noopener noreferrer">
-                                                                        <i class="bi bi-box-arrow-up-right"></i> Mở
-                                                                    </a>
-                                                                </c:when>
-                                                            </c:choose>
+                                            <%-- DANH SÁCH LỊCH SỬ CÁC ĐỢT NỘP (SUBMISSIONS TIMELINE / MULTI-REVISION) --%>
+                                            <c:choose>
+                                                <c:when test="${submissionCount > 0}">
+                                                    <div class="submission-history-list d-flex flex-column gap-2 mb-2">
+                                                        <c:forEach var="sub" items="${submissions}" varStatus="subStatus">
+                                                            <div class="p-2 bg-white rounded-2 border fs-9 text-dark shadow-2xs ${subStatus.first ? 'border-primary-subtle' : 'opacity-90'}">
+                                                                <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                                                    <div class="d-flex align-items-center gap-1.5">
+                                                                        <span class="badge ${subStatus.first ? 'bg-primary' : 'bg-secondary'} text-white rounded-pill px-2 py-0 fs-9 fw-bold">
+                                                                            Đợt #${sub.revisionNumber}
+                                                                        </span>
+                                                                        <span class="text-muted fs-9">
+                                                                            bởi <strong>${fn:escapeXml(sub.submitterName)}</strong> &bull; ${sub.submittedAt}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <c:choose>
+                                                                            <c:when test="${sub.status == 'APPROVED'}">
+                                                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0 fs-9 fw-semibold">
+                                                                                    <i class="bi bi-check-circle-fill me-1"></i>Đã duyệt ${sub.qualityRating > 0 ? '('.concat(sub.qualityRating).concat('⭐)') : ''}
+                                                                                </span>
+                                                                            </c:when>
+                                                                            <c:when test="${sub.status == 'REVISE'}">
+                                                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0 fs-9 fw-semibold">
+                                                                                    <i class="bi bi-pencil-square me-1"></i>Cần cân chỉnh
+                                                                                </span>
+                                                                            </c:when>
+                                                                            <c:when test="${sub.status == 'REJECTED'}">
+                                                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0 fs-9 fw-semibold">
+                                                                                    <i class="bi bi-x-circle-fill me-1"></i>Chưa đạt
+                                                                                </span>
+                                                                            </c:when>
+                                                                            <c:otherwise>
+                                                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0 fs-9 fw-semibold">
+                                                                                    <i class="bi bi-hourglass-split me-1"></i>Chờ PM duyệt
+                                                                                </span>
+                                                                            </c:otherwise>
+                                                                        </c:choose>
+                                                                    </div>
+                                                                </div>
+
+                                                                <%-- Chi tiết báo cáo đợt nộp --%>
+                                                                <div class="text-secondary fs-9 lh-base mb-1" style="white-space: pre-line;"><c:out value="${sub.submissionNote}" /></div>
+
+                                                                <%-- File đính kèm riêng của đợt nộp đó --%>
+                                                                <c:if test="${not empty sub.filePath}">
+                                                                    <div class="mt-1-5 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
+                                                                        <span class="fs-9 text-truncate fw-medium">
+                                                                            <i class="bi bi-paperclip me-1" aria-hidden="true"></i>${fn:escapeXml(sub.deliverableDisplayName)}
+                                                                        </span>
+                                                                        <c:choose>
+                                                                            <c:when test="${sub.deliverableUploaded}">
+                                                                                <c:url var="subFileUrl" value="/task-file">
+                                                                                    <c:param name="taskId" value="${task.id}" />
+                                                                                    <c:param name="submissionId" value="${sub.id}" />
+                                                                                </c:url>
+                                                                                <a href="${subFileUrl}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap"
+                                                                                   aria-label="Tải tệp đợt nộp ${sub.revisionNumber}">
+                                                                                    <i class="bi bi-download" aria-hidden="true"></i> Tải
+                                                                                </a>
+                                                                            </c:when>
+                                                                            <c:when test="${fn:startsWith(sub.filePath, 'https://') || fn:startsWith(sub.filePath, 'http://')}">
+                                                                                <a href="${fn:escapeXml(sub.filePath)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" target="_blank" rel="noopener noreferrer">
+                                                                                    <i class="bi bi-box-arrow-up-right"></i> Mở
+                                                                                </a>
+                                                                            </c:when>
+                                                                        </c:choose>
+                                                                    </div>
+                                                                </c:if>
+
+                                                                <%-- Nhận xét / Phản hồi của Trưởng Dự Án (PM) cho riêng đợt này --%>
+                                                                <c:if test="${not empty sub.pmFeedback}">
+                                                                    <div class="mt-2 p-1.5 rounded-2 border fs-9 ${sub.status == 'REVISE' ? 'bg-primary-subtle text-primary border-primary-subtle' : (sub.status == 'REJECTED' ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-success-subtle text-success border-success-subtle')}">
+                                                                        <div class="d-flex align-items-center justify-content-between mb-0.5">
+                                                                            <strong class="fs-9"><i class="bi bi-chat-quote-fill me-1"></i> ${fn:escapeXml(sub.reviewerName)}:</strong>
+                                                                            <span class="fs-9 opacity-75">${sub.reviewedAt}</span>
+                                                                        </div>
+                                                                        <div class="fst-italic">"${fn:escapeXml(sub.pmFeedback)}"</div>
+                                                                    </div>
+                                                                </c:if>
+                                                            </div>
+                                                        </c:forEach>
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <%-- FALLBACK CHO DỮ LIỆU CŨ CHƯA MIGRATION --%>
+                                                    <c:if test="${not empty task.finalDeliverableNote}">
+                                                        <div class="p-2 bg-white rounded-2 border fs-9 text-dark mb-2 shadow-2xs">
+                                                            <span class="fw-bold text-warning fs-9 d-block mb-1"><i class="bi bi-file-earmark-check-fill me-1"></i> Báo Cáo Bàn Giao:</span>
+                                                            <div class="text-secondary fs-9 lh-base" style="white-space: pre-line;"><c:out value="${task.finalDeliverableNote}" /></div>
+                                                            <c:if test="${not empty task.deliverableFile}">
+                                                                <div class="mt-2 p-1.5 bg-warning-subtle rounded border border-warning-subtle d-flex align-items-center justify-content-between gap-1">
+                                                                    <span class="fs-9 text-truncate fw-medium"><i class="bi bi-paperclip me-1" aria-hidden="true"></i>${fn:escapeXml(task.deliverableDisplayName)}</span>
+                                                                    <c:choose>
+                                                                        <c:when test="${task.deliverableUploaded}">
+                                                                            <c:url var="deliverableUrl" value="/task-file"><c:param name="taskId" value="${task.id}" /></c:url>
+                                                                            <a href="${deliverableUrl}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap"
+                                                                               aria-label="Tải tệp bàn giao ${fn:escapeXml(task.deliverableDisplayName)}">
+                                                                                <i class="bi bi-download" aria-hidden="true"></i> Tải
+                                                                            </a>
+                                                                        </c:when>
+                                                                        <c:when test="${fn:startsWith(task.deliverableFile, 'https://') || fn:startsWith(task.deliverableFile, 'http://')}">
+                                                                            <a href="${fn:escapeXml(task.deliverableFile)}" class="btn btn-warning btn-xs rounded-pill px-2 py-0 fs-9 text-dark text-nowrap" target="_blank" rel="noopener noreferrer">
+                                                                                <i class="bi bi-box-arrow-up-right"></i> Mở
+                                                                            </a>
+                                                                        </c:when>
+                                                                    </c:choose>
+                                                                </div>
+                                                            </c:if>
                                                         </div>
                                                     </c:if>
-                                                </div>
-                                            </c:if>
 
-                                            <!-- Đánh giá / Dặn dò của PM nếu có -->
-                                            <c:if test="${not empty task.pmFeedback}">
-                                                <div class="p-2 ${task.status == 'REVISE' ? 'bg-primary-subtle text-primary border-primary-subtle' : (task.status == 'REJECTED' ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-success-subtle text-success border-success-subtle')} rounded-2 border fs-9 mb-2">
-                                                    <div class="fw-bold fs-9 mb-1"><i class="bi bi-info-circle-fill me-1"></i> Đánh giá từ trưởng dự án:</div>
-                                                    <p class="mb-0 fs-9">"${fn:escapeXml(task.pmFeedback)}"</p>
-                                                </div>
-                                            </c:if>
+                                                    <c:if test="${not empty task.pmFeedback}">
+                                                        <div class="p-2 ${task.status == 'REVISE' ? 'bg-primary-subtle text-primary border-primary-subtle' : (task.status == 'REJECTED' ? 'bg-danger-subtle text-danger border-danger-subtle' : 'bg-success-subtle text-success border-success-subtle')} rounded-2 border fs-9 mb-2">
+                                                            <div class="fw-bold fs-9 mb-1"><i class="bi bi-info-circle-fill me-1"></i> Đánh giá từ trưởng dự án:</div>
+                                                            <p class="mb-0 fs-9">"${fn:escapeXml(task.pmFeedback)}"</p>
+                                                        </div>
+                                                    </c:if>
+                                                </c:otherwise>
+                                            </c:choose>
 
                                             <!-- Nút Hành Động Nghiệm Thu -->
                                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 pt-1 border-top">
@@ -209,7 +303,7 @@
                                                 <c:if test="${canSubmitParentTask && task.status != 'DONE'}">
                                                     <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill fs-9 py-1 px-2.5 fw-semibold shadow-2xs"
                                                         data-bs-toggle="collapse" data-bs-target="#submitParentTaskPanel-${task.id}">
-                                                        <i class="bi bi-box-seam me-1"></i> ${task.status == 'SUBMITTED' ? 'Cập Nhật Bàn Giao' : 'Bàn Giao Cho Trưởng Dự Án'}
+                                                        <i class="bi bi-box-seam me-1"></i> ${task.status == 'SUBMITTED' ? 'Cập Nhật Đợt Nộp' : (submissionCount > 0 ? 'Nộp Lại (Đợt #'.concat(nextRevNum).concat(')') : 'Bàn Giao Cho Trưởng Dự Án')}
                                                     </button>
                                                 </c:if>
 
@@ -243,7 +337,16 @@
                                             <!-- PANEL 1: TASK LEAD NỘP BÀN GIAO -->
                                             <div class="collapse mt-2" id="submitParentTaskPanel-${task.id}">
                                                 <div class="p-2.5 bg-white rounded-2 border border-warning shadow-sm">
-                                                    <h6 class="fw-bold text-dark fs-8 mb-2"><i class="bi bi-box-seam-fill text-warning me-1"></i> Báo Cáo Bàn Giao Cho Trưởng Dự Án</h6>
+                                                    <h6 class="fw-bold text-dark fs-8 mb-2">
+                                                        <i class="bi bi-box-seam-fill text-warning me-1"></i>
+                                                        ${submissionCount > 0 ? 'Báo Cáo Bàn Giao (Đợt #'.concat(nextRevNum).concat(')') : 'Báo Cáo Bàn Giao Cho Trưởng Dự Án'}
+                                                    </h6>
+                                                    <c:if test="${submissionCount > 0 && (task.status == 'REVISE' || task.status == 'REJECTED')}">
+                                                        <div class="p-2 bg-warning-subtle rounded border border-warning-subtle fs-9 text-dark mb-2">
+                                                            <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                                                            <strong>Lưu ý:</strong> Trưởng dự án đã yêu cầu điều chỉnh ở đợt trước. Hãy đối chiếu các dặn dò và bổ sung đầy đủ trước khi gửi đợt mới.
+                                                        </div>
+                                                    </c:if>
                                                     <%-- ▶ SERVLET: /task → TaskServlet.doPost() → case "submitParentTask" → TaskWorkflowHandler.handleSubmitParentTask() --%>
                                                     <%-- multipart/form-data: form có ô chọn tệp (TaskServlet có @MultipartConfig) --%>
                                                     <form action="${pageContext.request.contextPath}/task" method="post" enctype="multipart/form-data">
