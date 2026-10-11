@@ -400,7 +400,16 @@
 
                         <!-- Form nhập tin nhắn -->
                         <%-- ▶ SERVLET: /chat → ChatServlet.doPost() → case "sendProjectMessage" → handleSendProjectMessage() --%>
-                        <form method="post" action="${pageContext.request.contextPath}/chat" id="chatForm" class="d-flex align-items-center gap-2">
+                        <form method="post" action="${pageContext.request.contextPath}/chat" id="chatForm" class="d-flex align-items-center gap-2 position-relative">
+                            <%-- Gợi ý @tên: chat.js đọc danh sách thành viên từ các thẻ dưới đây khi người dùng gõ "@" --%>
+                            <ul id="mentionPopup" class="chat-mention-popup list-unstyled m-0" role="listbox" aria-label="Gợi ý thành viên" hidden></ul>
+                            <div id="mentionData" hidden>
+                                <c:forEach var="u" items="${userList}">
+                                    <c:if test="${u.id != sessionScope.currentUser.id}">
+                                        <span data-name="${fn:escapeXml(u.fullName)}" data-username="${fn:escapeXml(u.username)}"></span>
+                                    </c:if>
+                                </c:forEach>
+                            </div>
                             <input type="hidden" name="action" value="sendProjectMessage">
                             <input type="hidden" name="projectId" value="${project.id}">
 

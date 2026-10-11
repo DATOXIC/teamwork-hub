@@ -296,12 +296,119 @@ function clearDraft() {
 // =========================================================================
 // HÀM 9: THIẾT LẬP BỘ LẮNG NGHE SỰ KIỆN FORM CHAT (CHỐNG F5 & AJAX SUBMIT)
 // =========================================================================
+// =========================================================================
+// GỢI Ý @MENTION: gõ "@" → hiện danh sách thành viên dự án, lọc theo chữ đang gõ,
+// ↑/↓ để chọn, Enter/Tab/click để chèn "@Họ Tên " vào ô chat.
+// Server (MentionNotifier) sẽ gửi thông báo 🔔 cho người được nhắc khi tin nhắn được gửi.
+// =========================================================================
+function initMentionAutocomplete(chatInput) {
+    var popup = document.getElementById("mentionPopup");
+    var dataBox = document.getElementById("mentionData");
+    if (!popup || !dataBox) return;
+
+    var members = [];
+    Array.prototype.forEach.call(dataBox.children, function(el) {
+        members.push({ name: el.getAttribute("data-name") || "", username: el.getAttribute("data-username") || "" });
+    });
+    if (members.length === 0) return;
+
+    var matches = [];
+    var activeIdx = 0;
+    var atPos = -1;
+
+    function close() {
+        popup.hidden = true;
+        popup.innerHTML = "";
+        matches = [];
+        atPos = -1;
+    }
+
+    // Tìm "@truy vấn" ngay trước con trỏ (dấu @ phải đứng đầu hoặc sau khoảng trắng)
+    function currentQuery() {
+        var caret = chatInput.selectionStart;
+        var before = chatInput.value.slice(0, caret);
+        var m = /(^|\s)@([^@\n]{0,30})$/.exec(before);
+        if (!m) return null;
+        return { start: caret - m[2].length - 1, text: m[2] };
+    }
+
+    function render() {
+        popup.innerHTML = "";
+        matches.forEach(function(u, i) {
+            var li = document.createElement("li");
+            li.setAttribute("role", "option");
+            li.className = "chat-mention-item" + (i === activeIdx ? " active" : "");
+            li.textContent = u.name + (u.username ? "  (@" + u.username + ")" : "");
+            // mousedown (không phải click) để ô input không bị mất focus trước khi chèn
+            li.addEventListener("mousedown", function(e) {
+                e.preventDefault();
+                pick(i);
+            });
+            popup.appendChild(li);
+        });
+        popup.hidden = matches.length === 0;
+    }
+
+    function pick(i) {
+        var u = matches[i];
+        if (!u || atPos < 0) return;
+        var value = chatInput.value;
+        var caret = chatInput.selectionStart;
+        var insert = "@" + u.name + " ";
+        chatInput.value = value.slice(0, atPos) + insert + value.slice(caret);
+        var pos = atPos + insert.length;
+        chatInput.setSelectionRange(pos, pos);
+        saveDraft(chatInput.value);
+        close();
+        chatInput.focus();
+    }
+
+    function update() {
+        var q = currentQuery();
+        if (!q) { close(); return; }
+        var needle = q.text.toLowerCase();
+        matches = members.filter(function(u) {
+            return u.name.toLowerCase().indexOf(needle) !== -1 || u.username.toLowerCase().indexOf(needle) !== -1;
+        }).slice(0, 6);
+        atPos = q.start;
+        activeIdx = 0;
+        render();
+    }
+
+    chatInput.addEventListener("input", update);
+    chatInput.addEventListener("click", update);
+    chatInput.addEventListener("blur", function() { setTimeout(close, 120); });
+
+    // capture = true để chạy trước các handler keydown khác (Escape đóng emoji drawer...)
+    chatInput.addEventListener("keydown", function(e) {
+        if (popup.hidden || matches.length === 0) return;
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            activeIdx = (activeIdx + 1) % matches.length;
+            render();
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            activeIdx = (activeIdx - 1 + matches.length) % matches.length;
+            render();
+        } else if (e.key === "Enter" || e.key === "Tab") {
+            e.preventDefault();
+            pick(activeIdx);
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            close();
+        }
+    }, true);
+}
+
 function initChatForm() {
     var chatForm = document.getElementById("chatForm");
     var chatInput = document.getElementById("chatInput");
     var btnSend = document.getElementById("btnSend");
 
     if (!chatForm || !chatInput || !btnSend) return;
+
+    initMentionAutocomplete(chatInput);
 
     // Lắng nghe gõ phím để lưu nháp liên tục
     chatInput.addEventListener("input", function() {

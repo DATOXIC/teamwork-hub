@@ -972,3 +972,30 @@
     color: var(--chat-text-primary);
 }
 
+
+/* Gợi ý @mention khi gõ "@" trong ô chat */
+.chat-mention-popup {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 6px);
+    min-width: 240px;
+    max-width: 100%;
+    z-index: 30;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    background: var(--bs-body-bg, #fff);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+.chat-mention-popup[hidden] { display: none; }
+.chat-mention-item {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--bs-body-color, inherit);
+}
+.chat-mention-item.active,
+.chat-mention-item:hover {
+    background: rgba(13, 110, 253, 0.14);
+}

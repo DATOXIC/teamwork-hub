@@ -86,7 +86,9 @@
                 <!-- =========================================================
                      1. QUẢ CHUÔNG THÔNG BÁO THỜI GIAN THỰC (NOTIFICATION BELL)
                      ========================================================= -->
-                <div class="dropdown ${not empty sessionScope.currentUser ? '' : 'd-none'}">
+                <div class="dropdown ${not empty sessionScope.currentUser ? '' : 'd-none'}" id="notifBellWrap"
+                     data-poll-url="${pageContext.request.contextPath}/notification?action=poll"
+                     data-unread="${empty unreadNotifCount ? 0 : unreadNotifCount}">
                     <button class="btn navbar-bell-btn position-relative shadow-sm" 
                             type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" 
                             title="Trung tâm thông báo">

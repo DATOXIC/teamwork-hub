@@ -65,6 +65,12 @@ public class NotificationServlet extends BaseServlet {
         }
 
         switch (action) {
+            case "poll":
+                // Trình duyệt hỏi định kỳ số thông báo chưa đọc để chuông 🔔 tự cập nhật không cần F5
+                response.setContentType("application/json;charset=UTF-8");
+                response.setHeader("Cache-Control", "no-store");
+                response.getWriter().write("{\"unread\":" + NotificationDB.countUnread(currentUser.getId()) + "}");
+                break;
             case "read":
                 handleMarkAsReadAndRedirect(request, response, currentUser);
                 break;

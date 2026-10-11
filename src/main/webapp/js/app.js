@@ -641,6 +641,42 @@
         });
     }
 
+    // =========================================================================
+    // CHUÔNG THÔNG BÁO TỰ CẬP NHẬT: mỗi 5s hỏi số thông báo chưa đọc; khi có tin mới (vd được
+    // @nhắc tên trong chat) thì tải lại phần chuông từ chính trang hiện tại, không cần F5.
+    // Không thay chuông khi dropdown đang mở để khỏi giật khi người dùng đang đọc.
+    // =========================================================================
+    if (!window.__notifPollInstalled) {
+        window.__notifPollInstalled = true;
+        var NOTIF_POLL_MS = 5000;
+        var notifBusy = false;
+
+        var pollNotifications = function () {
+            var wrap = document.getElementById('notifBellWrap');
+            if (!wrap || notifBusy || document.hidden) return;
+            var url = wrap.getAttribute('data-poll-url');
+            var known = parseInt(wrap.getAttribute('data-unread'), 10) || 0;
+            notifBusy = true;
+            fetch(url, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (res) { return res.ok ? res.json() : null; })
+                .then(function (data) {
+                    if (!data || typeof data.unread !== 'number' || data.unread === known) return null;
+                    var btn = wrap.querySelector('[data-bs-toggle="dropdown"]');
+                    if (btn && btn.classList.contains('show')) return null; // thử lại ở lần poll sau
+                    return fetch(window.location.href, { credentials: 'same-origin' })
+                        .then(function (r) { return r.text(); })
+                        .then(function (html) {
+                            var fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('notifBellWrap');
+                            var current = document.getElementById('notifBellWrap');
+                            if (fresh && current) current.replaceWith(fresh);
+                        });
+                })
+                .catch(function () { /* mạng chập chờn: bỏ qua, lần sau thử lại */ })
+                .then(function () { notifBusy = false; });
+        };
+        setInterval(pollNotifications, NOTIF_POLL_MS);
+    }
+
 })();
 
 
