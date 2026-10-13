@@ -82,15 +82,9 @@ input, select, textarea, button {
     color: var(--brand-accent) !important;
 }
 
-.bg-navy-subtle {
-    background-color: var(--c-x-blue-800) !important;
-    border: 1px solid var(--c-x-blue-700-2) !important;
-}
 
-.hover-light:hover {
-    background-color: rgba(255, 255, 255, 0.12) !important;
-    color: var(--c-white) !important;
-}
+
+
 
 /* Buttons */
 .btn-primary-custom {
@@ -114,17 +108,10 @@ input, select, textarea, button {
     height: 28px;
 }
 
-.avatar-md {
-    width: 40px;
-    height: 40px;
-}
+
 
 /* Auth Cards (Basecamp / Notion Style) */
-.auth-card {
-    border-radius: 16px;
-    border: 1px solid var(--brand-border);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-}
+
 
 .form-control:focus,
 .form-select:focus {

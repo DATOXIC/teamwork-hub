@@ -25,7 +25,6 @@ public class JPAUtil {
 
     private static volatile EntityManagerFactory emf;
     private static String persistenceUnitName = "teamwork-cloud"; // Mặc định Cloud Supabase
-    // private static String persistenceUnitName = "teamwork-sqlserver";
 
     // Thông tin kết nối ghi đè lên persistence.xml (mật khẩu KHÔNG được nằm trong code/repo)
     private static final Map<String, String> CONNECTION_OVERRIDES = new HashMap<>();

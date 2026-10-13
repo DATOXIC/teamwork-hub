@@ -84,36 +84,13 @@
     min-height: calc(100vh - 65px);
 }
 
-.timeline-subnav {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--gantt-grid-border);
-    backdrop-filter: blur(12px);
-    transition: all 0.2s ease;
-}
 
-.timeline-subnav-tabs .timeline-tab-link {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.9rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--bs-secondary-color);
-    text-decoration: none;
-    border-radius: 9999px;
-    transition: all 0.15s ease-in-out;
-}
 
-.timeline-subnav-tabs .timeline-tab-link:hover {
-    color: var(--bs-primary);
-    background-color: rgba(var(--bs-primary-rgb), 0.08);
-}
 
-.timeline-subnav-tabs .timeline-tab-link.active {
-    background-color: var(--bs-primary);
-    color: var(--c-white) !important;
-    font-weight: 600;
-    box-shadow: 0 2px 6px rgba(var(--bs-primary-rgb), 0.35);
-}
+
+
+
+
 
 /* ==========================================================================
    2. BENTO SUMMARY KPI CARDS
@@ -261,7 +238,7 @@
     transition: background-color 0.15s ease;
 }
 
-.gantt-task-row-left:hover, .gantt-task-row-left.is-hovered {
+.gantt-task-row-left:hover{
     background-color: rgba(var(--bs-primary-rgb), 0.06);
 }
 
@@ -281,9 +258,7 @@
     background-color: var(--c-amber-500);
 }
 
-.gantt-priority-dot.low {
-    background-color: var(--c-emerald-500);
-}
+
 
 .gantt-task-title-cell {
     flex-grow: 1;
@@ -311,55 +286,19 @@
     user-select: none;
 }
 
-.gantt-header-tier-months {
-    display: flex;
-    height: 32px;
-    border-bottom: 1px solid var(--gantt-grid-border);
-}
 
-.gantt-month-block {
-    display: flex;
-    align-items: center;
-    padding-left: 0.75rem;
-    font-size: 0.775rem;
-    font-weight: 700;
-    color: var(--bs-secondary-color);
-    border-right: 1px solid var(--gantt-grid-border);
-    white-space: nowrap;
-}
 
-.gantt-header-tier-days {
-    display: flex;
-    height: 36px;
-}
 
-.gantt-day-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: var(--timeline-day-width);
-    flex-shrink: 0;
-    border-right: 1px solid var(--gantt-grid-border);
-    font-size: 0.7rem;
-    color: var(--bs-secondary-color);
-}
 
-.gantt-day-cell.is-weekend {
-    background-color: var(--gantt-weekend-bg);
-}
 
-.gantt-day-cell.is-today {
-    background-color: rgba(239, 68, 68, 0.12);
-    font-weight: 700;
-    color: var(--gantt-today-line);
-}
 
-.gantt-day-number {
-    font-weight: 600;
-    font-size: 0.75rem;
-    line-height: 1;
-}
+
+
+
+
+
+
+
 
 /* Lưới nền các cột ngày */
 .gantt-grid-canvas {
@@ -367,86 +306,27 @@
     min-height: 100%;
 }
 
-.gantt-column-strip {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    border-right: 1px solid var(--gantt-grid-border);
-    pointer-events: none;
-}
 
-.gantt-column-strip.is-weekend {
-    background-color: var(--gantt-weekend-bg);
-    opacity: 0.6;
-}
+
+
 
 /* Đường kẻ đỏ mốc Hôm Nay (Today Line) */
-.gantt-today-marker-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background-color: var(--gantt-today-line);
-    z-index: 6;
-    pointer-events: none;
-}
 
-.gantt-today-badge-pin {
-    position: sticky;
-    top: 68px;
-    left: -22px;
-    transform: translateX(-50%);
-    background: var(--gantt-today-line);
-    color: var(--c-white);
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 9999px;
-    white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
-    z-index: 7;
-}
+
+
 
 /* Hàng trên Canvas tương ứng với bên trái */
-.gantt-task-row-canvas {
-    height: var(--timeline-row-height);
-    position: relative;
-    border-bottom: 1px solid var(--gantt-grid-border);
-    display: flex;
-    align-items: center;
-    transition: background-color 0.15s ease;
-}
 
-.gantt-task-row-canvas:hover, .gantt-task-row-canvas.is-hovered {
-    background-color: rgba(var(--bs-primary-rgb), 0.06);
-}
+
+
 
 /* ==========================================================================
    5. THANH TIẾN ĐỘ GANTT (GANTT BARS)
    ========================================================================== */
 
-.gantt-bar {
-    position: absolute;
-    height: 30px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    padding: 0 10px;
-    cursor: pointer;
-    overflow: hidden;
-    user-select: none;
-    font-size: 0.775rem;
-    font-weight: 600;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-    z-index: 4;
-}
 
-.gantt-bar:hover {
-    transform: translateY(-1px) scale(1.01);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
-    z-index: 9;
-}
+
+
 
 /* Tỷ lệ tiến độ việc con tô đậm bên trong thanh bar */
 .gantt-bar-progress-fill {
@@ -475,58 +355,23 @@
 }
 
 /* Các biến thể màu sắc theo trạng thái */
-.gantt-bar.status-todo {
-    background-color: var(--gantt-todo-bg);
-    border: 1px solid var(--gantt-todo-border);
-    color: var(--gantt-todo-text);
-}
-.gantt-bar.status-todo .gantt-bar-progress-fill {
-    background-color: var(--gantt-todo-fill);
-}
 
-.gantt-bar.status-in_progress, .gantt-bar.status-planning, .gantt-bar.status-revise {
-    background-color: var(--gantt-prog-bg);
-    border: 1px solid var(--gantt-prog-border);
-    color: var(--gantt-prog-text);
-}
-.gantt-bar.status-in_progress .gantt-bar-progress-fill,
-.gantt-bar.status-planning .gantt-bar-progress-fill,
-.gantt-bar.status-revise .gantt-bar-progress-fill {
-    background-color: var(--gantt-prog-fill);
-}
 
-.gantt-bar.status-submitted {
-    background-color: var(--gantt-subm-bg);
-    border: 1px solid var(--gantt-subm-border);
-    color: var(--gantt-subm-text);
-}
-.gantt-bar.status-submitted .gantt-bar-progress-fill {
-    background-color: var(--gantt-subm-fill);
-}
 
-.gantt-bar.status-done, .gantt-bar.status-approved {
-    background-color: var(--gantt-done-bg);
-    border: 1px solid var(--gantt-done-border);
-    color: var(--gantt-done-text);
-}
-.gantt-bar.status-done .gantt-bar-progress-fill,
-.gantt-bar.status-approved .gantt-bar-progress-fill {
-    background-color: var(--gantt-done-fill);
-}
 
-.gantt-bar.is-overdue {
-    background-color: var(--gantt-overdue-bg) !important;
-    border: 1.5px solid var(--gantt-overdue-border) !important;
-    color: var(--gantt-overdue-text) !important;
-}
-.gantt-bar.is-overdue .gantt-bar-progress-fill {
-    background-color: var(--gantt-overdue-fill) !important;
-}
+
+
+
+
+
+
+
+
+
+
 
 /* Dấu hiệu cảnh báo trễ hạn nhấp nháy nhẹ */
-.gantt-overdue-pulse {
-    animation: overduePulse 2s infinite ease-in-out;
-}
+
 
 @keyframes overduePulse {
     0%, 100% { opacity: 1; }
@@ -568,28 +413,13 @@
    7. MODAL VÀ TOOLTIP CHI TIẾT
    ========================================================================== */
 
-.gantt-tooltip-popover {
-    position: fixed;
-    z-index: 1050;
-    background: var(--bs-body-bg);
-    border: 1px solid var(--gantt-grid-border);
-    border-radius: 0.75rem;
-    padding: 0.75rem 1rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    font-size: 0.785rem;
-    pointer-events: none;
-    max-width: 280px;
-    opacity: 0;
-    transition: opacity 0.15s ease;
-}
 
-.gantt-tooltip-popover.visible {
-    opacity: 1;
-}
+
+
 
 /* In ấn (A4 Landscape Print) */
 @media print {
-    .timeline-subnav, .timeline-toolbar, .no-print, .btn, .navbar, .gantt-unscheduled-tray {
+     .timeline-toolbar, .no-print, .btn, .navbar, .gantt-unscheduled-tray {
         display: none !important;
     }
     .gantt-split-wrapper {
@@ -639,24 +469,13 @@
     background: var(--bs-body-bg);
 }
 
-.gantt .grid-header {
-    fill: var(--gantt-header-bg);
-    stroke: var(--gantt-grid-border);
-    stroke-width: 1;
-}
 
-.gantt .grid-row {
-    fill: var(--bs-body-bg);
-    transition: fill 0.15s ease;
-}
 
-.gantt .grid-row:nth-child(even) {
-    fill: var(--c-slate-50, #f8fafc);
-}
 
-[data-bs-theme="dark"] .gantt .grid-row:nth-child(even) {
-    fill: rgba(255, 255, 255, 0.02);
-}
+
+
+
+
 
 .gantt .row-line {
     stroke: var(--gantt-grid-border);
@@ -701,9 +520,7 @@
     pointer-events: none;
 }
 
-.gantt .bar-label.big {
-    fill: var(--bs-body-color);
-}
+
 
 /* Palette màu các trạng thái thanh Gantt */
 /* 1. Hoàn thành (DONE) */
@@ -796,9 +613,7 @@
 }
 
 /* Tooltip Popup tuỳ biến */
-.gantt-container .popup-wrapper {
-    z-index: 1050;
-}
+
 
 .gantt-custom-popup {
     animation: ganttPopupFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);

@@ -3,7 +3,6 @@ package com.teamwork.controllers;
 import com.teamwork.controllers.task.TaskAccess;
 import com.teamwork.business.SubTaskStatus;
 import com.teamwork.business.TaskStatus;
-import com.teamwork.business.ActivityLog;
 import com.teamwork.business.Project;
 import com.teamwork.business.ProjectMember;
 import com.teamwork.business.SubTask;
@@ -34,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**

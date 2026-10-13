@@ -2,7 +2,6 @@ package com.teamwork.data;
 
 import com.teamwork.business.Task;
 import com.teamwork.business.TaskDependency;
-import com.teamwork.business.TaskStatus;
 import com.teamwork.business.gantt.CascadeScheduler;
 import com.teamwork.business.gantt.DependencyGraph;
 import jakarta.persistence.EntityManager;

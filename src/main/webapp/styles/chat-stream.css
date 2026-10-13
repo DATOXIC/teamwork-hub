@@ -19,9 +19,7 @@
     margin-right: 48px;
 }
 
-.chat-card-container {
-    height: clamp(500px, 75vh, calc(100dvh - 160px));
-}
+
 
 .chat-bubble-me {
     background-color: var(--c-indigo-600);
@@ -59,27 +57,14 @@
 }
 
 /* Chuẩn WCAG AA: Đảm bảo tỷ lệ tương phản >= 4.5:1 */
-.chat-time-me {
-    color: rgba(255, 255, 255, 0.92);
-    font-size: 0.725rem;
-    font-weight: 500;
-}
 
-.chat-time-other {
-    color: var(--c-aa-slate-500); /* Slate-500: Tương phản 4.6:1 trên nền trắng */
-    font-size: 0.725rem;
-    font-weight: 500;
-}
+
+
 
 /* Focus ring tinh tế cho ô chat */
-.chat-input-group {
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
-}
 
-.chat-input-group:focus-within {
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25) !important;
-    border-radius: 9999px;
-}
+
+
 
 /* Thanh tab điều hướng phân hệ trượt ngang mượt mà trên mobile */
 .subnav-tabs-scroll {
@@ -116,7 +101,5 @@
     .chat-bubble-other {
         max-width: 92%;
     }
-    .chat-card-container {
-        height: clamp(440px, 78vh, calc(100dvh - 120px));
-    }
+    
 }

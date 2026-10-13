@@ -151,53 +151,17 @@ body {
 /* --------------------------------------------------------------------------
    3. STICKY GLASSMORPHIC SUB-NAV (THANH ĐIỀU HƯỚNG NỔI HÍT TRẦN)
    -------------------------------------------------------------------------- */
-.report-sticky-nav {
-    position: sticky;
-    top: 56px;
-    z-index: 1010;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    background-color: var(--rep-bg-nav);
-    border-bottom: 1px solid var(--rep-border-hairline);
-    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-}
 
-.report-sticky-nav.is-stuck {
-    box-shadow: 0 4px 20px rgba(57, 88, 134, 0.10);
-}
 
-.report-nav-pill-group {
-    display: inline-flex;
-    align-items: center;
-    background: var(--c-ocean-75);
-    border-radius: 9999px;
-    padding: 3px;
-    border: 1px solid var(--c-ocean-200);
-}
 
-.report-nav-pill {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    padding: 5px 14px;
-    border-radius: 9999px;
-    color: var(--c-ocean-700);
-    text-decoration: none;
-    transition: all 0.15s ease;
-    user-select: none;
-}
 
-.report-nav-pill:hover {
-    color: var(--c-ocean-900);
-    background-color: rgba(255, 255, 255, 0.6);
-}
 
-.report-nav-pill.active {
-    background-color: var(--c-white);
-    color: var(--c-ocean-700);
-    font-weight: 700;
-    box-shadow: 0 1px 3px rgba(57, 88, 134, 0.12);
-    border: 1px solid var(--c-ocean-200);
-}
+
+
+
+
+
+
 
 /* Theme Toggle Button (Light / Dark Switcher) */
 .theme-toggle-btn {
@@ -719,51 +683,25 @@ body {
         white-space: nowrap;
     }
     
-    .report-sticky-nav {
-        top: 0;
-    }
+    
 }
 
 /* ==========================================================================
    14B. SEMANTIC REPORT COMPONENT CLASSES (M2 REFACTORING)
    ========================================================================== */
-.report-btn-back {
-    background-color: var(--rep-bg-surface);
-    color: var(--rep-text-secondary);
-    border: 1px solid var(--rep-border-hairline);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-.report-btn-back:hover {
-    border-color: var(--c-ocean-400);
-    background-color: var(--rep-bg-canvas);
-    color: var(--rep-text-primary);
-}
 
-.report-btn-back-icon {
-    color: var(--rep-accent-vibrant);
-}
 
-.report-nav-divider {
-    border-color: var(--rep-border-hairline) !important;
-}
 
-.report-code-badge {
-    background-color: var(--c-ocean-100);
-    color: var(--c-ocean-700);
-    border: 1px solid var(--c-ocean-300);
-}
 
-[data-theme="dark"] .report-code-badge {
-    background-color: var(--c-ocean-900);
-    color: var(--c-ocean-400);
-    border-color: rgba(138, 174, 224, 0.3);
-}
 
-.report-title-truncate {
-    max-width: 240px;
-    color: var(--rep-text-primary);
-}
+
+
+
+
+
+
+
 
 .report-banner-content {
     position: relative;
@@ -890,13 +828,11 @@ body {
     .footer,
     .no-print,
     .btn,
-    .breadcrumb,
     .dropdown,
     #copyToast,
     .toast,
     .modal,
     header,
-    .report-sticky-nav,
     .theme-toggle-btn {
         display: none !important;
         visibility: hidden !important;
@@ -1131,7 +1067,5 @@ body {
         page-break-inside: avoid;
     }
 
-    .page-break {
-        page-break-before: always;
-    }
+    
 }

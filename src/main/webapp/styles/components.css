@@ -276,17 +276,8 @@ body:has(.hero-scrolltelling) .app-navbar {
 }
 
 /* Khung xương (skeleton) khi nội dung đang tải */
-.skeleton {
-    display: block;
-    border-radius: var(--radius-sm);
-    background: linear-gradient(90deg, var(--c-slate-100) 25%, var(--c-slate-200) 37%, var(--c-slate-100) 63%);
-    background-size: 400% 100%;
-    animation: skeleton-shimmer 1.4s ease infinite;
-}
-[data-theme="dark"] .skeleton {
-    background: linear-gradient(90deg, var(--c-night-700) 25%, var(--c-slate-800) 37%, var(--c-night-700) 63%);
-    background-size: 400% 100%;
-}
+
+
 @keyframes skeleton-shimmer {
     0% { background-position: 100% 50%; }
     100% { background-position: 0 50%; }
@@ -324,7 +315,7 @@ body:has(.hero-scrolltelling) .app-navbar {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .skeleton { animation: none; }
+    
     .app-progress, .app-progress.is-active { transition: opacity 0.2s ease; }
 }
 

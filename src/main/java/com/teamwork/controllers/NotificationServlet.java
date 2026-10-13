@@ -1,6 +1,5 @@
 package com.teamwork.controllers;
 
-import com.teamwork.business.Notification;
 import com.teamwork.business.User;
 import com.teamwork.data.NotificationDB;
 import com.teamwork.util.RedirectUtil;

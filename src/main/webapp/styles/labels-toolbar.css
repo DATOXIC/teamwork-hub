@@ -38,12 +38,7 @@
 /* ==========================================================================
    ClickUp 3.0 Toolbar Avatars & Assignee Filter
    ========================================================================== */
-.clickup-assignee-toolbar {
-    background-color: var(--c-white);
-    border: 1px solid var(--c-slate-100);
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-}
+
 .assignee-avatar-btn {
     border: none;
     background: transparent;

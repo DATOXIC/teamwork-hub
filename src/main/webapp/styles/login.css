@@ -541,9 +541,7 @@
 [data-theme="dark"] .login-form-panel,
 [data-bs-theme="dark"] .login-form-panel,
 [data-theme="dark"] .login-card,
-[data-bs-theme="dark"] .login-card,
-[data-theme="dark"] .login-form-card,
-[data-bs-theme="dark"] .login-form-card {
+[data-bs-theme="dark"] .login-card{
     background-color: var(--c-night-800) !important;
     border: 1px solid rgba(255, 255, 255, 0.09) !important;
     color: var(--c-slate-100) !important;
@@ -551,16 +549,12 @@
 }
 
 [data-theme="dark"] .login-card-header h3,
-[data-bs-theme="dark"] .login-card-header h3,
-[data-theme="dark"] .login-form-header h2,
-[data-bs-theme="dark"] .login-form-header h2 {
+[data-bs-theme="dark"] .login-card-header h3{
     color: var(--c-slate-100) !important;
 }
 
 [data-theme="dark"] .login-card-header p,
-[data-bs-theme="dark"] .login-card-header p,
-[data-theme="dark"] .login-form-header p,
-[data-bs-theme="dark"] .login-form-header p {
+[data-bs-theme="dark"] .login-card-header p{
     color: var(--c-slate-400) !important;
 }
 
@@ -649,18 +643,9 @@
     color: var(--c-blue-400);
 }
 
-[data-theme="dark"] .login-demo-badge,
-[data-bs-theme="dark"] .login-demo-badge {
-    background-color: var(--c-night-700);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: var(--c-slate-300);
-}
 
-[data-theme="dark"] .login-footer-panel,
-[data-bs-theme="dark"] .login-footer-panel {
-    background-color: var(--c-night-900);
-    border-top-color: rgba(255, 255, 255, 0.08);
-}
+
+
 /* ── Tài khoản mẫu thử nghiệm (đăng nhập nhanh cho buổi demo) ── */
 .quick-login-section {
     margin-top: 18px;

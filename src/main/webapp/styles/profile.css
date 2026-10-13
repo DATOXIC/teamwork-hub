@@ -235,11 +235,7 @@
     border: 1px solid var(--c-emerald-200);
 }
 
-.stat-icon-wrapper--info {
-    background: var(--c-sky-50);
-    color: var(--c-aa-sky-600);
-    border: 1px solid var(--c-sky-200);
-}
+
 
 .stat-number-display {
     font-size: clamp(1.6rem, 2.5vw, 2.1rem);

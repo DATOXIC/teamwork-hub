@@ -115,15 +115,7 @@
 /* =====================================================
    4. GLASS SUBNAV & HEADER
    ===================================================== */
-.chat-subnav {
-    background: var(--chat-glass-surface);
-    backdrop-filter: var(--chat-glass-blur);
-    -webkit-backdrop-filter: var(--chat-glass-blur);
-    border: 1px solid var(--chat-glass-border);
-    box-shadow: var(--chat-shadow-glass);
-    border-radius: var(--chat-radius-card);
-    transition: all 0.25s ease;
-}
+
 
 .chat-subnav-btn-back {
     color: var(--chat-text-secondary);
@@ -138,44 +130,16 @@
     transform: translateX(-2px);
 }
 
-.chat-subnav-title {
-    color: var(--chat-text-primary) !important;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-}
+
 
 /* Pill Tabs */
-.chat-subnav-tabs {
-    background: var(--chat-glass-surface-subtle);
-    border: 1px solid var(--chat-glass-border-subtle);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
 
-.chat-tab-link {
-    color: var(--chat-text-secondary) !important;
-    border-radius: var(--chat-radius-pill);
-    padding: 5px 14px;
-    font-size: 0.82rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-}
 
-.chat-tab-link:hover {
-    color: var(--chat-text-primary) !important;
-    background: var(--chat-glass-surface-hover);
-}
 
-.chat-tab-link.active {
-    background: var(--chat-glass-surface);
-    color: var(--chat-accent) !important;
-    font-weight: 700;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border: 1px solid var(--chat-glass-border);
-}
+
+
+
+
 
 /* Live Pulse Badge */
 .chat-pulse-badge {
@@ -858,11 +822,7 @@
 /* =====================================================
    10. MODAL GLASSMORPHISM & DIALOG POLISH
    ===================================================== */
-.modal-backdrop.show {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    background-color: rgba(15, 23, 42, 0.45);
-}
+
 
 .modal-content.chat-sidebar-card {
     border-radius: var(--chat-radius-card) !important;

@@ -26,9 +26,7 @@
  * Hiệu ứng tương tác con trỏ dạng bàn tay cho các thẻ badge/chip có thể bấm
  * Interactive clickable badge pointer
  */
-.cursor-pointer {
-    cursor: pointer;
-}
+
 
 /* ==========================================================================
    2. AUTHENTICATION & LOGIN COMPONENTS (login.jsp)
@@ -282,9 +280,7 @@
     border-color: var(--c-x-neutral-50) !important;
 }
 
-.border-divider-subtle {
-    border-color: var(--c-x-neutral-50) !important;
-}
+
 
 /**
  * Nút chấp thuận gia nhập dự án với dải gradient thành công
@@ -424,9 +420,7 @@
     border: 1px solid var(--c-ocean-200);
 }
 
-.workspace-info-hint {
-    color: var(--c-aa-ocean-slate);
-}
+
 
 .project-avatar-monogram-subtle {
     background-color: var(--c-ocean-50);
@@ -470,45 +464,25 @@
  * Nút quay về danh sách dự án
  * Back to project dashboard pill button
  */
-.report-btn-back {
-    background-color: var(--c-white);
-    color: var(--c-ocean-700);
-    border: 1px solid var(--c-ocean-200);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-.report-btn-back:hover {
-    border-color: var(--c-ocean-400);
-    background-color: var(--c-ocean-50);
-    color: var(--c-ocean-900);
-}
 
-.report-btn-back-icon {
-    color: var(--c-aa-ocean-500);
-}
 
-.report-nav-divider {
-    border-color: var(--c-ocean-200) !important;
-}
+
+
+
+
 
 /**
  * Huy hiệu mã định danh dự án trên thanh header/subnav
  * Project code badge pill on report header
  */
-.report-code-badge {
-    background-color: var(--c-ocean-100);
-    color: var(--c-ocean-700);
-    border: 1px solid var(--c-ocean-300);
-}
+
 
 /**
  * Tiêu đề dự án cắt ngắn trên subnav
  * Truncated project title text in sticky subnav
  */
-.report-title-truncate {
-    max-width: 240px;
-    color: var(--c-ocean-900);
-}
+
 
 /**
  * Khung nội dung chính của banner báo cáo
@@ -686,10 +660,7 @@
  * Vùng thả thẻ công việc khi kéo thả HTML5
  * Kanban dropzone for drag-and-drop
  */
-.kanban-dropzone {
-    min-height: 120px;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
+
 
 /**
  * Thẻ công việc chuẩn trên bảng Kanban
@@ -716,11 +687,7 @@
  * Menu popover nổi đổi trạng thái nhanh phong cách ClickUp
  * Floating status popover menu
  */
-.clickup-status-popover {
-    position: fixed;
-    display: none;
-    z-index: 999999;
-}
+
 
 .task-title-truncate-sm {
     max-width: 130px;
@@ -1367,10 +1334,7 @@
     border: 1px solid rgba(16, 185, 129, 0.25) !important;
 }
 
-[data-theme="dark"] .workspace-info-hint,
-[data-bs-theme="dark"] .workspace-info-hint {
-    color: var(--c-slate-500) !important;
-}
+
 
 [data-theme="dark"] .invite-alert-pill,
 [data-bs-theme="dark"] .invite-alert-pill {
@@ -1609,12 +1573,7 @@
     color: var(--c-slate-400) !important;
 }
 
-[data-theme="dark"] .clickup-subtasks-split-btn .btn,
-[data-bs-theme="dark"] .clickup-subtasks-split-btn .btn {
-    background-color: var(--c-night-700) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
-    color: var(--c-slate-300) !important;
-}
+
 
 [data-theme="dark"] .clickup-status-dropdown-menu,
 [data-bs-theme="dark"] .clickup-status-dropdown-menu {
@@ -1810,12 +1769,7 @@
     color: var(--c-slate-300) !important;
 }
 
-[data-theme="dark"] .feature-card-modern,
-[data-bs-theme="dark"] .feature-card-modern {
-    background-color: var(--c-night-800) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: var(--c-slate-100) !important;
-}
+
 
 /* 27.9 Bảng vẽ & Phòng họp */
 [data-theme="dark"] .wb-frame,

@@ -90,38 +90,15 @@
     margin-bottom: 14px;
 }
 
-.subtask-item {
-    background-color: var(--c-white);
-    border: 1px solid var(--c-slate-200);
-    border-radius: 8px;
-    padding: 10px 14px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
 
-.subtask-item:hover {
-    border-color: var(--c-slate-300);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
-}
 
-.subtask-item.subtask-approved {
-    background-color: var(--c-slate-50);
-    border-color: var(--c-slate-200);
-    opacity: 0.85;
-}
 
-.subtask-add-card {
-    background-color: var(--c-slate-50);
-    border: 1px dashed var(--c-slate-300);
-    border-radius: 8px;
-    padding: 12px 16px;
-    transition: all 0.15s ease;
-}
 
-.subtask-add-card:focus-within {
-    background-color: var(--c-white);
-    border-color: var(--c-indigo-600);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
-}
+
+
+
+
+
 
 /* ==========================================================================
    Wiki Documents & Quality Gate Cards — Modern UI
@@ -162,7 +139,4 @@
     border-left: 3.5px solid var(--c-emerald-500);
 }
 
-.gate-card-warning {
-    background-color: var(--c-slate-50);
-    border-left: 3.5px solid var(--c-amber-500);
-}
+
