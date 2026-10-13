@@ -177,7 +177,7 @@ Mọi lớp Model đều phải triển khai `java.io.Serializable`, có constru
 | `assigneeId` | `int` | ID người được giao việc |
 | `assigneeName`| `String` | Tên người phụ trách (phục vụ EL hiển thị) |
 
-### 5.4. Thực thể `Document.java`
+### 5.4. Thực thể `Doc.java`
 | Thuộc tính | Kiểu dữ liệu | Mô tả |
 | :--- | :--- | :--- |
 | `id` | `int` | Khóa chính tài liệu |
@@ -233,10 +233,10 @@ Mọi lớp Model đều phải triển khai `java.io.Serializable`, có constru
 
 #### UC06: Cập Nhật Trạng Thái Task Bằng Kéo Thả (Drag & Drop Kanban)
 * **Tác nhân:** Thành viên, Trưởng nhóm.
-* **Tiền điều kiện:** Đang xem bảng Kanban tại `kanban.jsp`.
+* **Tiền điều kiện:** Đang xem bảng Kanban tại `tasks.jsp`.
 * **Luồng sự kiện chính:**
   1. Người dùng cầm chuột kéo thẻ Task từ cột `TODO` thả sang cột `IN_PROGRESS`.
-  2. JavaScript (`kanban.js`) bắt sự kiện `drop`, lấy `taskId` và `newStatus`.
+  2. JavaScript (`tasks-board.js`) bắt sự kiện `drop`, lấy `taskId` và `newStatus`.
   3. Gửi HTTP POST tới `/task` với tham số `action=updateStatus&taskId=...&newStatus=IN_PROGRESS&projectId=...`.
   4. `TaskServlet` nhận request, gọi `TaskDB.updateStatus(taskId, newStatus)`.
   5. Servlet forward/redirect về `/task?action=list&projectId=...` để cập nhật giao diện đồng bộ.
@@ -275,7 +275,7 @@ Mọi lớp Model đều phải triển khai `java.io.Serializable`, có constru
 
 ### 7.6. Phân Hệ 6: Báo Cáo & Xử Lý Lỗi Hệ Thống
 * **Biểu đồ tiến độ dự án:** Vẽ thanh tiến độ (Progress Bar) phần trăm hoàn thành bằng CSS/HTML5.
-* **Trang thông báo lỗi chuẩn:** Trang `error_404.jsp` (khi gõ sai đường dẫn) và `error_java.jsp` (khi phát sinh lỗi ngoại lệ) cấu hình tự động trong `web.xml`.
+* **Trang thông báo lỗi chuẩn:** Trang `404.jsp` (khi gõ sai đường dẫn) và `500.jsp` (khi phát sinh lỗi ngoại lệ) cấu hình tự động trong `web.xml`.
 
 ---
 
@@ -285,18 +285,18 @@ Toàn bộ mapping được đăng ký trong `WEB-INF/web.xml`:
 
 | URL Pattern | Servlet Class | HTTP Method | `action` param | Nghiệp vụ xử lý | View JSP đích |
 | :--- | :--- | :---: | :--- | :--- | :--- |
-| `/auth` | `AuthServlet` | POST | `login` | Kiểm tra username/password, tạo Session | `/dashboard.jsp` / `/login.jsp` |
+| `/auth` | `AuthServlet` | POST | `login` | Kiểm tra username/password, tạo Session | `/projects.jsp` / `/login.jsp` |
 | | | POST | `register` | Validate dữ liệu, tạo User mới | `/login.jsp` |
 | | | GET | `logout` | Xóa Session, giải phóng bộ nhớ | `/index.jsp` |
-| `/project` | `ProjectServlet` | GET | `list` | Lấy danh sách dự án của user | `/dashboard.jsp` |
+| `/project` | `ProjectServlet` | GET | `list` | Lấy danh sách dự án của user | `/projects.jsp` |
 | | | POST | `create` | Tạo mới dự án, validate tên dự án | Redirect `/project?action=list` |
-| | | GET | `detail` | Lấy chi tiết dự án, forward sang Kanban | `/kanban.jsp` |
-| `/task` | `TaskServlet` | GET | `list` | Lấy danh sách task theo 3 trạng thái | `/kanban.jsp` |
+| | | GET | `detail` | Lấy chi tiết dự án, forward sang Kanban | `/tasks.jsp` |
+| `/task` | `TaskServlet` | GET | `list` | Lấy danh sách task theo 3 trạng thái | `/tasks.jsp` |
 | | | POST | `add` | Thêm mới task vào cột TODO | Redirect `/task?action=list` |
 | | | POST/GET | `updateStatus`| Cập nhật status của task (`TODO` ➔ `DONE`)| Redirect `/task?action=list` |
 | | | POST | `delete` | Xóa task khỏi dự án | Redirect `/task?action=list` |
 | `/doc` | `DocServlet` | GET | `list` | Lấy toàn bộ tài liệu của dự án | `/docs.jsp` |
-| | | GET | `view` | Xem chi tiết nội dung 1 tài liệu | `/doc_detail.jsp` |
+| | | GET | `view` | Xem chi tiết nội dung 1 tài liệu | `/docs.jsp` |
 | | | POST | `save` | Tạo mới hoặc cập nhật tài liệu | Redirect `/doc?action=list` |
 | `/chat` | `ChatServlet` | GET | `list` | Lấy lịch sử tin nhắn của dự án | `/chat.jsp` |
 | | | POST | `send` | Thêm tin nhắn mới vào dự án | Redirect `/chat?action=list` |
@@ -307,47 +307,30 @@ Toàn bộ mapping được đăng ký trong `WEB-INF/web.xml`:
 
 ```
 teamwork-hub/
-├── src/main/java/
-│   └── com/teamwork/
-│       ├── business/                   # MODEL LAYER (JavaBeans chuẩn)
-│       │   ├── User.java
-│       │   ├── Project.java
-│       │   ├── Task.java
-│       │   ├── Document.java
-│       │   └── Message.java
-│       ├── data/                       # DATA ACCESS LAYER (CRUD Helper)
-│       │   ├── UserDB.java
-│       │   ├── ProjectDB.java
-│       │   ├── TaskDB.java
-│       │   ├── DocumentDB.java
-│       │   └── MessageDB.java
-│       └── controllers/                # CONTROLLER LAYER (Jakarta Servlets)
-│           ├── AuthServlet.java
-│           ├── ProjectServlet.java
-│           ├── TaskServlet.java
-│           ├── DocServlet.java
-│           └── ChatServlet.java
-├── src/main/webapp/
-│   ├── WEB-INF/
-│   │   └── web.xml                     # Deployment Descriptor (BẮT BUỘC)
-│   ├── styles/
-│   │   └── main.css                    # Tùy biến giao diện bổ trợ Bootstrap 5
-│   ├── js/
-│   │   └── kanban.js                   # Xử lý kéo thả HTML5 Drag & Drop
-│   ├── includes/                       # Layout tái sử dụng
-│   │   ├── header.jsp
-│   │   ├── navbar.jsp
-│   │   └── footer.jsp
-│   ├── index.jsp                       # Trang giới thiệu (Landing Page)
-│   ├── login.jsp                       # Trang Đăng nhập & Đăng ký
-│   ├── dashboard.jsp                   # Bảng điều khiển danh sách dự án
-│   ├── kanban.jsp                      # Bảng công việc Kanban kéo thả
-│   ├── docs.jsp                        # Danh sách tài liệu nhóm
-│   ├── doc_detail.jsp                  # Chi tiết / Soạn thảo tài liệu
-│   ├── chat.jsp                        # Kênh thảo luận nhóm
-│   ├── error_404.jsp                   # Trang báo lỗi 404 (Không tìm thấy trang)
-│   └── error_java.jsp                  # Trang báo lỗi 500 (Ngoại lệ Java)
-└── pom.xml                             # Cấu hình Maven Dependencies
+├── src/main/java/com/teamwork/
+│   ├── business/                   # MODEL: Entity JPA (User, Project, Task, SubTask, Doc, Message, ...)
+│   │   ├── analytics/              #   Tính burndown, velocity, workload
+│   │   ├── automation/             #   AutomationEngine (quy tắc tự động)
+│   │   └── gantt/                  #   DependencyGraph, CascadeScheduler
+│   ├── data/                       # DATA ACCESS: DAO tĩnh dùng JPA (UserDB, ProjectDB, TaskDB, DocDB, ...)
+│   ├── controllers/                # CONTROLLER: Servlet (Auth, Project, Task, Doc, Chat, Timeline, ...)
+│   │   └── task/                   #   Handler của /task: Board, Crud, SubTask, Workflow
+│   ├── filters/                    # AuthFilter, CsrfFilter, SecurityHeadersFilter
+│   ├── listeners/                  # AppLifecycleListener (khởi động/dọn tài nguyên, nhắc hạn)
+│   └── util/                       # Mật khẩu, OTP, mail, upload, chống brute-force, mention...
+├── src/main/resources/             # META-INF/persistence.xml, *.properties.example
+├── src/main/webapp/                # VIEW
+│   ├── WEB-INF/                    #   web.xml, lib/ (jar), jspf/ (mảnh JSP của trang tasks)
+│   ├── includes/                   #   header, navbar, footer, toast... dùng chung
+│   ├── styles/  js/  images/       #   CSS, JavaScript thuần, hình ảnh
+│   ├── index.jsp  login.jsp  forgot-password.jsp   # Giới thiệu, đăng nhập, quên mật khẩu
+│   ├── projects.jsp  tasks.jsp  timeline.jsp        # Danh sách dự án, Kanban/List, Gantt
+│   ├── docs.jsp  chat.jsp  whiteboard.jsp  meeting.jsp
+│   ├── project_report.jsp  project-analytics.jsp  profile.jsp
+│   └── 404.jsp  500.jsp            #   Trang lỗi
+├── database/                       # schema_*.sql + migrations/
+├── docs/                           # Tài liệu
+└── pom.xml  build_and_run.bat  hot_jsp.bat  Dockerfile
 ```
 
 ---
@@ -474,11 +457,11 @@ teamwork-hub/
     <!-- Xử lý trang lỗi chuẩn -->
     <error-page>
         <error-code>404</error-code>
-        <location>/error_404.jsp</location>
+        <location>/404.jsp</location>
     </error-page>
     <error-page>
         <exception-type>java.lang.Throwable</exception-type>
-        <location>/error_java.jsp</location>
+        <location>/500.jsp</location>
     </error-page>
 
     <welcome-file-list>
@@ -670,7 +653,7 @@ public class TaskServlet extends HttpServlet {
                 request.setAttribute("doneList", doneList);
                 request.setAttribute("projectId", projectId);
 
-                getServletContext().getRequestDispatcher("/kanban.jsp").forward(request, response);
+                getServletContext().getRequestDispatcher("/tasks.jsp").forward(request, response);
                 break;
 
             case "add":
@@ -687,7 +670,7 @@ public class TaskServlet extends HttpServlet {
                     request.setAttribute("inProgressList", TaskDB.selectByStatus(projectId, "IN_PROGRESS"));
                     request.setAttribute("doneList", TaskDB.selectByStatus(projectId, "DONE"));
                     request.setAttribute("projectId", projectId);
-                    getServletContext().getRequestDispatcher("/kanban.jsp").forward(request, response);
+                    getServletContext().getRequestDispatcher("/tasks.jsp").forward(request, response);
                     return;
                 }
 
@@ -721,7 +704,7 @@ public class TaskServlet extends HttpServlet {
 }
 ```
 
-### 10.6. View JSP Chuẩn: `kanban.jsp` (Thuần Jakarta EL `${...}`)
+### 10.6. View JSP Chuẩn: `tasks.jsp` (Thuần Jakarta EL `${...}`)
 ```html
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
@@ -893,12 +876,12 @@ public class TaskServlet extends HttpServlet {
 
     <!-- Bootstrap 5 JS Bundle & JavaScript Kéo Thả -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/kanban.js"></script>
+    <script src="js/tasks-board.js"></script>
 </body>
 </html>
 ```
 
-### 10.7. Client-Side Drag & Drop: `kanban.js`
+### 10.7. Client-Side Drag & Drop: `tasks-board.js`
 ```javascript
 // Cho phép thả phần tử
 function allowDrop(ev) {

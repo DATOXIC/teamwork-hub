@@ -21,11 +21,14 @@ Servlet ──session.setAttribute("toastSuccess", …)──▶ sendRedirect �
 | `/auth` | [AuthServlet](#authservlet) | `login.jsp`, `forgot-password.jsp` |
 | `/chat` | [ChatServlet](#chatservlet) | `chat.jsp` |
 | `/doc` | [DocServlet](#docservlet) | `docs.jsp` |
+| `/error` | [ErrorServlet](#errorservlet) | `500.jsp` |
 | `/meeting` | [MeetingServlet](#meetingservlet) | `meeting.jsp` |
 | `/notification` | [NotificationServlet](#notificationservlet) | _không forward JSP (trả JSON/redirect)_ |
 | `/profile` | [ProfileServlet](#profileservlet) | `profile.jsp` |
+| `/analytics` | [ProjectAnalyticsServlet](#projectanalyticsservlet) | `project-analytics.jsp` |
 | `/invite` | [ProjectInviteServlet](#projectinviteservlet) | _không forward JSP (trả JSON/redirect)_ |
 | `/project` | [ProjectServlet](#projectservlet) | `projects.jsp`, `project_report.jsp` |
+| `/task-file` | [TaskFileServlet](#taskfileservlet) | _không forward JSP (trả JSON/redirect)_ |
 | `/task` | [TaskServlet](#taskservlet) | `tasks.jsp` |
 | `/timeline` | [TimelineServlet](#timelineservlet) | `timeline.jsp` |
 | `/whiteboard` | [WhiteboardServlet](#whiteboardservlet) | `whiteboard.jsp` |
@@ -34,438 +37,478 @@ Servlet ──session.setAttribute("toastSuccess", …)──▶ sendRedirect �
 
 URL `/auth` — mã nguồn `controllers/AuthServlet.java`
 
-**Forward (hiển thị):** `/login.jsp` ← `AuthServlet.java:142` · `AuthServlet.java:190` · `AuthServlet.java:238` · `AuthServlet.java:253` · `AuthServlet.java:293` · `AuthServlet.java:646` · `/forgot-password.jsp` ← `AuthServlet.java:609`
+**Forward (hiển thị):** `/login.jsp` ← `AuthServlet.java:157` · `AuthServlet.java:208` · `AuthServlet.java:258` · `AuthServlet.java:273` · `AuthServlet.java:320` · `AuthServlet.java:690` · `/forgot-password.jsp` ← `AuthServlet.java:653`
 
-**Redirect (sau khi ghi / điều hướng):** `/project?action=list…` ← `AuthServlet.java:106` · `AuthServlet.java:280` · `/auth?action=viewLogin…` ← `AuthServlet.java:392` · `AuthServlet.java:442` … (+1)
+**Redirect (sau khi ghi / điều hướng):** `/project?action=list…` ← `AuthServlet.java:115` · `AuthServlet.java:307` · `/auth?action=viewLogin…` ← `AuthServlet.java:419` · `AuthServlet.java:469` … (+1)
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `activeTab` | `AuthServlet.java:644` | `login.jsp:192` · `login.jsp:197` · `login.jsp:212` · `login.jsp:274` |
-| request | `errorMessage` | `AuthServlet.java:235` · `AuthServlet.java:249` … (+1) | `login.jsp:175` · `login.jsp:177` |
-| request | `forgotError` | `AuthServlet.java:460` · `AuthServlet.java:475` … (+10) | `forgot-password.jsp:96` · `forgot-password.jsp:98` |
-| request | `forgotInfo` | `AuthServlet.java:503` | `forgot-password.jsp:90` · `forgot-password.jsp:92` |
-| request | `forgotStep` | `AuthServlet.java:607` | `forgot-password.jsp:12` |
-| request | `forgotUsername` | `AuthServlet.java:474` · `AuthServlet.java:488` … (+2) | `forgot-password.jsp:112` · `forgot-password.jsp:142` |
-| request | `regEmail` | `AuthServlet.java:642` | `login.jsp:302` |
-| request | `regError` | `AuthServlet.java:315` · `AuthServlet.java:333` … (+6) | `login.jsp:183` · `login.jsp:185` |
-| request | `regFullName` | `AuthServlet.java:640` | `login.jsp:286` |
-| request | `regUsername` | `AuthServlet.java:638` | `login.jsp:294` |
-| request | `rememberChecked` | `AuthServlet.java:134` | `login.jsp:244` |
-| request | `successMessage` | `AuthServlet.java:116` | `login.jsp:167` · `login.jsp:169` |
-| request | `username` | `AuthServlet.java:121` · `AuthServlet.java:132` … (+3) | `login.jsp:222` |
-| session | `currentUser` | `AuthServlet.java:268` | `chat.jsp:14` · `chat.jsp:230` · `chat.jsp:256` · `chat.jsp:301` … (+60) |
-| session | `successMessage` | `AuthServlet.java:390` · `AuthServlet.java:593` | `login.jsp:167` · `login.jsp:169` |
+| request | `activeTab` | `AuthServlet.java:688` | `login.jsp:199` · `login.jsp:204` · `login.jsp:219` · `login.jsp:313` |
+| request | `errorMessage` | `AuthServlet.java:136` · `AuthServlet.java:255` … (+2) | `login.jsp:182` · `login.jsp:184` |
+| request | `forgotError` | `AuthServlet.java:487` · `AuthServlet.java:502` … (+11) | `forgot-password.jsp:100` · `forgot-password.jsp:102` |
+| request | `forgotInfo` | `AuthServlet.java:547` | `forgot-password.jsp:94` · `forgot-password.jsp:96` |
+| request | `forgotStep` | `AuthServlet.java:651` | `forgot-password.jsp:12` |
+| request | `forgotUsername` | `AuthServlet.java:501` · `AuthServlet.java:516` … (+3) | `forgot-password.jsp:116` · `forgot-password.jsp:146` |
+| request | `regEmail` | `AuthServlet.java:686` | `login.jsp:341` |
+| request | `regError` | `AuthServlet.java:342` · `AuthServlet.java:360` … (+6) | `login.jsp:190` · `login.jsp:192` |
+| request | `regFullName` | `AuthServlet.java:684` | `login.jsp:325` |
+| request | `regUsername` | `AuthServlet.java:682` | `login.jsp:333` |
+| request | `rememberChecked` | `AuthServlet.java:149` · `AuthServlet.java:249` | `login.jsp:251` |
+| request | `showDemoAccounts` | `AuthServlet.java:109` | `login.jsp:274` · `login.jsp:276` |
+| request | `successMessage` | `AuthServlet.java:125` | `login.jsp:174` · `login.jsp:176` |
+| request | `username` | `AuthServlet.java:130` · `AuthServlet.java:147` … (+3) | `login.jsp:229` |
+| session | `currentUser` | `AuthServlet.java:289` | `chat.jsp:15` · `chat.jsp:231` · `chat.jsp:257` · `chat.jsp:302` … (+59) |
+| session | `successMessage` | `AuthServlet.java:417` · `AuthServlet.java:637` | `login.jsp:174` · `login.jsp:176` |
 
 _Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `registeredUsername`(session)
 
-**Action** (`?action=…` → nhánh `case`): `logout`·91, `forgot`·95, `viewLogin`·100, `login`·173, `register`·176, `forgotRequest`·179, `forgotVerify`·182, `forgotReset`·185
+**Action** (`?action=…` → nhánh `case`): `forgot`·99, `viewLogin`·104, `login`·188, `logout`·191, `register`·194, `forgotRequest`·197, `forgotVerify`·200, `forgotReset`·203
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `AuthServlet.java:85` · `AuthServlet.java:167` | _mọi link/form/fetch có `action=…`_ |
-| `confirmPassword` | `AuthServlet.java:326` · `AuthServlet.java:572` | `forgot-password.jsp:170` · `login.jsp:325` |
-| `email` | `AuthServlet.java:328` | `login.jsp:301` |
-| `fullName` | `AuthServlet.java:327` | `login.jsp:285` · `profile.jsp:300` |
-| `otp` | `AuthServlet.java:526` | `forgot-password.jsp:129` |
-| `password` | `AuthServlet.java:225` · `AuthServlet.java:325` … (+1) | `forgot-password.jsp:157` · `login.jsp:231` · `login.jsp:311` |
-| `remember` | `AuthServlet.java:226` | `login.jsp:243` |
-| `username` | `AuthServlet.java:224` · `AuthServlet.java:324` … (+1) | `forgot-password.jsp:111` · `forgot-password.jsp:142` · `login.jsp:221` … (+1) |
+| `action` | `AuthServlet.java:91` · `AuthServlet.java:182` | _mọi link/form/fetch có `action=…`_ |
+| `confirmPassword` | `AuthServlet.java:353` · `AuthServlet.java:616` | `forgot-password.jsp:174` · `login.jsp:364` |
+| `email` | `AuthServlet.java:355` | `login.jsp:340` |
+| `fullName` | `AuthServlet.java:354` | `login.jsp:324` · `profile.jsp:423` |
+| `otp` | `AuthServlet.java:570` | `forgot-password.jsp:133` |
+| `password` | `AuthServlet.java:243` · `AuthServlet.java:352` … (+1) | `forgot-password.jsp:161` · `login.jsp:238` · `login.jsp:350` |
+| `remember` | `AuthServlet.java:244` | `login.jsp:250` |
+| `username` | `AuthServlet.java:242` · `AuthServlet.java:351` … (+1) | `forgot-password.jsp:115` · `forgot-password.jsp:146` · `login.jsp:228` … (+1) |
 
 ## ChatServlet
 
 URL `/chat` — mã nguồn `controllers/ChatServlet.java`
 
-**Forward (hiển thị):** `/chat.jsp` ← `ChatServlet.java:237`
+**Forward (hiển thị):** `/chat.jsp` ← `ChatServlet.java:239`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `ChatServlet.java:82` · `ChatServlet.java:136` · `/project?action=list…` ← `ChatServlet.java:89` · `ChatServlet.java:99` … (+3) · `/chat?action=view&projectId=…` ← `ChatServlet.java:180` · `ChatServlet.java:253` … (+7) · `/task?action=list&projectId=…` ← `ChatServlet.java:277` · `ChatServlet.java:298` … (+4)
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `ChatServlet.java:78` · `ChatServlet.java:147` · `/chat?action=view&projectId=…` ← `ChatServlet.java:181` · `ChatServlet.java:262` … (+7) · `/project?action=list…` ← `ChatServlet.java:199` · `/task?action=list&projectId=…` ← `ChatServlet.java:297` · `ChatServlet.java:323` … (+4)
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `activeNav` | `ChatServlet.java:233` | `navbar.jsp:41` |
-| request | `docList` | `ChatServlet.java:227` | `chat.jsp:11` · `chat.jsp:133` · `chat.jsp:148` · `chat.jsp:149` … (+3) |
-| request | `messageList` | `ChatServlet.java:225` | `chat.jsp:13` · `chat.jsp:52` · `chat.jsp:227` · `chat.jsp:335` |
-| request | `project` | `ChatServlet.java:223` | `chat.jsp:9` · `chat.jsp:256` · `chat.jsp:259` · `chat.jsp:301` … (+176) |
-| request | `taskList` | `ChatServlet.java:229` | `chat.jsp:12` · `chat.jsp:141` · `chat.jsp:169` · `chat.jsp:170` … (+1) |
-| request | `userList` | `ChatServlet.java:231` | `chat.jsp:10` · `chat.jsp:46` · `chat.jsp:76` · `chat.jsp:82` … (+10) |
-| session | `toastError` | `ChatServlet.java:97` · `ChatServlet.java:149` … (+6) | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| session | `toastSuccess` | `ChatServlet.java:385` · `ChatServlet.java:444` | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
+| request | `activeNav` | `ChatServlet.java:235` | `navbar.jsp:42` |
+| request | `chatSig` | `ChatServlet.java:227` | `chat.jsp:602` |
+| request | `docList` | `ChatServlet.java:229` | `chat.jsp:12` · `chat.jsp:134` · `chat.jsp:149` · `chat.jsp:150` … (+3) |
+| request | `messageList` | `ChatServlet.java:225` | `chat.jsp:14` · `chat.jsp:53` · `chat.jsp:228` · `chat.jsp:336` |
+| request | `project` | `ChatServlet.java:223` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `taskList` | `ChatServlet.java:231` | `chat.jsp:13` · `chat.jsp:142` · `chat.jsp:170` · `chat.jsp:171` … (+1) |
+| request | `userList` | `ChatServlet.java:233` | `chat.jsp:11` · `chat.jsp:47` · `chat.jsp:77` · `chat.jsp:83` … (+11) |
+| session | `toastError` | `ChatServlet.java:335` · `ChatServlet.java:417` … (+4) | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| session | `toastSuccess` | `ChatServlet.java:436` · `ChatServlet.java:517` | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
 
-**Action** (`?action=…` → nhánh `case`): `view`·111, `delete`·115, `sendProjectMessage`·163, `editProjectMessage`·167, `sendTaskComment`·171, `delete`·175
+**Action** (`?action=…` → nhánh `case`): `view`·96, `poll`·102, `sendProjectMessage`·164, `editProjectMessage`·168, `sendTaskComment`·172, `delete`·176
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `ChatServlet.java:104` · `ChatServlet.java:156` | _mọi link/form/fetch có `action=…`_ |
-| `content` | `ChatServlet.java:249` · `ChatServlet.java:295` … (+1) | `chat.jsp:410` · `chat.jsp:541` · `docs.jsp:273` … (+2) |
-| `messageId` | `ChatServlet.java:352` · `ChatServlet.java:410` | `chat.jsp:535` · `chat.js:210` · `chat.js:218` |
-| `projectId` | `ChatServlet.java:87` · `ChatServlet.java:140` | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
-| `source` | `ChatServlet.java:275` · `ChatServlet.java:395` | — |
-| `taskId` | `ChatServlet.java:294` | `tasks.jsp:2119` · `tasks.jsp:2301` · `tasks.jsp:2450` … (+15) |
+| `action` | `ChatServlet.java:89` · `ChatServlet.java:157` | _mọi link/form/fetch có `action=…`_ |
+| `content` | `ChatServlet.java:251` · `ChatServlet.java:315` … (+1) | `chat.jsp:420` · `chat.jsp:551` · `docs.jsp:274` … (+5) |
+| `source` | `ChatServlet.java:295` · `ChatServlet.java:459` | — |
 
 ## DocServlet
 
 URL `/doc` — mã nguồn `controllers/DocServlet.java`
 
-**Forward (hiển thị):** `/docs.jsp` ← `DocServlet.java:247`
+**Forward (hiển thị):** `/docs.jsp` ← `DocServlet.java:207`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `DocServlet.java:82` · `DocServlet.java:137` · `/project?action=list…` ← `DocServlet.java:89` · `DocServlet.java:99` … (+3) · `/doc?action=list&projectId=…` ← `DocServlet.java:177` · `DocServlet.java:261` … (+5) · `/doc?action=view&projectId=…` ← `DocServlet.java:341` · `DocServlet.java:378` … (+2)
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `DocServlet.java:65` · `DocServlet.java:107` · `/doc?action=list&projectId=…` ← `DocServlet.java:137` · `DocServlet.java:221` … (+5) · `/project?action=list…` ← `DocServlet.java:157` · `/doc?action=view&projectId=…` ← `DocServlet.java:300` · `DocServlet.java:337` … (+2)
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `activeNav` | `DocServlet.java:243` | `navbar.jsp:41` |
-| request | `docs` | `DocServlet.java:237` | `docs.jsp:10` · `docs.jsp:61` · `docs.jsp:78` · `docs.jsp:102` … (+3) |
-| request | `project` | `DocServlet.java:235` | `chat.jsp:9` · `chat.jsp:256` · `chat.jsp:259` · `chat.jsp:301` … (+176) |
-| request | `relatedTasks` | `DocServlet.java:241` | `docs.jsp:12` · `docs.jsp:177` · `docs.jsp:181` · `docs.jsp:183` … (+1) |
-| request | `selectedDoc` | `DocServlet.java:239` | `docs.jsp:11` · `docs.jsp:81` · `docs.jsp:86` · `docs.jsp:87` … (+11) |
-| session | `toastError` | `DocServlet.java:97` · `DocServlet.java:150` … (+6) | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| session | `toastSuccess` | `DocServlet.java:284` · `DocServlet.java:337` … (+1) | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
+| request | `activeNav` | `DocServlet.java:203` | `navbar.jsp:42` |
+| request | `docs` | `DocServlet.java:197` | `docs.jsp:11` · `docs.jsp:62` · `docs.jsp:79` · `docs.jsp:103` … (+3) |
+| request | `project` | `DocServlet.java:195` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `relatedTasks` | `DocServlet.java:201` | `docs.jsp:13` · `docs.jsp:178` · `docs.jsp:182` · `docs.jsp:184` … (+1) |
+| request | `selectedDoc` | `DocServlet.java:199` | `docs.jsp:12` · `docs.jsp:82` · `docs.jsp:87` · `docs.jsp:88` … (+11) |
+| session | `toastError` | `DocServlet.java:232` · `DocServlet.java:247` … (+4) | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| session | `toastSuccess` | `DocServlet.java:243` · `DocServlet.java:296` … (+1) | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
 
-**Action** (`?action=…` → nhánh `case`): `list`·111, `view`·112, `delete`·116, `create`·164, `update`·168, `delete`·172
+**Action** (`?action=…` → nhánh `case`): `list`·83, `view`·84, `create`·124, `update`·128, `delete`·132
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `DocServlet.java:104` · `DocServlet.java:157` | _mọi link/form/fetch có `action=…`_ |
-| `content` | `DocServlet.java:305` · `DocServlet.java:354` | `chat.jsp:410` · `chat.jsp:541` · `docs.jsp:273` … (+2) |
-| `docId` | `DocServlet.java:205` · `DocServlet.java:258` … (+1) | `docs.jsp:17` · `docs.jsp:20` · `docs.jsp:80` … (+4) |
-| `projectId` | `DocServlet.java:87` · `DocServlet.java:141` | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
-| `title` | `DocServlet.java:304` · `DocServlet.java:353` | `docs.jsp:263` · `docs.jsp:322` · `tasks.jsp:2123` … (+6) |
+| `action` | `DocServlet.java:76` · `DocServlet.java:117` | _mọi link/form/fetch có `action=…`_ |
+| `content` | `DocServlet.java:264` · `DocServlet.java:313` | `chat.jsp:420` · `chat.jsp:551` · `docs.jsp:274` … (+5) |
+| `title` | `DocServlet.java:263` · `DocServlet.java:312` | `docs.jsp:264` · `docs.jsp:323` · `timeline.jsp:361` … (+7) |
+
+## ErrorServlet
+
+URL `/error` — mã nguồn `controllers/ErrorServlet.java`
+
+**Forward (hiển thị):** `/500.jsp` ← `ErrorServlet.java:77`
+
+**Servlet → JSP** (`setAttribute` ↔ `${…}`):
+
+| scope | tên | Java set | JSP dùng |
+|---|---|---|---|
+| request | `errorId` | `ErrorServlet.java:76` | `500.jsp:20` · `500.jsp:22` |
+
+**Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
+
+| tham số | Java đọc | JSP/JS gửi (gợi ý) |
+|---|---|---|
+| `ajax` | `ErrorServlet.java:45` | `automation-modal.jspf:129` · `tasks-board.js:503` · `tasks-board.js:554` … (+6) |
+| `isAjax` | `ErrorServlet.java:46` | `timeline.js:251` · `timeline.js:670` · `timeline.js:713` |
 
 ## MeetingServlet
 
 URL `/meeting` — mã nguồn `controllers/MeetingServlet.java`
 
-**Forward (hiển thị):** `/meeting.jsp` ← `MeetingServlet.java:74`
+**Forward (hiển thị):** `/meeting.jsp` ← `MeetingServlet.java:63`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `MeetingServlet.java:53` · `/project?action=list…` ← `MeetingServlet.java:59` · `MeetingServlet.java:65`
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `MeetingServlet.java:43` · `/project?action=list…` ← `MeetingServlet.java:54`
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `project` | `MeetingServlet.java:70` | `chat.jsp:9` · `chat.jsp:256` · `chat.jsp:259` · `chat.jsp:301` … (+176) |
-| request | `roomName` | `MeetingServlet.java:72` | `meeting.jsp:5` · `meeting.jsp:38` |
-
-**Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
-
-| tham số | Java đọc | JSP/JS gửi (gợi ý) |
-|---|---|---|
-| `projectId` | `MeetingServlet.java:57` | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
+| request | `project` | `MeetingServlet.java:59` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `roomName` | `MeetingServlet.java:61` | `meeting.jsp:6` · `meeting.jsp:39` |
 
 ## NotificationServlet
 
 URL `/notification` — mã nguồn `controllers/NotificationServlet.java`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `NotificationServlet.java:44` · `/project?action=list…` ← `NotificationServlet.java:50` · `NotificationServlet.java:65` … (+4)
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `NotificationServlet.java:56` · `/project?action=list…` ← `NotificationServlet.java:62` · `NotificationServlet.java:80` … (+6) · `redirect…` ← `NotificationServlet.java:115`
 
-**Action** (`?action=…` → nhánh `case`): `read`·55, `readAll`·58, `delete`·61
+**Action** (`?action=…` → nhánh `case`): `poll`·67, `read`·73, `readAll`·76, `delete`·83
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `NotificationServlet.java:48` | _mọi link/form/fetch có `action=…`_ |
-| `id` | `NotificationServlet.java:86` · `NotificationServlet.java:136` | `navbar.jsp:127` · `index.jsp:126` · `tasks.jsp:2009` |
-| `redirect` | `NotificationServlet.java:95` | `navbar.jsp:127` · `tasks.jsp:2009` |
+| `action` | `NotificationServlet.java:60` | _mọi link/form/fetch có `action=…`_ |
+| `id` | `NotificationServlet.java:106` · `NotificationServlet.java:138` | `navbar.jsp:133` · `index.jsp:126` · `inbox-drawer.jspf:42` |
+| `redirect` | `NotificationServlet.java:115` | `navbar.jsp:134` · `inbox-drawer.jspf:43` |
 
 ## ProfileServlet
 
 URL `/profile` — mã nguồn `controllers/ProfileServlet.java`
 
-**Forward (hiển thị):** `/profile.jsp` ← `ProfileServlet.java:181`
+**Forward (hiển thị):** `/profile.jsp` ← `ProfileServlet.java:169`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `ProfileServlet.java:91` · `ProfileServlet.java:191` · `/project?action=list…` ← `ProfileServlet.java:103` · `/profile…` ← `ProfileServlet.java:199` · `ProfileServlet.java:212` · `/profile?userId=…` ← `ProfileServlet.java:219` · `ProfileServlet.java:232` … (+1)
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `ProfileServlet.java:76` · `ProfileServlet.java:179` · `/project?action=list…` ← `ProfileServlet.java:88` · `ProfileServlet.java:111` · `/profile…` ← `ProfileServlet.java:187` · `ProfileServlet.java:200` · `/profile?userId=…` ← `ProfileServlet.java:207` · `ProfileServlet.java:220` … (+1)
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `availableProjectsToInvite` | `ProfileServlet.java:176` | `profile.jsp:129` · `profile.jsp:378` · `profile.jsp:404` |
-| request | `completedSubTasks` | `ProfileServlet.java:172` | `profile.jsp:194` |
-| request | `completionRate` | `ProfileServlet.java:174` | `profile.jsp:209` · `profile.jsp:211` |
-| request | `isOwner` | `ProfileServlet.java:178` | `profile.jsp:69` · `profile.jsp:119` · `profile.jsp:280` · `profile.jsp:378` … (+1) |
-| request | `leadTaskCount` | `ProfileServlet.java:168` | `profile.jsp:178` |
-| request | `profileUser` | `ProfileServlet.java:164` | `profile.jsp:23` · `profile.jsp:60` · `profile.jsp:62` · `profile.jsp:66` … (+19) |
-| request | `toastError` | `ProfileServlet.java:158` | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| request | `toastSuccess` | `ProfileServlet.java:152` | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
-| request | `totalSubTasks` | `ProfileServlet.java:170` | `profile.jsp:194` |
-| request | `userProjects` | `ProfileServlet.java:166` | `profile.jsp:163` · `profile.jsp:225` · `profile.jsp:229` · `profile.jsp:261` … (+2) |
-| session | `currentUser` | `ProfileServlet.java:259` | `chat.jsp:14` · `chat.jsp:230` · `chat.jsp:256` · `chat.jsp:301` … (+60) |
-| session | `toastError` | `ProfileServlet.java:102` · `ProfileServlet.java:218` … (+1) | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| session | `toastSuccess` | `ProfileServlet.java:261` | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
+| request | `availableProjectsToInvite` | `ProfileServlet.java:164` | `profile.jsp:174` · `profile.jsp:517` · `profile.jsp:543` |
+| request | `completedSubTasks` | `ProfileServlet.java:160` | `profile.jsp:246` |
+| request | `completionRate` | `ProfileServlet.java:162` | `profile.jsp:258` · `profile.jsp:261` · `profile.jsp:270` · `profile.jsp:272` |
+| request | `isOwner` | `ProfileServlet.java:166` | `profile.jsp:93` · `profile.jsp:101` · `profile.jsp:163` · `profile.jsp:401` … (+3) |
+| request | `leadTaskCount` | `ProfileServlet.java:156` | `profile.jsp:229` |
+| request | `profileUser` | `ProfileServlet.java:152` | `profile.jsp:24` · `profile.jsp:69` · `profile.jsp:70` · `profile.jsp:78` … (+22) |
+| request | `toastError` | `ProfileServlet.java:146` | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| request | `toastSuccess` | `ProfileServlet.java:140` | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
+| request | `totalSubTasks` | `ProfileServlet.java:158` | `profile.jsp:246` |
+| request | `userProjects` | `ProfileServlet.java:154` | `profile.jsp:214` · `profile.jsp:288` · `profile.jsp:294` · `profile.jsp:333` … (+2) |
+| session | `currentUser` | `ProfileServlet.java:247` | `chat.jsp:15` · `chat.jsp:231` · `chat.jsp:257` · `chat.jsp:302` … (+59) |
+| session | `toastError` | `ProfileServlet.java:87` · `ProfileServlet.java:110` … (+2) | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| session | `toastSuccess` | `ProfileServlet.java:249` | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `ProfileServlet.java:195` | _mọi link/form/fetch có `action=…`_ |
-| `bio` | `ProfileServlet.java:225` | `profile.jsp:313` |
-| `fullName` | `ProfileServlet.java:223` | `login.jsp:285` · `profile.jsp:300` |
-| `githubUrl` | `ProfileServlet.java:227` | `profile.jsp:335` |
-| `linkedinUrl` | `ProfileServlet.java:228` | `profile.jsp:339` |
-| `role` | `ProfileServlet.java:224` | `profile.jsp:304` |
-| `skills` | `ProfileServlet.java:226` | `profile.jsp:321` |
-| `userId` | `ProfileServlet.java:96` · `ProfileServlet.java:210` | `profile.jsp:294` · `tasks.jsp:3774` |
+| `action` | `ProfileServlet.java:183` | _mọi link/form/fetch có `action=…`_ |
+| `bio` | `ProfileServlet.java:213` | `profile.jsp:440` |
+| `fullName` | `ProfileServlet.java:211` | `login.jsp:324` · `profile.jsp:423` |
+| `githubUrl` | `ProfileServlet.java:215` | `profile.jsp:470` |
+| `linkedinUrl` | `ProfileServlet.java:216` | `profile.jsp:477` |
+| `role` | `ProfileServlet.java:212` | `profile.jsp:430` |
+| `skills` | `ProfileServlet.java:214` | `profile.jsp:450` |
+
+## ProjectAnalyticsServlet
+
+URL `/analytics` — mã nguồn `controllers/ProjectAnalyticsServlet.java`
+
+**Forward (hiển thị):** `/project-analytics.jsp` ← `ProjectAnalyticsServlet.java:172`
+
+**Servlet → JSP** (`setAttribute` ↔ `${…}`):
+
+| scope | tên | Java set | JSP dùng |
+|---|---|---|---|
+| request | `activeSubNav` | `ProjectAnalyticsServlet.java:169` | `project_subnav.jsp:15` |
+| request | `burndownData` | `ProjectAnalyticsServlet.java:152` | `project-analytics.jsp:110` · `project-analytics.jsp:117` · `project-analytics.jsp:123` · `project-analytics.jsp:128` … (+9) |
+| request | `burndownJson` | `ProjectAnalyticsServlet.java:158` | `project-analytics.jsp:532` |
+| request | `currentNav` | `ProjectAnalyticsServlet.java:170` | `project_subnav.jsp:50` · `project_subnav.jsp:58` · `project_subnav.jsp:66` · `project_subnav.jsp:74` … (+4) |
+| request | `project` | `ProjectAnalyticsServlet.java:151` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `qualityJson` | `ProjectAnalyticsServlet.java:159` | `project-analytics.jsp:533` |
+| request | `qualityMetrics` | `ProjectAnalyticsServlet.java:153` | `project-analytics.jsp:72` · `project-analytics.jsp:77` · `project-analytics.jsp:90` · `project-analytics.jsp:94` … (+17) |
+| request | `workloadAnalytics` | `ProjectAnalyticsServlet.java:155` | `project-analytics.jsp:432` · `project-analytics.jsp:437` |
+| request | `workloadsJson` | `ProjectAnalyticsServlet.java:167` | `project-analytics.jsp:534` |
+
+_Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `workloadList`(request)
+
+**Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
+
+| tham số | Java đọc | JSP/JS gửi (gợi ý) |
+|---|---|---|
+| `action` | `ProjectAnalyticsServlet.java:125` | _mọi link/form/fetch có `action=…`_ |
 
 ## ProjectInviteServlet
 
 URL `/invite` — mã nguồn `controllers/ProjectInviteServlet.java`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `ProjectInviteServlet.java:56` · `ProjectInviteServlet.java:89` · `/project?action=list…` ← `ProjectInviteServlet.java:62` · `ProjectInviteServlet.java:77` … (+26) · `/task?action=list&projectId=…` ← `ProjectInviteServlet.java:145` · `ProjectInviteServlet.java:159` … (+13)
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `ProjectInviteServlet.java:39` · `ProjectInviteServlet.java:60` · `/project?action=list…` ← `ProjectInviteServlet.java:45` · `ProjectInviteServlet.java:50` … (+26) · `/task?action=list&projectId=…` ← `ProjectInviteServlet.java:116` · `ProjectInviteServlet.java:130` … (+14)
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| session | `toastError` | `ProjectInviteServlet.java:137` · `ProjectInviteServlet.java:144` … (+26) | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| session | `toastSuccess` | `ProjectInviteServlet.java:229` · `ProjectInviteServlet.java:315` … (+6) | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
+| session | `toastError` | `ProjectInviteServlet.java:108` · `ProjectInviteServlet.java:115` … (+27) | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| session | `toastSuccess` | `ProjectInviteServlet.java:204` · `ProjectInviteServlet.java:294` … (+6) | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
 
-**Action** (`?action=…` → nhánh `case`): `accept`·67, `reject`·70, `revoke`·73, `sendInvite`·100, `requestJoin`·103, `accept`·106, `reject`·109, `revoke`·112, `leave`·115, `kick`·118
+**Action** (`?action=…` → nhánh `case`): `sendInvite`·71, `requestJoin`·74, `accept`·77, `reject`·80, `revoke`·83, `leave`·86, `kick`·89
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `ProjectInviteServlet.java:60` · `ProjectInviteServlet.java:93` | _mọi link/form/fetch có `action=…`_ |
-| `inviteId` | `ProjectInviteServlet.java:326` · `ProjectInviteServlet.java:416` … (+1) | `projects.jsp:190` · `projects.jsp:201` · `tasks.jsp:3840` |
-| `projectCode` | `ProjectInviteServlet.java:240` | `projects.jsp:475` · `projects.jsp:531` · `tasks.jsp:4063` … (+1) |
-| `projectId` | `ProjectInviteServlet.java:134` · `ProjectInviteServlet.java:488` … (+1) | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
-| `userId` | `ProjectInviteServlet.java:543` | `profile.jsp:294` · `tasks.jsp:3774` |
-| `usernameOrEmail` | `ProjectInviteServlet.java:142` | `profile.jsp:392` · `tasks.jsp:3915` |
+| `action` | `ProjectInviteServlet.java:43` · `ProjectInviteServlet.java:64` | _mọi link/form/fetch có `action=…`_ |
+| `projectCode` | `ProjectInviteServlet.java:215` | `projects.jsp:437` · `projects.jsp:493` · `create-project.jspf:40` … (+1) |
+| `usernameOrEmail` | `ProjectInviteServlet.java:113` | `profile.jsp:531` · `invite-member.jspf:41` |
 
 ## ProjectServlet
 
 URL `/project` — mã nguồn `controllers/ProjectServlet.java`
 
-**Forward (hiển thị):** `/projects.jsp` ← `ProjectServlet.java:219` · `/project_report.jsp` ← `ProjectServlet.java:655`
+**Forward (hiển thị):** `/projects.jsp` ← `ProjectServlet.java:203` · `/project_report.jsp` ← `ProjectServlet.java:624`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=viewLogin…` ← `ProjectServlet.java:67` · `/auth?action=login…` ← `ProjectServlet.java:101` · `/project?action=list…` ← `ProjectServlet.java:118` · `ProjectServlet.java:295` … (+6) · `/task?action=list&projectId=…` ← `ProjectServlet.java:334` · `ProjectServlet.java:374` … (+1)
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=viewLogin…` ← `ProjectServlet.java:68` · `/auth?action=login…` ← `ProjectServlet.java:102` · `/project?action=list…` ← `ProjectServlet.java:119` · `ProjectServlet.java:268` … (+6) · `redirectUrl…` ← `ProjectServlet.java:309` · `ProjectServlet.java:346` · `/task?action=list&projectId=…` ← `ProjectServlet.java:362`
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `activeNav` | `ProjectServlet.java:217` | `navbar.jsp:41` |
-| request | `blockerCount` | `ProjectServlet.java:639` | `project_report.jsp:144` · `project_report.jsp:149` · `project_report.jsp:157` |
-| request | `criticalBlockers` | `ProjectServlet.java:637` | `project_report.jsp:163` |
-| request | `docCount` | `ProjectServlet.java:602` | `project_report.jsp:768` |
-| request | `docs` | `ProjectServlet.java:600` | `docs.jsp:10` · `docs.jsp:61` · `docs.jsp:78` · `docs.jsp:102` … (+3) |
-| request | `doneCount` | `ProjectServlet.java:609` | `project_report.jsp:250` · `project_report.jsp:332` · `project_report.jsp:353` · `project_report.jsp:583` … (+1) |
-| request | `errorMessage` | `ProjectServlet.java:236` · `ProjectServlet.java:244` … (+1) | `login.jsp:175` · `login.jsp:177` |
-| request | `generatedAt` | `ProjectServlet.java:651` | `project_report.jsp:132` |
-| request | `healthBadgeClass` | `ProjectServlet.java:645` | `project_report.jsp:95` |
-| request | `healthDescription` | `ProjectServlet.java:648` | `project_report.jsp:125` |
-| request | `healthLabel` | `ProjectServlet.java:643` | `project_report.jsp:109` |
-| request | `highPriorityCount` | `ProjectServlet.java:628` | `project_report.jsp:372` · `project_report.jsp:375` · `project_report.jsp:377` · `project_report.jsp:379` |
-| request | `inProgressCount` | `ProjectServlet.java:611` | `project_report.jsp:268` · `project_report.jsp:347` · `project_report.jsp:572` · `timeline.jsp:67` |
-| request | `kpiDoneTasks` | `ProjectServlet.java:182` | `projects.jsp:107` |
-| request | `kpiPmCount` | `ProjectServlet.java:178` | `projects.jsp:77` · `projects.jsp:227` · `projects.jsp:230` |
-| request | `kpiTotalTasks` | `ProjectServlet.java:180` | `projects.jsp:107` |
-| request | `lowPriorityCount` | `ProjectServlet.java:632` | `project_report.jsp:406` · `project_report.jsp:409` · `project_report.jsp:411` · `project_report.jsp:413` |
-| request | `mediumPriorityCount` | `ProjectServlet.java:630` | `project_report.jsp:389` · `project_report.jsp:392` · `project_report.jsp:394` · `project_report.jsp:396` |
-| request | `memberCount` | `ProjectServlet.java:596` | `project_report.jsp:235` · `project_report.jsp:434` · `tasks.jsp:3610` · `tasks.jsp:3923` … (+4) |
-| request | `memberCountMap` | `ProjectServlet.java:190` | `projects.jsp:311` · `projects.jsp:413` |
-| request | `members` | `ProjectServlet.java:594` | `project_report.jsp:852` · `timeline.jsp:150` · `timeline.jsp:363` |
-| request | `memberStats` | `ProjectServlet.java:635` | `project_report.jsp:455` · `project_report.jsp:523` |
-| request | `messageCount` | `ProjectServlet.java:604` | `project_report.jsp:813` · `project_report.jsp:818` · `project_report.jsp:823` |
-| request | `myProjects` | `ProjectServlet.java:159` | `projects.jsp:35` · `projects.jsp:75` · `projects.jsp:224` · `projects.jsp:230` … (+3) |
-| request | `otherProjects` | `ProjectServlet.java:161` | `projects.jsp:91` · `projects.jsp:389` · `projects.jsp:397` · `projects.jsp:431` |
-| request | `overdueCount` | `ProjectServlet.java:623` | `project_report.jsp:296` · `project_report.jsp:304` · `project_report.jsp:307` · `project_report.jsp:585` … (+5) |
-| request | `pendingInvites` | `ProjectServlet.java:197` | `projects.jsp:122` · `projects.jsp:134` · `projects.jsp:141` · `projects.jsp:149` |
-| request | `planningCount` | `ProjectServlet.java:615` | `project_report.jsp:286` · `project_report.jsp:288` · `project_report.jsp:346` · `project_report.jsp:575` |
-| request | `progressPercentage` | `ProjectServlet.java:625` | `project_report.jsp:253` · `project_report.jsp:329` · `project_report.jsp:337` · `project_report.jsp:339` |
-| request | `project` | `ProjectServlet.java:592` | `chat.jsp:9` · `chat.jsp:256` · `chat.jsp:259` · `chat.jsp:301` … (+176) |
-| request | `projectHealth` | `ProjectServlet.java:641` | `project_report.jsp:98` · `project_report.jsp:101` |
-| request | `rejectedCount` | `ProjectServlet.java:621` | `project_report.jsp:352` · `project_report.jsp:577` · `project_report.jsp:579` |
-| request | `reviseCount` | `ProjectServlet.java:619` | `project_report.jsp:350` · `project_report.jsp:577` · `project_report.jsp:579` |
-| request | `submittedCount` | `ProjectServlet.java:613` | `project_report.jsp:286` · `project_report.jsp:288` · `project_report.jsp:348` · `project_report.jsp:575` … (+2) |
-| request | `tasks` | `ProjectServlet.java:598` | `project_report.jsp:556` · `project_report.jsp:616` · `project_report.jsp:739` |
-| request | `toastError` | `ProjectServlet.java:211` | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| request | `toastSuccess` | `ProjectServlet.java:205` | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
-| request | `todoCount` | `ProjectServlet.java:617` | `project_report.jsp:345` · `project_report.jsp:569` · `timeline.jsp:69` |
-| request | `totalTasks` | `ProjectServlet.java:607` | `project_report.jsp:232` · `project_report.jsp:332` · `project_report.jsp:375` · `project_report.jsp:379` … (+8) |
-| session | `toastError` | `ProjectServlet.java:328` · `ProjectServlet.java:366` … (+2) | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| session | `toastSuccess` | `ProjectServlet.java:293` · `ProjectServlet.java:357` … (+1) | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
+| request | `activeNav` | `ProjectServlet.java:201` | `navbar.jsp:42` |
+| request | `blockerCount` | `ProjectServlet.java:608` | `project_report.jsp:151` · `project_report.jsp:156` · `project_report.jsp:164` |
+| request | `criticalBlockers` | `ProjectServlet.java:606` | `project_report.jsp:170` |
+| request | `docCount` | `ProjectServlet.java:571` | `project_report.jsp:787` |
+| request | `docs` | `ProjectServlet.java:569` | `docs.jsp:11` · `docs.jsp:62` · `docs.jsp:79` · `docs.jsp:103` … (+3) |
+| request | `doneCount` | `ProjectServlet.java:578` | `project_report.jsp:257` · `project_report.jsp:339` · `project_report.jsp:360` · `project_report.jsp:590` … (+1) |
+| request | `errorMessage` | `ProjectServlet.java:220` · `ProjectServlet.java:228` … (+1) | `login.jsp:182` · `login.jsp:184` |
+| request | `generatedAt` | `ProjectServlet.java:620` | `project_report.jsp:139` |
+| request | `healthBadgeClass` | `ProjectServlet.java:614` | `project_report.jsp:102` |
+| request | `healthDescription` | `ProjectServlet.java:617` | `project_report.jsp:132` |
+| request | `healthLabel` | `ProjectServlet.java:612` | `project_report.jsp:116` |
+| request | `highPriorityCount` | `ProjectServlet.java:597` | `project_report.jsp:379` · `project_report.jsp:382` · `project_report.jsp:384` · `project_report.jsp:386` |
+| request | `inProgressCount` | `ProjectServlet.java:580` | `project_report.jsp:275` · `project_report.jsp:354` · `project_report.jsp:579` · `timeline.jsp:69` |
+| request | `kpiDoneTasks` | `ProjectServlet.java:161` | `projects.jsp:108` |
+| request | `kpiPmCount` | `ProjectServlet.java:157` | `projects.jsp:78` · `projects.jsp:228` · `projects.jsp:231` |
+| request | `kpiTotalTasks` | `ProjectServlet.java:159` | `projects.jsp:108` |
+| request | `lowPriorityCount` | `ProjectServlet.java:601` | `project_report.jsp:413` · `project_report.jsp:416` · `project_report.jsp:418` · `project_report.jsp:420` |
+| request | `mediumPriorityCount` | `ProjectServlet.java:599` | `project_report.jsp:396` · `project_report.jsp:399` · `project_report.jsp:401` · `project_report.jsp:403` |
+| request | `memberCount` | `ProjectServlet.java:565` | `project_report.jsp:242` · `project_report.jsp:441` · `invite-member.jspf:49` · `invite-member.jspf:53` … (+4) |
+| request | `memberCountMap` | `ProjectServlet.java:174` | `projects.jsp:312` |
+| request | `members` | `ProjectServlet.java:563` | `project_report.jsp:871` · `timeline.jsp:152` · `timeline.jsp:397` |
+| request | `memberStats` | `ProjectServlet.java:604` | `project_report.jsp:462` · `project_report.jsp:530` |
+| request | `messageCount` | `ProjectServlet.java:573` | `project_report.jsp:832` · `project_report.jsp:837` · `project_report.jsp:842` |
+| request | `myProjects` | `ProjectServlet.java:141` | `projects.jsp:36` · `projects.jsp:76` · `projects.jsp:225` · `projects.jsp:231` … (+3) |
+| request | `overdueCount` | `ProjectServlet.java:592` | `project_report.jsp:303` · `project_report.jsp:311` · `project_report.jsp:314` · `project_report.jsp:592` … (+5) |
+| request | `pendingInvites` | `ProjectServlet.java:181` | `projects.jsp:92` · `projects.jsp:123` · `projects.jsp:135` · `projects.jsp:142` … (+1) |
+| request | `planningCount` | `ProjectServlet.java:584` | `project_report.jsp:293` · `project_report.jsp:295` · `project_report.jsp:353` · `project_report.jsp:582` |
+| request | `progressPercentage` | `ProjectServlet.java:594` | `project_report.jsp:260` · `project_report.jsp:336` · `project_report.jsp:344` · `project_report.jsp:346` |
+| request | `project` | `ProjectServlet.java:561` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `projectHealth` | `ProjectServlet.java:610` | `project_report.jsp:105` · `project_report.jsp:108` |
+| request | `rejectedCount` | `ProjectServlet.java:590` | `project_report.jsp:359` · `project_report.jsp:584` · `project_report.jsp:586` |
+| request | `reviseCount` | `ProjectServlet.java:588` | `project_report.jsp:357` · `project_report.jsp:584` · `project_report.jsp:586` |
+| request | `submittedCount` | `ProjectServlet.java:582` | `project_report.jsp:293` · `project_report.jsp:295` · `project_report.jsp:355` · `project_report.jsp:582` … (+2) |
+| request | `tasks` | `ProjectServlet.java:567` | `project_report.jsp:563` · `project_report.jsp:623` · `project_report.jsp:758` |
+| request | `toastError` | `ProjectServlet.java:195` | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| request | `toastSuccess` | `ProjectServlet.java:189` | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
+| request | `todoCount` | `ProjectServlet.java:586` | `project_report.jsp:352` · `project_report.jsp:576` · `timeline.jsp:71` |
+| request | `totalTasks` | `ProjectServlet.java:576` | `project_report.jsp:239` · `project_report.jsp:339` · `project_report.jsp:382` · `project_report.jsp:386` … (+8) |
+| session | `toastError` | `ProjectServlet.java:267` · `ProjectServlet.java:307` … (+2) | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| session | `toastSuccess` | `ProjectServlet.java:272` · `ProjectServlet.java:332` … (+1) | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
 
-_Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `healthIcon`(request), `projects`(request)
+_Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `healthIcon`(request)
 
-**Action** (`?action=…` → nhánh `case`): `list`·77, `detail`·80, `report`·83, `create`·111, `update`·114
+**Action** (`?action=…` → nhánh `case`): `list`·78, `detail`·81, `report`·84, `create`·112, `update`·115
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `ProjectServlet.java:71` · `ProjectServlet.java:105` | _mọi link/form/fetch có `action=…`_ |
-| `description` | `ProjectServlet.java:229` · `ProjectServlet.java:310` | `projects.jsp:538` · `tasks.jsp:2127` · `tasks.jsp:3397` … (+3) |
-| `name` | `ProjectServlet.java:228` · `ProjectServlet.java:309` | `projects.jsp:520` · `tasks.jsp:3968` · `tasks.jsp:4052` … (+1) |
-| `projectCode` | `ProjectServlet.java:230` · `ProjectServlet.java:231` | `projects.jsp:475` · `projects.jsp:531` · `tasks.jsp:4063` … (+1) |
-| `projectId` | `ProjectServlet.java:306` · `ProjectServlet.java:385` … (+1) | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
-| `projectType` | `ProjectServlet.java:257` · `ProjectServlet.java:311` | `projects.jsp:552` · `projects.jsp:564` · `tasks.jsp:3980` … (+4) |
-| `redirectUrl` | `ProjectServlet.java:330` · `ProjectServlet.java:370` | — |
+| `action` | `ProjectServlet.java:72` · `ProjectServlet.java:106` | _mọi link/form/fetch có `action=…`_ |
+| `description` | `ProjectServlet.java:213` · `ProjectServlet.java:289` | `projects.jsp:500` · `timeline.jsp:405` · `task-pane.jspf:62` … (+3) |
+| `name` | `ProjectServlet.java:212` · `ProjectServlet.java:288` | `projects.jsp:482` · `create-project.jspf:29` · `project-settings.jspf:26` … (+1) |
+| `projectCode` | `ProjectServlet.java:214` · `ProjectServlet.java:215` | `projects.jsp:437` · `projects.jsp:493` · `create-project.jspf:40` … (+1) |
+| `projectId` | `ProjectServlet.java:285` · `ProjectServlet.java:357` … (+1) | `chat.jsp:414` · `chat.jsp:544` · `docs.jsp:17` … (+114) |
+| `projectType` | `ProjectServlet.java:241` · `ProjectServlet.java:290` | `projects.jsp:514` · `projects.jsp:526` · `create-project.jspf:61` … (+4) |
+| `redirectUrl` | `ProjectServlet.java:309` · `ProjectServlet.java:346` | — |
+
+## TaskFileServlet
+
+URL `/task-file` — mã nguồn `controllers/TaskFileServlet.java`
 
 ## TaskServlet
 
 URL `/task` — mã nguồn `controllers/TaskServlet.java + controllers/task/*.java`
 
-**Forward (hiển thị):** `/tasks.jsp` ← `TaskBoardHandler.java:346`
+**Forward (hiển thị):** `/tasks.jsp` ← `TaskBoardHandler.java:348`
 
-**Redirect (sau khi ghi / điều hướng):** `/project?action=list…` ← `SubTaskHandler.java:78` · `SubTaskHandler.java:87` … (+23) · `/task?action=list&projectId=…` ← `SubTaskHandler.java:121` · `SubTaskHandler.java:136` … (+40) · `/auth?action=login…` ← `SubTaskHandler.java:351` · `TaskCrudHandler.java:392` · `/auth?action=viewLogin…` ← `TaskServlet.java:170` · `TaskServlet.java:230` · `/timeline?projectId=…` ← `TaskServlet.java:201`
+**Redirect (sau khi ghi / điều hướng):** `/project?action=list…` ← `SubTaskHandler.java:83` · `SubTaskHandler.java:96` … (+22) · `/task?action=list&projectId=…` ← `SubTaskHandler.java:134` · `SubTaskHandler.java:153` … (+49) · `/auth?action=login…` ← `SubTaskHandler.java:450` · `TaskCrudHandler.java:419` · `/auth?action=viewLogin…` ← `TaskServlet.java:141` · `TaskServlet.java:196` … (+1) · `/timeline?projectId=…` ← `TaskServlet.java:167`
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `activeNav` | `TaskBoardHandler.java:342` | `navbar.jsp:41` |
-| request | `activityLogs` | `TaskBoardHandler.java:334` | `tasks.jsp:1914` · `tasks.jsp:1921` · `tasks.jsp:1933` |
-| request | `allProjectTasks` | `TaskBoardHandler.java:298` | `tasks.jsp:392` · `tasks.jsp:2068` |
-| request | `currentView` | `TaskBoardHandler.java:336` | `tasks.jsp:177` · `tasks.jsp:213` · `tasks.jsp:222` · `tasks.jsp:241` … (+5) |
-| request | `docList` | `TaskBoardHandler.java:304` | `chat.jsp:11` · `chat.jsp:133` · `chat.jsp:148` · `chat.jsp:149` … (+3) |
-| request | `doneTasks` | `TaskBoardHandler.java:296` | `tasks.jsp:13` · `tasks.jsp:394` · `tasks.jsp:865` · `tasks.jsp:869` … (+4) |
-| request | `inProgressTasks` | `TaskBoardHandler.java:294` | `risk_panel.jsp:8` · `risk_panel.jsp:27` · `tasks.jsp:12` · `tasks.jsp:396` … (+6) |
-| request | `inviteCandidates` | `TaskBoardHandler.java:324` | `tasks.jsp:3898` · `tasks.jsp:3903` |
-| request | `memberCount` | `TaskBoardHandler.java:322` | `project_report.jsp:235` · `project_report.jsp:434` · `tasks.jsp:3610` · `tasks.jsp:3923` … (+4) |
-| request | `project` | `TaskBoardHandler.java:290` | `chat.jsp:9` · `chat.jsp:256` · `chat.jsp:259` · `chat.jsp:301` … (+176) |
-| request | `projectInviteList` | `TaskBoardHandler.java:320` | `tasks.jsp:3805` · `tasks.jsp:3810` · `tasks.jsp:3817` |
-| request | `projectLabels` | `TaskBoardHandler.java:300` | `tasks.jsp:3420` |
-| request | `projectMemberList` | `TaskBoardHandler.java:318` | `tasks.jsp:3629` · `tasks.jsp:3728` · `tasks.jsp:3735` |
-| request | `submittedCount` | `TaskBoardHandler.java:316` | `project_report.jsp:286` · `project_report.jsp:288` · `project_report.jsp:348` · `project_report.jsp:575` … (+2) |
-| request | `subtaskMode` | `TaskBoardHandler.java:340` | `tasks.jsp:435` · `tasks.jsp:436` · `tasks.jsp:647` · `tasks.jsp:648` … (+8) |
-| request | `taskCommentsMap` | `TaskBoardHandler.java:308` | `tasks.jsp:2818` · `tasks.jsp:2822` · `tasks.jsp:2838` |
-| request | `taskDocsMap` | `TaskBoardHandler.java:306` | `tasks.jsp:1112` · `tasks.jsp:1113` · `tasks.jsp:1115` · `tasks.jsp:1269` … (+9) |
-| request | `taskHealthMap` | `TaskBoardHandler.java:190` | `health_badge.jsp:4` · `risk_panel.jsp:6` · `risk_panel.jsp:8` · `risk_panel.jsp:19` … (+7) |
-| request | `taskProgressMap` | `TaskBoardHandler.java:312` | `tasks.jsp:14` · `tasks.jsp:778` · `tasks.jsp:1034` · `tasks.jsp:1082` … (+16) |
-| request | `taskSubTasksMap` | `TaskBoardHandler.java:310` | `tasks.jsp:646` · `tasks.jsp:657` · `tasks.jsp:658` · `tasks.jsp:659` … (+32) |
-| request | `taskView` | `TaskBoardHandler.java:338` | `tasks.jsp:409` · `tasks.jsp:412` · `tasks.jsp:549` · `tasks.jsp:985` |
-| request | `toastError` | `TaskBoardHandler.java:227` | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| request | `toastSuccess` | `TaskBoardHandler.java:220` | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
-| request | `todoTasks` | `TaskBoardHandler.java:292` | `risk_panel.jsp:6` · `risk_panel.jsp:18` · `tasks.jsp:11` · `tasks.jsp:398` … (+6) |
-| request | `unreadNotifCount` | `TaskBoardHandler.java:328` | `navbar.jsp:94` · `navbar.jsp:96` · `navbar.jsp:110` · `navbar.jsp:111` … (+4) |
-| request | `userList` | `TaskBoardHandler.java:302` | `chat.jsp:10` · `chat.jsp:46` · `chat.jsp:76` · `chat.jsp:82` … (+10) |
-| request | `userNotifications` | `TaskBoardHandler.java:330` | `tasks.jsp:17` · `tasks.jsp:1986` · `tasks.jsp:2000` · `tasks.jsp:2008` |
-| request | `userProjects` | `TaskBoardHandler.java:326` | `profile.jsp:163` · `profile.jsp:225` · `profile.jsp:229` · `profile.jsp:261` … (+2) |
-| request | `userWorkloadList` | `TaskBoardHandler.java:314` | `tasks.jsp:468` · `tasks.jsp:483` · `tasks.jsp:484` · `tasks.jsp:485` … (+8) |
-| session | `toastError` | `SubTaskHandler.java:118` · `SubTaskHandler.java:133` … (+39) | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| session | `toastSuccess` | `SubTaskHandler.java:159` · `SubTaskHandler.java:332` … (+14) | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
+| request | `activeNav` | `TaskBoardHandler.java:344` | `navbar.jsp:42` |
+| request | `activityLogs` | `TaskBoardHandler.java:336` | `activity-view.jspf:33` · `activity-view.jspf:40` · `activity-view.jspf:52` |
+| request | `allProjectTasks` | `TaskBoardHandler.java:300` | `tasks.jsp:139` · `main-header.jspf:73` |
+| request | `currentView` | `TaskBoardHandler.java:338` | `tasks.jsp:91` · `activity-view.jspf:7` · `main-header.jspf:85` · `sidebar.jspf:121` … (+5) |
+| request | `docList` | `TaskBoardHandler.java:306` | `chat.jsp:12` · `chat.jsp:134` · `chat.jsp:149` · `chat.jsp:150` … (+3) |
+| request | `doneTasks` | `TaskBoardHandler.java:298` | `tasks.jsp:14` · `board-view.jspf:7` · `board-view.jspf:347` · `board-view.jspf:355` … (+4) |
+| request | `inProgressTasks` | `TaskBoardHandler.java:296` | `risk_panel.jsp:8` · `risk_panel.jsp:27` · `tasks.jsp:13` · `board-view.jspf:7` … (+6) |
+| request | `memberCount` | `TaskBoardHandler.java:326` | `project_report.jsp:242` · `project_report.jsp:441` · `invite-member.jspf:49` · `invite-member.jspf:53` … (+4) |
+| request | `project` | `TaskBoardHandler.java:292` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `projectAutomations` | `TaskBoardHandler.java:239` | `automation-modal.jspf:42` |
+| request | `projectInviteList` | `TaskBoardHandler.java:324` | `project-team.jspf:214` · `project-team.jspf:219` · `project-team.jspf:226` |
+| request | `projectLabels` | `TaskBoardHandler.java:302` | `add-task.jspf:64` |
+| request | `projectMemberList` | `TaskBoardHandler.java:322` | `project-team.jspf:38` · `project-team.jspf:137` · `project-team.jspf:144` |
+| request | `submittedCount` | `TaskBoardHandler.java:320` | `project_report.jsp:293` · `project_report.jsp:295` · `project_report.jsp:355` · `project_report.jsp:582` … (+2) |
+| request | `subtaskMode` | `TaskBoardHandler.java:342` | `tasks.jsp:122` · `list-view.jspf:105` · `list-view.jspf:106` · `list-view.jspf:168` … (+8) |
+| request | `taskCommentsMap` | `TaskBoardHandler.java:310` | `task-pane.jspf:364` · `task-pane.jspf:368` · `task-pane.jspf:384` |
+| request | `taskDocsMap` | `TaskBoardHandler.java:308` | `board-view.jspf:134` · `board-view.jspf:135` · `board-view.jspf:137` · `board-view.jspf:295` … (+9) |
+| request | `taskHealthMap` | `TaskBoardHandler.java:196` | `health_badge.jsp:4` · `risk_panel.jsp:6` · `risk_panel.jsp:8` · `risk_panel.jsp:19` … (+7) |
+| request | `taskProgressMap` | `TaskBoardHandler.java:316` | `tasks.jsp:15` · `board-view.jspf:56` · `board-view.jspf:104` · `board-view.jspf:105` … (+16) |
+| request | `taskSubmissionsMap` | `TaskBoardHandler.java:314` | `task-gates.jspf:157` |
+| request | `taskSubTasksMap` | `TaskBoardHandler.java:312` | `board-view.jspf:55` · `board-view.jspf:103` · `board-view.jspf:125` · `board-view.jspf:126` … (+32) |
+| request | `taskView` | `TaskBoardHandler.java:340` | `board-view.jspf:5` · `list-view.jspf:5` · `main-header.jspf:90` · `main-header.jspf:93` |
+| request | `toastError` | `TaskBoardHandler.java:223` | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| request | `toastSuccess` | `TaskBoardHandler.java:216` | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
+| request | `todoTasks` | `TaskBoardHandler.java:294` | `risk_panel.jsp:6` · `risk_panel.jsp:18` · `tasks.jsp:12` · `board-view.jspf:7` … (+6) |
+| request | `unreadNotifCount` | `TaskBoardHandler.java:330` | `navbar.jsp:91` · `navbar.jsp:97` · `navbar.jsp:99` · `navbar.jsp:113` … (+5) |
+| request | `userList` | `TaskBoardHandler.java:304` | `chat.jsp:11` · `chat.jsp:47` · `chat.jsp:77` · `chat.jsp:83` … (+11) |
+| request | `userNotifications` | `TaskBoardHandler.java:332` | `tasks.jsp:18` · `inbox-drawer.jspf:16` · `inbox-drawer.jspf:30` · `inbox-drawer.jspf:38` |
+| request | `userProjects` | `TaskBoardHandler.java:328` | `profile.jsp:214` · `profile.jsp:288` · `profile.jsp:294` · `profile.jsp:333` … (+2) |
+| request | `userWorkloadList` | `TaskBoardHandler.java:318` | `main-header.jspf:155` · `main-header.jspf:170` · `main-header.jspf:171` · `main-header.jspf:172` … (+8) |
+| session | `toastError` | `SubTaskHandler.java:54` · `SubTaskHandler.java:132` … (+52) | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| session | `toastSuccess` | `SubTaskHandler.java:209` · `SubTaskHandler.java:431` … (+15) | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
 
-_Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `projectChatMessages`(request), `cached_system_users`(session)
+_Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `projectChatMessages`(request)
 
-**Action** (`?action=…` → nhánh `case`): `list`·188, `delete`·192, `exportCsv`·196, `timeline`·200, `add`·248, `createLabel`·252, `updateStatus`·256, `quickAddParentTask`·260, `quickAddSubTask`·264, `addSubTask`·268, `toggleSubTask`·272, `submitSubTask`·276, `approveSubTask`·280, `reviseSubTask`·284, `rejectSubTask`·288, `submitParentTask`·292, `submitPlanningRequest`·296, `pmApprovePlanning`·300, `pmRejectPlanning`·304, `pmApproveTask`·308, `pmReviseTask`·312, `pmRejectTask`·316, `deleteSubTask`·320, `editTask`·324, `editSubTask`·328
+**Action** (`?action=…` → nhánh `case`): `list`·156, `exportCsv`·162, `timeline`·166, `add`·212, `createLabel`·216, `updateStatus`·220, `quickAddParentTask`·224, `quickAddSubTask`·228, `addSubTask`·232, `toggleSubTask`·236, `submitSubTask`·240, `approveSubTask`·244, `reviseSubTask`·248, `rejectSubTask`·252, `submitParentTask`·256, `submitPlanningRequest`·260, `pmApprovePlanning`·264, `pmRejectPlanning`·268, `pmApproveTask`·272, `pmReviseTask`·276, `pmRejectTask`·280, `deleteSubTask`·284, `editTask`·288, `editSubTask`·292, `delete`·296, `toggleAutomation`·301
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `TaskServlet.java:182` · `TaskServlet.java:214` | _mọi link/form/fetch có `action=…`_ |
-| `ajax` | `TaskJson.java:91` | `tasks-board.js:441` · `tasks-board.js:492` · `tasks-board.js:592` … (+1) |
-| `assigneeId` | `SubTaskHandler.java:91` · `SubTaskHandler.java:358` … (+4) | `tasks.jsp:2162` · `tasks.jsp:2169` · `tasks.jsp:2176` … (+8) |
-| `codeUrl` | `TaskWorkflowHandler.java:77` | `tasks.jsp:2659` |
-| `color` | `TaskCrudHandler.java:503` | `tasks.js:526` |
-| `completed` | `SubTaskHandler.java:178` | `tasks-board.js:440` |
-| `deliverableFile` | `TaskWorkflowHandler.java:81` | `tasks.jsp:2663` |
-| `deliverableNote` | `TaskWorkflowHandler.java:80` | — |
-| `demoUrl` | `TaskWorkflowHandler.java:76` | `tasks.jsp:2656` |
-| `description` | `TaskCrudHandler.java:85` · `TaskCrudHandler.java:399` | `projects.jsp:538` · `tasks.jsp:2127` · `tasks.jsp:3397` … (+3) |
-| `dueDate` | `SubTaskHandler.java:74` · `SubTaskHandler.java:359` … (+4) | `tasks.jsp:2154` · `tasks.jsp:2319` · `tasks.jsp:2929` … (+4) |
-| `feedback` | `TaskWorkflowHandler.java:244` · `TaskWorkflowHandler.java:297` … (+3) | `tasks.jsp:2532` · `tasks.jsp:2553` · `tasks.jsp:2696` … (+2) |
-| `feedbackNote` | `SubTaskHandler.java:565` · `SubTaskHandler.java:617` | `tasks.jsp:3099` · `tasks.jsp:3117` |
-| `hasRequiresGateControl` | `TaskCrudHandler.java:177` · `TaskCrudHandler.java:473` | `tasks.jsp:2181` |
-| `labels` | `TaskCrudHandler.java:159` | `tasks.jsp:3427` |
-| `name` | `TaskCrudHandler.java:502` | `projects.jsp:520` · `tasks.jsp:3968` · `tasks.jsp:4052` … (+1) |
-| `newStatus` | `TaskCrudHandler.java:216` | `tasks.jsp:2451` · `tasks.jsp:2764` · `tasks.jsp:2778` … (+3) |
-| `planningNote` | `TaskWorkflowHandler.java:181` | — |
-| `priority` | `TaskCrudHandler.java:86` · `TaskCrudHandler.java:400` … (+1) | `tasks.jsp:2132` · `tasks.jsp:2138` · `tasks.jsp:2144` … (+5) |
-| `projectId` | `SubTaskHandler.java:71` · `SubTaskHandler.java:176` … (+21) | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
-| `qualityRating` | `TaskWorkflowHandler.java:349` | `tasks.jsp:2687` |
-| `requiresGate` | `TaskCrudHandler.java:172` · `TaskCrudHandler.java:475` … (+1) | `tasks.jsp:2184` · `tasks.jsp:3563` |
-| `status` | `TaskCrudHandler.java:218` · `TaskCrudHandler.java:540` | `tasks-board.js:587` |
-| `subTaskId` | `SubTaskHandler.java:177` · `SubTaskHandler.java:303` … (+5) | `tasks.jsp:2913` · `tasks.jsp:3043` · `tasks.jsp:3073` … (+4) |
-| `submissionNote` | `SubTaskHandler.java:432` | `tasks.jsp:3048` |
-| `summary` | `TaskWorkflowHandler.java:75` | `tasks.jsp:2652` |
-| `taskId` | `SubTaskHandler.java:72` · `SubTaskHandler.java:666` … (+10) | `tasks.jsp:2119` · `tasks.jsp:2301` · `tasks.jsp:2450` … (+15) |
-| `taskView` | `TaskBoardHandler.java:248` | — |
-| `testResult` | `TaskWorkflowHandler.java:78` | — |
-| `testingGuide` | `TaskWorkflowHandler.java:79` | — |
-| `title` | `SubTaskHandler.java:73` · `SubTaskHandler.java:357` … (+4) | `docs.jsp:263` · `docs.jsp:322` · `tasks.jsp:2123` … (+6) |
-| `view` | `TaskBoardHandler.java:242` | — |
+| `action` | `TaskServlet.java:150` · `TaskServlet.java:180` | _mọi link/form/fetch có `action=…`_ |
+| `ajax` | `TaskJson.java:49` · `TaskServlet.java:321` | `automation-modal.jspf:129` · `tasks-board.js:503` · `tasks-board.js:554` … (+6) |
+| `assigneeId` | `SubTaskHandler.java:100` · `SubTaskHandler.java:457` … (+4) | `timeline.jsp:395` · `subtask-panes.jspf:49` · `task-pane.jspf:97` … (+9) |
+| `codeUrl` | `TaskWorkflowHandler.java:94` | `task-gates.jspf:365` |
+| `color` | `TaskCrudHandler.java:528` | `tasks.js:593` |
+| `completed` | `SubTaskHandler.java:233` | `tasks-board.js:502` · `tasks-board.js:1687` |
+| `deliverableNote` | `TaskWorkflowHandler.java:97` | — |
+| `demoUrl` | `TaskWorkflowHandler.java:93` | `task-gates.jspf:362` |
+| `description` | `TaskCrudHandler.java:63` · `TaskCrudHandler.java:426` | `projects.jsp:500` · `timeline.jsp:405` · `task-pane.jspf:62` … (+3) |
+| `dueDate` | `SubTaskHandler.java:74` · `SubTaskHandler.java:458` … (+4) | `timeline.jsp:377` · `subtask-panes.jspf:57` · `task-pane.jspf:89` … (+6) |
+| `enabled` | `TaskServlet.java:318` | `automation-modal.jspf:128` |
+| `feedback` | `TaskWorkflowHandler.java:307` · `TaskWorkflowHandler.java:362` … (+3) | `task-gates.jspf:122` · `task-gates.jspf:143` · `task-gates.jspf:412` … (+2) |
+| `feedbackNote` | `SubTaskHandler.java:684` · `SubTaskHandler.java:738` | `subtask-panes.jspf:227` · `subtask-panes.jspf:245` |
+| `hasRequiresGateControl` | `TaskCrudHandler.java:164` · `TaskCrudHandler.java:498` | `task-pane.jspf:116` |
+| `labels` | `TaskCrudHandler.java:146` | `add-task.jspf:71` |
+| `name` | `TaskCrudHandler.java:527` | `projects.jsp:482` · `create-project.jspf:29` · `project-settings.jspf:26` … (+1) |
+| `newStatus` | `TaskCrudHandler.java:204` | `task-gates.jspf:480` · `task-gates.jspf:494` · `task-gates.jspf:505` … (+3) |
+| `planningNote` | `TaskWorkflowHandler.java:241` | `task-gates.jspf:35` |
+| `priority` | `TaskCrudHandler.java:64` · `TaskCrudHandler.java:427` … (+1) | `timeline.jsp:385` · `task-pane.jspf:67` · `task-pane.jspf:73` … (+5) |
+| `projectId` | `SubTaskHandler.java:71` · `SubTaskHandler.java:231` … (+21) | `chat.jsp:414` · `chat.jsp:544` · `docs.jsp:17` … (+114) |
+| `qualityRating` | `TaskWorkflowHandler.java:416` | `task-gates.jspf:403` |
+| `recipeId` | `TaskServlet.java:317` | `automation-modal.jspf:127` |
+| `requiresGate` | `TaskCrudHandler.java:159` · `TaskCrudHandler.java:500` … (+1) | `task-pane.jspf:119` · `add-task.jspf:207` |
+| `status` | `TaskCrudHandler.java:206` · `TaskCrudHandler.java:565` | `tasks-board.js:649` |
+| `subTaskId` | `SubTaskHandler.java:232` · `SubTaskHandler.java:402` … (+5) | `subtask-panes.jspf:41` · `subtask-panes.jspf:171` · `subtask-panes.jspf:201` … (+5) |
+| `submissionNote` | `SubTaskHandler.java:531` | `subtask-panes.jspf:176` |
+| `summary` | `TaskWorkflowHandler.java:92` | `task-gates.jspf:358` |
+| `taskId` | `SubTaskHandler.java:72` · `SubTaskHandler.java:789` … (+10) | `project_report.jsp:729` · `task-gates.jspf:34` · `task-gates.jspf:119` … (+22) |
+| `taskView` | `TaskBoardHandler.java:250` | — |
+| `testResult` | `TaskWorkflowHandler.java:95` | — |
+| `testingGuide` | `TaskWorkflowHandler.java:96` | — |
+| `title` | `SubTaskHandler.java:73` · `SubTaskHandler.java:456` … (+4) | `docs.jsp:264` · `docs.jsp:323` · `timeline.jsp:361` … (+7) |
+| `view` | `TaskBoardHandler.java:244` | — |
 
 ## TimelineServlet
 
 URL `/timeline` — mã nguồn `controllers/TimelineServlet.java`
 
-**Forward (hiển thị):** `/timeline.jsp` ← `TimelineServlet.java:219`
+**Forward (hiển thị):** `/timeline.jsp` ← `TimelineServlet.java:223`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=viewLogin…` ← `TimelineServlet.java:59` · `/project?action=list…` ← `TimelineServlet.java:66` · `TimelineServlet.java:76` … (+2) · `/timeline?projectId=…` ← `TimelineServlet.java:255` · `TimelineServlet.java:348` … (+1)
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=viewLogin…` ← `TimelineServlet.java:63` · `/project?action=list…` ← `TimelineServlet.java:82` · `TimelineServlet.java:698` · `/timeline?projectId=…` ← `TimelineServlet.java:274` · `TimelineServlet.java:650` … (+1)
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `activeNav` | `TimelineServlet.java:215` | `navbar.jsp:41` |
-| request | `allTasks` | `TimelineServlet.java:180` | `timeline.jsp:232` |
-| request | `doneCount` | `TimelineServlet.java:194` | `project_report.jsp:250` · `project_report.jsp:332` · `project_report.jsp:353` · `project_report.jsp:583` … (+1) |
-| request | `inProgressCount` | `TimelineServlet.java:196` | `project_report.jsp:268` · `project_report.jsp:347` · `project_report.jsp:572` · `timeline.jsp:67` |
-| request | `isOwner` | `TimelineServlet.java:213` | `profile.jsp:69` · `profile.jsp:119` · `profile.jsp:280` · `profile.jsp:378` … (+1) |
-| request | `members` | `TimelineServlet.java:178` | `project_report.jsp:852` · `timeline.jsp:150` · `timeline.jsp:363` |
-| request | `overallProgress` | `TimelineServlet.java:202` | `timeline.jsp:99` · `timeline.jsp:104` |
-| request | `overdueCount` | `TimelineServlet.java:200` | `project_report.jsp:296` · `project_report.jsp:304` · `project_report.jsp:307` · `project_report.jsp:585` … (+5) |
-| request | `project` | `TimelineServlet.java:176` | `chat.jsp:9` · `chat.jsp:256` · `chat.jsp:259` · `chat.jsp:301` … (+176) |
-| request | `scheduledCount` | `TimelineServlet.java:190` | `timeline.jsp:53` |
-| request | `taskProgressMap` | `TimelineServlet.java:183` | `tasks.jsp:14` · `tasks.jsp:778` · `tasks.jsp:1034` · `tasks.jsp:1082` … (+16) |
-| request | `tasksJson` | `TimelineServlet.java:209` | `timeline.jsp:399` |
-| request | `todayDate` | `TimelineServlet.java:205` | `timeline.jsp:235` · `timeline.jsp:347` · `timeline.jsp:394` |
-| request | `todoCount` | `TimelineServlet.java:198` | `project_report.jsp:345` · `project_report.jsp:569` · `timeline.jsp:69` |
-| request | `totalTasks` | `TimelineServlet.java:188` | `project_report.jsp:232` · `project_report.jsp:332` · `project_report.jsp:375` · `project_report.jsp:379` … (+8) |
-| request | `unscheduledCount` | `TimelineServlet.java:192` | `timeline.jsp:53` · `timeline.jsp:219` · `timeline.jsp:224` |
-| session | `toastError` | `TimelineServlet.java:74` · `TimelineServlet.java:391` | `docs.jsp:13` · `toast.jsp:8` · `toast.jsp:20` |
-| session | `toastSuccess` | `TimelineServlet.java:346` · `TimelineServlet.java:390` | `docs.jsp:13` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:2054` |
+| request | `activeNav` | `TimelineServlet.java:219` | `navbar.jsp:42` |
+| request | `allTasks` | `TimelineServlet.java:180` | `timeline.jsp:241` · `timeline.jsp:451` · `timeline.jsp:460` |
+| request | `dependenciesJson` | `TimelineServlet.java:211` | `timeline.jsp:517` |
+| request | `doneCount` | `TimelineServlet.java:194` | `project_report.jsp:257` · `project_report.jsp:339` · `project_report.jsp:360` · `project_report.jsp:590` … (+1) |
+| request | `inProgressCount` | `TimelineServlet.java:196` | `project_report.jsp:275` · `project_report.jsp:354` · `project_report.jsp:579` · `timeline.jsp:69` |
+| request | `isOwner` | `TimelineServlet.java:217` | `profile.jsp:93` · `profile.jsp:101` · `profile.jsp:163` · `profile.jsp:401` … (+3) |
+| request | `members` | `TimelineServlet.java:178` | `project_report.jsp:871` · `timeline.jsp:152` · `timeline.jsp:397` |
+| request | `overallProgress` | `TimelineServlet.java:202` | `timeline.jsp:101` · `timeline.jsp:106` |
+| request | `overdueCount` | `TimelineServlet.java:200` | `project_report.jsp:303` · `project_report.jsp:311` · `project_report.jsp:314` · `project_report.jsp:592` … (+5) |
+| request | `project` | `TimelineServlet.java:176` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `scheduledCount` | `TimelineServlet.java:190` | `timeline.jsp:55` |
+| request | `taskProgressMap` | `TimelineServlet.java:183` | `tasks.jsp:15` · `board-view.jspf:56` · `board-view.jspf:104` · `board-view.jspf:105` … (+16) |
+| request | `tasksJson` | `TimelineServlet.java:209` | `timeline.jsp:515` |
+| request | `todayDate` | `TimelineServlet.java:205` | `timeline.jsp:248` · `timeline.jsp:371` · `timeline.jsp:378` · `timeline.jsp:510` |
+| request | `todoCount` | `TimelineServlet.java:198` | `project_report.jsp:352` · `project_report.jsp:576` · `timeline.jsp:71` |
+| request | `totalTasks` | `TimelineServlet.java:188` | `project_report.jsp:239` · `project_report.jsp:339` · `project_report.jsp:382` · `project_report.jsp:386` … (+8) |
+| request | `unscheduledCount` | `TimelineServlet.java:192` | `timeline.jsp:55` · `timeline.jsp:228` · `timeline.jsp:233` |
+| session | `toastError` | `TimelineServlet.java:693` | `docs.jsp:14` · `toast.jsp:8` · `toast.jsp:20` |
+| session | `toastSuccess` | `TimelineServlet.java:648` · `TimelineServlet.java:692` | `docs.jsp:14` · `toast.jsp:7` · `toast.jsp:17` · `tasks.jsp:125` |
 
-_Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `completedSubtaskMap`(request), `horizonEndDate`(request), `horizonStartDate`(request), `subtaskCountMap`(request), `subtasksByTask`(request)
+_Set nhưng JSP không đọc bằng `${…}` (dùng nội bộ Java / Servlet khác / JS):_ `completedSubtaskMap`(request), `dependencies`(request), `horizonEndDate`(request), `horizonStartDate`(request), `subtaskCountMap`(request), `subtasksByTask`(request)
 
-**Action** (`?action=…` → nhánh `case`): `updateDueDate`·248, `quickAddTask`·251
+**Action** (`?action=…` → nhánh `case`): `updateDueDate`·258, `updateDates`·261, `addDependency`·264, `deleteDependency`·267, `quickAddTask`·270
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `action` | `TimelineServlet.java:236` | _mọi link/form/fetch có `action=…`_ |
-| `assigneeId` | `TimelineServlet.java:317` | `tasks.jsp:2162` · `tasks.jsp:2169` · `tasks.jsp:2176` … (+8) |
-| `description` | `TimelineServlet.java:318` | `projects.jsp:538` · `tasks.jsp:2127` · `tasks.jsp:3397` … (+3) |
-| `dueDate` | `TimelineServlet.java:315` | `tasks.jsp:2154` · `tasks.jsp:2319` · `tasks.jsp:2929` … (+4) |
-| `isAjax` | `TimelineServlet.java:404` | `timeline.js:610` |
-| `newDueDate` | `TimelineServlet.java:266` | `timeline.js:609` |
-| `priority` | `TimelineServlet.java:316` | `tasks.jsp:2132` · `tasks.jsp:2138` · `tasks.jsp:2144` … (+5) |
-| `projectId` | `TimelineServlet.java:241` · `TimelineServlet.java:459` | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
-| `taskId` | `TimelineServlet.java:265` | `tasks.jsp:2119` · `tasks.jsp:2301` · `tasks.jsp:2450` … (+15) |
-| `title` | `TimelineServlet.java:314` | `docs.jsp:263` · `docs.jsp:322` · `tasks.jsp:2123` … (+6) |
+| `action` | `TimelineServlet.java:73` · `TimelineServlet.java:240` | _mọi link/form/fetch có `action=…`_ |
+| `dependencyType` | `TimelineServlet.java:423` | — |
+| `description` | `TimelineServlet.java:579` | `projects.jsp:500` · `timeline.jsp:405` · `task-pane.jspf:62` … (+3) |
+| `dueDate` | `TimelineServlet.java:349` · `TimelineServlet.java:576` | `timeline.jsp:377` · `subtask-panes.jspf:57` · `task-pane.jspf:89` … (+6) |
+| `isAjax` | `TimelineServlet.java:706` | `timeline.js:251` · `timeline.js:670` · `timeline.js:713` |
+| `newDueDate` | `TimelineServlet.java:286` | — |
+| `priority` | `TimelineServlet.java:577` | `timeline.jsp:385` · `task-pane.jspf:67` · `task-pane.jspf:73` … (+5) |
+| `projectId` | `TimelineServlet.java:789` | `chat.jsp:414` · `chat.jsp:544` · `docs.jsp:17` … (+114) |
+| `startDate` | `TimelineServlet.java:348` · `TimelineServlet.java:607` | `timeline.jsp:370` · `timeline.js:249` |
+| `title` | `TimelineServlet.java:575` | `docs.jsp:264` · `docs.jsp:323` · `timeline.jsp:361` … (+7) |
 
 ## WhiteboardServlet
 
 URL `/whiteboard` — mã nguồn `controllers/WhiteboardServlet.java`
 
-**Forward (hiển thị):** `/whiteboard.jsp` ← `WhiteboardServlet.java:69`
+**Forward (hiển thị):** `/whiteboard.jsp` ← `WhiteboardServlet.java:68`
 
-**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `WhiteboardServlet.java:46` · `/project?action=list…` ← `WhiteboardServlet.java:52` · `WhiteboardServlet.java:58`
+**Redirect (sau khi ghi / điều hướng):** `/auth?action=login…` ← `WhiteboardServlet.java:36` · `/project?action=list…` ← `WhiteboardServlet.java:47`
 
 **Servlet → JSP** (`setAttribute` ↔ `${…}`):
 
 | scope | tên | Java set | JSP dùng |
 |---|---|---|---|
-| request | `project` | `WhiteboardServlet.java:65` | `chat.jsp:9` · `chat.jsp:256` · `chat.jsp:259` · `chat.jsp:301` … (+176) |
-| request | `whiteboardJson` | `WhiteboardServlet.java:67` | `whiteboard.jsp:5` · `whiteboard.jsp:27` |
+| request | `project` | `WhiteboardServlet.java:64` | `chat.jsp:10` · `chat.jsp:257` · `chat.jsp:260` · `chat.jsp:302` … (+190) |
+| request | `whiteboardJson` | `WhiteboardServlet.java:66` | `whiteboard.jsp:5` · `whiteboard.jsp:33` |
 
 **Tham số Servlet đọc** (`getParameter` ← form/JS gửi lên):
 
 | tham số | Java đọc | JSP/JS gửi (gợi ý) |
 |---|---|---|
-| `projectId` | `WhiteboardServlet.java:50` · `WhiteboardServlet.java:86` | `chat.jsp:404` · `chat.jsp:534` · `docs.jsp:16` … (+93) |
+| `format` | `WhiteboardServlet.java:53` | `whiteboard.js:6` · `whiteboard.js:81` |
 

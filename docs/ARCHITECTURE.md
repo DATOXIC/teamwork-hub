@@ -365,130 +365,7 @@ function renderMentions(rawContent, projectId)
 
 ---
 
-## 6. KẾ HOẠCH TRIỂN KHAI (PHASED IMPLEMENTATION PLAN)
-
-### GIAI ĐOẠN 1: Cơ sở hạ tầng Quan hệ Task ↔ Doc (CÁC FILE CẦN TẠO/SỬA)
-
-#### [NEW] com.teamwork.business.TaskDoc.java
-```
-- Thuộc tính: taskId (int), docId (int), docTitle (String)
-- Constructor đầy đủ tham số + mặc định + Getters/Setters
-```
-
-#### [NEW] com.teamwork.data.TaskDocDB.java
-```
-- Seed Data: 3 liên kết mẫu đồng bộ với TaskDB và DocDB
-- Hàm selectByTaskId(int taskId) → List<TaskDoc>
-- Hàm selectTaskIdsByDocId(int docId) → List<Integer>
-- Hàm insert(int taskId, int docId, String docTitle)
-- Hàm deleteByTaskId(int taskId)
-- Hàm deleteByDocId(int docId)
-```
-
-#### [MODIFY] src/main/webapp/tasks.jsp
-```
-- TaskServlet phải đổ thêm: docList (List<Doc> của project) vào request attribute
-- Trong form "+ Thêm công việc": Thêm <select multiple name="docIds">
-- Mỗi thẻ Kanban Card: Thêm badge 📑 nếu có doc đính kèm
-- Pre-render Modal Chi tiết Task cho TỪNG task trong c:forEach
-  Modal chứa: thông tin task + list doc đính kèm + list bình luận (từ MessageDB)
-```
-
-#### [MODIFY] com.teamwork.controllers.TaskServlet.java
-```
-- doGet action="list": Thêm đổ docList vào request attribute
-- doPost action="add": Sau insert task, xử lý docIds[] và gọi TaskDocDB.insert()
-- doGet action="delete": Trước khi xóa task, gọi TaskDocDB.deleteByTaskId()
-```
-
-#### [MODIFY] src/main/webapp/docs.jsp
-```
-- DocServlet phải đổ thêm: relatedTasks (List<Task>) vào request attribute
-- Ở cuối bài viết: Render khung "Công việc tham chiếu tài liệu này"
-```
-
-#### [MODIFY] com.teamwork.controllers.DocServlet.java
-```
-- handleShowDocs(): Gọi TaskDocDB.selectTaskIdsByDocId() rồi map sang Task objects
-- handleDeleteDoc(): Gọi TaskDocDB.deleteByDocId(docId) trước khi xóa
-```
-
----
-
-### GIAI ĐOẠN 2: Hệ thống Chat & Bình luận (Sprint 5)
-
-#### [NEW] com.teamwork.business.Message.java
-```
-- Thuộc tính: id, projectId, taskId, authorId, authorName, content, sentAt
-- taskId = 0 → Chat chung dự án; taskId != 0 → Comment của task
-```
-
-#### [NEW] com.teamwork.data.MessageDB.java
-```
-- Seed Data: 2 tin nhắn chat chung + 1 comment task mẫu (có dùng #mention)
-- Hàm selectByProject(int projectId) → List<Message> (taskId=0)
-- Hàm selectByTask(int taskId) → List<Message> (taskId!=0)
-- Hàm insert(Message msg) → int
-- Hàm countByProject(int projectId) → int
-- Hàm delete(int id) → boolean
-```
-
-#### [NEW] com.teamwork.controllers.ChatServlet.java (/chat)
-```
-doGet:
-  - action="view": Lấy chat chung của dự án → forward chat.jsp
-doPost:
-  - action="sendProjectMessage": Lưu tin nhắn chat chung (taskId=0)
-  - action="sendTaskComment": Lưu bình luận task (taskId != 0)
-  - Cả 2 đều: Lấy User từ Session, tạo Message, MessageDB.insert(), sendRedirect
-```
-
-#### [NEW] src/main/webapp/chat.jsp
-```
-- Layout 2 cột:
-  • Cột trái: Danh sách kênh = [Kênh Chung Dự Án] (chỉ 1 kênh theo dự án)
-  • Cột phải: Dòng thời gian tin nhắn (cuộn từ trên xuống, tin mới nhất ở dưới)
-    Mỗi tin nhắn: Avatar (chữ cái đầu), Tên, Thời gian, Nội dung (đã render mention)
-  • Form gửi tin nhắn ở dưới cùng
-- Gợi ý #mention hiện ra khi gõ "#" hoặc "@"
-- Tự động cuộn xuống tin mới nhất khi tải trang
-```
-
-#### [NEW] src/main/webapp/js/chat.js
-```
-- Hàm renderMentions(content, projectId): Xử lý #doc-X, #task-X, @name → HTML links
-- Hàm scrollToBottom(): Tự động cuộn xuống dòng cuối khi tải chat
-- Hàm suggestMentions(): Khi gõ "#" → hiện dropdown gợi ý task/doc hiện có
-```
-
-#### [MODIFY] src/main/webapp/WEB-INF/web.xml
-```
-- Thêm: ChatServlet mapping /chat
-```
-
----
-
-### GIAI ĐOẠN 3: Nâng cấp Dashboard (Project Card)
-
-#### [MODIFY] com.teamwork.controllers.ProjectServlet.java
-```
-- action="list": Tính thêm docCountMap, msgCountMap rồi đổ vào request attribute
-```
-
-#### [MODIFY] src/main/webapp/projects.jsp
-```
-- Mỗi Project Card thêm:
-  📑 ${docCountMap[p.id]} tài liệu | 💬 ${msgCountMap[p.id]} thảo luận
-```
-
-#### [MODIFY] tasks.jsp và docs.jsp
-```
-- Thêm nút Tab thứ 3: [Kanban] [Tài liệu] [💬 Chat] trong thanh điều hướng
-```
-
----
-
-## 7. BẢNG KIỂM SOÁT FILE — TOÀN BỘ HỆ THỐNG SAU KHI HOÀN THÀNH
+## 6. BẢNG KIỂM SOÁT FILE — TOÀN BỘ HỆ THỐNG SAU KHI HOÀN THÀNH
 
 | File | Trạng thái | Mô tả |
 |---|---|---|
@@ -521,9 +398,9 @@ doPost:
 
 ---
 
-## 8. CÁC ĐIỂM KỸ THUẬT QUAN TRỌNG CẦN GHI NHỚ
+## 7. CÁC ĐIỂM KỸ THUẬT QUAN TRỌNG CẦN GHI NHỚ
 
-### 8.1. Quy tắc Code Style của User (BẮT BUỘC)
+### 7.1. Quy tắc Code Style của User (BẮT BUỘC)
 ```
 - LUÔN dùng vòng lặp for...of hoặc for(Type item : list) thay vì forEach()
 - LUÔN dùng hàm có tên rõ ràng (named function) thay vì anonymous function
@@ -533,13 +410,13 @@ doPost:
 - Dùng JSTL <c:...> và EL ${...} cho mọi logic trong JSP
 ```
 
-### 8.2. Quy tắc Routing PRG Pattern (BẮT BUỘC)
+### 7.2. Quy tắc Routing PRG Pattern (BẮT BUỘC)
 ```
 - Mọi thao tác POST (tạo/sửa/xóa) sau khi xử lý PHẢI sendRedirect về GET
 - Lý do: Tránh người dùng bấm F5 gửi lại form → tạo dữ liệu trùng lặp
 ```
 
-### 8.3. Quy tắc JSP về c:choose (ĐÃ BỊ LỖI 1 LẦN)
+### 7.3. Quy tắc JSP về c:choose (ĐÃ BỊ LỖI 1 LẦN)
 ```
 - KHÔNG BAO GIỜ đặt comment HTML <!-- --> hoặc text/khoảng trắng
   trực tiếp bên trong <c:choose>
@@ -547,7 +424,7 @@ doPost:
 - Comment được phép trong <c:when> và <c:otherwise>
 ```
 
-### 8.4. Quy tắc Đặt Tên File (Đã thống nhất)
+### 7.4. Quy tắc Đặt Tên File (Đã thống nhất)
 ```
 AuthServlet   ↔ login.jsp
 ProjectServlet ↔ projects.jsp
@@ -556,47 +433,17 @@ DocServlet    ↔ docs.jsp
 ChatServlet   ↔ chat.jsp + chat.js
 ```
 
-### 8.5. AuthFilter Whitelist (Cần cập nhật nếu thêm /chat)
+### 7.5. AuthFilter Whitelist (Cần cập nhật nếu thêm /chat)
 ```
 Hiện tại /chat chưa có trong protected paths.
 AuthFilter tự động bảo vệ /chat vì nó không nằm trong whitelist.
 Không cần thay đổi AuthFilter.java.
 ```
 
-### 8.6. Deployment
+### 7.6. Deployment
 ```
-- Local: C:\apache-tomcat-10.1\apache-tomcat-10.1.57
-- JDK: C:\Users\To Phuong Dat\AppData\Local\Programs\Eclipse Adoptium\jdk-21.0.12.8-hotspot
+- Local: Tomcat 10.1 + JDK 21 (đường dẫn khai báo trong env.bat, xem env.example.bat)
 - Cloud: https://teamwork-hub-lnn4.onrender.com (Render.com Docker)
 - GitHub: https://github.com/DATOXIC/teamwork-hub
 - Compile command: javac -encoding UTF-8 -cp "tomcat/lib/jakarta.servlet-api.jar;..."
 ```
-
----
-
-## 9. THỨ TỰ TRIỂN KHAI (EXECUTION ORDER)
-
-```
-Bước 1:  Tạo TaskDoc.java (Model)
-Bước 2:  Tạo TaskDocDB.java (Data + Seed Data)
-Bước 3:  Cập nhật TaskServlet.java (xử lý docIds khi add task)
-Bước 4:  Cập nhật tasks.jsp (multi-select, badge, modal chi tiết task)
-Bước 5:  Cập nhật DocServlet.java (thêm relatedTasks)
-Bước 6:  Cập nhật docs.jsp (thêm khung công việc liên quan)
---- Giai đoạn 1 hoàn thành, test và commit ---
-Bước 7:  Tạo Message.java (Model)
-Bước 8:  Tạo MessageDB.java (Data + Seed Data có #mention)
-Bước 9:  Tạo ChatServlet.java (Controller)
-Bước 10: Cập nhật web.xml (thêm /chat)
-Bước 11: Tạo chat.jsp (View 2 cột)
-Bước 12: Tạo chat.js (renderMentions, scrollToBottom)
---- Giai đoạn 2 hoàn thành, test và commit ---
-Bước 13: Cập nhật ProjectServlet.java (tính docCount, msgCount)
-Bước 14: Cập nhật projects.jsp (hiển thị thêm thống kê)
-Bước 15: Cập nhật tasks.jsp và docs.jsp (thêm nút Tab Chat)
---- Giai đoạn 3 hoàn thành, test cuối cùng và push lên GitHub/Render ---
-```
-
----
-
-*Tài liệu này được tạo lúc 25/08/2026 20:36 và phản ánh đầy đủ tầm nhìn kiến trúc v2.0 đã được người dùng xác nhận.*

@@ -626,3 +626,130 @@ CREATE TABLE whiteboards (
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE
 );
 GO
+GO
+
+-- =============================================================================
+-- NỘP BÀN GIAO (task_submissions) — entity: TaskSubmission.java
+-- (đã gộp từ migrations/2026-10-12_add_task_submissions.sql)
+-- =============================================================================
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'task_submissions')
+BEGIN
+    CREATE TABLE task_submissions (
+        id               INT IDENTITY(1,1) PRIMARY KEY,
+        task_id          INT               NOT NULL,
+        revision_number  INT               NOT NULL DEFAULT 1,
+        submitted_by     INT               NULL,
+        submission_note  NVARCHAR(MAX)     NOT NULL DEFAULT '',
+        summary          NVARCHAR(MAX)     NOT NULL DEFAULT '',
+        demo_url         NVARCHAR(500)     NOT NULL DEFAULT '',
+        code_url         NVARCHAR(500)     NOT NULL DEFAULT '',
+        test_result      NVARCHAR(MAX)     NOT NULL DEFAULT '',
+        testing_guide    NVARCHAR(MAX)     NOT NULL DEFAULT '',
+        file_path        NVARCHAR(255)     NOT NULL DEFAULT '',
+        status           VARCHAR(20)       NOT NULL DEFAULT 'SUBMITTED',
+        pm_feedback      NVARCHAR(MAX)     NOT NULL DEFAULT '',
+        quality_rating   INT               NOT NULL DEFAULT 0,
+        reviewed_by      INT               NULL,
+        submitted_at     NVARCHAR(50)      NOT NULL DEFAULT '',
+        reviewed_at      NVARCHAR(50)      NOT NULL DEFAULT '',
+        created_at       DATETIME2         NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT fk_task_submissions_task
+            FOREIGN KEY (task_id) REFERENCES tasks (id)
+            ON DELETE CASCADE,
+
+        CONSTRAINT fk_task_submissions_submitted_by
+            FOREIGN KEY (submitted_by) REFERENCES users (id)
+            ON DELETE NO ACTION,
+
+        CONSTRAINT fk_task_submissions_reviewed_by
+            FOREIGN KEY (reviewed_by) REFERENCES users (id)
+            ON DELETE NO ACTION,
+
+        CONSTRAINT uq_task_submissions_task_revision
+            UNIQUE (task_id, revision_number)
+    );
+
+    CREATE INDEX idx_task_submissions_task_id ON task_submissions (task_id);
+END
+GO
+
+-- =============================================================================
+-- GANTT & TỰ ĐỘNG HÓA — tasks.start_date, task_dependencies, project_automations
+-- (đã gộp từ migrations/2026-10-15_add_dependencies_and_automations.sql)
+-- =============================================================================
+IF NOT EXISTS (
+    SELECT 1 FROM sys.columns 
+    WHERE object_id = OBJECT_ID('tasks') AND name = 'start_date'
+)
+BEGIN
+    ALTER TABLE tasks ADD start_date DATE NULL;
+END;
+GO
+
+UPDATE tasks 
+SET start_date = COALESCE(DATEADD(day, -3, due_date), CAST(created_at AS DATE), CAST(GETDATE() AS DATE))
+WHERE start_date IS NULL;
+
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'task_dependencies')
+BEGIN
+    CREATE TABLE task_dependencies (
+        id                 INT IDENTITY(1,1) PRIMARY KEY,
+        project_id         INT          NOT NULL,
+        task_id            INT          NOT NULL,
+        depends_on_task_id INT          NOT NULL,
+        dependency_type    VARCHAR(30)  NOT NULL DEFAULT 'FINISH_TO_START',
+        lag_days           INT          NOT NULL DEFAULT 0,
+        created_at         DATETIME2    NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT fk_task_dep_project
+            FOREIGN KEY (project_id) REFERENCES projects (id)
+            ON DELETE CASCADE,
+
+        CONSTRAINT fk_task_dep_task
+            FOREIGN KEY (task_id) REFERENCES tasks (id)
+            ON DELETE CASCADE,
+
+        -- SQL Server tránh Multiple Cascade Paths: NO ACTION trên depends_on_task_id
+        CONSTRAINT fk_task_dep_depends_on
+            FOREIGN KEY (depends_on_task_id) REFERENCES tasks (id)
+            ON DELETE NO ACTION,
+
+        CONSTRAINT chk_task_dep_no_self
+            CHECK (task_id <> depends_on_task_id),
+
+        CONSTRAINT uq_task_dep_pair
+            UNIQUE (task_id, depends_on_task_id)
+    );
+
+    CREATE INDEX idx_task_deps_project    ON task_dependencies (project_id);
+    CREATE INDEX idx_task_deps_task       ON task_dependencies (task_id);
+    CREATE INDEX idx_task_deps_depends_on ON task_dependencies (depends_on_task_id);
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'project_automations')
+BEGIN
+    CREATE TABLE project_automations (
+        id                INT IDENTITY(1,1) PRIMARY KEY,
+        project_id        INT           NOT NULL,
+        recipe_id         VARCHAR(50)   NOT NULL,
+        recipe_name       NVARCHAR(200) NOT NULL,
+        description       NVARCHAR(MAX) NOT NULL DEFAULT '',
+        is_enabled        BIT           NOT NULL DEFAULT 1,
+        config_json       NVARCHAR(MAX) NOT NULL DEFAULT '{}',
+        last_triggered_at DATETIME2     NULL,
+        trigger_count     INT           NOT NULL DEFAULT 0,
+        created_at        DATETIME2     NOT NULL DEFAULT GETDATE(),
+        updated_at        DATETIME2     NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT fk_proj_auto_project
+            FOREIGN KEY (project_id) REFERENCES projects (id)
+            ON DELETE CASCADE,
+
+        CONSTRAINT uq_proj_auto_recipe
+            UNIQUE (project_id, recipe_id)
+    );
+
+    CREATE INDEX idx_proj_auto_project ON project_automations (project_id);
+END;
+GO

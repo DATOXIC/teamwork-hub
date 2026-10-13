@@ -831,3 +831,83 @@ CREATE TABLE IF NOT EXISTS task_submissions (
 CREATE INDEX IF NOT EXISTS idx_task_submissions_task_id ON task_submissions (task_id);
 CREATE INDEX IF NOT EXISTS idx_task_submissions_status  ON task_submissions (status);
 
+-- =============================================================================
+-- GANTT & TỰ ĐỘNG HÓA — tasks.start_date, task_dependencies, project_automations
+-- (đã gộp từ migrations/2026-10-15_add_dependencies_and_automations.sql)
+-- =============================================================================
+-- 1. Thêm cột start_date cho bảng tasks nếu chưa tồn tại
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'tasks' AND column_name = 'start_date'
+    ) THEN
+        ALTER TABLE tasks ADD COLUMN start_date DATE;
+    END IF;
+END $$;
+
+-- Backfill dữ liệu start_date cho tasks cũ (mặc định bằng due_date - 3 ngày hoặc created_at hoặc hôm nay)
+UPDATE tasks 
+SET start_date = COALESCE(due_date - INTERVAL '3 days', created_at::date, CURRENT_DATE)
+WHERE start_date IS NULL;
+
+-- 2. Bảng task_dependencies
+CREATE TABLE IF NOT EXISTS task_dependencies (
+    id                 SERIAL      PRIMARY KEY,
+    project_id         INT         NOT NULL,
+    task_id            INT         NOT NULL,
+    depends_on_task_id INT         NOT NULL,
+    dependency_type    VARCHAR(30) NOT NULL DEFAULT 'FINISH_TO_START',
+    lag_days           INT         NOT NULL DEFAULT 0,
+    created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_task_dep_project
+        FOREIGN KEY (project_id) REFERENCES projects (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT fk_task_dep_task
+        FOREIGN KEY (task_id) REFERENCES tasks (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT fk_task_dep_depends_on
+        FOREIGN KEY (depends_on_task_id) REFERENCES tasks (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT chk_task_dep_no_self
+        CHECK (task_id <> depends_on_task_id),
+
+    CONSTRAINT uq_task_dep_pair
+        UNIQUE (task_id, depends_on_task_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_deps_project    ON task_dependencies (project_id);
+CREATE INDEX IF NOT EXISTS idx_task_deps_task       ON task_dependencies (task_id);
+CREATE INDEX IF NOT EXISTS idx_task_deps_depends_on ON task_dependencies (depends_on_task_id);
+
+-- 3. Bảng project_automations
+CREATE TABLE IF NOT EXISTS project_automations (
+    id                SERIAL       PRIMARY KEY,
+    project_id        INT          NOT NULL,
+    recipe_id         VARCHAR(50)  NOT NULL, -- 'AUTO_PROMPT_GATE2', 'AUTO_CLOSE_SUBTASKS', 'AUTO_ESCALATE_PRIORITY'
+    recipe_name       VARCHAR(200) NOT NULL,
+    description       TEXT         NOT NULL DEFAULT '',
+    is_enabled        BOOLEAN      NOT NULL DEFAULT TRUE,
+    config_json       TEXT         NOT NULL DEFAULT '{}',
+    last_triggered_at TIMESTAMPTZ,
+    trigger_count     INT          NOT NULL DEFAULT 0,
+    created_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_proj_auto_project
+        FOREIGN KEY (project_id) REFERENCES projects (id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+
+    CONSTRAINT uq_proj_auto_recipe
+        UNIQUE (project_id, recipe_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_proj_auto_project ON project_automations (project_id);
+
+-- Bật RLS bảo vệ bảng mới trên Supabase
+ALTER TABLE task_dependencies  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_automations ENABLE ROW LEVEL SECURITY;
