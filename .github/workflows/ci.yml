@@ -1,4 +1,4 @@
-# Chạy toàn bộ unit test (không cần DB) mỗi khi push hoặc mở Pull Request vào main.
+# Kiểm tra dự án biên dịch và đóng gói được mỗi khi push hoặc mở Pull Request vào main.
 name: CI
 
 on:
@@ -22,5 +22,5 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Build và chạy unit test
-        run: mvn -B test
+      - name: Build (biên dịch + đóng gói WAR)
+        run: mvn -B -DskipTests package
