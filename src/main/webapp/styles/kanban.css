@@ -85,8 +85,22 @@
     color: var(--c-aa-slate-500);
     background: transparent;
     border: none;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
     font-size: 0.9rem;
+    position: relative;
+}
+
+/* Đảm bảo Touch Target tối thiểu 44x44px trên thiết bị cảm ứng (WCAG 2.5.5) */
+@media (pointer: coarse) {
+    .btn-column-add::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
 
 .btn-column-add:hover {
@@ -182,14 +196,14 @@
     box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.1);
 }
 
-/* Thẻ In Progress & Done tinh tế */
+/* Thẻ In Progress & Done tinh tế - Loại bỏ vạch thô AI-slop side-tab */
 .kanban-card-inprogress {
-    border-left: 3px solid var(--c-blue-500) !important;
+    border-color: rgba(59, 130, 246, 0.35) !important;
 }
 
 .kanban-card-done {
     background-color: var(--c-slate-50) !important;
-    border-left: 3px solid var(--c-emerald-500) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
     opacity: 0.92;
 }
 

@@ -42,12 +42,13 @@
             </div>
         </div>
 
-        <!-- Cụm giữa: 7 Tab Phân Hệ Dự Án (Scrollable Capsule Navigation) -->
+        <!-- Cụm giữa: 8 Tab Phân Hệ Dự Án (Scrollable Capsule Navigation) -->
         <nav aria-label="Phân hệ dự án" class="subnav-tabs-wrapper subnav-tabs-scroll flex-grow-1 flex-md-grow-0">
             <div class="d-flex align-items-center gap-1 p-1 rounded-pill subnav-tabs-capsule">
                 <!-- 1. Kanban -->
                 <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'kanban' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'kanban'}">aria-current="page"</c:if>
                    title="Bảng công việc Kanban">
                     <i class="bi bi-kanban me-1" aria-hidden="true"></i>
                     <span>Kanban</span>
@@ -56,6 +57,7 @@
                 <!-- 2. Lộ trình (Gantt) -->
                 <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'timeline' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'timeline'}">aria-current="page"</c:if>
                    title="Lộ trình & Sơ đồ Gantt">
                     <i class="bi bi-calendar-range me-1" aria-hidden="true"></i>
                     <span>Lộ trình</span>
@@ -64,6 +66,7 @@
                 <!-- 3. Bảng vẽ (Whiteboard) -->
                 <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'whiteboard' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'whiteboard'}">aria-current="page"</c:if>
                    title="Bảng vẽ ý tưởng & Sơ đồ nhóm">
                     <i class="bi bi-easel me-1" aria-hidden="true"></i>
                     <span>Bảng vẽ</span>
@@ -72,6 +75,7 @@
                 <!-- 4. Họp video (Meeting) -->
                 <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'meeting' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'meeting'}">aria-current="page"</c:if>
                    title="Phòng họp video trực tuyến">
                     <i class="bi bi-camera-video me-1" aria-hidden="true"></i>
                     <span>Họp video</span>
@@ -80,6 +84,7 @@
                 <!-- 5. Tài liệu (Docs) -->
                 <a href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'docs' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'docs'}">aria-current="page"</c:if>
                    title="Không gian tài liệu & Wiki nhóm">
                     <i class="bi bi-journal-text me-1" aria-hidden="true"></i>
                     <span>Tài liệu</span>
@@ -88,6 +93,7 @@
                 <!-- 6. Thảo luận (Chat) -->
                 <a href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'chat' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'chat'}">aria-current="page"</c:if>
                    title="Kênh thảo luận & Trao đổi trực tiếp">
                     <i class="bi bi-chat-dots me-1" aria-hidden="true"></i>
                     <span>Thảo luận</span>
@@ -96,6 +102,7 @@
                 <!-- 7. Báo cáo (Report) -->
                 <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'report' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'report'}">aria-current="page"</c:if>
                    title="Báo cáo tiến độ & Đo lường năng suất">
                     <i class="bi bi-file-earmark-bar-graph me-1" aria-hidden="true"></i>
                     <span>Báo cáo</span>
@@ -104,6 +111,7 @@
                 <!-- 8. Phân tích (Analytics) -->
                 <a href="${pageContext.request.contextPath}/project-analytics?projectId=${project.id}" 
                    class="subnav-tab-item ${currentNav == 'analytics' ? 'active' : ''}"
+                   <c:if test="${currentNav == 'analytics'}">aria-current="page"</c:if>
                    title="Trung tâm phân tích động lực, Burndown & Chất lượng">
                     <i class="bi bi-graph-up-arrow me-1" aria-hidden="true"></i>
                     <span>Phân tích</span>

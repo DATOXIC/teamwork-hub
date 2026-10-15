@@ -12,8 +12,10 @@
                                     <i class="bi bi-chevron-bar-right fs-8 d-none d-lg-inline" aria-hidden="true"></i>
                                 </button>
                                 <div class="d-flex align-items-center gap-1.5 text-muted fs-8">
-                                    <span>Không gian</span>
-                                    <i class="bi bi-chevron-right fs-9 text-muted"></i>
+                                    <a href="${pageContext.request.contextPath}/project?action=list" class="text-muted text-decoration-none d-inline-flex align-items-center gap-1 hover-text-primary" title="Quay về danh sách không gian dự án">
+                                        <i class="bi bi-grid-fill fs-9" aria-hidden="true"></i> Không gian
+                                    </a>
+                                    <i class="bi bi-chevron-right fs-9 text-muted" aria-hidden="true"></i>
                                 </div>
                                 <h6 class="fw-bold text-dark mb-0 fs-7">${fn:escapeXml(project.name)}</h6>
                                 <span class="badge ${project.projectTypeBadgeClass} rounded-pill px-2 py-0-5 fs-9 d-inline-flex align-items-center gap-1 shadow-2xs">
@@ -24,7 +26,7 @@
                                         <i class="bi bi-gear text-secondary fs-9"></i>
                                     </button>
                                 </c:if>
-                                <i role="button" tabindex="0" aria-label="Đánh dấu dự án yêu thích" class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')"></i>
+                                <i role="button" tabindex="0" aria-label="Đánh dấu dự án yêu thích" class="bi bi-star text-muted fs-8 ms-1" id="btnStarProject" style="cursor: pointer;" title="Đánh dấu dự án yêu thích" onclick="toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleProjectFavorite(${project.id}, '<c:out value="${project.name}" />');}"></i>
                             </div>
 
                             <!-- Right: Actions & Badges -->
@@ -84,7 +86,7 @@
                 <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("currentView") --%>
                 <div class="clickup-control-toolbar ${currentView == 'tasks' ? '' : 'd-none'} d-flex align-items-center justify-content-between flex-wrap gap-2 py-2 px-3 bg-white border-bottom shadow-2xs">
                     <div class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
-                        <!-- View Switcher (List vs Board vs Timeline) -->
+                        <!-- View Switcher (List vs Board) + Dropdown Phân hệ khác -->
                         <div class="clickup-view-switcher" id="taskViewSwitcher">
                             <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskView") --%>
                             <button type="button" class="clickup-view-btn ${taskView == 'list' ? 'active' : ''}" id="btn-view-list" onclick="switchTaskSubView('list')">
@@ -93,24 +95,21 @@
                             <button type="button" class="clickup-view-btn ${taskView == 'board' ? 'active' : ''}" id="btn-view-board" onclick="switchTaskSubView('board')">
                                 <i class="bi bi-kanban"></i> Bảng
                             </button>
-                            <a href="${pageContext.request.contextPath}/timeline?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-timeline" title="Mở sơ đồ Gantt & Lộ trình thời gian">
-                                <i class="bi bi-calendar-range text-warning"></i> Lộ trình
-                            </a>
-                            <a href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-whiteboard" title="Mở bảng vẽ ý tưởng">
-                                <i class="bi bi-easel text-primary"></i> Bảng vẽ
-                            </a>
-                            <a href="${pageContext.request.contextPath}/meeting?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-meeting" title="Họp video nhóm">
-                                <i class="bi bi-camera-video text-success"></i> Họp video
-                            </a>
-                            <a href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-report" title="Xem báo cáo tiến độ toàn diện">
-                                <i class="bi bi-file-earmark-bar-graph text-info"></i> Báo cáo
-                            </a>
-                            <a href="${pageContext.request.contextPath}/project-analytics?projectId=${project.id}" class="clickup-view-btn text-decoration-none" id="btn-view-analytics" title="Xem phân tích động lực & biểu đồ Burndown">
-                                <i class="bi bi-graph-up-arrow text-primary"></i> Phân tích
-                            </a>
-                            <button type="button" class="clickup-view-btn text-decoration-none border-0 bg-transparent" id="btn-view-automation" data-bs-toggle="modal" data-bs-target="#automationModal" title="Mở trung tâm cấu hình tự động hóa">
-                                <i class="bi bi-magic text-warning"></i> Tự động hóa
-                            </button>
+                            <!-- Dropdown Phân hệ / Xem thêm để tối ưu công thái học (Hick's Law) -->
+                            <div class="dropdown d-inline-block">
+                                <button class="clickup-view-btn dropdown-toggle border-0 bg-transparent" type="button" id="moreViewsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Các phân hệ và chế độ xem khác">
+                                    <i class="bi bi-grid text-secondary"></i> Khác
+                                </button>
+                                <ul class="dropdown-menu shadow-sm border-0 fs-8" aria-labelledby="moreViewsDropdown">
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/timeline?projectId=${project.id}"><i class="bi bi-calendar-range me-2 text-warning"></i> Lộ trình (Gantt)</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/whiteboard?projectId=${project.id}"><i class="bi bi-easel me-2 text-primary"></i> Bảng vẽ ý tưởng</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/meeting?projectId=${project.id}"><i class="bi bi-camera-video me-2 text-success"></i> Họp video nhóm</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/doc?action=list&projectId=${project.id}"><i class="bi bi-journal-text me-2 text-secondary"></i> Tài liệu (Wiki)</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/chat?action=view&projectId=${project.id}"><i class="bi bi-chat-dots me-2 text-primary"></i> Thảo luận (Chat)</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/project?action=report&projectId=${project.id}"><i class="bi bi-file-earmark-bar-graph me-2 text-info"></i> Báo cáo tiến độ</a></li>
+                                    <li><a class="dropdown-item" href="${pageContext.request.contextPath}/project-analytics?projectId=${project.id}"><i class="bi bi-graph-up-arrow me-2 text-danger"></i> Phân tích Burndown</a></li>
+                                </ul>
+                            </div>
                         </div>
 
                         <!-- Nút Chuyển Đổi Subtasks -->

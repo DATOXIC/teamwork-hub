@@ -77,7 +77,25 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+/* Đảm bảo Touch Target tối thiểu 44x44px trên thiết bị cảm ứng (WCAG 2.5.5) */
+@media (pointer: coarse) {
+    .assignee-avatar-btn,
+    .assignee-avatar-btn-more {
+        position: relative;
+    }
+    .assignee-avatar-btn::after,
+    .assignee-avatar-btn-more::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
 .assignee-avatar-btn-more:hover {
     background-color: var(--c-slate-200);
@@ -157,6 +175,7 @@
     font-weight: 700;
 }
 .kanban-card-submitted {
-    border-left: 4px solid var(--c-violet-500) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+    box-shadow: 0 1px 3px rgba(139, 92, 246, 0.08) !important;
     background: linear-gradient(to right, rgba(139, 92, 246, 0.03), var(--c-white) 25%) !important;
 }

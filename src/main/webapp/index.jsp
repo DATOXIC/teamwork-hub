@@ -70,43 +70,21 @@
              ======================================================== -->
         <div class="showcase-container reveal-up" data-delay="4">
 
-            <!-- Floating Widget 1: Task hoàn thành (Bên trái) -->
-            <aside class="floating-widget floating-widget--left" aria-label="Thông báo task hoàn thành thời gian thực">
-                <div class="widget-icon-box widget-icon-box--emerald" aria-hidden="true">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-                <div>
-                    <div class="widget-text-title">Công việc hoàn thành</div>
-                    <div class="widget-text-desc">#task-12: Thiết kế DB JPA • Vừa xong</div>
-                </div>
-            </aside>
-
-            <!-- Floating Widget 2: Tin nhắn mới (Bên phải) -->
-            <aside class="floating-widget floating-widget--right" aria-label="Tin nhắn thảo luận thời gian thực">
-                <div class="widget-icon-box widget-icon-box--indigo" aria-hidden="true">
-                    <i class="bi bi-chat-quote-fill"></i>
-                </div>
-                <div>
-                    <div class="widget-text-title">@David Đỗ</div>
-                    <div class="widget-text-desc">"Bản Chat UI mới mượt mà quá! 🚀"</div>
-                </div>
-            </aside>
-
-            <!-- Bộ chuyển đổi Tab tương tác ngay trên trang chủ -->
-            <nav class="showcase-tabs-nav" aria-label="Chọn tính năng xem trước">
-                <button type="button" class="showcase-tab-btn active" data-target="panel-kanban" id="tab-kanban">
+            <!-- Bộ chuyển đổi Tab tương tác ngay trên trang chủ (WAI-ARIA Tablist Pattern) -->
+            <nav class="showcase-tabs-nav" aria-label="Chọn tính năng xem trước" role="tablist">
+                <button type="button" role="tab" aria-selected="true" aria-controls="panel-kanban" class="showcase-tab-btn active" data-target="panel-kanban" id="tab-kanban">
                     <i class="bi bi-kanban-fill text-warning" aria-hidden="true"></i>
                     <span>Kanban</span>
                 </button>
-                <button type="button" class="showcase-tab-btn" data-target="panel-wiki" id="tab-wiki">
+                <button type="button" role="tab" aria-selected="false" aria-controls="panel-wiki" class="showcase-tab-btn" data-target="panel-wiki" id="tab-wiki">
                     <i class="bi bi-journal-richtext text-primary" aria-hidden="true"></i>
                     <span>Tài liệu Wiki</span>
                 </button>
-                <button type="button" class="showcase-tab-btn" data-target="panel-chat" id="tab-chat">
+                <button type="button" role="tab" aria-selected="false" aria-controls="panel-chat" class="showcase-tab-btn" data-target="panel-chat" id="tab-chat">
                     <i class="bi bi-chat-dots-fill text-info" aria-hidden="true"></i>
                     <span>Thảo luận @</span>
                 </button>
-                <button type="button" class="showcase-tab-btn" data-target="panel-stats" id="tab-stats">
+                <button type="button" role="tab" aria-selected="false" aria-controls="panel-stats" class="showcase-tab-btn" data-target="panel-stats" id="tab-stats">
                     <i class="bi bi-graph-up-arrow text-success" aria-hidden="true"></i>
                     <span>Báo cáo tiến độ</span>
                 </button>
@@ -197,10 +175,6 @@
     <section class="section-bento" id="bento-features">
         
         <div class="section-header-centered reveal-up">
-            <div class="section-badge">
-                <i class="bi bi-stars" aria-hidden="true"></i>
-                <span>Tính Năng Vượt Trội</span>
-            </div>
             <h2 class="section-title">Mọi công cụ bạn cần. Trong một giao diện duy nhất.</h2>
             <p class="section-subtitle">
                 Được thiết kế tinh xảo để loại bỏ hoàn toàn sự phân mảnh công việc. 
@@ -376,10 +350,6 @@
          ============================================================ -->
     <section class="section-workflow">
         <div class="section-header-centered reveal-up">
-            <div class="section-badge">
-                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
-                <span>Quy Trình Chuẩn Mực</span>
-            </div>
             <h2 class="section-title">Từ Ý Tưởng Đến Đích Đến Thành Công</h2>
             <p class="section-subtitle">
                 Đơn giản hóa hành trình cộng tác dự án qua 4 bước khép kín và nhất quán.

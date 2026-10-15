@@ -12,7 +12,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 4px 16px -2px rgba(57, 88, 134, 0.08), 0 2px 4px -1px rgba(57, 88, 134, 0.04);
+    box-shadow: var(--shadow-card);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
     position: relative;
     overflow: hidden;
@@ -28,17 +28,19 @@
     height: 4px;
     background: linear-gradient(90deg, var(--c-ocean-700) 0%, var(--c-ocean-500) 50%, var(--c-ocean-400) 100%);
     opacity: 0.9;
-    transition: height 0.2s ease;
+    transform-origin: top;
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .project-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 16px 32px -8px rgba(57, 88, 134, 0.16), 0 4px 12px -2px rgba(57, 88, 134, 0.08);
+    box-shadow: var(--shadow-card-hover);
     border-color: var(--c-ocean-400);
 }
 
 .project-card:hover::before {
-    height: 5px;
+    transform: scaleY(1.25);
+    opacity: 1;
 }
 
 .project-card-body {
@@ -60,7 +62,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(57, 88, 134, 0.04);
+    box-shadow: var(--shadow-sm);
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.2s ease;
 }
 
@@ -69,7 +71,7 @@
     background-color: var(--c-white);
     border-style: solid;
     border-color: var(--c-ocean-500);
-    box-shadow: 0 12px 24px -6px rgba(57, 88, 134, 0.12);
+    box-shadow: var(--shadow-md);
 }
 
 .project-code-badge {
@@ -112,7 +114,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(57, 88, 134, 0.08);
+    box-shadow: var(--shadow-xs);
 }
 
 .project-progress-container {
@@ -129,21 +131,20 @@
     border-radius: 50px;
     width: 0%;
     transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 0 8px rgba(99, 142, 203, 0.4);
+    box-shadow: 0 0 8px rgba(var(--c-ocean-500-rgb), 0.4);
 }
 
 .pending-invite-card {
     background-color: var(--c-white);
     border: 1px solid var(--c-ocean-200);
-    border-left: 4px solid var(--c-ocean-700);
     border-radius: 14px;
     padding: 18px 22px;
-    box-shadow: 0 2px 8px rgba(57, 88, 134, 0.06);
-    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .pending-invite-card:hover {
-    box-shadow: 0 8px 20px -4px rgba(57, 88, 134, 0.12);
+    box-shadow: var(--shadow-md);
     border-color: var(--c-ocean-400);
 }
 
@@ -158,7 +159,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 2px 8px rgba(57, 88, 134, 0.05);
+    box-shadow: var(--shadow-sm);
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     height: 100%;
 }
@@ -166,7 +167,7 @@
 .workspace-kpi-card:hover {
     transform: translateY(-3px);
     border-color: var(--c-ocean-400);
-    box-shadow: 0 8px 20px -4px rgba(57, 88, 134, 0.12);
+    box-shadow: var(--shadow-md);
 }
 
 .kpi-icon-box {
@@ -212,12 +213,12 @@
     display: flex;
     align-items: center;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(57, 88, 134, 0.04);
+    box-shadow: var(--shadow-2xs);
 }
 
 .search-input-group:focus-within {
     border-color: var(--c-ocean-700);
-    box-shadow: 0 0 0 3px rgba(57, 88, 134, 0.15);
+    box-shadow: var(--focus-ring-glow);
 }
 
 .search-input-group input {
@@ -252,5 +253,5 @@
     background-color: var(--c-ocean-700);
     color: var(--c-white);
     border-color: var(--c-ocean-700);
-    box-shadow: 0 4px 10px rgba(57, 88, 134, 0.25);
+    box-shadow: var(--shadow-primary);
 }

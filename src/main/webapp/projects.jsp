@@ -111,17 +111,16 @@
                         </div>
                     </div>
 
-                    <!-- KPI 4: Hộp thư chờ -->
+                    <!-- KPI 4: Công việc đang mở / Cần xử lý -->
                     <div class="col-6 col-md-3">
                         <div class="workspace-kpi-card">
                             <div class="kpi-icon-box kpi-icon-warning">
-                                <i class="bi bi-envelope-paper-heart-fill"></i>
+                                <i class="bi bi-hourglass-split"></i>
                             </div>
                             <div>
-                                <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Hộp thư lời mời</div>
-                                <%-- ◀ SERVLET: ProjectServlet → setAttribute("pendingInvites") --%>
-                                <h4 class="fw-bold mb-0 workspace-kpi-value">${not empty pendingInvites ? pendingInvites.size() : 0}</h4>
-                                <span class="fs-9 workspace-kpi-warning">Chờ bạn xử lý</span>
+                                <div class="fs-9 text-muted fw-semibold text-uppercase tracking-wider">Đang thực hiện</div>
+                                <h4 class="fw-bold mb-0 workspace-kpi-value">${(kpiTotalTasks > kpiDoneTasks) ? (kpiTotalTasks - kpiDoneTasks) : 0}</h4>
+                                <span class="fs-9 workspace-kpi-warning">Công việc còn lại</span>
                             </div>
                         </div>
                     </div>
@@ -154,7 +153,9 @@
                                             <div class="d-flex align-items-center justify-content-between mb-2">
                                                 <span role="button" tabindex="0" class="project-code-badge"
                                                     data-code="${fn:escapeXml(inv.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
-                                                    title="Bấm để sao chép mã">
+                                                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyProjectCode(this.dataset.code);}"
+                                                    aria-label="Sao chép mã dự án ${fn:escapeXml(inv.projectCode)}"
+                                                    title="Bấm hoặc nhấn Enter để sao chép mã">
                                                     <i class="bi bi-hash"></i><span>${fn:escapeXml(inv.projectCode)}</span>
                                                     <i class="bi bi-copy fs-9 ms-1 copy-code-icon"></i>
                                                 </span>
@@ -220,15 +221,15 @@
                      ========================================================================= -->
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 p-3 rounded-4 workspace-toolbar-card">
                     <!-- Filter Pills -->
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <button type="button" class="filter-pill-btn active" onclick="filterProjects('all', this)">
-                            <i class="bi bi-grid-fill me-1"></i> Tất cả (${myProjects.size()})
+                    <div class="d-flex align-items-center gap-2 flex-wrap" role="group" aria-label="Lọc dự án theo vai trò">
+                        <button type="button" class="filter-pill-btn active" aria-pressed="true" onclick="filterProjects('all', this)">
+                            <i class="bi bi-grid-fill me-1" aria-hidden="true"></i> Tất cả (${myProjects.size()})
                         </button>
-                        <button type="button" class="filter-pill-btn" onclick="filterProjects('owner', this)">
-                            <i class="bi bi-star-fill text-warning me-1"></i> Tôi làm Trưởng nhóm (${kpiPmCount})
+                        <button type="button" class="filter-pill-btn" aria-pressed="false" onclick="filterProjects('owner', this)">
+                            <i class="bi bi-star-fill text-warning me-1" aria-hidden="true"></i> Tôi làm Trưởng nhóm (${kpiPmCount})
                         </button>
-                        <button type="button" class="filter-pill-btn" onclick="filterProjects('member', this)">
-                            <i class="bi bi-person-fill me-1"></i> Tôi là Thành viên (${myProjects.size() - kpiPmCount})
+                        <button type="button" class="filter-pill-btn" aria-pressed="false" onclick="filterProjects('member', this)">
+                            <i class="bi bi-person-fill me-1" aria-hidden="true"></i> Tôi là Thành viên (${myProjects.size() - kpiPmCount})
                         </button>
                     </div>
 
@@ -272,7 +273,9 @@
                                                 ${fn:escapeXml(p.name.substring(0, 1).toUpperCase())}
                                             </div>
                                             <span role="button" tabindex="0" class="project-code-badge" data-code="${fn:escapeXml(p.projectCode)}" onclick="copyProjectCode(this.dataset.code)"
-                                                title="Bấm để sao chép mã dự án">
+                                                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();copyProjectCode(this.dataset.code);}"
+                                                aria-label="Sao chép mã dự án ${fn:escapeXml(p.projectCode)}"
+                                                title="Bấm hoặc nhấn Enter để sao chép mã dự án">
                                                 <i class="bi bi-hash"></i><span>${fn:escapeXml(p.projectCode)}</span>
                                                 <i class="bi bi-copy fs-9 text-primary" id="copy-icon-${fn:escapeXml(p.projectCode)}"></i>
                                             </span>

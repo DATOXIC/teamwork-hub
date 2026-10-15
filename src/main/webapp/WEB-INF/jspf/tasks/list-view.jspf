@@ -41,7 +41,7 @@
                                         <!-- NHÓM 1: TO DO (CẦN LÀM) -->
                                         <tr class="clickup-group-header-row group-header-todo">
                                             <td colspan="${project.soloProject ? 4 : 5}">
-                                                <div role="button" tabindex="0" class="clickup-group-banner text-secondary d-flex align-items-center" onclick="toggleClickUpGroup('todo')">
+                                                <div role="button" tabindex="0" aria-expanded="true" aria-label="Thu gọn hoặc mở rộng nhóm Cần làm" class="clickup-group-banner text-secondary d-flex align-items-center" onclick="toggleClickUpGroup('todo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleClickUpGroup('todo');}">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-todo"></i>
                                                     <span class="clickup-group-badge bg-secondary text-white">CẦN LÀM</span>
                                                     <span class="clickup-group-count ms-1" id="group-count-todo">${todoTasks.size()}</span>
@@ -96,7 +96,7 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${todoTasks}" var="task">
-                                            <tr tabindex="0" class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr tabindex="0" role="button" aria-label="Xem chi tiết: <c:out value='${task.title}' />" class="clickup-task-row group-todo-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openClickUpTask(${task.id});}">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
@@ -205,7 +205,7 @@
                                         <!-- NHÓM 2: IN PROGRESS (ĐANG LÀM) -->
                                         <tr class="clickup-group-header-row group-header-inprog">
                                             <td colspan="${project.soloProject ? 4 : 5}">
-                                                <div role="button" tabindex="0" class="clickup-group-banner text-primary d-flex align-items-center" onclick="toggleClickUpGroup('inprog')">
+                                                <div role="button" tabindex="0" aria-expanded="true" aria-label="Thu gọn hoặc mở rộng nhóm Đang làm" class="clickup-group-banner text-primary d-flex align-items-center" onclick="toggleClickUpGroup('inprog')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleClickUpGroup('inprog');}">
                                                     <i class="bi bi-chevron-down me-1" id="chevron-inprog"></i>
                                                     <span class="clickup-group-badge bg-primary text-white">ĐANG LÀM</span>
                                                     <span class="clickup-group-count ms-1" id="group-count-inprog">${inProgressTasks.size()}</span>
@@ -213,7 +213,7 @@
                                             </td>
                                         </tr>
                                         <c:forEach items="${inProgressTasks}" var="task">
-                                            <tr tabindex="0" class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr tabindex="0" role="button" aria-label="Xem chi tiết: <c:out value='${task.title}' />" class="clickup-task-row group-inprog-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openClickUpTask(${task.id});}">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2 ps-1">
                                                         <c:choose>
@@ -319,7 +319,7 @@
                                             <!-- NHÓM 3: DONE (ĐÃ HOÀN THÀNH) -->
                                             <tr class="clickup-group-header-row group-header-done">
                                                 <td colspan="${project.soloProject ? 4 : 5}">
-                                                    <div role="button" tabindex="0" class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')">
+                                                    <div role="button" tabindex="0" aria-expanded="true" aria-label="Thu gọn hoặc mở rộng nhóm Hoàn thành" class="clickup-group-banner text-success d-flex align-items-center" onclick="toggleClickUpGroup('done')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleClickUpGroup('done');}">
                                                         <i class="bi bi-chevron-down me-1" id="chevron-done"></i>
                                                         <span class="clickup-group-badge bg-success text-white">HOÀN THÀNH</span>
                                                         <span class="clickup-group-count ms-1" id="group-count-done">${doneTasks.size()}</span>
@@ -327,7 +327,7 @@
                                                 </td>
                                             </tr>
                                         <c:forEach items="${doneTasks}" var="task">
-                                            <tr tabindex="0" class="clickup-task-row group-done-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})">
+                                            <tr tabindex="0" role="button" aria-label="Xem chi tiết: <c:out value='${task.title}' />" class="clickup-task-row group-done-row" data-task-id="${task.id}" data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" data-assignee-id="${task.assigneeId}" data-task-status="${task.status}" data-task-title="<c:out value='${task.title}' />" onclick="openClickUpTask(${task.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openClickUpTask(${task.id});}">
                                                 <td class="ps-3">
                                                     <div class="d-flex align-items-center gap-2">
                                                         <c:choose>

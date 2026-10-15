@@ -32,7 +32,7 @@ body:has(.clickup-shell) .fs-9 {
 }
 
 body:has(.clickup-shell) .fs-10 {
-    font-size: 0.71875rem !important;
+    font-size: 0.75rem !important; /* 12px — Sàn Typography tối thiểu */
     line-height: 1.4 !important;
 }
 
@@ -140,23 +140,26 @@ body:has(.clickup-shell) .clickup-list-table.is-team .clickup-list-header-row th
 }
 
 /* ===== Task Health Score ===== */
-.health-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:.72rem; font-weight:700; }
+.health-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:999px; font-size:.75rem; font-weight:700; }
 .health-ok   { background:var(--c-green-100); color:var(--c-green-700); }
 .health-warn { background:var(--c-amber-100); color:var(--c-amber-700); }
 .health-risk { background:var(--c-red-100); color:var(--c-red-700); animation: healthPulse 1.6s ease-in-out infinite; }
 @keyframes healthPulse { 50% { box-shadow:0 0 0 4px rgba(220,38,38,.18); } }
-.kanban-card.health-card-risk { border-left:4px solid var(--c-red-600) !important; }
-.kanban-card.health-card-warn { border-left:4px solid var(--c-amber-500) !important; }
-.kanban-card.health-card-ok   { border-left:4px solid var(--c-green-500) !important; }
+@media (prefers-reduced-motion: reduce) {
+    .health-risk { animation: none !important; }
+}
+.kanban-card.health-card-risk { border-color: rgba(239, 68, 68, 0.45) !important; box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12); }
+.kanban-card.health-card-warn { border-color: rgba(245, 158, 11, 0.4) !important; box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.1); }
+.kanban-card.health-card-ok   { border-color: rgba(16, 185, 129, 0.3) !important; }
 
 /* ===== Khối "Đang có nguy cơ trễ" ===== */
 .risk-panel { background:var(--c-red-50); border:1px solid var(--c-red-200); border-radius:12px; padding:12px 14px; margin-bottom:16px; }
 .risk-panel-head { display:flex; align-items:center; gap:8px; color:var(--c-red-700); margin-bottom:8px; }
 .risk-panel-count { background:var(--c-red-600); color:var(--c-white); border-radius:999px; padding:0 8px; font-size:.75rem; font-weight:700; }
-.risk-panel-hint { margin-left:auto; font-size:.75rem; color:var(--c-aa-gray-400); }
+.risk-panel-hint { margin-left:auto; font-size:.75rem; color:var(--c-red-700); font-weight:600; }
 .risk-panel-list { display:flex; flex-wrap:wrap; gap:8px; }
-.risk-item { display:flex; flex-direction:column; gap:2px; position:relative; min-width:200px; max-width:280px; padding:8px 52px 8px 12px; background:var(--c-white); border:1px solid var(--c-red-200); border-left:4px solid var(--c-red-600); border-radius:8px; text-decoration:none; color:inherit; }
+.risk-item { display:flex; flex-direction:column; gap:2px; position:relative; min-width:200px; max-width:280px; padding:8px 52px 8px 12px; background:var(--c-white); border:1px solid var(--c-red-200); border-radius:8px; text-decoration:none; color:inherit; box-shadow: 0 1px 3px rgba(220,38,38,.08); }
 .risk-item:hover { box-shadow:0 2px 8px rgba(220,38,38,.2); }
 .risk-item-title { font-weight:600; font-size:.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.risk-item-meta { font-size:.72rem; color:var(--c-gray-500); }
+.risk-item-meta { font-size:.75rem; color:var(--c-aa-slate-500); }
 .risk-item .health-badge { position:absolute; right:10px; top:50%; transform:translateY(-50%); }

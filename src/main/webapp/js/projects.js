@@ -43,10 +43,16 @@
 
         function filterProjects(role, btnEl) {
             currentFilterRole = role;
-            // Đổi active state của nút
+            // Đổi active state và thuộc tính trợ năng aria-pressed của nút
             var buttons = document.querySelectorAll('.filter-pill-btn');
-            buttons.forEach(function(b) { b.classList.remove('active'); });
-            if (btnEl) btnEl.classList.add('active');
+            buttons.forEach(function(b) { 
+                b.classList.remove('active'); 
+                b.setAttribute('aria-pressed', 'false');
+            });
+            if (btnEl) {
+                btnEl.classList.add('active');
+                btnEl.setAttribute('aria-pressed', 'true');
+            }
             applyProjectFilters();
         }
 

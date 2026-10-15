@@ -239,7 +239,7 @@
                                    placeholder="Nhập mật khẩu" required>
                             <button type="button" class="toggle-password-btn"
                                     onclick="togglePassword('login-password', this)"
-                                    tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
+                                    aria-label="Hiện/ẩn mật khẩu">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
@@ -259,9 +259,7 @@
                     </form>
 
                     <%-- Nút Thoát (Exit Button) --%>
-                    <a href="${pageContext.request.contextPath}/" class="login-exit-link">
-                        <button type="button" class="btn-login-exit">Thoát</button>
-                    </a>
+                    <a href="${pageContext.request.contextPath}/" class="btn-login-exit login-exit-link text-decoration-none d-flex align-items-center justify-content-center" role="button">Thoát</a>
 
                     <%-- Link Đăng ký (Switch to Register) --%>
                     <div class="login-signup-link mb-3">
@@ -351,7 +349,7 @@
                                            placeholder="≥ 6 ký tự" required>
                                     <button type="button" class="toggle-password-btn"
                                             onclick="togglePassword('reg-pass', this)"
-                                            tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
+                                            aria-label="Hiện/ẩn mật khẩu">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
@@ -365,7 +363,7 @@
                                            placeholder="Nhập lại mật khẩu" required>
                                     <button type="button" class="toggle-password-btn"
                                             onclick="togglePassword('reg-confirmpass', this)"
-                                            tabindex="-1" aria-label="Hiện/ẩn mật khẩu">
+                                            aria-label="Hiện/ẩn mật khẩu">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>

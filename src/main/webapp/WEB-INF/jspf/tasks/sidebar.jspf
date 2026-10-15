@@ -179,6 +179,15 @@
                                                         <span class="tree-item-label">Báo cáo</span>
                                                     </a>
 
+                                                    <!-- 4.5. Phân tích (Analytics) -->
+                                                    <a href="${pageContext.request.contextPath}/project-analytics?projectId=${project.id}" 
+                                                       class="clickup-tree-item" 
+                                                       id="tab-btn-analytics" 
+                                                       title="Trung tâm phân tích động lực & Burndown">
+                                                        <span class="tree-item-icon text-danger"><i class="bi bi-graph-up-arrow"></i></span>
+                                                        <span class="tree-item-label">Phân tích</span>
+                                                    </a>
+
 
                                                     <!-- 5. Phân bổ công việc -->
                                                     <a href="javascript:void(0)" onclick="switchClickUpTab('metrics')" 

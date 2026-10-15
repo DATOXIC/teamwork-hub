@@ -4,9 +4,7 @@
    Hero & Feature Cards (index.jsp)
    ========================================================================== */
 .text-gradient {
-    background: linear-gradient(135deg, var(--c-ocean-400) 0%, var(--c-ocean-300) 45%, var(--c-white) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--c-ocean-300);
 }
 
 
@@ -35,7 +33,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     align-items: center;
     gap: 0.6rem;
     padding: 0.45rem 1.2rem;
-    background: rgba(57, 88, 134, 0.25);
+    background: rgba(var(--brand-primary-rgb), 0.25);
     border: 1px solid rgba(138, 174, 224, 0.35);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -49,7 +47,7 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
 }
 
 .hero-badge-pill:hover {
-    background: rgba(57, 88, 134, 0.4);
+    background: rgba(var(--brand-primary-rgb), 0.4);
     border-color: rgba(177, 201, 239, 0.6);
     color: var(--c-white);
     transform: translateY(-1px);
@@ -82,12 +80,12 @@ body:has(.hero-scrolltelling) .navbar.bg-dark-navy {
     font-size: 0.98rem;
     letter-spacing: 0.01em;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 24px rgba(57, 88, 134, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 24px rgba(var(--brand-primary-rgb), 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 .btn-hero-cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 32px rgba(57, 88, 134, 0.75), 0 0 20px rgba(138, 174, 224, 0.45);
+    box-shadow: 0 10px 32px rgba(var(--brand-primary-rgb), 0.75), 0 0 20px rgba(138, 174, 224, 0.45);
     color: var(--c-white);
 }
 

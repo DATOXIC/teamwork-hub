@@ -45,7 +45,7 @@
 
                             <c:forEach items="${todoTasks}" var="task">
                                 <%-- ◀ SERVLET: TaskBoardHandler → setAttribute("taskHealthMap") --%>
-                                <div tabindex="0" class="card kanban-card p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''}"
+                                <div tabindex="0" role="button" aria-label="Xem chi tiết công việc: <c:out value='${task.title}' />" class="card kanban-card p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -55,7 +55,10 @@
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                                     data-task-labels="${fn:escapeXml(task.labels)}"
-                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
+                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}"
+                                    onclick="openClickUpTask(${task.id})"
+                                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openClickUpTask(${task.id});}"
+                                    style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
@@ -197,7 +200,7 @@
                             id="column-IN_PROGRESS" data-status="IN_PROGRESS">
 
                             <c:forEach items="${inProgressTasks}" var="task">
-                                <div tabindex="0" class="card kanban-card kanban-card-inprogress p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
+                                <div tabindex="0" role="button" aria-label="Xem chi tiết công việc: <c:out value='${task.title}' />" class="card kanban-card kanban-card-inprogress p-3 health-card-${taskHealthMap[task.id].level} ${task.isOverdue() ? 'border-danger border-2' : ''} ${task.status == 'SUBMITTED' ? 'kanban-card-submitted' : ''}"
                                     id="task-${task.id}" draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -207,7 +210,10 @@
                                     data-subtask-count="${not empty taskSubTasksMap[task.id] ? taskSubTasksMap[task.id].size() : 0}"
                                     data-progress="${not empty taskProgressMap[task.id] ? taskProgressMap[task.id] : 0}"
                                     data-task-labels="${fn:escapeXml(task.labels)}"
-                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
+                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}"
+                                    onclick="openClickUpTask(${task.id})"
+                                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openClickUpTask(${task.id});}"
+                                    style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
@@ -353,7 +359,7 @@
                             id="column-DONE" data-status="DONE">
 
                             <c:forEach items="${doneTasks}" var="task">
-                                <div tabindex="0" class="card kanban-card kanban-card-done kanban-card-locked p-3" id="task-${task.id}"
+                                <div tabindex="0" role="button" aria-label="Xem chi tiết công việc: <c:out value='${task.title}' />" class="card kanban-card kanban-card-done kanban-card-locked p-3" id="task-${task.id}"
                                     draggable="false" data-task-id="${task.id}"
                                     data-task-title="<c:out value='${task.title}' />"
                                     data-task-priority="${task.priority}"
@@ -361,7 +367,10 @@
                                     data-assignee-id="${task.assigneeId}"
                                     data-task-status="${task.status}"
                                     data-task-labels="${fn:escapeXml(task.labels)}"
-                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}" onclick="openClickUpTask(${task.id})" style="cursor: pointer;">
+                                    data-requires-gate="${project.teamProject && task.requiresGate ? 'true' : 'false'}"
+                                    onclick="openClickUpTask(${task.id})"
+                                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openClickUpTask(${task.id});}"
+                                    style="cursor: pointer;">
 
                                     <!-- 1. Header thẻ: Dải nhãn tối giản + Priority Dot tinh tế (Ảnh 1 & 2) -->
                                     <div class="d-flex align-items-center justify-content-between gap-2 mb-2">

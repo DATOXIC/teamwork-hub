@@ -38,15 +38,16 @@
 <c:set var="isPm" value="${project.ownerId == sessionScope.currentUser.id}" />
 
         <style>
-            /* Khóa cứng Viewport SaaS: Triệt tiêu hoàn toàn thanh cuộn cấp độ trang web */
-            html, body {
-                overflow: hidden !important;
-                height: 100vh !important;
-                max-height: 100vh !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
-                margin: 0 !important;
-                padding: 0 !important;
+            /* Viewport SaaS cho Desktop (>=992px): Giữ app shell cuộn nội bộ; 
+               Trên màn hình nhỏ/di động (<992px): cho phép co giãn tự nhiên tránh cắt cụt nội dung */
+            @media (min-width: 992px) {
+                html, body {
+                    overflow: hidden;
+                    height: 100vh;
+                    width: 100vw;
+                    margin: 0;
+                    padding: 0;
+                }
             }
         </style>
 

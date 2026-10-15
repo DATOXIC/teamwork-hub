@@ -12,9 +12,13 @@ tabBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
         var targetId = this.getAttribute('data-target');
 
-        // Bật active cho button
-        tabBtns.forEach(function (b) { b.classList.remove('active'); });
+        // Bật active và aria-selected cho button
+        tabBtns.forEach(function (b) { 
+            b.classList.remove('active'); 
+            b.setAttribute('aria-selected', 'false');
+        });
         this.classList.add('active');
+        this.setAttribute('aria-selected', 'true');
 
         // Bật active cho màn hình hiển thị tương ứng
         viewPanels.forEach(function (panel) {

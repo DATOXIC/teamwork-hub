@@ -40,8 +40,8 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .fs-9 {
-    font-size: 0.6875rem !important; /* 11px */
-    line-height: 1.35 !important;
+    font-size: 0.75rem !important; /* 12px — Sàn Typography tối thiểu chống mỏi mắt */
+    line-height: 1.4 !important;
 }
 
 /* Số liệu & Ngày tháng: Tabular Figures căn thẳng hàng tuyệt đối */
@@ -99,7 +99,7 @@ input, select, textarea, button {
     border-color: var(--c-ocean-800);
     color: var(--c-white);
     transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(57, 88, 134, 0.35);
+    box-shadow: var(--shadow-primary);
 }
 
 /* Avatars */
@@ -116,7 +116,7 @@ input, select, textarea, button {
 .form-control:focus,
 .form-select:focus {
     border-color: var(--brand-primary);
-    box-shadow: 0 0 0 0.25rem rgba(57, 88, 134, 0.15);
+    box-shadow: var(--focus-ring);
 }
 
 .nav-pills .nav-link.active {

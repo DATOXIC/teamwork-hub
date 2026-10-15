@@ -87,50 +87,40 @@ body:has(.homepage-shell) .navbar {
 .aurora-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.45;
-    will-change: transform, opacity;
-    animation: auroraBreathe 8s ease-in-out infinite alternate;
+    filter: blur(120px);
+    opacity: 0.18;
+    pointer-events: none;
 }
 
 .aurora-orb--1 {
-    width: 650px;
-    height: 450px;
-    top: -120px;
+    width: 600px;
+    height: 400px;
+    top: -100px;
     left: 20%;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.4), transparent 70%);
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent 70%);
 }
 
 .aurora-orb--2 {
-    width: 550px;
-    height: 400px;
-    top: 40px;
+    width: 500px;
+    height: 350px;
+    top: 60px;
     right: 18%;
-    background: radial-gradient(circle, rgba(56, 189, 248, 0.35), transparent 70%);
-    animation-delay: -3s;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);
 }
 
 .aurora-orb--3 {
-    width: 700px;
-    height: 350px;
-    top: 250px;
+    width: 600px;
+    height: 300px;
+    top: 220px;
     left: 30%;
-    background: radial-gradient(circle, rgba(57, 88, 134, 0.35), transparent 70%);
-    animation-delay: -5s;
+    background: radial-gradient(circle, rgba(var(--brand-primary-rgb), 0.2), transparent 70%);
 }
 
-@keyframes auroraBreathe {
-    0% {
-        transform: translateY(0) scale(0.95);
-        opacity: 0.35;
-    }
-    50% {
-        transform: translateY(-25px) scale(1.08);
-        opacity: 0.55;
-    }
-    100% {
-        transform: translateY(15px) scale(1);
-        opacity: 0.4;
+@media (prefers-reduced-motion: reduce) {
+    .aurora-orb,
+    .floating-widget,
+    .showcase-pill-live {
+        animation: none !important;
     }
 }
 
@@ -206,9 +196,7 @@ body:has(.homepage-shell) .navbar {
 }
 
 .text-gradient-aurora {
-    background: linear-gradient(135deg, var(--c-white) 15%, var(--c-blue-300) 50%, var(--c-indigo-400) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--c-blue-400);
     display: inline-block;
 }
 
@@ -514,10 +502,7 @@ body:has(.homepage-shell) .navbar {
     font-size: clamp(2.2rem, 4vw, 3rem);
     font-weight: 800;
     letter-spacing: -0.03em;
-    background: var(--home-metric-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--c-blue-400);
     line-height: 1.1;
     margin-bottom: 0.4rem;
 }
@@ -1074,10 +1059,11 @@ html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .hero-title-main,
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .text-gradient-aurora,
 [data-theme="light"] .text-gradient-aurora,
-[data-bs-theme="light"] .text-gradient-aurora {
-    background: linear-gradient(135deg, var(--c-slate-900) 15%, var(--c-blue-600) 55%, var(--c-indigo-600) 100%) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
+[data-bs-theme="light"] .text-gradient-aurora,
+html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .metric-number,
+[data-theme="light"] .metric-number,
+[data-bs-theme="light"] .metric-number {
+    color: var(--c-blue-600) !important;
 }
 
 html:not([data-theme="dark"]):not([data-bs-theme="dark"]) .hero-subtitle-lead,

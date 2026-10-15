@@ -254,6 +254,12 @@
     --brand-text-muted: var(--c-aa-ocean-slate);
     --brand-text-subtle: var(--c-aa-ocean-400);
 
+    /* RGB components cho alpha composition */
+    --c-ocean-700-rgb: 57, 88, 134;
+    --c-ocean-500-rgb: 99, 142, 203;
+    --c-slate-900-rgb: 15, 23, 42;
+    --brand-primary-rgb: 57, 88, 134;
+
     /* UI-06: Hệ thống Border-radius chuẩn hóa 4 cấp */
     --radius-sm: 6px;
     /* Badge, chip, btn-xs */
@@ -267,9 +273,17 @@
     /* Button pill, avatar */
 
     /* UI-07: Shadow chuẩn hóa */
+    --shadow-2xs: 0 1px 2px rgba(var(--c-slate-900-rgb), 0.04);
+    --shadow-xs: 0 1px 2px rgba(var(--c-slate-900-rgb), 0.05);
+    --shadow-sm: 0 1px 3px rgba(var(--c-slate-900-rgb), 0.08), 0 1px 2px rgba(var(--c-slate-900-rgb), 0.04);
+    --shadow-md: 0 4px 12px -2px rgba(var(--c-slate-900-rgb), 0.08), 0 2px 6px -1px rgba(var(--c-slate-900-rgb), 0.04);
+    --shadow-lg: 0 10px 24px -4px rgba(var(--c-slate-900-rgb), 0.10), 0 4px 8px -2px rgba(var(--c-slate-900-rgb), 0.04);
     --shadow-card: 0 2px 6px rgba(15, 23, 42, 0.07), 0 1px 2px rgba(15, 23, 42, 0.04);
     --shadow-card-hover: 0 10px 24px -6px rgba(15, 23, 42, 0.10), 0 4px 8px -4px rgba(15, 23, 42, 0.04);
     --shadow-modal: 0 20px 40px -12px rgba(15, 23, 42, 0.18);
+    --shadow-primary: 0 6px 16px rgba(var(--brand-primary-rgb), 0.35);
+    --focus-ring: 0 0 0 0.25rem rgba(var(--brand-primary-rgb), 0.15);
+    --focus-ring-glow: 0 0 0 3px rgba(var(--brand-primary-rgb), 0.15);
 
     /* ---------- 5. Token ngữ nghĩa dùng chung cho chữ & bề mặt ---------- */
     --text-strong: var(--c-ocean-900);
@@ -306,6 +320,7 @@
 }
 
 [data-theme="dark"] {
+    --brand-primary-rgb: 99, 142, 203;
     --text-strong: var(--c-slate-100);
     --text-body: var(--c-slate-300);
     --text-muted: var(--c-slate-400);     /* 6.9:1 trên nền tối slate-900 */
