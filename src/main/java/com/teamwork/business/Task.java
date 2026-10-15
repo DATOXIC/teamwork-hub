@@ -106,6 +106,12 @@ public class Task implements Serializable {
     @Column(name = "is_milestone")
     private boolean milestone = false;   // Cột mốc quan trọng (Milestone)
 
+    @Column(name = "original_due_date")
+    private String originalDueDate;      // Hạn chót ban đầu trước các lần dời hạn
+
+    @Column(name = "reschedule_count")
+    private int rescheduleCount = 0;     // Số lần thay đổi / dời hạn chót
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private String createdAt;
 
@@ -762,6 +768,22 @@ public class Task implements Serializable {
         this.milestone = milestone;
     }
 
+    public String getOriginalDueDate() {
+        return originalDueDate;
+    }
+
+    public void setOriginalDueDate(String originalDueDate) {
+        this.originalDueDate = originalDueDate;
+    }
+
+    public int getRescheduleCount() {
+        return rescheduleCount;
+    }
+
+    public void setRescheduleCount(int rescheduleCount) {
+        this.rescheduleCount = Math.max(0, rescheduleCount);
+    }
+
     public java.util.List<SubTask> getSubtasks() {
         return subtasks;
     }
@@ -778,6 +800,21 @@ public class Task implements Serializable {
      *    - Nếu không có giờ -> Tính theo % số lượng subtask đã DONE/APPROVED.
      * 3. Nếu không có subtask: Tính theo trạng thái workflow (TODO: 0%, IN_PROGRESS: 40%, REVISE: 60%, SUBMITTED: 90%, DONE: 100%).
      */
+    @Transient
+    private Integer progressOverride = null;
+
+    public void setProgressPercentage(int progress) {
+        this.progressOverride = Math.max(0, Math.min(100, progress));
+    }
+
+    public void setProgress(int progress) {
+        setProgressPercentage(progress);
+    }
+
+    public int getProgress() {
+        return getProgressPercentage();
+    }
+
     public int getProgressPercentage() {
         if ("DONE".equalsIgnoreCase(this.status)) {
             return 100;
@@ -805,6 +842,10 @@ public class Task implements Serializable {
             if (totalSubCount > 0) {
                 return (int) Math.round(((double) completedSubCount / totalSubCount) * 100.0);
             }
+        }
+
+        if (this.progressOverride != null) {
+            return this.progressOverride;
         }
 
         if ("SUBMITTED".equalsIgnoreCase(this.status)) return 90;

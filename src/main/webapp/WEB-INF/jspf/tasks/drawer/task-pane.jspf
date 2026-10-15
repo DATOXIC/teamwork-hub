@@ -377,9 +377,22 @@
                                             <span class="task-property-label"><i class="bi bi-folder2-open"></i> Dự án</span>
                                             <span class="task-property-value text-truncate" style="max-width: 130px;" title="${fn:escapeXml(project.name)}">#${fn:escapeXml(project.projectCode)}</span>
                                         </div>
+                                        <c:if test="${task.rescheduleCount > 0}">
+                                            <div class="task-property-row">
+                                                <span class="task-property-label"><i class="bi bi-clock-history text-warning"></i> Dời hạn</span>
+                                                <span class="task-property-value text-warning fw-semibold" title="Hạn chót gốc: ${task.originalDueDate}">
+                                                    ⚠️ Đã dời ${task.rescheduleCount} lần
+                                                </span>
+                                            </div>
+                                        </c:if>
                                         <div class="task-property-row">
                                             <span class="task-property-label"><i class="bi bi-check2-circle"></i> Tiến độ</span>
-                                            <span class="task-property-value text-success fw-bold">${taskProgressMap[task.id]}%</span>
+                                            <span class="task-property-value text-success fw-bold">
+                                                ${taskProgressMap[task.id]}%
+                                                <c:if test="${not empty taskSubTasksMap[task.id]}">
+                                                    <span class="text-muted fs-9 fw-normal ms-1" title="Khóa tự động: Tính theo tỷ lệ nhiệm vụ con hoàn thành">(Tự động)</span>
+                                                </c:if>
+                                            </span>
                                         </div>
                                     </div>
 <%@ include file="/WEB-INF/jspf/tasks/drawer/task-gates.jspf" %>

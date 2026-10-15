@@ -178,6 +178,8 @@ CREATE TABLE tasks (
     estimated_hours        FLOAT         NOT NULL DEFAULT 0,
     actual_hours           FLOAT         NOT NULL DEFAULT 0,
     is_milestone           BIT           NOT NULL DEFAULT 0,
+    original_due_date      VARCHAR(50)   NULL,
+    reschedule_count       INT           NOT NULL DEFAULT 0,
 
     created_at             DATETIME2     NOT NULL DEFAULT GETDATE(),
     updated_at             DATETIME2     NOT NULL DEFAULT GETDATE(),

@@ -258,6 +258,8 @@ CREATE TABLE tasks (
     estimated_hours        DOUBLE PRECISION NOT NULL DEFAULT 0,
     actual_hours           DOUBLE PRECISION NOT NULL DEFAULT 0,
     is_milestone           BOOLEAN          NOT NULL DEFAULT FALSE,
+    original_due_date      VARCHAR(50)      NULL,
+    reschedule_count       INT              NOT NULL DEFAULT 0,
 
     created_at             TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ      NOT NULL DEFAULT NOW(),

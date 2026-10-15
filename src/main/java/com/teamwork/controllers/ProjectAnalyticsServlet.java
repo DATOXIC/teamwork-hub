@@ -23,6 +23,9 @@ import com.teamwork.data.TaskDB;
 import com.teamwork.data.TaskDependencyDB;
 import com.teamwork.data.TaskSubmissionDB;
 import com.teamwork.data.UserDB;
+import com.teamwork.data.NotificationDB;
+import com.teamwork.data.ActivityLogDB;
+import com.teamwork.controllers.ProjectAccess;
 import java.time.LocalDate;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -231,6 +234,84 @@ public class ProjectAnalyticsServlet extends BaseServlet {
             flash(request, "toastError", "Đã xảy ra lỗi khi tạo báo cáo phân tích dự án: " + e.getMessage());
             redirect(request, response, "/project?action=report&projectId=" + projectId);
         }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        User user = currentUser(request);
+        if (user == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            writeJsonDirect(response, false, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+            return;
+        }
+
+        String action = request.getParameter("action");
+        if ("applyRebalance".equalsIgnoreCase(action)) {
+            int projectId = intParam(request, "projectId", 0);
+            int taskId = intParam(request, "taskId", 0);
+            int newAssigneeId = intParam(request, "newAssigneeId", 0);
+
+            Project project = ProjectDB.selectById(projectId);
+            if (project == null || !com.teamwork.controllers.task.TaskAccess.canCreateTask(user, project)) {
+                writeJsonDirect(response, false, "Bạn không có quyền Trưởng Dự Án (PM) để thực hiện điều phối san tải!");
+                return;
+            }
+
+            Task task = TaskDB.selectById(taskId);
+            if (task == null || task.getProjectId() != projectId) {
+                writeJsonDirect(response, false, "Không tìm thấy công việc cần san tải trong dự án!");
+                return;
+            }
+
+            User newAssignee = UserDB.selectById(newAssigneeId);
+            if (newAssignee == null) {
+                writeJsonDirect(response, false, "Không tìm thấy thành viên đích để chuyển giao công việc!");
+                return;
+            }
+
+            int oldAssigneeId = task.getAssigneeId();
+            String oldAssigneeName = task.getAssigneeName();
+
+            boolean success = TaskDB.updateAssignee(taskId, newAssigneeId);
+            if (success) {
+                // Bắn thông báo cho người mới nhận
+                NotificationDB.send(
+                    newAssigneeId,
+                    "Điều Phối San Tải Công Việc",
+                    "Trưởng Dự Án vừa phân bổ công việc [" + task.getTitle() + "] cho bạn nhằm cân bằng tải cho đội ngũ.",
+                    "/task?action=list&projectId=" + projectId + "#task-" + taskId,
+                    "TASK"
+                );
+
+                // Bắn thông báo cho người cũ nếu có
+                if (oldAssigneeId > 0 && oldAssigneeId != newAssigneeId) {
+                    NotificationDB.send(
+                        oldAssigneeId,
+                        "Điều Phối Giảm Tải Công Việc",
+                        "Công việc [" + task.getTitle() + "] đã được Trưởng Dự Án chuyển giao sang cho " + newAssignee.getFullName() + " để giúp bạn cân đối khối lượng làm việc.",
+                        "/task?action=list&projectId=" + projectId,
+                        "TASK"
+                    );
+                }
+
+                // Ghi nhận Activity Log
+                ActivityLogDB.logAsync(projectId, user.getId(), "REBALANCE_TASK", "TASK", taskId, task.getTitle(),
+                    "Điều phối san tải: Chuyển công việc từ " + oldAssigneeName + " sang " + newAssignee.getFullName());
+
+                writeJsonDirect(response, true, "Đã điều phối san tải thành công công việc [" + task.getTitle() + "] sang cho " + newAssignee.getFullName() + "!");
+            } else {
+                writeJsonDirect(response, false, "Không thể cập nhật người phụ trách trong cơ sở dữ liệu.");
+            }
+            return;
+        }
+
+        doGet(request, response);
+    }
+
+    private static void writeJsonDirect(HttpServletResponse response, boolean success, String message) throws IOException {
+        response.setContentType("application/json; charset=UTF-8");
+        response.getWriter().write("{\"success\":" + success + ",\"message\":\"" + escapeJson(message) + "\"}");
     }
 
     private static String escapeJson(String s) {

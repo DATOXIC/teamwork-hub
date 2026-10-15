@@ -157,6 +157,9 @@
                                                 <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${fn:escapeXml(task.dueDate)}">
                                                     <i class="bi bi-clock ${task.isOverdue() ? 'text-danger' : 'text-secondary'}"></i>
                                                     <span>${fn:escapeXml(task.dueDate)}</span>
+                                                    <c:if test="${task.rescheduleCount > 0}">
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-1-5 py-0 fs-9 ms-1" title="Hạn gốc: ${task.originalDueDate}">⚠️ ${task.rescheduleCount}L</span>
+                                                    </c:if>
                                                 </span>
                                             </c:if>
                                         </div>
@@ -339,6 +342,9 @@
                                                 <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${fn:escapeXml(task.dueDate)}">
                                                     <i class="bi bi-clock ${task.isOverdue() ? 'text-danger' : 'text-secondary'}"></i>
                                                     <span>${fn:escapeXml(task.dueDate)}</span>
+                                                    <c:if test="${task.rescheduleCount > 0}">
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-1-5 py-0 fs-9 ms-1" title="Hạn gốc: ${task.originalDueDate}">⚠️ ${task.rescheduleCount}L</span>
+                                                    </c:if>
                                                 </span>
                                             </c:if>
                                         </div>

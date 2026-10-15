@@ -120,6 +120,10 @@ public class TaskDB {
         if (task.getDeliverableFile() == null) task.setDeliverableFile("");
         if (task.getPlanningNote() == null) task.setPlanningNote("");
         if (task.getQualityRating() <= 0) task.setQualityRating(5);
+        if (task.getOriginalDueDate() == null || task.getOriginalDueDate().trim().isEmpty()) {
+            task.setOriginalDueDate(task.getDueDate() != null ? task.getDueDate().trim() : "");
+        }
+        task.setRescheduleCount(0);
 
         EntityManager em = JPAUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
@@ -396,6 +400,18 @@ public class TaskDB {
             tx.begin();
             Task managed = em.find(Task.class, updatedTask.getId());
             if (managed != null) {
+                // Kiểm soát dời hạn chót (Deadline Slippage Tracking)
+                String oldDueDate = managed.getDueDate();
+                String newDueDate = updatedTask.getDueDate();
+                if (oldDueDate != null && !oldDueDate.trim().isEmpty() 
+                        && newDueDate != null && !newDueDate.trim().isEmpty() 
+                        && !oldDueDate.trim().equals(newDueDate.trim())) {
+                    if (managed.getOriginalDueDate() == null || managed.getOriginalDueDate().trim().isEmpty()) {
+                        managed.setOriginalDueDate(oldDueDate.trim());
+                    }
+                    managed.setRescheduleCount(managed.getRescheduleCount() + 1);
+                }
+
                 managed.setTitle(updatedTask.getTitle() != null ? updatedTask.getTitle().trim() : "");
                 managed.setDescription(updatedTask.getDescription() != null ? updatedTask.getDescription().trim() : "");
                 managed.setStatus(updatedTask.getStatus() != null ? updatedTask.getStatus().trim().toUpperCase() : "TODO");
@@ -435,7 +451,18 @@ public class TaskDB {
             Task managed = em.find(Task.class, taskId);
             if (managed != null) {
                 if (startDate != null) managed.setStartDate(startDate.trim());
-                if (dueDate != null) managed.setDueDate(dueDate.trim());
+                if (dueDate != null) {
+                    String oldDueDate = managed.getDueDate();
+                    String cleanDue = dueDate.trim();
+                    if (oldDueDate != null && !oldDueDate.trim().isEmpty() 
+                            && !cleanDue.isEmpty() && !oldDueDate.trim().equals(cleanDue)) {
+                        if (managed.getOriginalDueDate() == null || managed.getOriginalDueDate().trim().isEmpty()) {
+                            managed.setOriginalDueDate(oldDueDate.trim());
+                        }
+                        managed.setRescheduleCount(managed.getRescheduleCount() + 1);
+                    }
+                    managed.setDueDate(cleanDue);
+                }
                 em.merge(managed);
                 tx.commit();
                 return true;
@@ -444,7 +471,34 @@ public class TaskDB {
             return false;
         } catch (Exception e) {
             JPAUtil.rollbackIfActive(tx);
-            LOGGER.log(Level.SEVERE, "Lỗi khi cập nhật ngày cho Task ID: " + taskId, e);
+            LOGGER.log(Level.SEVERE, "Lỗi khi updateDates Task ID qua JPA: " + taskId, e);
+            return false;
+        } finally {
+            JPAUtil.closeEntityManager(em);
+        }
+    }
+
+    /**
+     * Tái phân công nhanh người phụ trách công việc (Dùng cho tính năng San Tải Thông Minh 1 Chạm)
+     */
+    public static boolean updateAssignee(int taskId, int newAssigneeId) {
+        if (taskId <= 0) return false;
+        EntityManager em = JPAUtil.getEntityManager();
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Task managed = em.find(Task.class, taskId);
+            if (managed != null) {
+                managed.setAssigneeId(newAssigneeId);
+                em.merge(managed);
+                tx.commit();
+                return true;
+            }
+            tx.commit();
+            return false;
+        } catch (Exception e) {
+            JPAUtil.rollbackIfActive(tx);
+            LOGGER.log(Level.SEVERE, "Lỗi khi updateAssignee Task ID qua JPA: " + taskId, e);
             return false;
         } finally {
             JPAUtil.closeEntityManager(em);

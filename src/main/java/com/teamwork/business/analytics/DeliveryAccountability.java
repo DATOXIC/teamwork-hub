@@ -28,6 +28,7 @@ public class DeliveryAccountability implements Serializable {
     private int onTimeCompletedTasks = 0; // Số việc hoàn thành đúng hạn hoặc trước hạn
     private int lateCompletedTasks = 0;   // Số việc hoàn thành nhưng bị trễ hạn
     private int overdueActiveTasks = 0;   // Số việc chưa xong và hiện đang quá hạn
+    private int totalRescheduledTasks = 0;// Tổng số lần xin dời hạn chót của các công việc
 
     private int onTimeDeliveryRate = 100; // Tỷ lệ giao hàng đúng hẹn (OTDR 0 - 100%)
     private int sayDoRatio = 0;           // Tỷ lệ cam kết hoàn thành (Say-Do Ratio 0 - 100%)
@@ -58,12 +59,17 @@ public class DeliveryAccountability implements Serializable {
             int onTime = 0;
             int late = 0;
             int overdueActive = 0;
+            int rescheduled = 0;
 
             for (Task t : allTasks) {
                 if (t == null) continue;
                 if (t.getAssigneeId() != u.getId()) continue;
 
                 assigned++;
+                if (t.getRescheduleCount() > 0) {
+                    rescheduled += t.getRescheduleCount();
+                }
+
                 boolean isDone = "DONE".equalsIgnoreCase(t.getStatus());
 
                 if (isDone) {
@@ -94,6 +100,7 @@ public class DeliveryAccountability implements Serializable {
             da.onTimeCompletedTasks = onTime;
             da.lateCompletedTasks = late;
             da.overdueActiveTasks = overdueActive;
+            da.totalRescheduledTasks = rescheduled;
 
             // Tính On-Time Delivery Rate (OTDR)
             if (done > 0) {
@@ -109,10 +116,10 @@ public class DeliveryAccountability implements Serializable {
                 da.sayDoRatio = 100;
             }
 
-            // Xếp hạng độ tin cậy
-            if (da.onTimeDeliveryRate >= 90 && da.overdueActiveTasks == 0) {
+            // Xếp hạng độ tin cậy: Nếu dời deadline quá nhiều lần (>= 3) thì không thể xếp EXCELLENT
+            if (da.onTimeDeliveryRate >= 90 && da.overdueActiveTasks == 0 && da.totalRescheduledTasks <= 1) {
                 da.reliabilityRating = "EXCELLENT";
-            } else if (da.onTimeDeliveryRate >= 75 && da.overdueActiveTasks <= 1) {
+            } else if (da.onTimeDeliveryRate >= 75 && da.overdueActiveTasks <= 1 && da.totalRescheduledTasks <= 3) {
                 da.reliabilityRating = "GOOD";
             } else {
                 da.reliabilityRating = "NEEDS_IMPROVEMENT";
@@ -162,6 +169,9 @@ public class DeliveryAccountability implements Serializable {
     public int getOverdueActiveTasks() {
         return overdueActiveTasks;
     }
+    public int getTotalRescheduledTasks() {
+        return totalRescheduledTasks;
+    }
 
     public int getOnTimeDeliveryRate() {
         return onTimeDeliveryRate;
@@ -184,6 +194,7 @@ public class DeliveryAccountability implements Serializable {
         sb.append("\"onTimeCompletedTasks\":").append(onTimeCompletedTasks).append(",");
         sb.append("\"lateCompletedTasks\":").append(lateCompletedTasks).append(",");
         sb.append("\"overdueActiveTasks\":").append(overdueActiveTasks).append(",");
+        sb.append("\"totalRescheduledTasks\":").append(totalRescheduledTasks).append(",");
         sb.append("\"onTimeDeliveryRate\":").append(onTimeDeliveryRate).append(",");
         sb.append("\"sayDoRatio\":").append(sayDoRatio).append(",");
         sb.append("\"reliabilityRating\":\"").append(reliabilityRating).append("\"");

@@ -474,7 +474,15 @@ public final class TaskCrudHandler {
         if (priority != null && ("LOW".equalsIgnoreCase(priority) || "MEDIUM".equalsIgnoreCase(priority) || "HIGH".equalsIgnoreCase(priority))) {
             task.setPriority(priority.toUpperCase());
         }
-        task.setDueDate(dueDate != null ? dueDate.trim() : "");
+
+        String oldDueDate = task.getDueDate();
+        String newDueDate = dueDate != null ? dueDate.trim() : "";
+        if (oldDueDate != null && !oldDueDate.trim().isEmpty() && !newDueDate.isEmpty() && !oldDueDate.trim().equals(newDueDate)) {
+            int nextReschedule = task.getRescheduleCount() + 1;
+            ActivityLogDB.logAsync(projectId, currentUser.getId(), "DEADLINE_RESCHEDULE", "TASK", taskId, task.getTitle(), 
+                "Dời hạn chót từ " + oldDueDate + " sang " + newDueDate + " (Lần " + nextReschedule + ")");
+        }
+        task.setDueDate(newDueDate);
 
         if (project.isSoloProject()) {
             task.setAssigneeId(currentUser.getId());

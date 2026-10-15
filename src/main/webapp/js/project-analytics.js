@@ -320,6 +320,61 @@
     };
 
     /**
+     * 5. Hàm San Tải 1 Chạm (1-Click Apply Rebalance)
+     */
+    window.applyRebalance = function(taskId, newAssigneeId, taskTitle, newAssigneeName) {
+        const config = window.ANALYTICS_CONFIG;
+        if (!config || !config.projectId) return;
+
+        const confirmMsg = "Bạn có chắc chắn muốn chuyển giao công việc #" + taskId + " (\"" + taskTitle + "\") sang cho " + newAssigneeName + " nhằm cân bằng tải cho đội ngũ không?";
+        if (!window.confirm(confirmMsg)) {
+            return;
+        }
+
+        const url = (config.contextPath || '') + '/project-analytics';
+        const params = new URLSearchParams();
+        params.append('action', 'applyRebalance');
+        params.append('projectId', config.projectId);
+        params.append('taskId', taskId);
+        params.append('newAssigneeId', newAssigneeId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: params.toString()
+        })
+        .then(function(res) {
+            return res.json();
+        })
+        .then(function(data) {
+            if (data && data.success) {
+                if (window.showToast) {
+                    window.showToast(data.message || '✅ Đã điều phối san tải công việc thành công!', 'success');
+                } else {
+                    alert(data.message || 'Đã điều phối san tải công việc thành công!');
+                }
+                // Tự động làm mới trang sau 1.2s để render lại Heatmap và các gợi ý
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1200);
+            } else {
+                throw new Error((data && data.message) ? data.message : 'Lỗi không xác định');
+            }
+        })
+        .catch(function(err) {
+            console.error('Lỗi khi áp dụng san tải:', err);
+            if (window.showToast) {
+                window.showToast('⚠️ Không thể điều phối san tải: ' + err.message, 'danger');
+            } else {
+                alert('Không thể điều phối san tải: ' + err.message);
+            }
+        });
+    };
+
+    /**
      * 4. Lắng nghe thay đổi Theme (Light/Dark) để đổi màu biểu đồ đồng bộ
      */
     function attachThemeObserver() {

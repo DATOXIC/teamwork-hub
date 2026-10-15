@@ -182,18 +182,22 @@ public class StaleBlockerDetector implements Serializable {
 
         private List<StaleTaskInfo> staleTasks = new ArrayList<>();
         private List<BlockerTaskInfo> criticalBlockers = new ArrayList<>();
+        private List<NearMissTask> nearMissTasks = new ArrayList<>();
         private int totalTasks = 0;
         private int totalStaleCount = 0;
         private int totalBlockerCount = 0;
         private int totalBlockedTasksCount = 0;
+        private int totalNearMissCount = 0;
         private int blockerImpactScore = 0; // % tổng số task bị cản trở (0 - 100%)
 
         public List<StaleTaskInfo> getStaleTasks() { return staleTasks; }
         public List<BlockerTaskInfo> getCriticalBlockers() { return criticalBlockers; }
+        public List<NearMissTask> getNearMissTasks() { return nearMissTasks; }
         public int getTotalTasks() { return totalTasks; }
         public int getTotalStaleCount() { return totalStaleCount; }
         public int getTotalBlockerCount() { return totalBlockerCount; }
         public int getTotalBlockedTasksCount() { return totalBlockedTasksCount; }
+        public int getTotalNearMissCount() { return totalNearMissCount; }
         public int getBlockerImpactScore() { return blockerImpactScore; }
 
         public String toJson() {
@@ -203,6 +207,7 @@ public class StaleBlockerDetector implements Serializable {
             sb.append("\"totalStaleCount\":").append(totalStaleCount).append(",");
             sb.append("\"totalBlockerCount\":").append(totalBlockerCount).append(",");
             sb.append("\"totalBlockedTasksCount\":").append(totalBlockedTasksCount).append(",");
+            sb.append("\"totalNearMissCount\":").append(totalNearMissCount).append(",");
             sb.append("\"blockerImpactScore\":").append(blockerImpactScore).append(",");
 
             sb.append("\"staleTasks\":[");
@@ -216,6 +221,13 @@ public class StaleBlockerDetector implements Serializable {
             for (int i = 0; i < criticalBlockers.size(); i++) {
                 if (i > 0) sb.append(",");
                 sb.append(criticalBlockers.get(i).toJson());
+            }
+            sb.append("],");
+
+            sb.append("\"nearMissTasks\":[");
+            for (int i = 0; i < nearMissTasks.size(); i++) {
+                if (i > 0) sb.append(",");
+                sb.append(nearMissTasks.get(i).toJson());
             }
             sb.append("]");
 
@@ -396,6 +408,68 @@ public class StaleBlockerDetector implements Serializable {
         report.totalStaleCount = report.staleTasks.size();
         report.totalBlockerCount = report.criticalBlockers.size();
         report.totalBlockedTasksCount = allUniqueBlockedTaskIds.size();
+
+        // 3. Phát hiện Nguy Cơ Cận Kề Trước 24h (Near-Miss Proactive Detection)
+        for (Task t : tasks) {
+            if (t == null) continue;
+            boolean isDone = "DONE".equalsIgnoreCase(t.getStatus());
+            if (isDone) continue;
+
+            LocalDate dueDate = BurndownCalculator.parseDate(t.getDueDate());
+            String riskLevel = null;
+            String riskReason = null;
+
+            if (dueDate != null) {
+                long daysToDue = ChronoUnit.DAYS.between(asOfDate, dueDate);
+                if (daysToDue >= 0 && daysToDue <= 1) {
+                    if ("TODO".equalsIgnoreCase(t.getStatus()) || "PLANNING".equalsIgnoreCase(t.getStatus())) {
+                        riskLevel = "CRITICAL";
+                        riskReason = "Hạn chót trong 24h (" + (daysToDue == 0 ? "Hôm nay" : "Ngày mai") + ") nhưng chưa bắt đầu thực hiện!";
+                    } else if (t.getProgressPercentage() < 40) {
+                        riskLevel = "HIGH";
+                        riskReason = "Hạn chót trong 24h (" + (daysToDue == 0 ? "Hôm nay" : "Ngày mai") + ") nhưng tiến độ mới đạt " + t.getProgressPercentage() + "%";
+                    }
+                }
+            }
+
+            if (riskLevel == null && t.getRescheduleCount() >= 2) {
+                riskLevel = "WARNING";
+                riskReason = "Đã dời hạn chót " + t.getRescheduleCount() + " lần liên tiếp (Nguy cơ vỡ kế hoạch)";
+            }
+
+            if (riskLevel == null && ("CRITICAL".equalsIgnoreCase(t.getPriority()) || "HIGH".equalsIgnoreCase(t.getPriority()))
+                    && "REVISE".equalsIgnoreCase(t.getStatus())) {
+                riskLevel = "HIGH";
+                riskReason = "Công việc ưu tiên CAO bị yêu cầu nộp lại, cần trưởng nhóm hỗ trợ giải quyết";
+            }
+
+            if (riskLevel != null) {
+                NearMissTask nmt = new NearMissTask(
+                    t.getId(),
+                    t.getTitle(),
+                    t.getAssigneeId(),
+                    t.getAssigneeName(),
+                    t.getDueDate(),
+                    t.getStatus(),
+                    t.getProgressPercentage(),
+                    t.getPriority(),
+                    riskLevel,
+                    riskReason,
+                    t.getEstimatedHours(),
+                    t.getRescheduleCount()
+                );
+                report.nearMissTasks.add(nmt);
+            }
+        }
+
+        // Sắp xếp nearMissTasks: CRITICAL trước, sau đó HIGH, sau đó WARNING
+        report.nearMissTasks.sort((a, b) -> {
+            int scoreA = "CRITICAL".equals(a.getRiskLevel()) ? 3 : ("HIGH".equals(a.getRiskLevel()) ? 2 : 1);
+            int scoreB = "CRITICAL".equals(b.getRiskLevel()) ? 3 : ("HIGH".equals(b.getRiskLevel()) ? 2 : 1);
+            return Integer.compare(scoreB, scoreA);
+        });
+
+        report.totalNearMissCount = report.nearMissTasks.size();
 
         if (report.totalTasks > 0) {
             report.blockerImpactScore = (int) Math.round(((double) report.totalBlockedTasksCount / report.totalTasks) * 100.0);
