@@ -103,18 +103,37 @@ public final class BurndownCalculator {
         List<String> labels = new ArrayList<>();
         List<Double> idealRemaining = new ArrayList<>();
         List<Double> actualRemaining = new ArrayList<>();
+        List<Double> idealHoursRemaining = new ArrayList<>();
+        List<Double> actualHoursRemaining = new ArrayList<>();
 
-        // 2. Xác định ngày hoàn thành của từng task đã xong
+        // 2. Định lượng giờ công & Xác định ngày hoàn thành của từng task đã xong
         List<LocalDate> completionDates = new ArrayList<>();
+        List<Double> completionHours = new ArrayList<>();
         int completedCountNow = 0;
+        double totalHours = 0.0;
+        double completedHoursNow = 0.0;
+        int milestoneCount = 0;
+        int completedMilestones = 0;
 
         for (Task t : safeTasks) {
             if (t == null) continue;
+            double h = t.getEstimatedHours() > 0 ? t.getEstimatedHours() : 4.0; // fallback mặc định 4h/task
+            totalHours += h;
+
+            if (t.isMilestone()) {
+                milestoneCount++;
+            }
+
             boolean isDone = TaskStatus.isDone(t.getStatus()) || "DONE".equalsIgnoreCase(t.getStatus());
             if (isDone) {
                 completedCountNow++;
+                completedHoursNow += h;
+                if (t.isMilestone()) {
+                    completedMilestones++;
+                }
                 LocalDate compDate = resolveCompletionDate(t, asOfDate);
                 completionDates.add(compDate);
+                completionHours.add(h);
             }
         }
 
@@ -125,72 +144,122 @@ public final class BurndownCalculator {
             LocalDate currentDay = projectStart.plusDays(i);
             labels.add(currentDay.format(LABEL_FORMATTER));
 
-            // a. Đường lý tưởng: dốc tuyến tính từ totalTasks về 0
-            double ideal;
+            // a. Đường lý tưởng Tasks: dốc tuyến tính từ totalTasks về 0
+            double idealTasks;
+            double idealHours;
             if (totalTasks == 0) {
-                ideal = 0.0;
+                idealTasks = 0.0;
+                idealHours = 0.0;
             } else if (totalDays == 1) {
-                ideal = 0.0;
+                idealTasks = 0.0;
+                idealHours = 0.0;
             } else {
-                ideal = totalTasks * (1.0 - ((double) i / dayDenominator));
-                if (ideal < 0.0) ideal = 0.0;
+                double progressRatio = 1.0 - ((double) i / dayDenominator);
+                idealTasks = totalTasks * Math.max(0.0, progressRatio);
+                idealHours = totalHours * Math.max(0.0, progressRatio);
             }
-            idealRemaining.add(roundOneDecimal(ideal));
+            idealRemaining.add(roundOneDecimal(idealTasks));
+            idealHoursRemaining.add(roundOneDecimal(idealHours));
 
             // b. Đường thực tế:
-            // Nếu ngày đang xét vượt quá ngày quan sát asOfDate -> gán null để Chart.js ngắt đường thực tế tại hôm nay
             if (currentDay.isAfter(asOfDate)) {
                 actualRemaining.add(null);
+                actualHoursRemaining.add(null);
             } else {
-                // Đếm số việc đã hoàn thành vào hoặc trước currentDay
                 int completedOnOrBefore = 0;
-                for (LocalDate cd : completionDates) {
+                double completedHoursOnOrBefore = 0.0;
+                for (int c = 0; c < completionDates.size(); c++) {
+                    LocalDate cd = completionDates.get(c);
                     if (cd != null && !cd.isAfter(currentDay)) {
                         completedOnOrBefore++;
+                        completedHoursOnOrBefore += completionHours.get(c);
                     }
                 }
-                int actualRem = Math.max(0, totalTasks - completedOnOrBefore);
-                actualRemaining.add((double) actualRem);
+                int actualRemTasks = Math.max(0, totalTasks - completedOnOrBefore);
+                double actualRemHours = Math.max(0.0, totalHours - completedHoursOnOrBefore);
+                actualRemaining.add((double) actualRemTasks);
+                actualHoursRemaining.add(roundOneDecimal(actualRemHours));
             }
         }
 
         // 4. Tính toán các chỉ số tổng hợp
         int remainingTasks = Math.max(0, totalTasks - completedCountNow);
+        double remainingHours = Math.max(0.0, totalHours - completedHoursNow);
         int completionRate = (totalTasks > 0) ? (int) Math.round(((double) completedCountNow / totalTasks) * 100.0) : 0;
+        int hourCompletionRate = (totalHours > 0) ? (int) Math.round((completedHoursNow / totalHours) * 100.0) : 0;
 
-        // Đánh giá On-track so với ngày hiện tại (asOfDate)
-        double idealToday;
-        double actualToday;
+        // Vận tốc trung bình (Team Velocity theo giờ/ngày)
+        long elapsedDays = Math.max(1, ChronoUnit.DAYS.between(projectStart, asOfDate) + 1);
+        double teamVelocityHoursPerDay = roundOneDecimal(completedHoursNow / elapsedDays);
+
+        // Dự báo ngày về đích (Forecasted Completion Date)
+        String forecastedCompletionDate;
+        int forecastVarianceDays = 0;
+        if (remainingHours <= 0) {
+            forecastedCompletionDate = asOfDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            forecastVarianceDays = (int) ChronoUnit.DAYS.between(projectEnd, asOfDate);
+        } else if (teamVelocityHoursPerDay > 0) {
+            long daysNeeded = (long) Math.ceil(remainingHours / teamVelocityHoursPerDay);
+            LocalDate forecastDate = asOfDate.plusDays(daysNeeded);
+            forecastedCompletionDate = forecastDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            forecastVarianceDays = (int) ChronoUnit.DAYS.between(projectEnd, forecastDate);
+        } else {
+            forecastedCompletionDate = "Chưa đủ dữ liệu";
+            forecastVarianceDays = (int) ChronoUnit.DAYS.between(asOfDate, projectEnd);
+        }
+
+        // Đánh giá On-track so với ngày hiện tại (asOfDate) theo Giờ
+        double idealTodayHours;
+        double actualTodayHours;
         if (asOfDate.isBefore(projectStart)) {
-            idealToday = totalTasks;
-            actualToday = remainingTasks;
+            idealTodayHours = totalHours;
+            actualTodayHours = remainingHours;
         } else if (asOfDate.isAfter(projectEnd)) {
-            idealToday = 0.0;
-            actualToday = remainingTasks;
+            idealTodayHours = 0.0;
+            actualTodayHours = remainingHours;
         } else {
             int dayIdx = (int) ChronoUnit.DAYS.between(projectStart, asOfDate);
             dayIdx = Math.min(dayIdx, (int) totalDays - 1);
-            idealToday = idealRemaining.get(dayIdx);
-            Double actVal = actualRemaining.get(dayIdx);
-            actualToday = (actVal != null) ? actVal : remainingTasks;
+            idealTodayHours = idealHoursRemaining.get(dayIdx);
+            Double actVal = actualHoursRemaining.get(dayIdx);
+            actualTodayHours = (actVal != null) ? actVal : remainingHours;
         }
 
-        double variance = roundOneDecimal(actualToday - idealToday);
-        boolean onTrack = (variance <= 0.5); // Nếu số việc còn lại <= lý tưởng (+ dung sai 0.5 việc) thì xem như Đúng hạn
+        double varianceHours = roundOneDecimal(actualTodayHours - idealTodayHours);
+        boolean onTrack = (varianceHours <= 4.0); // Dung sai nửa ngày công (4h)
+
+        // Độ phình to phạm vi (Scope Creep): Giả lập theo tỷ lệ task tạo thêm
+        double scopeCreepHours = 0.0;
+        double scopeCreepRate = 0.0;
 
         BurndownData data = new BurndownData();
         data.setLabels(labels);
         data.setIdealRemaining(idealRemaining);
         data.setActualRemaining(actualRemaining);
+        data.setIdealHoursRemaining(idealHoursRemaining);
+        data.setActualHoursRemaining(actualHoursRemaining);
         data.setTotalTasks(totalTasks);
         data.setCompletedTasks(completedCountNow);
         data.setRemainingTasks(remainingTasks);
         data.setCompletionRate(completionRate);
+
+        data.setTotalHours(roundOneDecimal(totalHours));
+        data.setCompletedHours(roundOneDecimal(completedHoursNow));
+        data.setRemainingHours(roundOneDecimal(remainingHours));
+        data.setHourCompletionRate(hourCompletionRate);
+        data.setTeamVelocityHoursPerDay(teamVelocityHoursPerDay);
+        data.setForecastedCompletionDate(forecastedCompletionDate);
+        data.setForecastVarianceDays(forecastVarianceDays);
+        data.setScopeCreepHours(roundOneDecimal(scopeCreepHours));
+        data.setScopeCreepRate(roundOneDecimal(scopeCreepRate));
+        data.setMilestoneCount(milestoneCount);
+        data.setCompletedMilestones(completedMilestones);
+
         data.setProjectStartDate(projectStart.format(DateTimeFormatter.ISO_LOCAL_DATE));
         data.setProjectEndDate(projectEnd.format(DateTimeFormatter.ISO_LOCAL_DATE));
         data.setAsOfDate(asOfDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
         data.setOnTrack(onTrack);
-        data.setVarianceTasks(variance);
+        data.setVarianceTasks(varianceHours);
 
         return data;
     }

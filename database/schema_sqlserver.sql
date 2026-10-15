@@ -92,8 +92,9 @@ GO
 CREATE TABLE project_members (
     project_id   INT           NOT NULL,
     user_id      INT           NOT NULL,
-    project_role NVARCHAR(20)  NOT NULL DEFAULT 'MEMBER',
-    joined_at    DATETIME2     NOT NULL DEFAULT GETDATE(),
+    project_role          NVARCHAR(20)  NOT NULL DEFAULT 'MEMBER',
+    weekly_capacity_hours INT           NOT NULL DEFAULT 40,
+    joined_at             DATETIME2     NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT pk_project_members PRIMARY KEY (project_id, user_id),
 
@@ -174,6 +175,10 @@ CREATE TABLE tasks (
 
     requires_gate          BIT           NOT NULL DEFAULT 1,
 
+    estimated_hours        FLOAT         NOT NULL DEFAULT 0,
+    actual_hours           FLOAT         NOT NULL DEFAULT 0,
+    is_milestone           BIT           NOT NULL DEFAULT 0,
+
     created_at             DATETIME2     NOT NULL DEFAULT GETDATE(),
     updated_at             DATETIME2     NOT NULL DEFAULT GETDATE(),
 
@@ -220,6 +225,8 @@ CREATE TABLE subtasks (
     feedback_note   NVARCHAR(MAX) NOT NULL DEFAULT '',
     submitted_at    DATETIME2,
     reviewed_at     DATETIME2,
+    estimated_hours FLOAT         NOT NULL DEFAULT 0,
+    actual_hours    FLOAT         NOT NULL DEFAULT 0,
     created_at      DATETIME2     NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT fk_subtasks_task

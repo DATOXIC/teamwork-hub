@@ -157,8 +157,9 @@ COMMENT ON COLUMN projects.project_code IS 'Mã ngắn duy nhất dùng luồng 
 CREATE TABLE project_members (
     project_id   INT               NOT NULL,
     user_id      INT               NOT NULL,
-    project_role project_role_enum NOT NULL DEFAULT 'MEMBER',
-    joined_at    TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
+    project_role          project_role_enum NOT NULL DEFAULT 'MEMBER',
+    weekly_capacity_hours INT               NOT NULL DEFAULT 40,
+    joined_at             TIMESTAMPTZ       NOT NULL DEFAULT NOW(),
 
     CONSTRAINT pk_project_members PRIMARY KEY (project_id, user_id),
 
@@ -254,6 +255,10 @@ CREATE TABLE tasks (
     -- Cờ kiểm soát Quality Gate (true = Bắt buộc qua Gate 1 & 2; false = Fast-track)
     requires_gate          BOOLEAN          NOT NULL DEFAULT TRUE,
 
+    estimated_hours        DOUBLE PRECISION NOT NULL DEFAULT 0,
+    actual_hours           DOUBLE PRECISION NOT NULL DEFAULT 0,
+    is_milestone           BOOLEAN          NOT NULL DEFAULT FALSE,
+
     created_at             TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
 
@@ -314,6 +319,8 @@ CREATE TABLE subtasks (
     feedback_note   TEXT                NOT NULL DEFAULT '',
     submitted_at    TIMESTAMPTZ,
     reviewed_at     TIMESTAMPTZ,
+    estimated_hours DOUBLE PRECISION    NOT NULL DEFAULT 0,
+    actual_hours    DOUBLE PRECISION    NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ         NOT NULL DEFAULT NOW(),
 
     -- Xóa Task → xóa SubTask (CASCADE)

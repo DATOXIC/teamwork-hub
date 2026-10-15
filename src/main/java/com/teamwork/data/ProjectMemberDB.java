@@ -228,4 +228,19 @@ public class ProjectMemberDB {
     public static void syncUserName(int userId, String newFullName) {
         // Tự động đồng bộ qua JOIN User trong JPA
     }
+
+    /**
+     * Hàm 8: Cập nhật định mức công suất tuần (weeklyCapacityHours) của thành viên
+     */
+    public static boolean updateCapacity(int projectId, int userId, int weeklyCapacityHours) {
+        if (projectId <= 0 || userId <= 0) return false;
+        int safeHours = weeklyCapacityHours > 0 ? weeklyCapacityHours : 40;
+        return JPAUtil.inTransaction("cập nhật capacity thành viên " + userId, false, em -> {
+            ProjectMember pm = em.find(ProjectMember.class, new ProjectMemberId(projectId, userId));
+            if (pm == null) return false;
+            pm.setWeeklyCapacityHours(safeHours);
+            em.merge(pm);
+            return true;
+        });
+    }
 }

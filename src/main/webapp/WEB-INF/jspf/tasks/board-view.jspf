@@ -141,7 +141,17 @@
                                                 </span>
                                             </c:if>
 
-                                            <%@ include file="/includes/health_badge.jsp" %>
+                                            <c:if test="${task.milestone}">
+                                                <span class="kanban-meta-item text-warning" title="Cột mốc quan trọng (Milestone)">
+                                                    <i class="bi bi-flag-fill"></i>
+                                                </span>
+                                            </c:if>
+                                            <c:if test="${task.estimatedHours > 0}">
+                                                <span class="kanban-meta-item text-muted" title="Ước tính: ${task.estimatedHours} giờ">
+                                                    <i class="bi bi-hourglass-split"></i>
+                                                    <span>${task.estimatedHours}h</span>
+                                                </span>
+                                            </c:if>
                                             <!-- Hạn chót -->
                                             <c:if test="${not empty task.dueDate}">
                                                 <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${fn:escapeXml(task.dueDate)}">
@@ -313,7 +323,17 @@
                                                 </span>
                                             </c:if>
 
-                                            <%@ include file="/includes/health_badge.jsp" %>
+                                            <c:if test="${task.milestone}">
+                                                <span class="kanban-meta-item text-warning" title="Cột mốc quan trọng (Milestone)">
+                                                    <i class="bi bi-flag-fill"></i>
+                                                </span>
+                                            </c:if>
+                                            <c:if test="${task.estimatedHours > 0}">
+                                                <span class="kanban-meta-item text-muted" title="Ước tính: ${task.estimatedHours} giờ">
+                                                    <i class="bi bi-hourglass-split"></i>
+                                                    <span>${task.estimatedHours}h</span>
+                                                </span>
+                                            </c:if>
                                             <!-- Hạn chót -->
                                             <c:if test="${not empty task.dueDate}">
                                                 <span class="kanban-meta-item ${task.isOverdue() ? 'text-danger fw-bold' : ''}" title="Hạn: ${fn:escapeXml(task.dueDate)}">

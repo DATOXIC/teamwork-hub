@@ -170,6 +170,15 @@ public final class TaskCrudHandler {
             }
         }
 
+        double estimatedHours = safeParseDouble(request.getParameter("estimatedHours"), 0.0);
+        if (estimatedHours < 0) estimatedHours = 0.0;
+        newTask.setEstimatedHours(estimatedHours);
+
+        String milestoneParam = request.getParameter("milestone");
+        if (milestoneParam == null) milestoneParam = request.getParameter("isMilestone");
+        boolean isMilestone = "true".equalsIgnoreCase(milestoneParam) || "on".equalsIgnoreCase(milestoneParam) || "1".equals(milestoneParam);
+        newTask.setMilestone(isMilestone);
+
         int newTaskId = TaskDB.insert(newTask);
 
         // Ghi nhận Activity Log
@@ -502,12 +511,39 @@ public final class TaskCrudHandler {
             }
         }
 
+        String estHoursParam = request.getParameter("estimatedHours");
+        if (estHoursParam != null && !estHoursParam.trim().isEmpty()) {
+            double estimatedHours = safeParseDouble(estHoursParam, task.getEstimatedHours());
+            if (estimatedHours >= 0) task.setEstimatedHours(estimatedHours);
+        }
+
+        String actHoursParam = request.getParameter("actualHours");
+        if (actHoursParam != null && !actHoursParam.trim().isEmpty()) {
+            double actualHours = safeParseDouble(actHoursParam, task.getActualHours());
+            if (actualHours >= 0) task.setActualHours(actualHours);
+        }
+
+        String milestoneParam = request.getParameter("milestone");
+        if (milestoneParam == null) milestoneParam = request.getParameter("isMilestone");
+        if (milestoneParam != null) {
+            task.setMilestone("true".equalsIgnoreCase(milestoneParam) || "on".equalsIgnoreCase(milestoneParam) || "1".equals(milestoneParam));
+        }
+
         TaskDB.update(task);
 
         if (session != null) {
             session.setAttribute("toastSuccess", "Đã cập nhật thông tin công việc [" + task.getTitle() + "] thành công!");
         }
         response.sendRedirect(request.getContextPath() + "/task?action=list&projectId=" + projectId);
+    }
+
+    private static double safeParseDouble(String val, double defaultVal) {
+        if (val == null || val.trim().isEmpty()) return defaultVal;
+        try {
+            return Double.parseDouble(val.trim());
+        } catch (NumberFormatException e) {
+            return defaultVal;
+        }
     }
 
     // ==================== TẠO NHÃN TÙY BIẾN (AJAX, TRẢ VỀ JSON) ====================

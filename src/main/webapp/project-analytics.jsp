@@ -194,6 +194,86 @@
     </div>
 
     <!-- =========================================================================
+         2.5. EXECUTIVE DELIVERY FORECAST & WORKLOAD VELOCITY BAR
+         ========================================================================= -->
+    <div class="card border rounded-4 mb-4 bg-body shadow-2xs overflow-hidden">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-compass fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-body fs-7">Dự Báo Cán Đích & Đo Lường Trọng Số Giờ (Smart Velocity & Forecasting)</h6>
+                        <span class="fs-9 text-muted">Dự báo dựa trên vận tốc thực thi bình quân hàng ngày và trọng số khối lượng giờ (Linear/Jira Engine)</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <c:choose>
+                        <c:when test="${burndownData.forecastVarianceDays < 0}">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1-5 fs-8 fw-semibold">
+                                <i class="bi bi-lightning-charge-fill me-1"></i> Về đích sớm ${-burndownData.forecastVarianceDays} ngày
+                            </span>
+                        </c:when>
+                        <c:when test="${burndownData.forecastVarianceDays == 0}">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1-5 fs-8 fw-semibold">
+                                <i class="bi bi-check-circle-fill me-1"></i> Đúng tiến độ cam kết
+                            </span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1-5 fs-8 fw-semibold">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Dự báo trễ ${burndownData.forecastVarianceDays} ngày
+                            </span>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-4 col-xl-2">
+                    <span class="fs-9 text-uppercase tracking-wider fw-semibold text-muted d-block">Ngày dự kiến xong</span>
+                    <strong class="fs-6 text-body d-block mt-1">
+                        <c:choose>
+                            <c:when test="${not empty burndownData.forecastedCompletionDate}">
+                                ${burndownData.forecastedCompletionDate}
+                            </c:when>
+                            <c:otherwise>
+                                ${burndownData.projectEndDate}
+                            </c:otherwise>
+                        </c:choose>
+                    </strong>
+                    <span class="fs-9 text-muted">Deadline: ${burndownData.projectEndDate}</span>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <span class="fs-9 text-uppercase tracking-wider fw-semibold text-muted d-block">Vận tốc đội ngũ (Velocity)</span>
+                    <strong class="fs-6 text-primary d-block mt-1">${burndownData.teamVelocityHoursPerDay}</strong>
+                    <span class="fs-9 text-muted">giờ thực tế / ngày</span>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <span class="fs-9 text-uppercase tracking-wider fw-semibold text-muted d-block">Tiến độ theo Giờ</span>
+                    <strong class="fs-6 text-success d-block mt-1">${burndownData.hourCompletionRate}%</strong>
+                    <span class="fs-9 text-muted">${burndownData.completedHours}h / ${burndownData.totalHours}h</span>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <span class="fs-9 text-uppercase tracking-wider fw-semibold text-muted d-block">Giờ còn lại</span>
+                    <strong class="fs-6 text-warning d-block mt-1">${burndownData.remainingHours}h</strong>
+                    <span class="fs-9 text-muted">chưa hoàn tất</span>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <span class="fs-9 text-uppercase tracking-wider fw-semibold text-muted d-block">Scope Creep (Phát sinh)</span>
+                    <strong class="fs-6 ${burndownData.scopeCreepHours > 0 ? 'text-danger' : 'text-body'} d-block mt-1">+${burndownData.scopeCreepHours}h</strong>
+                    <span class="fs-9 text-muted">${burndownData.scopeCreepRate}% quy mô</span>
+                </div>
+                <div class="col-6 col-md-4 col-xl-2">
+                    <span class="fs-9 text-uppercase tracking-wider fw-semibold text-muted d-block">Cột mốc (Milestones)</span>
+                    <strong class="fs-6 text-body d-block mt-1">${burndownData.completedMilestones} / ${burndownData.milestoneCount}</strong>
+                    <span class="fs-9 text-muted">mục tiêu then chốt</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
          3. BIỂU ĐỒ BURNDOWN TƯƠNG TÁC (CHART.JS 4.4+)
          ========================================================================= -->
     <div class="card border rounded-4 mb-4 bg-body shadow-2xs overflow-hidden">
@@ -403,27 +483,295 @@
     </div>
 
     <!-- =========================================================================
-         5. WORKLOAD BALANCE HEATMAP & CẢNH BÁO QUÁ TẢI (OVERLOAD ALERTS)
+         5. BẢNG ĐO LƯỜNG TÍNH CHỊU TRÁCH NHIỆM GIAO HÀNG (DELIVERY ACCOUNTABILITY)
          ========================================================================= -->
     <div class="card border rounded-4 mb-4 bg-body shadow-2xs overflow-hidden">
         <div class="card-header bg-body border-bottom py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <h5 class="card-title fs-6 fw-bold mb-0 text-body d-flex align-items-center gap-2">
-                    <i class="bi bi-people text-primary"></i> Phân Bổ Tải Công Việc & Cảnh Báo Quá Tải Nhóm
+                    <i class="bi bi-award text-success"></i> Đo Lường Tính Chịu Trách Nhiệm Bàn Giao & Độ Tin Cậy (Delivery Accountability)
                 </h5>
                 <span class="fs-8 text-muted">
-                    Ma trận đo lường số nhiệm vụ đồng thời per thành viên &bull; Ngưỡng báo động: Đang làm &ge; 5 việc hoặc có việc quá hạn
+                    Chuẩn On-Time Delivery Rate (OTDR), Say-Do Ratio (Cam kết vs Hoàn thành) và Xếp hạng độ tin cậy thực hiện
                 </span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9">
-                    <i class="bi bi-circle-fill me-1" style="font-size: 6px;"></i> Cân bằng (&lt;5 việc)
+                    <i class="bi bi-patch-check-fill me-1"></i> Xuất sắc (&ge;90%)
+                </span>
+                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 fs-9">
+                    <i class="bi bi-check-circle-fill me-1"></i> Tốt (75-89%)
                 </span>
                 <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fs-9">
-                    <i class="bi bi-circle-fill me-1" style="font-size: 6px;"></i> Quá tải (&ge;5 việc)
+                    <i class="bi bi-exclamation-circle-fill me-1"></i> Cần cải thiện (&lt;75%)
+                </span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <c:choose>
+                <c:when test="${empty accountabilityList}">
+                    <div class="text-center py-4 text-muted fs-8">Chưa có dữ liệu thành viên để đo lường.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 fs-8">
+                            <thead class="table-light text-muted fs-9 text-uppercase tracking-wider">
+                                <tr>
+                                    <th class="ps-4 py-2-5">Thành viên</th>
+                                    <th class="text-center py-2-5">Được giao</th>
+                                    <th class="text-center py-2-5">Đã xong</th>
+                                    <th class="text-center py-2-5">Đúng hạn</th>
+                                    <th class="text-center py-2-5">Trễ hạn</th>
+                                    <th class="text-center py-2-5">Quá hạn dồn ứ</th>
+                                    <th class="text-center py-2-5" style="min-width: 140px;">Đúng hạn (OTDR)</th>
+                                    <th class="text-center py-2-5">Say-Do Ratio</th>
+                                    <th class="pe-4 py-2-5 text-end">Độ tin cậy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="acc" items="${accountabilityList}">
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
+                                                     style="width: 32px; height: 32px; font-size: 12px;">
+                                                    <c:choose>
+                                                        <c:when test="${not empty acc.fullName}">
+                                                            ${fn:substring(acc.fullName, 0, 1)}
+                                                        </c:when>
+                                                        <c:otherwise>U</c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-semibold text-body d-block text-truncate" style="max-width: 160px;">
+                                                        ${fn:escapeXml(acc.fullName)}
+                                                    </span>
+                                                    <span class="fs-9 text-muted">${acc.role}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center fw-semibold text-body">${acc.totalAssignedTasks}</td>
+                                        <td class="text-center text-success fw-semibold">${acc.completedTasks}</td>
+                                        <td class="text-center text-body">${acc.onTimeCompletedTasks}</td>
+                                        <td class="text-center ${acc.lateCompletedTasks > 0 ? 'text-warning fw-semibold' : 'text-muted'}">
+                                            ${acc.lateCompletedTasks}
+                                        </td>
+                                        <td class="text-center ${acc.overdueActiveTasks > 0 ? 'text-danger fw-bold' : 'text-muted'}">
+                                            ${acc.overdueActiveTasks}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                <div class="progress flex-grow-1" style="height: 6px; max-width: 80px;">
+                                                    <div class="progress-bar ${acc.onTimeDeliveryRate >= 90 ? 'bg-success' : (acc.onTimeDeliveryRate >= 75 ? 'bg-info' : 'bg-warning')}" 
+                                                         style="width: ${acc.onTimeDeliveryRate}%"></div>
+                                                </div>
+                                                <span class="fw-bold ${acc.onTimeDeliveryRate >= 90 ? 'text-success' : (acc.onTimeDeliveryRate >= 75 ? 'text-info' : 'text-warning')}">
+                                                    ${acc.onTimeDeliveryRate}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="text-center fw-bold text-body">${acc.sayDoRatio}%</td>
+                                        <td class="pe-4 text-end">
+                                            <c:choose>
+                                                <c:when test="${acc.reliabilityRating == 'EXCELLENT'}">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-patch-check-fill me-1"></i> Xuất sắc
+                                                    </span>
+                                                </c:when>
+                                                <c:when test="${acc.reliabilityRating == 'GOOD'}">
+                                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-check-circle-fill me-1"></i> Tốt
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-exclamation-circle-fill me-1"></i> Cần cải thiện
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         6. RADAR ĐIỂM NGHẼN TIẾN ĐỘ & VIỆC CHẾT LÂM SÀNG (BLOCKER & STALE RADAR)
+         ========================================================================= -->
+    <div class="row g-4 mb-4">
+        <!-- Cột trái: Critical Blockers (Điểm nghẽn nghiêm trọng cản trở người khác) -->
+        <div class="col-12 col-lg-6">
+            <div class="card h-100 border rounded-4 bg-body shadow-2xs overflow-hidden">
+                <div class="card-header bg-body border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title fs-6 fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                            <i class="bi bi-node-minus-fill text-danger"></i> Điểm Nghẽn Tiến Độ (Critical Blockers)
+                        </h5>
+                        <span class="fs-8 text-muted">
+                            Các công việc tiên quyết chưa xong đang cản trở tiến độ của công việc khác
+                        </span>
+                    </div>
+                    <c:choose>
+                        <c:when test="${staleBlockerReport.totalBlockerCount > 0}">
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fs-9 fw-bold">
+                                ${staleBlockerReport.totalBlockerCount} Điểm nghẽn (${staleBlockerReport.blockerImpactScore}% bị cản trở)
+                            </span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9">
+                                <i class="bi bi-check2-all me-1"></i> Thông suốt
+                            </span>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+                <div class="card-body p-0">
+                    <c:choose>
+                        <c:when test="${empty staleBlockerReport.criticalBlockers}">
+                            <div class="text-center py-5">
+                                <div class="rounded-circle bg-success-subtle text-success d-inline-flex p-3 mb-2">
+                                    <i class="bi bi-check-circle-fill fs-2"></i>
+                                </div>
+                                <h6 class="fw-semibold text-body fs-7">Chuỗi phụ thuộc hoàn toàn thông suốt!</h6>
+                                <p class="text-muted fs-8 mb-0">Không có công việc nào đang cản trở dây chuyền tiến độ của đội ngũ.</p>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="list-group list-group-flush fs-8">
+                                <c:forEach var="blocker" items="${staleBlockerReport.criticalBlockers}">
+                                    <div class="list-group-item p-3 border-bottom">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}#task-${blocker.taskId}" 
+                                               class="fw-bold text-decoration-none text-body text-truncate d-inline-block" style="max-width: 320px;">
+                                                #${blocker.taskId} - ${fn:escapeXml(blocker.taskTitle)}
+                                            </a>
+                                            <c:choose>
+                                                <c:when test="${blocker.severity == 'CRITICAL'}">
+                                                    <span class="badge bg-danger text-white rounded-pill px-2 py-0-5 fs-9 fw-bold">CRITICAL</span>
+                                                </c:when>
+                                                <c:when test="${blocker.severity == 'HIGH'}">
+                                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0-5 fs-9 fw-bold">HIGH</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-secondary rounded-pill px-2 py-0-5 fs-9">MEDIUM</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3 text-muted fs-9 mb-1.5">
+                                            <span><i class="bi bi-person me-1"></i>${fn:escapeXml(blocker.assigneeName)}</span>
+                                            <c:if test="${not empty blocker.dueDate}">
+                                                <span><i class="bi bi-calendar-event me-1"></i>Hạn: ${blocker.dueDate}</span>
+                                            </c:if>
+                                            <span class="badge bg-light text-body border rounded-pill">${blocker.status}</span>
+                                        </div>
+                                        <div class="text-danger fs-9 fw-medium">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>${fn:escapeXml(blocker.reason)}
+                                        </div>
+                                        <div class="mt-2 pt-2 border-top fs-9 text-muted">
+                                            <span>Đang cản trở <strong>${blocker.blockedTasksCount}</strong> công việc:</span>
+                                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                                <c:forEach var="bTitle" items="${blocker.blockedTaskTitles}">
+                                                    <span class="badge bg-light text-secondary border rounded-pill text-truncate" style="max-width: 200px;">
+                                                        ${fn:escapeXml(bTitle)}
+                                                    </span>
+                                                </c:forEach>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Stale Tasks (Công việc chết lâm sàng > 3 ngày) -->
+        <div class="col-12 col-lg-6">
+            <div class="card h-100 border rounded-4 bg-body shadow-2xs overflow-hidden">
+                <div class="card-header bg-body border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title fs-6 fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                            <i class="bi bi-hourglass-bottom text-warning"></i> Công Việc "Chết Lâm Sàng" (Stale Tasks)
+                        </h5>
+                        <span class="fs-8 text-muted">
+                            Các việc đang thực hiện nhưng không có hoạt động hoặc cập nhật &gt; 3 ngày
+                        </span>
+                    </div>
+                    <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1 fs-9">
+                        ${staleBlockerReport.totalStaleCount} Việc trơ
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <c:choose>
+                        <c:when test="${empty staleBlockerReport.staleTasks}">
+                            <div class="text-center py-5">
+                                <div class="rounded-circle bg-success-subtle text-success d-inline-flex p-3 mb-2">
+                                    <i class="bi bi-lightning-charge-fill fs-2"></i>
+                                </div>
+                                <h6 class="fw-semibold text-body fs-7">Mọi công việc đều đang chuyển động!</h6>
+                                <p class="text-muted fs-8 mb-0">Không có công việc nào bị bỏ rơi hay dậm chân quá 3 ngày.</p>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="list-group list-group-flush fs-8">
+                                <c:forEach var="stale" items="${staleBlockerReport.staleTasks}">
+                                    <div class="list-group-item p-3 border-bottom">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <a href="${pageContext.request.contextPath}/task?action=list&projectId=${project.id}#task-${stale.taskId}" 
+                                               class="fw-bold text-decoration-none text-body text-truncate d-inline-block" style="max-width: 320px;">
+                                                #${stale.taskId} - ${fn:escapeXml(stale.taskTitle)}
+                                            </a>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0-5 fs-9 fw-bold">
+                                                ${stale.staleDays} ngày trơ
+                                            </span>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between text-muted fs-9 mb-2">
+                                            <span><i class="bi bi-person me-1"></i>${fn:escapeXml(stale.assigneeName)}</span>
+                                            <span>Tiến độ: <strong>${stale.progressPercentage}%</strong></span>
+                                        </div>
+                                        <div class="progress mb-2" style="height: 5px;">
+                                            <div class="progress-bar bg-warning rounded-pill" style="width: ${stale.progressPercentage}%"></div>
+                                        </div>
+                                        <div class="text-danger fs-9">
+                                            <i class="bi bi-clock-history me-1"></i>${fn:escapeXml(stale.reason)}
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         7. MA TRẬN PHÂN BỔ TẢI THEO GIỜ LÀM VIỆC & GỢI Ý SAN TẢI (CAPACITY HEATMAP)
+         ========================================================================= -->
+    <div class="card border rounded-4 mb-4 bg-body shadow-2xs overflow-hidden">
+        <div class="card-header bg-body border-bottom py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h5 class="card-title fs-6 fw-bold mb-0 text-body d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-week text-primary"></i> Ma Trận Phân Bổ Năng Lực Tuần & Quản Trị Tải (Resource Capacity Heatmap)
+                </h5>
+                <span class="fs-8 text-muted">
+                    Dàn đều giờ công việc cho các ngày làm việc (T2 - T6) &bull; Định mức chuẩn 40h/tuần (8h/ngày) &bull; Ngưỡng đỏ khi &gt;8h/ngày
+                </span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fs-9">
+                    Tối ưu (50-100%)
                 </span>
                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fs-9">
-                    <i class="bi bi-circle-fill me-1" style="font-size: 6px;"></i> Quá hạn (&gt;0 việc)
+                    Quá tải (&gt;100% hoặc &gt;8h/ngày)
+                </span>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fs-9">
+                    Rảnh (&lt;50%)
                 </span>
             </div>
         </div>
@@ -433,97 +781,125 @@
                     <div class="text-center py-4 text-muted fs-8">Chưa có thành viên nào tham gia dự án.</div>
                 </c:when>
                 <c:otherwise>
-                    <div class="row g-3">
-                        <c:forEach var="member" items="${workloadAnalytics}">
-                            <div class="col-12 col-md-6 col-xl-4">
-                                <div class="border rounded-3 p-3 h-100 bg-body-tertiary transition-all ${member.overloaded ? 'border-danger-subtle shadow-xs' : ''}">
-                                    <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
-                                                 style="width: 34px; height: 34px; font-size: 13px;">
-                                                <c:choose>
-                                                    <c:when test="${not empty member.fullName}">
-                                                        ${fn:substring(member.fullName, 0, 1)}
-                                                    </c:when>
-                                                    <c:otherwise>U</c:otherwise>
-                                                </c:choose>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-hover align-middle mb-0 fs-8">
+                            <thead class="table-light text-muted fs-9 text-uppercase tracking-wider">
+                                <tr>
+                                    <th class="ps-3 py-2-5">Thành viên</th>
+                                    <th class="text-center py-2-5">Định mức</th>
+                                    <th class="text-center py-2-5">Giờ tuần</th>
+                                    <th class="text-center py-2-5">Công suất</th>
+                                    <th class="text-center py-2-5">Thứ 2</th>
+                                    <th class="text-center py-2-5">Thứ 3</th>
+                                    <th class="text-center py-2-5">Thứ 4</th>
+                                    <th class="text-center py-2-5">Thứ 5</th>
+                                    <th class="text-center py-2-5">Thứ 6</th>
+                                    <th class="pe-3 py-2-5 text-end">Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="member" items="${workloadAnalytics}">
+                                    <tr>
+                                        <td class="ps-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center"
+                                                     style="width: 32px; height: 32px; font-size: 12px;">
+                                                    <c:choose>
+                                                        <c:when test="${not empty member.fullName}">
+                                                            ${fn:substring(member.fullName, 0, 1)}
+                                                        </c:when>
+                                                        <c:otherwise>U</c:otherwise>
+                                                    </c:choose>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-semibold text-body d-block text-truncate" style="max-width: 150px;">
+                                                        ${fn:escapeXml(member.fullName)}
+                                                    </span>
+                                                    <span class="fs-9 text-muted">${member.role}</span>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <span class="fw-semibold text-body fs-8 d-block text-truncate" style="max-width: 150px;">
-                                                    ${fn:escapeXml(member.fullName)}
-                                                </span>
-                                                <span class="fs-9 text-muted d-block">${member.role}</span>
-                                            </div>
-                                        </div>
-                                        <c:choose>
-                                            <c:when test="${member.loadLevel == 'CRITICAL'}">
-                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0-5 fs-9">
-                                                    <i class="bi bi-exclamation-octagon-fill me-1"></i> Báo động đỏ
-                                                </span>
-                                            </c:when>
-                                            <c:when test="${member.loadLevel == 'HIGH'}">
-                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0-5 fs-9">
-                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Quá tải
-                                                </span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0-5 fs-9">
-                                                    <i class="bi bi-check-circle me-1"></i> Cân bằng
-                                                </span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
-
-                                    <!-- Thống kê phân rã -->
-                                    <div class="row g-2 text-center fs-8 my-2 py-2 border-top border-bottom">
-                                        <div class="col-4">
-                                            <span class="text-muted fs-9 d-block">Đang làm</span>
-                                            <strong class="${member.inProgressCount >= 5 ? 'text-warning' : 'text-body'} fs-7">
-                                                ${member.inProgressCount}
-                                            </strong>
-                                        </div>
-                                        <div class="col-4">
-                                            <span class="text-muted fs-9 d-block">Đã xong</span>
-                                            <strong class="text-success fs-7">${member.doneCount}</strong>
-                                        </div>
-                                        <div class="col-4">
-                                            <span class="text-muted fs-9 d-block">Quá hạn</span>
-                                            <strong class="${member.overdueCount > 0 ? 'text-danger' : 'text-muted'} fs-7">
-                                                ${member.overdueCount}
-                                            </strong>
-                                        </div>
-                                    </div>
-
-                                    <!-- Thanh tiến độ hoàn thành -->
-                                    <div class="d-flex align-items-center justify-content-between fs-9 text-muted mb-1">
-                                        <span>Tỷ lệ hoàn thành</span>
-                                        <strong>${member.completionRate}%</strong>
-                                    </div>
-                                    <div class="progress" style="height: 5px;">
-                                        <div class="progress-bar ${member.completionRate >= 80 ? 'bg-success' : 'bg-primary'}" 
-                                             style="width: ${member.completionRate}%"></div>
-                                    </div>
-
-                                    <c:if test="${member.overloaded}">
-                                        <div class="mt-2 fs-9 text-danger d-flex align-items-center gap-1">
-                                            <i class="bi bi-info-circle"></i>
-                                            <span class="text-truncate" title="${fn:escapeXml(member.overloadReason)}">
-                                                ${fn:escapeXml(member.overloadReason)}
+                                        </td>
+                                        <td class="text-center text-muted">${member.weeklyCapacityHours}h/w</td>
+                                        <td class="text-center fw-bold ${member.weekAssignedHours > member.weeklyCapacityHours ? 'text-danger' : 'text-body'}">
+                                            ${member.weekAssignedHours}h
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge ${member.capacityUtilizationRate > 100 ? 'bg-danger text-white' : (member.capacityUtilizationRate >= 50 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle')} rounded-pill px-2 py-0-5 fw-bold">
+                                                ${member.capacityUtilizationRate}%
                                             </span>
-                                        </div>
-                                    </c:if>
-                                </div>
-                            </div>
-                        </c:forEach>
+                                        </td>
+                                        <td class="text-center ${member.mondayHours > member.dailyCapacityHours ? 'bg-danger-subtle text-danger fw-bold' : (member.mondayHours > 0 ? 'text-body font-monospace' : 'text-muted')}">
+                                            ${member.mondayHours > 0 ? member.mondayHours : '-'}
+                                        </td>
+                                        <td class="text-center ${member.tuesdayHours > member.dailyCapacityHours ? 'bg-danger-subtle text-danger fw-bold' : (member.tuesdayHours > 0 ? 'text-body font-monospace' : 'text-muted')}">
+                                            ${member.tuesdayHours > 0 ? member.tuesdayHours : '-'}
+                                        </td>
+                                        <td class="text-center ${member.wednesdayHours > member.dailyCapacityHours ? 'bg-danger-subtle text-danger fw-bold' : (member.wednesdayHours > 0 ? 'text-body font-monospace' : 'text-muted')}">
+                                            ${member.wednesdayHours > 0 ? member.wednesdayHours : '-'}
+                                        </td>
+                                        <td class="text-center ${member.thursdayHours > member.dailyCapacityHours ? 'bg-danger-subtle text-danger fw-bold' : (member.thursdayHours > 0 ? 'text-body font-monospace' : 'text-muted')}">
+                                            ${member.thursdayHours > 0 ? member.thursdayHours : '-'}
+                                        </td>
+                                        <td class="text-center ${member.fridayHours > member.dailyCapacityHours ? 'bg-danger-subtle text-danger fw-bold' : (member.fridayHours > 0 ? 'text-body font-monospace' : 'text-muted')}">
+                                            ${member.fridayHours > 0 ? member.fridayHours : '-'}
+                                        </td>
+                                        <td class="pe-3 text-end">
+                                            <c:choose>
+                                                <c:when test="${member.capacityStatus == 'OVERLOADED'}">
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> Quá tải
+                                                    </span>
+                                                </c:when>
+                                                <c:when test="${member.capacityStatus == 'UNDERUTILIZED'}">
+                                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-clock me-1"></i> Đang rảnh
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                                                        <i class="bi bi-check-circle me-1"></i> Tối ưu
+                                                    </span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
                     </div>
                 </c:otherwise>
             </c:choose>
+
+            <!-- HỘP GỢI Ý ĐIỀU PHỐI SAN TẢI THÔNG MINH (SMART REBALANCING ADVISOR) -->
+            <c:if test="${not empty rebalanceSuggestions}">
+                <div class="p-3 rounded-4 bg-primary-subtle border border-primary-subtle">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-lightbulb-fill text-primary fs-5"></i>
+                        <h6 class="fw-bold text-primary mb-0 fs-7">Đề Xuất San Tải Tự Động (Smart Rebalancing Advisor)</h6>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <c:forEach var="sug" items="${rebalanceSuggestions}">
+                            <div class="p-2-5 bg-body rounded-3 border d-flex flex-wrap align-items-center justify-content-between gap-2 fs-8">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary text-white rounded-pill px-2 py-0-5">Đề xuất</span>
+                                    <span>
+                                        Chuyển công việc <strong>"${fn:escapeXml(sug.taskTitle)}"</strong> (~${sug.estimatedHours}h) từ 
+                                        <strong class="text-danger">${fn:escapeXml(sug.fromUserName)}</strong> sang 
+                                        <strong class="text-success">${fn:escapeXml(sug.toUserName)}</strong>.
+                                    </span>
+                                </div>
+                                <span class="fs-9 text-muted">${fn:escapeXml(sug.reason)}</span>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
         </div>
     </div>
 </div>
 
 <!-- =========================================================================
-     6. SCRIPT CONFIGURATION & CHART.JS ENGINE
+     8. SCRIPT CONFIGURATION & CHART.JS ENGINE
      ========================================================================= -->
 <script>
     window.ANALYTICS_CONFIG = {
@@ -531,7 +907,10 @@
         contextPath: '${pageContext.request.contextPath}',
         burndownData: ${not empty burndownJson ? burndownJson : '{}'},
         qualityData: ${not empty qualityJson ? qualityJson : '{}'},
-        workloadData: ${not empty workloadsJson ? workloadsJson : '[]'}
+        workloadData: ${not empty workloadsJson ? workloadsJson : '[]'},
+        accountabilityData: ${not empty accountabilityJson ? accountabilityJson : '[]'},
+        staleBlockerData: ${not empty staleBlockerJson ? staleBlockerJson : '{}'},
+        rebalanceData: ${not empty rebalanceJson ? rebalanceJson : '[]'}
     };
 </script>
 <!-- Nạp Chart.js 4.4.2 CDN chuẩn jsDelivr -->
@@ -540,3 +919,4 @@
 <script src="${pageContext.request.contextPath}/js/project-analytics.js?v=<%= System.currentTimeMillis() %>"></script>
 
 <jsp:include page="/includes/footer.jsp" />
+

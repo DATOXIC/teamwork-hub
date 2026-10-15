@@ -20,6 +20,23 @@ public class BurndownData implements Serializable {
     private List<Double> idealRemaining = new ArrayList<>();
     private List<Double> actualRemaining = new ArrayList<>();
 
+    // Dữ liệu định lượng Giờ công (Weighted Hours)
+    private double totalHours = 0.0;
+    private double completedHours = 0.0;
+    private double remainingHours = 0.0;
+    private int hourCompletionRate = 0;
+    private List<Double> idealHoursRemaining = new ArrayList<>();
+    private List<Double> actualHoursRemaining = new ArrayList<>();
+
+    // Dự báo hoàn thành & Kiểm soát phình to phạm vi (Forecasting & Scope Creep)
+    private double teamVelocityHoursPerDay = 0.0; // Vận tốc trung bình (giờ/ngày)
+    private String forecastedCompletionDate = ""; // Ngày dự báo về đích (YYYY-MM-DD)
+    private int forecastVarianceDays = 0;         // Độ lệch ngày dự báo (âm = sớm, dương = trễ hạn)
+    private double scopeCreepHours = 0.0;         // Giờ việc phát sinh thêm
+    private double scopeCreepRate = 0.0;          // % phình to phạm vi
+    private int milestoneCount = 0;               // Tổng số cột mốc
+    private int completedMilestones = 0;          // Cột mốc đã hoàn thành
+
     private int totalTasks;
     private int completedTasks;
     private int remainingTasks;
@@ -151,6 +168,97 @@ public class BurndownData implements Serializable {
         this.varianceTasks = varianceTasks;
     }
 
+    public double getTotalHours() {
+        return totalHours;
+    }
+    public void setTotalHours(double totalHours) {
+        this.totalHours = totalHours;
+    }
+
+    public double getCompletedHours() {
+        return completedHours;
+    }
+    public void setCompletedHours(double completedHours) {
+        this.completedHours = completedHours;
+    }
+
+    public double getRemainingHours() {
+        return remainingHours;
+    }
+    public void setRemainingHours(double remainingHours) {
+        this.remainingHours = remainingHours;
+    }
+
+    public int getHourCompletionRate() {
+        return hourCompletionRate;
+    }
+    public void setHourCompletionRate(int hourCompletionRate) {
+        this.hourCompletionRate = hourCompletionRate;
+    }
+
+    public List<Double> getIdealHoursRemaining() {
+        return Collections.unmodifiableList(idealHoursRemaining);
+    }
+    public void setIdealHoursRemaining(List<Double> idealHoursRemaining) {
+        this.idealHoursRemaining = idealHoursRemaining != null ? new ArrayList<>(idealHoursRemaining) : new ArrayList<>();
+    }
+
+    public List<Double> getActualHoursRemaining() {
+        return Collections.unmodifiableList(actualHoursRemaining);
+    }
+    public void setActualHoursRemaining(List<Double> actualHoursRemaining) {
+        this.actualHoursRemaining = actualHoursRemaining != null ? new ArrayList<>(actualHoursRemaining) : new ArrayList<>();
+    }
+
+    public double getTeamVelocityHoursPerDay() {
+        return teamVelocityHoursPerDay;
+    }
+    public void setTeamVelocityHoursPerDay(double teamVelocityHoursPerDay) {
+        this.teamVelocityHoursPerDay = teamVelocityHoursPerDay;
+    }
+
+    public String getForecastedCompletionDate() {
+        return forecastedCompletionDate;
+    }
+    public void setForecastedCompletionDate(String forecastedCompletionDate) {
+        this.forecastedCompletionDate = forecastedCompletionDate != null ? forecastedCompletionDate : "";
+    }
+
+    public int getForecastVarianceDays() {
+        return forecastVarianceDays;
+    }
+    public void setForecastVarianceDays(int forecastVarianceDays) {
+        this.forecastVarianceDays = forecastVarianceDays;
+    }
+
+    public double getScopeCreepHours() {
+        return scopeCreepHours;
+    }
+    public void setScopeCreepHours(double scopeCreepHours) {
+        this.scopeCreepHours = scopeCreepHours;
+    }
+
+    public double getScopeCreepRate() {
+        return scopeCreepRate;
+    }
+    public void setScopeCreepRate(double scopeCreepRate) {
+        this.scopeCreepRate = scopeCreepRate;
+    }
+
+    public int getMilestoneCount() {
+        return milestoneCount;
+    }
+    public void setMilestoneCount(int milestoneCount) {
+        this.milestoneCount = milestoneCount;
+    }
+
+    public int getCompletedMilestones() {
+        return completedMilestones;
+    }
+    public void setCompletedMilestones(int completedMilestones) {
+        this.completedMilestones = completedMilestones;
+    }
+
     /**
      * Chuyển đổi DTO sang chuỗi JSON thuần an toàn XSS để render trực tiếp vào Chart.js hoặc gửi qua AJAX.
      */
@@ -162,6 +270,19 @@ public class BurndownData implements Serializable {
         sb.append("\"completedTasks\":").append(completedTasks).append(",");
         sb.append("\"remainingTasks\":").append(remainingTasks).append(",");
         sb.append("\"completionRate\":").append(completionRate).append(",");
+        
+        sb.append("\"totalHours\":").append(totalHours).append(",");
+        sb.append("\"completedHours\":").append(completedHours).append(",");
+        sb.append("\"remainingHours\":").append(remainingHours).append(",");
+        sb.append("\"hourCompletionRate\":").append(hourCompletionRate).append(",");
+        sb.append("\"teamVelocityHoursPerDay\":").append(teamVelocityHoursPerDay).append(",");
+        sb.append("\"forecastedCompletionDate\":\"").append(escapeJson(forecastedCompletionDate)).append("\",");
+        sb.append("\"forecastVarianceDays\":").append(forecastVarianceDays).append(",");
+        sb.append("\"scopeCreepHours\":").append(scopeCreepHours).append(",");
+        sb.append("\"scopeCreepRate\":").append(scopeCreepRate).append(",");
+        sb.append("\"milestoneCount\":").append(milestoneCount).append(",");
+        sb.append("\"completedMilestones\":").append(completedMilestones).append(",");
+
         sb.append("\"projectStartDate\":\"").append(escapeJson(projectStartDate)).append("\",");
         sb.append("\"projectEndDate\":\"").append(escapeJson(projectEndDate)).append("\",");
         sb.append("\"asOfDate\":\"").append(escapeJson(asOfDate)).append("\",");
@@ -176,7 +297,7 @@ public class BurndownData implements Serializable {
         }
         sb.append("],");
 
-        // idealRemaining
+        // idealRemaining (Tasks)
         sb.append("\"idealRemaining\":[");
         for (int i = 0; i < idealRemaining.size(); i++) {
             if (i > 0) sb.append(",");
@@ -185,11 +306,29 @@ public class BurndownData implements Serializable {
         }
         sb.append("],");
 
-        // actualRemaining
+        // actualRemaining (Tasks)
         sb.append("\"actualRemaining\":[");
         for (int i = 0; i < actualRemaining.size(); i++) {
             if (i > 0) sb.append(",");
             Double v = actualRemaining.get(i);
+            sb.append(v != null ? String.valueOf(v) : "null");
+        }
+        sb.append("],");
+
+        // idealHoursRemaining
+        sb.append("\"idealHoursRemaining\":[");
+        for (int i = 0; i < idealHoursRemaining.size(); i++) {
+            if (i > 0) sb.append(",");
+            Double v = idealHoursRemaining.get(i);
+            sb.append(v != null ? String.valueOf(v) : "null");
+        }
+        sb.append("],");
+
+        // actualHoursRemaining
+        sb.append("\"actualHoursRemaining\":[");
+        for (int i = 0; i < actualHoursRemaining.size(); i++) {
+            if (i > 0) sb.append(",");
+            Double v = actualHoursRemaining.get(i);
             sb.append(v != null ? String.valueOf(v) : "null");
         }
         sb.append("]");

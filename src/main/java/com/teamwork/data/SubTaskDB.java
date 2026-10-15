@@ -396,6 +396,8 @@ public class SubTaskDB {
                 existing.setAssigneeId(updatedSubTask.getAssigneeId());
                 existing.setStatus(updatedSubTask.getStatus() != null ? updatedSubTask.getStatus().trim().toUpperCase() : "TODO");
                 existing.setDueDate(updatedSubTask.getDueDate() != null ? updatedSubTask.getDueDate().trim() : "");
+                existing.setEstimatedHours(updatedSubTask.getEstimatedHours());
+                existing.setActualHours(updatedSubTask.getActualHours());
                 em.merge(existing);
                 tx.commit();
                 return true;

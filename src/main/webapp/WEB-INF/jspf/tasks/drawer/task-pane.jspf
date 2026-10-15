@@ -20,6 +20,16 @@
                                 <span class="badge ${task.statusBadgeClass} rounded-pill px-2 py-0-5 fs-9 fw-semibold">
                                     ${task.statusLabel}
                                 </span>
+                                <c:if test="${task.milestone}">
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0-5 fs-9 fw-semibold">
+                                        <i class="bi bi-flag-fill me-1"></i> Milestone
+                                    </span>
+                                </c:if>
+                                <c:if test="${task.estimatedHours > 0}">
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2 py-0-5 fs-9">
+                                        <i class="bi bi-clock me-1"></i> ${task.estimatedHours}h
+                                    </span>
+                                </c:if>
                             </div>
                             <div class="d-flex align-items-center gap-2 flex-shrink-0">
                                 <c:choose>
@@ -111,6 +121,24 @@
                                                         <input type="hidden" name="assigneeId" value="${sessionScope.currentUser.id}">
                                                     </c:otherwise>
                                                 </c:choose>
+                                            </div>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-6">
+                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Giờ ước tính (h):</label>
+                                                    <input aria-label="Giờ ước tính" type="number" step="0.5" min="0" name="estimatedHours" value="${task.estimatedHours}" class="form-control form-control-sm">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label fs-9 fw-bold text-dark mb-1">Giờ thực tế (h):</label>
+                                                    <input aria-label="Giờ thực tế" type="number" step="0.5" min="0" name="actualHours" value="${task.actualHours}" class="form-control form-control-sm">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" role="switch" id="editMilestone-${task.id}" name="milestone" value="true" ${task.milestone ? 'checked' : ''}>
+                                                    <label class="form-check-label fs-9 fw-bold text-dark" for="editMilestone-${task.id}">
+                                                        <i class="bi bi-flag-fill text-warning me-1"></i> Cột mốc quan trọng (Milestone)
+                                                    </label>
+                                                </div>
                                             </div>
                                             <c:if test="${project.teamProject && isPm}">
                                                 <input type="hidden" name="hasRequiresGateControl" value="true">

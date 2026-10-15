@@ -97,6 +97,24 @@ public class Task implements Serializable {
     @Column(name = "requires_gate")
     private boolean requiresGate = true;// Cờ kiểm soát Quality Gate (true = Bắt buộc qua Gate 1 & 2; false = Fast-track)
 
+    @Column(name = "estimated_hours")
+    private double estimatedHours = 0.0; // Giờ ước tính hoàn thành
+
+    @Column(name = "actual_hours")
+    private double actualHours = 0.0;    // Giờ thực tế đã thực hiện
+
+    @Column(name = "is_milestone")
+    private boolean milestone = false;   // Cột mốc quan trọng (Milestone)
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private String createdAt;
+
+    @Column(name = "updated_at", insertable = false, updatable = false)
+    private String updatedAt;
+
+    @Transient
+    private java.util.List<SubTask> subtasks = new java.util.ArrayList<>();
+
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
 
     public Task() {
@@ -120,6 +138,10 @@ public class Task implements Serializable {
         this.planningReviewedAt = "";
         this.labels = "";
         this.requiresGate = true;
+        this.estimatedHours = 0.0;
+        this.actualHours = 0.0;
+        this.milestone = false;
+        this.subtasks = new java.util.ArrayList<>();
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
@@ -714,6 +736,97 @@ public class Task implements Serializable {
             this.assigneeId = assignee.getId();
             this.assigneeName = assignee.getFullName();
         }
+    }
+
+    public double getEstimatedHours() {
+        return estimatedHours;
+    }
+
+    public void setEstimatedHours(double estimatedHours) {
+        this.estimatedHours = Math.max(0.0, estimatedHours);
+    }
+
+    public double getActualHours() {
+        return actualHours;
+    }
+
+    public void setActualHours(double actualHours) {
+        this.actualHours = Math.max(0.0, actualHours);
+    }
+
+    public boolean isMilestone() {
+        return milestone;
+    }
+
+    public void setMilestone(boolean milestone) {
+        this.milestone = milestone;
+    }
+
+    public java.util.List<SubTask> getSubtasks() {
+        return subtasks;
+    }
+
+    public void setSubtasks(java.util.List<SubTask> subtasks) {
+        this.subtasks = (subtasks != null) ? subtasks : new java.util.ArrayList<>();
+    }
+
+    /**
+     * Tiến độ có trọng số (Weighted Progress):
+     * 1. Nếu Task đã DONE -> 100%
+     * 2. Nếu có subtasks:
+     *    - Nếu các subtask có khai báo estimatedHours -> Tính theo % giờ hoàn thành.
+     *    - Nếu không có giờ -> Tính theo % số lượng subtask đã DONE/APPROVED.
+     * 3. Nếu không có subtask: Tính theo trạng thái workflow (TODO: 0%, IN_PROGRESS: 40%, REVISE: 60%, SUBMITTED: 90%, DONE: 100%).
+     */
+    public int getProgressPercentage() {
+        if ("DONE".equalsIgnoreCase(this.status)) {
+            return 100;
+        }
+        if (subtasks != null && !subtasks.isEmpty()) {
+            double totalSubHours = 0.0;
+            double completedSubHours = 0.0;
+            int totalSubCount = subtasks.size();
+            int completedSubCount = 0;
+
+            for (SubTask st : subtasks) {
+                if (st == null) continue;
+                double h = st.getEstimatedHours();
+                totalSubHours += h;
+                boolean isDone = "DONE".equalsIgnoreCase(st.getStatus()) || "APPROVED".equalsIgnoreCase(st.getStatus()) || st.isCompleted();
+                if (isDone) {
+                    completedSubHours += h;
+                    completedSubCount++;
+                }
+            }
+
+            if (totalSubHours > 0) {
+                return (int) Math.round((completedSubHours / totalSubHours) * 100.0);
+            }
+            if (totalSubCount > 0) {
+                return (int) Math.round(((double) completedSubCount / totalSubCount) * 100.0);
+            }
+        }
+
+        if ("SUBMITTED".equalsIgnoreCase(this.status)) return 90;
+        if ("REVISE".equalsIgnoreCase(this.status)) return 60;
+        if ("IN_PROGRESS".equalsIgnoreCase(this.status)) return 40;
+        return 0;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
 

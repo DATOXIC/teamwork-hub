@@ -72,6 +72,12 @@ public class SubTask implements Serializable {
     @Column(name = "reviewed_at", insertable = false, updatable = false)
     private String reviewedAt;       // Thời điểm duyệt / phản hồi (định dạng: YYYY-MM-DD HH:mm)
 
+    @Column(name = "estimated_hours")
+    private double estimatedHours = 0.0; // Giờ ước tính hoàn thành việc con
+
+    @Column(name = "actual_hours")
+    private double actualHours = 0.0;    // Giờ thực tế đã thực hiện việc con
+
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
 
     public SubTask() {
@@ -87,6 +93,8 @@ public class SubTask implements Serializable {
         this.feedbackNote = "";
         this.submittedAt = "";
         this.reviewedAt = "";
+        this.estimatedHours = 0.0;
+        this.actualHours = 0.0;
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
@@ -400,6 +408,20 @@ public class SubTask implements Serializable {
     }
     public void setReviewedAt(String reviewedAt) {
         this.reviewedAt = reviewedAt;
+    }
+
+    public double getEstimatedHours() {
+        return this.estimatedHours;
+    }
+    public void setEstimatedHours(double estimatedHours) {
+        this.estimatedHours = Math.max(0.0, estimatedHours);
+    }
+
+    public double getActualHours() {
+        return this.actualHours;
+    }
+    public void setActualHours(double actualHours) {
+        this.actualHours = Math.max(0.0, actualHours);
     }
 }
 

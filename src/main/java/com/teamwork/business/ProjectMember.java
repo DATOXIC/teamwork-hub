@@ -52,6 +52,9 @@ public class ProjectMember implements Serializable
     @Column(name = "joined_at", insertable = false, updatable = false)
     private String joinedAt;          // Ngày giờ chính thức gia nhập dự án
 
+    @Column(name = "weekly_capacity_hours")
+    private int weeklyCapacityHours = 40; // Định mức giờ làm việc hàng tuần (mặc định 40h/tuần)
+
     // ===================== CONSTRUCTOR MẶC ĐỊNH =====================
     public ProjectMember() {
         this.projectId = 0;
@@ -61,6 +64,7 @@ public class ProjectMember implements Serializable
         this.userRole = "";
         this.projectRole = "MEMBER";
         this.joinedAt = "";
+        this.weeklyCapacityHours = 40;
     }
 
     // ===================== CONSTRUCTOR ĐẦY ĐỦ THAM SỐ =====================
@@ -136,5 +140,12 @@ public class ProjectMember implements Serializable
     }
     public void setJoinedAt(String joinedAt) {
         this.joinedAt = joinedAt;
+    }
+
+    public int getWeeklyCapacityHours() {
+        return weeklyCapacityHours > 0 ? weeklyCapacityHours : 40;
+    }
+    public void setWeeklyCapacityHours(int weeklyCapacityHours) {
+        this.weeklyCapacityHours = weeklyCapacityHours > 0 ? weeklyCapacityHours : 40;
     }
 }

@@ -405,6 +405,9 @@ public class TaskDB {
                 managed.setAssigneeId(updatedTask.getAssigneeId());
                 managed.setLabels(updatedTask.getLabels() != null ? updatedTask.getLabels().trim() : "");
                 managed.setRequiresGate(updatedTask.isRequiresGate());
+                managed.setEstimatedHours(updatedTask.getEstimatedHours());
+                managed.setActualHours(updatedTask.getActualHours());
+                managed.setMilestone(updatedTask.isMilestone());
                 em.merge(managed);
                 tx.commit();
                 return true;
