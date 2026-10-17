@@ -6,25 +6,33 @@
 --   nhằm phát hiện và kiểm soát việc lùi hạn chót liên tục (Deadline Slippage).
 -- =========================================================================
 
--- 1. Thêm cột original_due_date và reschedule_count cho PostgreSQL / Supabase
-DO $$
+-- =========================================================================
+-- PHẦN 1: DÀNH CHO MICROSOFT SQL SERVER (SSMS / AZURE SQL)
+-- =========================================================================
+IF COL_LENGTH('tasks', 'original_due_date') IS NULL
 BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'tasks' AND column_name = 'original_due_date'
-    ) THEN
-        ALTER TABLE tasks ADD COLUMN original_due_date VARCHAR(50) NULL;
-    END IF;
+    ALTER TABLE tasks ADD original_due_date VARCHAR(50) NULL;
+END
+GO
 
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'tasks' AND column_name = 'reschedule_count'
-    ) THEN
-        ALTER TABLE tasks ADD COLUMN reschedule_count INT NOT NULL DEFAULT 0;
-    END IF;
-END $$;
+IF COL_LENGTH('tasks', 'reschedule_count') IS NULL
+BEGIN
+    ALTER TABLE tasks ADD reschedule_count INT NOT NULL DEFAULT 0;
+END
+GO
 
--- 2. Đồng bộ dữ liệu cũ: Nếu original_due_date chưa có, gán bằng due_date hiện tại
 UPDATE tasks 
 SET original_due_date = due_date 
 WHERE original_due_date IS NULL AND due_date IS NOT NULL;
+GO
+
+-- =========================================================================
+-- PHẦN 2: DÀNH CHO POSTGRESQL / SUPABASE
+-- =========================================================================
+-- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS original_due_date VARCHAR(50) NULL;
+-- ALTER TABLE tasks ADD COLUMN IF NOT EXISTS reschedule_count INT NOT NULL DEFAULT 0;
+-- 
+-- UPDATE tasks 
+-- SET original_due_date = due_date::text 
+-- WHERE original_due_date IS NULL AND due_date IS NOT NULL;
+
